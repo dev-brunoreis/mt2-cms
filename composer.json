@@ -4,5 +4,8 @@
         "psr-4": {
             "Mt2Cms\\": "src/"
         }
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.7"
     }
 }

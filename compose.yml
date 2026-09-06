@@ -43,10 +43,15 @@ services:
       - php
 
   php:
-    image: php:8.3-fpm-alpine
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
     working_dir: /var/www
     volumes:
       - .:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   adminer:
     image: adminer

@@ -8,16 +8,20 @@ class Application
 {
     public function __construct()
     {
-        Env::load();
+        $this->loadConfigs();
     }
 
     public function run()
     {
-        echo 'working';
     }
 
     public static function getEnv()
     {
         return Env::getInstance();
+    }
+
+    public static function loadConfigs()
+    {
+        Env::load();
     }
 }

@@ -41,10 +41,12 @@ class AccountRepository extends Repository
         );
     }
 
-    public function create(string $login, string $password): array
+    public function create(string $login, string $email, string $password, string $socialId): array
     {
         $login = $this->assertLogin($login);
+        $email = $this->assertEmail($email);
         $password = $this->assertPassword($password);
+        $socialId = $this->assertSocialId($socialId);
 
         if ($this->findByLogin($login)) {
             throw new \RuntimeException('Login already exists');
@@ -54,9 +56,9 @@ class AccountRepository extends Repository
         $db = $this->db();
 
         $db->execute(
-            'INSERT INTO `account` (`login`, `password`, `create_time`, `last_play`)
-             VALUES (?, ?, ?, ?)',
-            [$login, $this->hashPassword($password), $now, $now],
+            'INSERT INTO `account` (`login`, `email`, `password`, `social_id`, `create_time`)
+             VALUES (?, ?, ?, ?, ?)',
+            [$login, $email, $this->hashPassword($password), $socialId, $now],
         );
 
         $id = (int) $db->lastInsertId();
@@ -122,6 +124,15 @@ class AccountRepository extends Repository
         return $login;
     }
 
+    private function assertEmail(string $email): string
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email');
+        }
+
+        return $email;
+    }
+
     private function assertPassword(string $password): string
     {
         $length = strlen($password);
@@ -131,6 +142,17 @@ class AccountRepository extends Repository
         }
 
         return $password;
+    }
+
+    private function assertSocialId(string $socialid): string
+    {
+        if (!ctype_digit($socialid) || (int) $socialid <= 0) {
+            throw new \InvalidArgumentException(
+                'Social ID must be a positive number'
+            );
+        }
+
+        return $socialid;
     }
 
     private function hashPassword(string $password): string

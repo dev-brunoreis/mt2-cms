@@ -23,13 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $socialId = $_POST['social_id'] ?? '';
+    $success = false;
 
     $accounts = new AccountRepository(new Database());
 
     try {
         $accounts->create($username, $email, $password, $socialId);
+        $success = true;
 
-        echo 'Success';
+        $username = '';
+        $email = '';
+        $socialId = '';
     } catch (\Exception $e) {
         $error = $e->getMessage();
     }
@@ -93,6 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-center text-red-500">
                     <?= htmlspecialchars($error) ?>
                 </p>
+            <?php endif; ?>
+
+            <?php if ($success): ?>
+                <p class="text-center text-green-500">Account created</p>
             <?php endif; ?>
 
             <button type="submit"

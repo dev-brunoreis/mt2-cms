@@ -152,6 +152,12 @@ class AccountRepository extends Repository
             );
         }
 
+        if (strlen($socialid) < 7) {
+            throw new \InvalidArgumentException(
+                'Social ID must be at least 7 characters long.'
+            );
+        }
+
         return $socialid;
     }
 

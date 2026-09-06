@@ -19,7 +19,7 @@ class Database
         $database = $env->get('DB_NAME');
 
         if ($database) {
-            $dsn .= ';dbname=' . $database;
+            $dsn .= ';dbname=' . self::quoteIdentifier($database);
         }
 
         $this->conn = new \PDO(
@@ -29,16 +29,23 @@ class Database
             [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_EMULATE_PREPARES => false,
             ],
         );
     }
 
-    public function useDatabase(string $database): static
+    public static function quoteIdentifier(string $name): string
     {
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $database)) {
-            throw new \InvalidArgumentException('Invalid database name');
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            throw new \InvalidArgumentException('Invalid identifier');
         }
 
+        return $name;
+    }
+
+    public function useDatabase(string $database): static
+    {
+        $database = self::quoteIdentifier($database);
         $this->conn->exec("USE `{$database}`");
 
         return $this;
@@ -47,7 +54,20 @@ class Database
     public function query(string $sql, array $params = []): \PDOStatement
     {
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute($params);
+
+        foreach ($params as $key => $value) {
+            $position = is_int($key) ? $key + 1 : $key;
+            $type = match (true) {
+                is_int($value) => \PDO::PARAM_INT,
+                is_bool($value) => \PDO::PARAM_BOOL,
+                $value === null => \PDO::PARAM_NULL,
+                default => \PDO::PARAM_STR,
+            };
+
+            $stmt->bindValue($position, $value, $type);
+        }
+
+        $stmt->execute();
 
         return $stmt;
     }

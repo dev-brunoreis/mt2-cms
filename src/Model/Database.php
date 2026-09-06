@@ -5,6 +5,7 @@ namespace Mt2Cms\Model;
 class Database
 {
     protected \PDO $conn;
+    protected ?string $currentDatabase = null;
 
     public function __construct()
     {
@@ -19,7 +20,8 @@ class Database
         $database = $env->get('DB_NAME');
 
         if ($database) {
-            $dsn .= ';dbname=' . self::quoteIdentifier($database);
+            $this->currentDatabase = self::quoteIdentifier($database);
+            $dsn .= ';dbname=' . $this->currentDatabase;
         }
 
         $this->conn = new \PDO(
@@ -46,7 +48,13 @@ class Database
     public function useDatabase(string $database): static
     {
         $database = self::quoteIdentifier($database);
+
+        if ($this->currentDatabase === $database) {
+            return $this;
+        }
+
         $this->conn->exec("USE `{$database}`");
+        $this->currentDatabase = $database;
 
         return $this;
     }

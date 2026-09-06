@@ -1,0 +1,8 @@
+{
+    "name": "dev-brunoreis/mt2-cms",
+    "autoload": {
+        "psr-4": {
+            "Mt2Cms\\": "src/"
+        }
+    }
+}

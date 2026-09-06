@@ -2,7 +2,6 @@
 
 namespace Mt2Cms;
 
-use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 
 class Application

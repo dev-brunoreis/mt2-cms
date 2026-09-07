@@ -6,6 +6,7 @@ namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Auth\RateLimiter;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
@@ -13,14 +14,18 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AuthController extends Controller
 {
+    private RateLimiter $rateLimiter;
+
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
         Csrf $csrf,
         Translator $translator,
         private AccountRepository $accounts,
+        ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
+        $this->rateLimiter = $rateLimiter ?? new RateLimiter();
     }
 
     public function showLogin(): Response
@@ -42,10 +47,18 @@ class AuthController extends Controller
             return $this->authForm('login', error: $this->t('auth.invalid_csrf'), status: 400);
         }
 
+        $bucket = $this->authBucket('login');
+
+        if ($this->rateLimiter->tooManyAttempts($bucket)) {
+            return $this->authForm('login', error: $this->t('auth.too_many_attempts'), status: 429);
+        }
+
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
 
         if (!$this->auth->attempt($username, $password)) {
+            $this->rateLimiter->hit($bucket);
+
             return $this->authForm(
                 'login',
                 username: $username,
@@ -54,6 +67,7 @@ class AuthController extends Controller
             );
         }
 
+        $this->rateLimiter->clear($bucket);
         $this->flash('success', $this->t('auth.welcome_back'));
 
         return $this->redirect('/account');
@@ -90,13 +104,29 @@ class AuthController extends Controller
             );
         }
 
+        $bucket = $this->authBucket('register');
+
+        if ($this->rateLimiter->tooManyAttempts($bucket)) {
+            return $this->authForm(
+                'register',
+                username: $username,
+                email: $email,
+                socialId: $socialId,
+                error: $this->t('auth.too_many_attempts'),
+                status: 429,
+            );
+        }
+
         try {
             $this->accounts->create($username, $email, $password, $socialId);
             $this->auth->attempt($username, $password);
+            $this->rateLimiter->clear($bucket);
             $this->flash('success', $this->t('auth.account_created'));
 
             return $this->redirect('/account');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
+            $this->rateLimiter->hit($bucket);
+
             return $this->authForm(
                 'register',
                 username: $username,
@@ -120,6 +150,13 @@ class AuthController extends Controller
         $this->flash('success', $this->t('auth.logged_out'));
 
         return $this->redirect('/');
+    }
+
+    private function authBucket(string $action): string
+    {
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+
+        return $action . ':' . $ip;
     }
 
     private function authForm(

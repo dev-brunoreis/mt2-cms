@@ -1,0 +1,22 @@
+---
+description: How to add pages, repositories, themes, and locales in Mt2 CMS
+globs: src/**/*,themes/**/*,lang/**/*
+alwaysApply: false
+---
+
+# Implementing features
+
+Follow the project guides — do not invent a parallel stack:
+
+- Pages: `docs/add-page.md` (route → controller → layout JSON → Twig → i18n)
+- Repositories: `docs/add-repository.md` (PDO prepared, `reveal()`, DI in `Application`)
+- Themes: `docs/add-theme.md` (parent theme, override by path and node `id`)
+- Locales: `docs/add-locale.md` (keys in `en.json` and `pt-BR.json`)
+
+## Must not skip
+
+- Register routes and new controllers in `src/Application.php`
+- POST handlers call `assertCsrf()`
+- Auth-only pages call `requireAuth()`
+- Add translation keys to **both** `lang/en.json` and `lang/pt-BR.json`
+- Do not reformat or rewrite unrelated files

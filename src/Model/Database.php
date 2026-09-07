@@ -26,10 +26,16 @@ class Database
             $dsn .= ';dbname=' . $this->currentDatabase;
         }
 
+        $password = $env->get('DB_PASSWORD');
+
+        if ($password === null || $password === '') {
+            throw new \RuntimeException('DB_PASSWORD is required. Copy .env-example to .env and set it.');
+        }
+
         $this->conn = new \PDO(
             $dsn,
             $env->get('DB_USER', 'root'),
-            $env->get('DB_PASSWORD', 'admin123@'),
+            (string) $password,
             [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,

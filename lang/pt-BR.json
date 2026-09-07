@@ -36,7 +36,8 @@
     "invalid_csrf": "Token de segurança inválido. Tente novamente.",
     "invalid_csrf_short": "Token de segurança inválido.",
     "invalid_credentials": "Usuário ou senha inválidos.",
-    "login_required": "Faça login para continuar."
+    "login_required": "Faça login para continuar.",
+    "too_many_attempts": "Muitas tentativas. Tente novamente mais tarde."
   },
   "account": {
     "title": "Minha conta",

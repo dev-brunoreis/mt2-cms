@@ -23,6 +23,8 @@ class Auth
             return false;
         }
 
+        session_regenerate_id(true);
+
         $_SESSION[self::SESSION_ID] = (int) $account['id'];
         $_SESSION[self::SESSION_LOGIN] = (string) $account['login'];
 

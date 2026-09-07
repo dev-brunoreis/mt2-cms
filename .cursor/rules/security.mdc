@@ -1,0 +1,24 @@
+---
+description: Security rules for Mt2 CMS (SQL, CSRF, XSS, secrets)
+globs: src/**/*,themes/**/*,lang/**/*
+alwaysApply: false
+---
+
+# Security
+
+See `docs/security.md` for the full checklist.
+
+## Required
+
+- SQL: prepared statements only (`?` + bind). Never interpolate request data into SQL.
+- POST: always validate CSRF via `assertCsrf()` / `_csrf`
+- Twig: rely on autoescape; never `|raw` on user or DB data (slots already rendered by Twig are OK)
+- Auth failures: generic messages; use `hash_equals` for secrets
+- Redirects: internal paths only (`safeRedirect` pattern)
+- Response headers: use `Response` / `withHeader()` — do not call `header()` in controllers
+- Never log or expose passwords, PINs, or password hashes
+- Do not hardcode `DB_PASSWORD` in source; it must come from `.env`
+
+## Password hash
+
+Keep Metin2-compatible `*SHA1(SHA1)` storage unless there is an explicit game-client migration plan.

@@ -39,6 +39,7 @@ class Application
     public function __construct()
     {
         self::loadConfigs();
+        $this->configureSession();
 
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
@@ -177,5 +178,21 @@ class Application
     public static function loadConfigs(): void
     {
         Env::load();
+    }
+
+    private function configureSession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        $https = $_SERVER['HTTPS'] ?? '';
+        $secure = $https !== '' && $https !== 'off';
+
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.cookie_samesite', 'Lax');
+        ini_set('session.cookie_secure', $secure ? '1' : '0');
     }
 }

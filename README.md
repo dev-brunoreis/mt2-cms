@@ -1,6 +1,6 @@
 # Mt2 CMS
 
-Metin2 CMS with routing, overridable themes, account area, and player ranking.
+Metin2 CMS with routing, overridable themes, account area, player ranking, and i18n.
 
 ## Stack
 
@@ -22,14 +22,17 @@ Metin2 CMS with routing, overridable themes, account area, and player ranking.
 public/index.php          Front controller → Application::run()
 src/
   Application.php         Bootstrap, session, DI, FastRoute dispatch
-  Auth/                   Session auth + CSRF
+  Auth/                   Session auth + CSRF + rate limit
   Http/Controller/        Thin controllers
   Theme/                  Theme chain, layout JSON merge, Twig render
+  I18n/                   Locale files + Translator
   Model/                  Env + PDO Database
   Repository/             account / player / common / log
 themes/
   default/                Base theme (layouts + Twig atoms)
   overlay-demo/           Example child theme (navbar override)
+lang/                     Locale JSON (`en`, `pt-BR`, …)
+docs/                     How-to guides for new features
 ```
 
 `Database` connects without a default schema; each repository calls `useDatabase()`.
@@ -48,9 +51,10 @@ Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are stripped befo
 | Method | Path | Notes |
 | --- | --- | --- |
 | GET | `/` | Home |
-| GET/POST | `/register` | Account registration |
-| GET/POST | `/login` | Login |
+| GET/POST | `/register` | Account registration (CSRF, rate limited) |
+| GET/POST | `/login` | Login (CSRF, rate limited) |
 | POST | `/logout` | Logout (CSRF) |
+| POST | `/locale` | Switch locale cookie (CSRF) |
 | GET | `/account` | My account + characters (auth required) |
 | GET | `/ranking` | Paged ranking (`?q=&page=`) |
 | GET | `/player/{name}` | Public player profile |
@@ -68,6 +72,22 @@ Themes live under `themes/{name}/`:
 Example child theme `overlay-demo` only overrides `components/navbar.twig`. Set `THEME=overlay-demo` to try it.
 
 Layout merge is deep **by node `id`**, so a child can replace only the navbar without copying the full layout.
+
+## Implementing
+
+| Guide | When to use |
+| --- | --- |
+| [docs/add-page.md](docs/add-page.md) | New public or authenticated page |
+| [docs/add-repository.md](docs/add-repository.md) | New game DB queries |
+| [docs/add-theme.md](docs/add-theme.md) | Child theme / overlay |
+| [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
+| [docs/security.md](docs/security.md) | Security rules and PR checklist |
+
+## Security
+
+HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP compatible with the Tailwind CDN). Sessions use hardened cookies and regenerate on login. Login/register are rate limited. Passwords use Metin2-compatible `*SHA1(SHA1)` hashing (game client requirement).
+
+See [docs/security.md](docs/security.md) for the full checklist.
 
 ## Requirements
 
@@ -89,22 +109,23 @@ composer install
 | Game MySQL 5.6 | `localhost:8001` |
 | CMS MySQL 8.0 | `localhost:8002` |
 
-Default MySQL root password in Compose: `admin123@`.
+Default MySQL root password in Compose (dev fixture): `admin123@`. Set it explicitly in `.env` — there is no hardcoded runtime fallback.
 
 On first start of `game`, `docker/mysql/init` creates the four schemas and imports `docker/mysql/backup/*.sql`.
 
 ## Environment
 
-Copy `.env-example` to `.env`. Variables read by `Mt2Cms\Model\Database` / theme:
+Copy `.env-example` to `.env`. Variables read by the app:
 
 | Variable | Default in code | Notes |
 | --- | --- | --- |
 | `DB_HOST` | `game` | Must be the **game** MySQL service for Mt2 tables |
 | `DB_PORT` | `3306` | Internal Docker port |
 | `DB_USER` | `root` | |
-| `DB_PASSWORD` | `admin123@` | |
+| `DB_PASSWORD` | *(required)* | No default; must be set in `.env` |
 | `DB_NAME` | *(empty)* | Optional; repositories switch schema themselves |
 | `THEME` | `default` | Active theme folder under `themes/` |
+| `LOCALE` | `en` | Default locale when no cookie is set |
 
 For registration/login against `account.account`, use:
 
@@ -114,6 +135,7 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=admin123@
 THEME=default
+LOCALE=en
 ```
 
 From the host (not from a container), use `127.0.0.1` and port `8001`.
@@ -139,8 +161,8 @@ Duplicate logins raise `Login already exists`. Blocked accounts (`status = BLOCK
 
 ## Current status
 
-- Working: Docker stack, PDO layer, repositories, front controller, themes, auth/account, ranking/player pages.
-- Not built yet: CMS MySQL usage, admin panels, password change, i18n.
+- Working: Docker stack, PDO layer, repositories, front controller, themes, auth/account, ranking/player pages, i18n (`en`, `pt-BR`), locale cookie, security headers, session hardening, auth rate limit.
+- Not built yet: CMS MySQL usage, admin panels, password change.
 
 ## License
 

@@ -40,7 +40,8 @@
     "invalid_csrf": "Invalid security token. Please try again.",
     "invalid_csrf_short": "Invalid security token.",
     "invalid_credentials": "Invalid username or password.",
-    "login_required": "Please log in to continue."
+    "login_required": "Please log in to continue.",
+    "too_many_attempts": "Too many attempts. Please try again later."
   },
   "account": {
     "title": "My Account",

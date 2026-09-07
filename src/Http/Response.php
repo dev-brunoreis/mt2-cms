@@ -6,11 +6,35 @@ namespace Mt2Cms\Http;
 
 class Response
 {
+    /** @var array<string, string> */
+    private const SECURITY_HEADERS = [
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'DENY',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Content-Security-Policy' => "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+    ];
+
+    /** @var array<string, string> */
+    private array $headers;
+
+    /**
+     * @param array<string, string> $headers
+     */
     public function __construct(
         private string $body = '',
         private int $status = 200,
-        private array $headers = ['Content-Type' => 'text/html; charset=UTF-8'],
+        array $headers = [],
+        bool $withDefaults = true,
     ) {
+        if ($withDefaults) {
+            $this->headers = array_merge(
+                self::SECURITY_HEADERS,
+                ['Content-Type' => 'text/html; charset=UTF-8'],
+                $headers,
+            );
+        } else {
+            $this->headers = $headers;
+        }
     }
 
     public static function html(string $body, int $status = 200): self
@@ -26,6 +50,14 @@ class Response
     public static function notFound(string $body = 'Not Found'): self
     {
         return new self($body, 404);
+    }
+
+    public function withHeader(string $name, string $value): self
+    {
+        $headers = $this->headers;
+        $headers[$name] = $value;
+
+        return new self($this->body, $this->status, $headers, false);
     }
 
     public function withCookie(string $name, string $value, int $maxAge = 31_536_000): self
@@ -44,10 +76,7 @@ class Response
             $parts[] = 'Secure';
         }
 
-        $headers = $this->headers;
-        $headers['Set-Cookie'] = implode('; ', $parts);
-
-        return new self($this->body, $this->status, $headers);
+        return $this->withHeader('Set-Cookie', implode('; ', $parts));
     }
 
     public function send(): void

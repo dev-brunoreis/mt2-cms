@@ -1,0 +1,27 @@
+<header class="border-b-2 border-amber-500 bg-slate-900">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+        <a href="/" class="text-lg font-bold tracking-tight text-amber-400 hover:text-amber-300 transition">
+            Mt2 CMS · Overlay
+        </a>
+
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+            <a href="/ranking" class="text-amber-200/80 hover:text-amber-100 transition">Ranking</a>
+
+            {% if auth.check %}
+                <a href="/account" class="text-amber-200/80 hover:text-amber-100 transition">My Account</a>
+                <form method="post" action="/logout" class="inline">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <button type="submit" class="cursor-pointer text-amber-400/60 hover:text-red-400 transition">
+                        Logout
+                    </button>
+                </form>
+            {% else %}
+                <a href="/login" class="text-amber-200/80 hover:text-amber-100 transition">Login</a>
+                <a href="/register"
+                   class="rounded-lg bg-amber-500 px-3 py-1.5 font-medium text-slate-950 hover:bg-amber-400 transition">
+                    Register
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+</header>

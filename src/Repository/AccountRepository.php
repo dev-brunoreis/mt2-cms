@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mt2Cms\Repository;
 
 class AccountRepository extends Repository
@@ -29,6 +31,35 @@ class AccountRepository extends Repository
                 [$login],
             ),
         );
+    }
+
+    /**
+     * Verify credentials. Returns a public account row or null.
+     * Password is never returned.
+     */
+    public function authenticate(string $login, string $password): ?array
+    {
+        $row = $this->db()->fetch(
+            'SELECT id, login, password, status, empire, cash, mileage, create_time, last_play
+             FROM `account` WHERE login = ?',
+            [$login],
+        );
+
+        if ($row === null) {
+            return null;
+        }
+
+        if (($row['status'] ?? '') === 'BLOCK') {
+            return null;
+        }
+
+        $hash = (string) ($row['password'] ?? '');
+
+        if ($hash === '' || !hash_equals($hash, $this->hashPassword($password))) {
+            return null;
+        }
+
+        return $this->reveal($row);
     }
 
     public function all(): array

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>{{ title|default('Mt2 CMS') }} — Mt2 CMS</title>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    {{ slots.header|raw }}
+
+    <div class="flex-1 w-full max-w-6xl mx-auto px-4 py-8 {% if slots.sidebar %}flex gap-8{% endif %}">
+        {% if slots.sidebar %}
+            <aside class="w-56 shrink-0">
+                {{ slots.sidebar|raw }}
+            </aside>
+        {% endif %}
+
+        <main class="flex-1 min-w-0">
+            {% if flash %}
+                <div class="mb-6 rounded-lg border px-4 py-3 text-sm
+                    {% if flash.type == 'success' %}border-emerald-700 bg-emerald-950/50 text-emerald-300
+                    {% else %}border-red-700 bg-red-950/50 text-red-300{% endif %}">
+                    {{ flash.message }}
+                </div>
+            {% endif %}
+
+            {{ slots.main|raw }}
+        </main>
+    </div>
+
+    {{ slots.footer|raw }}
+</body>
+</html>

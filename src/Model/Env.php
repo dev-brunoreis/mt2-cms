@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mt2Cms\Model;
 
 class Env

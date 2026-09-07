@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mt2Cms\Repository;
 
 use Mt2Cms\Model\Database;

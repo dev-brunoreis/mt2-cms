@@ -6,6 +6,8 @@
         }
     },
     "require": {
-        "vlucas/phpdotenv": "^5.7"
+        "vlucas/phpdotenv": "^5.7",
+        "twig/twig": "^3.28",
+        "nikic/fast-route": "^1.3"
     }
 }

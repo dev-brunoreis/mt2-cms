@@ -1,8 +1,6 @@
 # Mt2 CMS
 
-Simple page registration.
-
-The project is early-stage: repositories and Docker are in place; routing and a full admin UI are not.
+Metin2 CMS with routing, overridable themes, account area, and player ranking.
 
 ## Stack
 
@@ -11,65 +9,82 @@ The project is early-stage: repositories and Docker are in place; routing and a 
 | Runtime | PHP 8.3 FPM |
 | Web | Nginx |
 | Game database | MySQL 5.6 (`game` service) |
-| CMS database | MySQL 8.0 (`mysql` service, database `cms`) |
+| CMS database | MySQL 8.0 (`mysql` service, database `cms`, reserved) |
 | Autoload | Composer PSR-4 (`Mt2Cms\` → `src/`) |
 | Config | `vlucas/phpdotenv` |
-| UI | Tailwind CSS (CDN) on `public/index.php` |
+| Router | `nikic/fast-route` |
+| Templates | Twig + JSON layout trees |
+| UI | Tailwind CSS (CDN) via theme shell |
 
 ## Architecture
 
 ```
-public/                 HTTP entry (document root)
+public/index.php          Front controller → Application::run()
 src/
-  Application.php       Env bootstrap (not used by the registration page yet)
-  Model/
-    Env.php             Singleton env loader
-    Database.php        PDO wrapper, multi-database `USE`
-  Repository/
-    Repository.php      Base class, strips sensitive columns
-    AccountRepository.php
-    PlayerRepository.php
-    CommonRepository.php
-    LogRepository.php
-docker/
-  php/                  PHP-FPM image
-  nginx/                vhost → public/
-  mysql/init/           Create + import Mt2 dumps
-  mysql/backup/         SQL dumps: account, player, common, log
+  Application.php         Bootstrap, session, DI, FastRoute dispatch
+  Auth/                   Session auth + CSRF
+  Http/Controller/        Thin controllers
+  Theme/                  Theme chain, layout JSON merge, Twig render
+  Model/                  Env + PDO Database
+  Repository/             account / player / common / log
+themes/
+  default/                Base theme (layouts + Twig atoms)
+  overlay-demo/           Example child theme (navbar override)
 ```
 
-`Database` connects without a default schema, then each repository calls `useDatabase()`:
+`Database` connects without a default schema; each repository calls `useDatabase()`.
 
 | Repository | Schema | Role |
 | --- | --- | --- |
-| `AccountRepository` | `account` | Find, create, block/unblock, delete accounts |
-| `PlayerRepository` | `player` | Characters by id, name, or account |
+| `AccountRepository` | `account` | Find, create, authenticate, block/unblock |
+| `PlayerRepository` | `player` | Characters, public ranking, public profile |
 | `CommonRepository` | `common` | GM list and locales |
 | `LogRepository` | `log` | Recent login log rows |
 
-Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are removed before results are returned.
+Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are stripped before public results.
+
+## Routes
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/` | Home |
+| GET/POST | `/register` | Account registration |
+| GET/POST | `/login` | Login |
+| POST | `/logout` | Logout (CSRF) |
+| GET | `/account` | My account + characters (auth required) |
+| GET | `/ranking` | Paged ranking (`?q=&page=`) |
+| GET | `/player/{name}` | Public player profile |
+
+## Themes
+
+Set `THEME` in `.env` (default `default`).
+
+Themes live under `themes/{name}/`:
+
+- `theme.json` — `{ "name", "parent" }`
+- `layouts/*.json` — recursive atomic layout trees (`id`, `template`, `slots`)
+- `templates/` — Twig atoms; child theme paths win over parents
+
+Example child theme `overlay-demo` only overrides `components/navbar.twig`. Set `THEME=overlay-demo` to try it.
+
+Layout merge is deep **by node `id`**, so a child can replace only the navbar without copying the full layout.
 
 ## Requirements
 
 - Docker and Docker Compose
-- Composer (on the host, or run inside the `php` container)
+- Composer (on the host, or run inside a container that has Composer)
 
 ## Quick start
 
 ```bash
 cp .env-example .env
 docker compose up --build
-```
-
-Install PHP dependencies:
-
-```bash
-docker compose exec php composer install
+composer install
 ```
 
 | Service | URL / port |
 | --- | --- |
-| Registration (Nginx) | http://localhost:8000 |
+| Site (Nginx) | http://localhost:8000 |
 | Adminer | http://localhost:8080 |
 | Game MySQL 5.6 | `localhost:8001` |
 | CMS MySQL 8.0 | `localhost:8002` |
@@ -80,7 +95,7 @@ On first start of `game`, `docker/mysql/init` creates the four schemas and impor
 
 ## Environment
 
-Copy `.env-example` to `.env`. Variables read by `Mt2Cms\Model\Database`:
+Copy `.env-example` to `.env`. Variables read by `Mt2Cms\Model\Database` / theme:
 
 | Variable | Default in code | Notes |
 | --- | --- | --- |
@@ -89,21 +104,23 @@ Copy `.env-example` to `.env`. Variables read by `Mt2Cms\Model\Database`:
 | `DB_USER` | `root` | |
 | `DB_PASSWORD` | `admin123@` | |
 | `DB_NAME` | *(empty)* | Optional; repositories switch schema themselves |
+| `THEME` | `default` | Active theme folder under `themes/` |
 
-`.env-example` currently sets `DB_HOST=mysql`. That host is the CMS MySQL 8 instance (`cms`), **not** the Mt2 dumps. For registration against `account.account`, use:
+For registration/login against `account.account`, use:
 
 ```env
 DB_HOST=game
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=admin123@
+THEME=default
 ```
 
 From the host (not from a container), use `127.0.0.1` and port `8001`.
 
 ## Account registration
 
-`POST /` (`public/index.php`) creates a row in `account.account`.
+`POST /register` creates a row in `account.account`.
 
 | Field | Rules |
 | --- | --- |
@@ -114,7 +131,7 @@ From the host (not from a container), use `127.0.0.1` and port `8001`.
 
 Passwords are stored in MySQL `PASSWORD()` style (`*` + SHA1(SHA1(password, binary)), uppercase) so they match the game client.
 
-Duplicate logins raise `Login already exists`.
+Duplicate logins raise `Login already exists`. Blocked accounts (`status = BLOCK`) cannot log in.
 
 ## Local dumps
 
@@ -122,8 +139,8 @@ Duplicate logins raise `Login already exists`.
 
 ## Current status
 
-- Working: Docker stack, PDO layer, account/player/common/log repositories, registration form.
-- Not built yet: `Application::run()` routing, CMS MySQL usage, admin panels, auth for staff.
+- Working: Docker stack, PDO layer, repositories, front controller, themes, auth/account, ranking/player pages.
+- Not built yet: CMS MySQL usage, admin panels, password change, i18n.
 
 ## License
 

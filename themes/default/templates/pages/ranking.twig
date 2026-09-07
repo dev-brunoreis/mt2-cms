@@ -1,0 +1,80 @@
+<section class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Player Ranking</h1>
+            <p class="mt-1 text-sm text-slate-400">
+                {{ total }} player{{ total != 1 ? 's' : '' }}
+                {% if query %} matching “{{ query }}”{% endif %}
+            </p>
+        </div>
+
+        <form method="get" action="/ranking" class="flex gap-2">
+            <input type="search" name="q" value="{{ query }}" placeholder="Search by name"
+                   class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            <button type="submit"
+                    class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition">
+                Search
+            </button>
+        </form>
+    </div>
+
+    {% if ranking is empty %}
+        <p class="rounded-xl border border-dashed border-slate-700 p-8 text-center text-slate-400">
+            No players found.
+        </p>
+    {% else %}
+        <div class="overflow-hidden rounded-xl border border-slate-800">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-900 text-slate-400">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">#</th>
+                        <th class="px-4 py-3 font-medium">Name</th>
+                        <th class="px-4 py-3 font-medium">Job</th>
+                        <th class="px-4 py-3 font-medium">Level</th>
+                        <th class="px-4 py-3 font-medium">Exp</th>
+                        <th class="px-4 py-3 font-medium">Playtime</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                    {% for player in ranking %}
+                        <tr class="bg-slate-950/40 hover:bg-slate-900/80 transition">
+                            <td class="px-4 py-3 text-slate-500">{{ offset + loop.index }}</td>
+                            <td class="px-4 py-3">
+                                <a href="/player/{{ player.name|url_encode }}"
+                                   class="font-medium text-blue-400 hover:underline">
+                                    {{ player.name }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-3 text-slate-300">{{ player.job|job_name }}</td>
+                            <td class="px-4 py-3 text-slate-300">{{ player.level }}</td>
+                            <td class="px-4 py-3 text-slate-300">{{ player.exp }}</td>
+                            <td class="px-4 py-3 text-slate-300">{{ player.playtime|playtime }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if totalPages > 1 %}
+            <nav class="flex items-center justify-center gap-2 text-sm">
+                {% if page > 1 %}
+                    <a href="/ranking?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                       class="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:border-slate-500 transition">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span class="px-3 py-1.5 text-slate-400">
+                    Page {{ page }} of {{ totalPages }}
+                </span>
+
+                {% if page < totalPages %}
+                    <a href="/ranking?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                       class="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:border-slate-500 transition">
+                        Next
+                    </a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+</section>

@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
 use Mt2Cms\Theme\ThemeEngine;
 
 abstract class Controller
@@ -15,7 +16,16 @@ abstract class Controller
         protected ThemeEngine $theme,
         protected Auth $auth,
         protected Csrf $csrf,
+        protected Translator $translator,
     ) {
+    }
+
+    /**
+     * @param array<string, scalar|null> $replace
+     */
+    protected function t(string $key, array $replace = []): string
+    {
+        return $this->translator->get($key, $replace);
     }
 
     /**
@@ -63,7 +73,7 @@ abstract class Controller
             return null;
         }
 
-        $this->flash('error', 'Please log in to continue.');
+        $this->flash('error', $this->t('auth.login_required'));
 
         return $this->redirect('/login');
     }

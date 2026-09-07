@@ -1,20 +1,20 @@
 <nav class="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-1">
     <p class="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-        Account
+        {{ t('account.sidebar') }}
     </p>
     <a href="/account"
        class="block rounded-lg px-3 py-2 text-sm text-slate-200 bg-slate-800/80">
-        Dashboard
+        {{ t('account.dashboard') }}
     </a>
     <a href="/account#characters"
        class="block rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
-        Characters
+        {{ t('account.characters') }}
     </a>
     <form method="post" action="/logout" class="pt-2">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <button type="submit"
                 class="w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-950/40 transition">
-            Logout
+            {{ t('nav.logout') }}
         </button>
     </form>
 </nav>

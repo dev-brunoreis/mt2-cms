@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\I18n;
+
+class Translator
+{
+    /** @var array<string, mixed> */
+    private array $messages = [];
+
+    public function __construct(
+        private string $path,
+        private string $locale = 'en',
+        private string $fallback = 'en',
+    ) {
+        $this->locale = $this->normalize($locale);
+        $this->fallback = $this->normalize($fallback);
+        $this->messages = $this->load($this->fallback);
+
+        if ($this->locale !== $this->fallback) {
+            $this->messages = $this->merge($this->messages, $this->load($this->locale));
+        }
+    }
+
+    public function locale(): string
+    {
+        return $this->locale;
+    }
+
+    public function htmlLang(): string
+    {
+        return $this->locale;
+    }
+
+    public function has(string $key): bool
+    {
+        return $this->lookup($key) !== null;
+    }
+
+    /**
+     * @param array<string, scalar|null> $replace
+     */
+    public function get(string $key, array $replace = []): string
+    {
+        $value = $this->lookup($key);
+
+        if (is_array($value)) {
+            $n = (int) ($replace['n'] ?? $replace['count'] ?? 0);
+            $value = $n === 1
+                ? ($value['one'] ?? $value['other'] ?? null)
+                : ($value['other'] ?? $value['one'] ?? null);
+        }
+
+        if (!is_string($value) || $value === '') {
+            return $key;
+        }
+
+        foreach ($replace as $name => $replacement) {
+            $value = str_replace('{' . $name . '}', (string) $replacement, $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function load(string $locale): array
+    {
+        $file = $this->path . '/' . $locale . '.json';
+
+        if (!is_file($file)) {
+            return [];
+        }
+
+        $data = json_decode((string) file_get_contents($file), true);
+
+        if (!is_array($data)) {
+            throw new \RuntimeException('Invalid locale JSON: ' . $locale);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $base
+     * @param array<string, mixed> $overlay
+     * @return array<string, mixed>
+     */
+    private function merge(array $base, array $overlay): array
+    {
+        foreach ($overlay as $key => $value) {
+            if (is_array($value) && isset($base[$key]) && is_array($base[$key]) && !$this->isLeafMap($value)) {
+                $base[$key] = $this->merge($base[$key], $value);
+            } else {
+                $base[$key] = $value;
+            }
+        }
+
+        return $base;
+    }
+
+    /**
+     * @param array<mixed> $value
+     */
+    private function isLeafMap(array $value): bool
+    {
+        return isset($value['one']) || isset($value['other']);
+    }
+
+    private function lookup(string $key): mixed
+    {
+        $node = $this->messages;
+
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($node) || !array_key_exists($segment, $node)) {
+                return null;
+            }
+
+            $node = $node[$segment];
+        }
+
+        return $node;
+    }
+
+    private function normalize(string $locale): string
+    {
+        $locale = trim($locale);
+
+        return $locale !== '' ? $locale : 'en';
+    }
+}

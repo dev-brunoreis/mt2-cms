@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ html_lang|default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>{{ title|default('Mt2 CMS') }} — Mt2 CMS</title>
+    <title>{{ title|default(t('app.name')) }} — {{ t('app.name') }}</title>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
     {{ slots.header|raw }}

@@ -80,7 +80,7 @@ class AccountRepository extends Repository
         $socialId = $this->assertSocialId($socialId);
 
         if ($this->findByLogin($login)) {
-            throw new \RuntimeException('Login already exists');
+            throw new \RuntimeException('error.login_exists');
         }
 
         $now = date('Y-m-d H:i:s');
@@ -96,7 +96,7 @@ class AccountRepository extends Repository
         $account = $id > 0 ? $this->findById($id) : $this->findByLogin($login);
 
         if ($account === null) {
-            throw new \RuntimeException('Failed to create account');
+            throw new \RuntimeException('error.account_create_failed');
         }
 
         return $account;
@@ -149,7 +149,7 @@ class AccountRepository extends Repository
     private function assertLogin(string $login): string
     {
         if (!preg_match('/^[A-Za-z0-9_]{2,30}$/', $login)) {
-            throw new \InvalidArgumentException('Invalid login');
+            throw new \InvalidArgumentException('error.invalid_login');
         }
 
         return $login;
@@ -158,7 +158,7 @@ class AccountRepository extends Repository
     private function assertEmail(string $email): string
     {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email');
+            throw new \InvalidArgumentException('error.invalid_email');
         }
 
         return $email;
@@ -169,7 +169,7 @@ class AccountRepository extends Repository
         $length = strlen($password);
 
         if ($length < 5 || $length > 16) {
-            throw new \InvalidArgumentException('Invalid password');
+            throw new \InvalidArgumentException('error.invalid_password');
         }
 
         return $password;
@@ -178,15 +178,11 @@ class AccountRepository extends Repository
     private function assertSocialId(string $socialid): string
     {
         if (!ctype_digit($socialid) || (int) $socialid <= 0) {
-            throw new \InvalidArgumentException(
-                'Social ID must be a positive number'
-            );
+            throw new \InvalidArgumentException('error.invalid_social_id');
         }
 
         if (strlen($socialid) < 7) {
-            throw new \InvalidArgumentException(
-                'Social ID must be at least 7 characters long.'
-            );
+            throw new \InvalidArgumentException('error.social_id_min_length');
         }
 
         return $socialid;

@@ -28,6 +28,28 @@ class Response
         return new self($body, 404);
     }
 
+    public function withCookie(string $name, string $value, int $maxAge = 31_536_000): self
+    {
+        $parts = [
+            rawurlencode($name) . '=' . rawurlencode($value),
+            'Max-Age=' . $maxAge,
+            'Path=/',
+            'HttpOnly',
+            'SameSite=Lax',
+        ];
+
+        $https = $_SERVER['HTTPS'] ?? '';
+
+        if ($https !== '' && $https !== 'off') {
+            $parts[] = 'Secure';
+        }
+
+        $headers = $this->headers;
+        $headers['Set-Cookie'] = implode('; ', $parts);
+
+        return new self($this->body, $this->status, $headers);
+    }
+
     public function send(): void
     {
         http_response_code($this->status);

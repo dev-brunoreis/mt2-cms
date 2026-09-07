@@ -1,42 +1,42 @@
 <section class="space-y-8">
     <div>
-        <h1 class="text-2xl font-bold text-white">My Account</h1>
+        <h1 class="text-2xl font-bold text-white">{{ t('account.title') }}</h1>
         <p class="mt-1 text-slate-400">
-            Logged in as <span class="text-slate-200 font-medium">{{ account.login|default(auth.login) }}</span>
+            {{ t('account.logged_in_as') }} <span class="text-slate-200 font-medium">{{ account.login|default(auth.login) }}</span>
         </p>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p class="text-xs uppercase tracking-wider text-slate-500">Status</p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.status') }}</p>
             <p class="mt-1 text-lg font-semibold text-white">{{ account.status|default('—') }}</p>
         </div>
         <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p class="text-xs uppercase tracking-wider text-slate-500">Empire</p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.empire') }}</p>
             <p class="mt-1 text-lg font-semibold text-white">{{ account.empire|empire_name }}</p>
         </div>
         <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p class="text-xs uppercase tracking-wider text-slate-500">Created</p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.created') }}</p>
             <p class="mt-1 text-lg font-semibold text-white">{{ account.create_time|game_date }}</p>
         </div>
     </div>
 
     <div id="characters">
-        <h2 class="mb-4 text-xl font-semibold text-white">Characters</h2>
+        <h2 class="mb-4 text-xl font-semibold text-white">{{ t('account.characters') }}</h2>
 
         {% if players is empty %}
             <p class="rounded-xl border border-dashed border-slate-700 p-8 text-center text-slate-400">
-                No characters on this account yet.
+                {{ t('account.empty') }}
             </p>
         {% else %}
             <div class="overflow-hidden rounded-xl border border-slate-800">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-900 text-slate-400">
                         <tr>
-                            <th class="px-4 py-3 font-medium">Name</th>
-                            <th class="px-4 py-3 font-medium">Job</th>
-                            <th class="px-4 py-3 font-medium">Level</th>
-                            <th class="px-4 py-3 font-medium">Playtime</th>
+                            <th class="px-4 py-3 font-medium">{{ t('account.name') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ t('account.job') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ t('account.level') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ t('account.playtime') }}</th>
                             <th class="px-4 py-3 font-medium"></th>
                         </tr>
                     </thead>
@@ -49,7 +49,7 @@
                                 <td class="px-4 py-3 text-slate-300">{{ player.playtime|playtime }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="/player/{{ player.name|url_encode }}"
-                                       class="text-blue-400 hover:underline">View</a>
+                                       class="text-blue-400 hover:underline">{{ t('account.view') }}</a>
                                 </td>
                             </tr>
                         {% endfor %}

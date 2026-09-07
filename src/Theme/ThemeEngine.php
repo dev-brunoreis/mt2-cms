@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Theme;
 
+use Mt2Cms\Game\Display;
+use Mt2Cms\I18n\Translator;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
@@ -12,8 +14,15 @@ class ThemeEngine
     private Environment $twig;
     private ThemeResolver $resolver;
 
-    public function __construct(string $themesPath, string $activeTheme)
-    {
+    /**
+     * @param list<array{code: string, name: string}> $locales
+     */
+    public function __construct(
+        string $themesPath,
+        string $activeTheme,
+        Translator $translator,
+        array $locales = [],
+    ) {
         $this->resolver = new ThemeResolver($themesPath, $activeTheme);
         $paths = $this->resolver->templatePaths();
 
@@ -25,7 +34,26 @@ class ThemeEngine
             'autoescape' => 'html',
             'strict_variables' => false,
         ]);
-        $this->twig->addExtension(new TwigExtension());
+        $this->twig->addExtension(new TwigExtension(new Display($translator), $translator));
+        $this->twig->addGlobal('locale', $translator->locale());
+        $this->twig->addGlobal('html_lang', $translator->htmlLang());
+        $this->twig->addGlobal('locales', $locales);
+        $this->twig->addGlobal('current_path', $this->currentPath());
+    }
+
+    private function currentPath(): string
+    {
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+
+        if ($uri === '' || $uri[0] !== '/' || str_starts_with($uri, '//')) {
+            return '/';
+        }
+
+        if (str_contains($uri, "\r") || str_contains($uri, "\n")) {
+            return '/';
+        }
+
+        return $uri;
     }
 
     /**

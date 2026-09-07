@@ -11,7 +11,7 @@ class HomeController extends Controller
     public function index(): Response
     {
         return $this->view('home', [
-            'title' => 'Home',
+            'title' => $this->t('nav.home'),
         ]);
     }
 }

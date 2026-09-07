@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -16,9 +17,10 @@ class AccountController extends Controller
         ThemeEngine $theme,
         Auth $auth,
         Csrf $csrf,
+        Translator $translator,
         private PlayerRepository $players,
     ) {
-        parent::__construct($theme, $auth, $csrf);
+        parent::__construct($theme, $auth, $csrf, $translator);
     }
 
     public function index(): Response
@@ -33,7 +35,7 @@ class AccountController extends Controller
             : [];
 
         return $this->view('account', [
-            'title' => 'My Account',
+            'title' => $this->t('account.title'),
             'account' => $this->auth->user(),
             'players' => $players,
         ]);

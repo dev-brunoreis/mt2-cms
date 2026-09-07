@@ -1,25 +1,26 @@
 <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
     <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
         <a href="/" class="text-lg font-bold tracking-tight text-white hover:text-blue-400 transition">
-            Mt2 CMS
+            {{ t('app.name') }}
         </a>
 
         <div class="flex flex-wrap items-center gap-4 text-sm">
-            <a href="/ranking" class="text-slate-300 hover:text-white transition">Ranking</a>
+            {% include 'components/locale-switcher.twig' %}
+            <a href="/ranking" class="text-slate-300 hover:text-white transition">{{ t('nav.ranking') }}</a>
 
             {% if auth.check %}
-                <a href="/account" class="text-slate-300 hover:text-white transition">My Account</a>
+                <a href="/account" class="text-slate-300 hover:text-white transition">{{ t('nav.account') }}</a>
                 <form method="post" action="/logout" class="inline">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                     <button type="submit" class="cursor-pointer text-slate-400 hover:text-red-400 transition">
-                        Logout
+                        {{ t('nav.logout') }}
                     </button>
                 </form>
             {% else %}
-                <a href="/login" class="text-slate-300 hover:text-white transition">Login</a>
+                <a href="/login" class="text-slate-300 hover:text-white transition">{{ t('nav.login') }}</a>
                 <a href="/register"
                    class="rounded-lg bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-500 transition">
-                    Register
+                    {{ t('nav.register') }}
                 </a>
             {% endif %}
         </div>

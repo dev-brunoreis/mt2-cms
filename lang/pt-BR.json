@@ -1,0 +1,139 @@
+{
+  "locale": {
+    "label": "Idioma",
+    "name": "Português"
+  },
+  "nav": {
+    "home": "Início",
+    "ranking": "Ranking",
+    "account": "Minha conta",
+    "login": "Entrar",
+    "register": "Registrar",
+    "logout": "Sair"
+  },
+  "home": {
+    "title": "Bem-vindo ao Mt2 CMS",
+    "lead": "Crie uma conta, gerencie seus personagens e veja o ranking de jogadores.",
+    "view_ranking": "Ver ranking",
+    "create_account": "Criar conta"
+  },
+  "auth": {
+    "login_title": "Entrar",
+    "register_title": "Criar conta",
+    "username": "Usuário",
+    "email": "E-mail",
+    "password": "Senha",
+    "social_id": "PIN de exclusão de personagem",
+    "submit_login": "Entrar",
+    "submit_register": "Criar conta",
+    "no_account": "Não tem conta?",
+    "register_link": "Registrar",
+    "have_account": "Já tem uma conta?",
+    "login_link": "Entrar",
+    "welcome_back": "Bem-vindo de volta.",
+    "account_created": "Conta criada com sucesso.",
+    "logged_out": "Você saiu da conta.",
+    "invalid_csrf": "Token de segurança inválido. Tente novamente.",
+    "invalid_csrf_short": "Token de segurança inválido.",
+    "invalid_credentials": "Usuário ou senha inválidos.",
+    "login_required": "Faça login para continuar."
+  },
+  "account": {
+    "title": "Minha conta",
+    "logged_in_as": "Conectado como",
+    "status": "Status",
+    "empire": "Império",
+    "created": "Criado em",
+    "characters": "Personagens",
+    "empty": "Ainda não há personagens nesta conta.",
+    "name": "Nome",
+    "job": "Classe",
+    "level": "Nível",
+    "playtime": "Tempo de jogo",
+    "view": "Ver",
+    "sidebar": "Conta",
+    "dashboard": "Painel"
+  },
+  "ranking": {
+    "title": "Ranking de jogadores",
+    "player_count": {
+      "one": "{count} jogador",
+      "other": "{count} jogadores"
+    },
+    "matching": "correspondendo a “{query}”",
+    "search_placeholder": "Buscar por nome",
+    "search": "Buscar",
+    "empty": "Nenhum jogador encontrado.",
+    "rank": "#",
+    "name": "Nome",
+    "job": "Classe",
+    "level": "Nível",
+    "exp": "Exp",
+    "playtime": "Tempo de jogo",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page_of": "Página {page} de {total}"
+  },
+  "player": {
+    "not_found_title": "Jogador não encontrado",
+    "not_found_body": "Este personagem não existe.",
+    "back_to_ranking": "Voltar ao ranking",
+    "job": "Classe",
+    "level": "Nível",
+    "experience": "Experiência",
+    "playtime": "Tempo de jogo",
+    "last_play": "Último jogo",
+    "map": "Mapa"
+  },
+  "http": {
+    "not_found": "Não encontrado",
+    "method_not_allowed": "Método não permitido"
+  },
+  "job": {
+    "0": "Guerreiro",
+    "1": "Ninja",
+    "2": "Sura",
+    "3": "Shaman",
+    "4": "Guerreira",
+    "5": "Ninja",
+    "6": "Sura",
+    "7": "Shaman",
+    "8": "Lycan",
+    "unknown": "Desconhecido"
+  },
+  "empire": {
+    "1": "Reino Vermelho",
+    "2": "Reino Amarelo",
+    "3": "Reino Azul",
+    "none": "Nenhum"
+  },
+  "datetime": {
+    "never": "Nunca",
+    "now": "agora",
+    "minutes": "há {n} min",
+    "hours": "há {n}h",
+    "days": {
+      "one": "há {n} dia",
+      "other": "há {n} dias"
+    },
+    "months": {
+      "one": "há {n} mês",
+      "other": "há {n} meses"
+    },
+    "years": {
+      "one": "há {n} ano",
+      "other": "há {n} anos"
+    },
+    "combined": "{relative} · {calendar}",
+    "calendar_format": "d/m/Y H:i"
+  },
+  "error": {
+    "login_exists": "Este login já existe",
+    "account_create_failed": "Falha ao criar a conta",
+    "invalid_login": "Login inválido",
+    "invalid_email": "E-mail inválido",
+    "invalid_password": "A senha deve ter entre 5 e 16 caracteres",
+    "invalid_social_id": "O PIN deve ser um número positivo",
+    "social_id_min_length": "O PIN deve ter pelo menos 7 caracteres"
+  }
+}

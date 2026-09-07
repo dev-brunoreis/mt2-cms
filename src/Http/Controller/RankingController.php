@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -18,9 +19,10 @@ class RankingController extends Controller
         ThemeEngine $theme,
         Auth $auth,
         Csrf $csrf,
+        Translator $translator,
         private PlayerRepository $players,
     ) {
-        parent::__construct($theme, $auth, $csrf);
+        parent::__construct($theme, $auth, $csrf, $translator);
     }
 
     public function index(): Response
@@ -39,7 +41,7 @@ class RankingController extends Controller
         $offset = ($page - 1) * self::PER_PAGE;
 
         return $this->view('ranking', [
-            'title' => 'Ranking',
+            'title' => $this->t('nav.ranking'),
             'ranking' => $ranking,
             'query' => $q,
             'page' => $page,

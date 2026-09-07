@@ -1,0 +1,148 @@
+{
+  "app": {
+    "name": "Mt2 CMS",
+    "overlay_name": "Mt2 CMS · Overlay"
+  },
+  "locale": {
+    "label": "Language",
+    "name": "English"
+  },
+  "nav": {
+    "home": "Home",
+    "ranking": "Ranking",
+    "account": "My Account",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Welcome to Mt2 CMS",
+    "lead": "Create an account, manage your characters, and browse the player ranking.",
+    "view_ranking": "View Ranking",
+    "create_account": "Create Account"
+  },
+  "auth": {
+    "login_title": "Login",
+    "register_title": "Create Account",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "social_id": "Delete Character PIN",
+    "submit_login": "Login",
+    "submit_register": "Create Account",
+    "no_account": "No account?",
+    "register_link": "Register",
+    "have_account": "Already have an account?",
+    "login_link": "Login",
+    "welcome_back": "Welcome back.",
+    "account_created": "Account created successfully.",
+    "logged_out": "You have been logged out.",
+    "invalid_csrf": "Invalid security token. Please try again.",
+    "invalid_csrf_short": "Invalid security token.",
+    "invalid_credentials": "Invalid username or password.",
+    "login_required": "Please log in to continue."
+  },
+  "account": {
+    "title": "My Account",
+    "logged_in_as": "Logged in as",
+    "status": "Status",
+    "empire": "Empire",
+    "created": "Created",
+    "characters": "Characters",
+    "empty": "No characters on this account yet.",
+    "name": "Name",
+    "job": "Job",
+    "level": "Level",
+    "playtime": "Playtime",
+    "view": "View",
+    "sidebar": "Account",
+    "dashboard": "Dashboard"
+  },
+  "ranking": {
+    "title": "Player Ranking",
+    "player_count": {
+      "one": "{count} player",
+      "other": "{count} players"
+    },
+    "matching": "matching “{query}”",
+    "search_placeholder": "Search by name",
+    "search": "Search",
+    "empty": "No players found.",
+    "rank": "#",
+    "name": "Name",
+    "job": "Job",
+    "level": "Level",
+    "exp": "Exp",
+    "playtime": "Playtime",
+    "previous": "Previous",
+    "next": "Next",
+    "page_of": "Page {page} of {total}"
+  },
+  "player": {
+    "not_found_title": "Player not found",
+    "not_found_body": "This character does not exist.",
+    "back_to_ranking": "Back to ranking",
+    "job": "Job",
+    "level": "Level",
+    "experience": "Experience",
+    "playtime": "Playtime",
+    "last_play": "Last play",
+    "map": "Map"
+  },
+  "http": {
+    "not_found": "Not Found",
+    "method_not_allowed": "Method Not Allowed"
+  },
+  "job": {
+    "0": "Warrior",
+    "1": "Ninja",
+    "2": "Sura",
+    "3": "Shaman",
+    "4": "Warrior",
+    "5": "Ninja",
+    "6": "Sura",
+    "7": "Shaman",
+    "8": "Lycan",
+    "unknown": "Unknown"
+  },
+  "empire": {
+    "1": "Red Empire",
+    "2": "Yellow Empire",
+    "3": "Blue Empire",
+    "none": "None"
+  },
+  "playtime": {
+    "days": "{n}d",
+    "hours": "{n}h",
+    "minutes": "{n}m"
+  },
+  "datetime": {
+    "never": "Never",
+    "now": "just now",
+    "minutes": "{n} min ago",
+    "hours": "{n}h ago",
+    "days": {
+      "one": "{n} day ago",
+      "other": "{n} days ago"
+    },
+    "months": {
+      "one": "{n} month ago",
+      "other": "{n} months ago"
+    },
+    "years": {
+      "one": "{n} year ago",
+      "other": "{n} years ago"
+    },
+    "combined": "{relative} · {calendar}",
+    "calendar_format": "Y-m-d H:i"
+  },
+  "error": {
+    "login_exists": "Login already exists",
+    "account_create_failed": "Failed to create account",
+    "invalid_login": "Invalid login",
+    "invalid_email": "Invalid email",
+    "invalid_password": "Password must be between 5 and 16 characters",
+    "invalid_social_id": "PIN must be a positive number",
+    "social_id_min_length": "PIN must be at least 7 characters long"
+  }
+}

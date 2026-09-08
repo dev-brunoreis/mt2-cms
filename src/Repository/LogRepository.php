@@ -40,6 +40,7 @@ class LogRepository extends Repository
      *   label: string,
      *   columns: list<string>,
      *   dateColumn: string|null,
+     *   itemColumns: list<string>,
      *   rows: list<array<string, mixed>>
      * }>
      */
@@ -83,6 +84,67 @@ class LogRepository extends Repository
                 'label' => $log['label'],
                 'columns' => $log['columns'],
                 'dateColumn' => $log['dateColumn'],
+                'itemColumns' => $log['itemColumns'],
+                'rows' => $rows,
+            ];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Recent rows from log tables that identify this item instance.
+     *
+     * @return list<array{
+     *   id: string,
+     *   label: string,
+     *   columns: list<string>,
+     *   dateColumn: string|null,
+     *   itemColumns: list<string>,
+     *   rows: list<array<string, mixed>>
+     * }>
+     */
+    public function listForItem(int $itemId, int $limit = 50): array
+    {
+        if ($itemId < 1) {
+            return [];
+        }
+
+        $limit = max(1, min(100, $limit));
+        $groups = [];
+
+        foreach (LogCatalog::forItem() as $log) {
+            if (!$this->tableExists($log['table'])) {
+                continue;
+            }
+
+            [$where, $params] = $this->itemWhere($log['itemColumns'], $itemId);
+
+            if ($where === '') {
+                continue;
+            }
+
+            $params[] = $limit;
+            $rows = $this->sanitizeRows(
+                $this->db()->fetchAll(
+                    'SELECT ' . $this->selectList($log['columns']) . '
+                     FROM `' . Database::quoteIdentifier($log['table']) . '`' . $where . '
+                     ORDER BY ' . $this->orderBy($log) . '
+                     LIMIT ?',
+                    $params,
+                ),
+            );
+
+            if ($rows === []) {
+                continue;
+            }
+
+            $groups[] = [
+                'id' => $log['id'],
+                'label' => $log['label'],
+                'columns' => $log['columns'],
+                'dateColumn' => $log['dateColumn'],
+                'itemColumns' => $log['itemColumns'],
                 'rows' => $rows,
             ];
         }
@@ -269,6 +331,27 @@ class LogRepository extends Repository
                 $clauses[] = $quoted . ' = ?';
                 $params[] = $playerName;
             }
+        }
+
+        if ($clauses === []) {
+            return ['', []];
+        }
+
+        return [' WHERE ' . implode(' OR ', $clauses), $params];
+    }
+
+    /**
+     * @param list<string> $itemColumns
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function itemWhere(array $itemColumns, int $itemId): array
+    {
+        $clauses = [];
+        $params = [];
+
+        foreach ($itemColumns as $column) {
+            $clauses[] = '`' . Database::quoteIdentifier($column) . '` = ?';
+            $params[] = $itemId;
         }
 
         if ($clauses === []) {

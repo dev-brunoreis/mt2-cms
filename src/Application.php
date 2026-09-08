@@ -38,6 +38,7 @@ use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Game\ItemDescCatalog;
+use Mt2Cms\Game\ItemIconCatalog;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Service\GameIconService;
@@ -139,6 +140,7 @@ class Application
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
+            $r->addRoute('GET', '/admin/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'index']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}/new', [AdminGameProtoController::class, 'create']);
             $r->addRoute('POST', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'store']);
@@ -230,6 +232,7 @@ class Application
         $this->icons = new GameIconService(
             BASE_DIR . '/game/client/icon',
             BASE_DIR . '/var/cache/icons',
+            new ItemIconCatalog(BASE_DIR . '/game/client/item_list.txt'),
         );
 
         $activeTheme = $this->settings->activeTheme();
@@ -405,6 +408,7 @@ class Application
                 $this->items,
                 $this->guilds,
                 $this->logs,
+                $this->accounts,
             ),
             AdminGameProtoController::class => new AdminGameProtoController(
                 $this->theme,

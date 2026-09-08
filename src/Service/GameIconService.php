@@ -6,6 +6,7 @@ namespace Mt2Cms\Service;
 
 use Mt2Cms\Game\Icon\PngEncoder;
 use Mt2Cms\Game\Icon\TgaDecoder;
+use Mt2Cms\Game\ItemIconCatalog;
 
 class GameIconService
 {
@@ -30,6 +31,7 @@ class GameIconService
     public function __construct(
         private string $iconRoot,
         private string $cacheRoot,
+        private ?ItemIconCatalog $itemList = null,
         private TgaDecoder $decoder = new TgaDecoder(),
         private PngEncoder $encoder = new PngEncoder(),
     ) {
@@ -114,11 +116,20 @@ class GameIconService
         }
 
         $dir = $this->iconRoot . '/item';
-        $names = [sprintf('%05d.tga', $vnum)];
+        $names = [];
+        $mapped = $this->itemList?->filename($vnum);
+
+        if ($mapped !== null) {
+            $names[] = $mapped;
+        }
+
+        $names[] = sprintf('%05d.tga', $vnum);
 
         if ($vnum % 10 !== 0) {
             $names[] = sprintf('%05d.tga', $vnum - ($vnum % 10));
         }
+
+        $names = array_values(array_unique($names));
 
         foreach ($names as $name) {
             $resolved = $this->safeFile($dir, $name);

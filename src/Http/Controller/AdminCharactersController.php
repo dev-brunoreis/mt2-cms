@@ -10,6 +10,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Game\InventoryLayout;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\GuildRepository;
 use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\LogRepository;
@@ -31,6 +32,7 @@ class AdminCharactersController extends AdminController
         private ItemRepository $items,
         private GuildRepository $guilds,
         private LogRepository $logs,
+        private AccountRepository $accounts,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
     }
@@ -90,9 +92,59 @@ class AdminCharactersController extends AdminController
         ]);
     }
 
+    public function showOwnedItem(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        $itemId = (int) $id;
+
+        if ($itemId < 1) {
+            $this->flash('error', $this->t('admin.owned_items.not_found'));
+
+            return $this->redirect('/admin/characters');
+        }
+
+        $item = $this->items->findById($itemId);
+        $itemLogs = $this->decorateLogs($this->logs->listForItem($itemId));
+
+        if ($item === null && $itemLogs === []) {
+            $this->flash('error', $this->t('admin.owned_items.not_found'));
+
+            return $this->redirect('/admin/characters');
+        }
+
+        $owner = null;
+        $ownerKind = null;
+
+        if ($item !== null) {
+            $ownerId = (int) $item['owner_id'];
+            $ownerKind = ItemRepository::isAccountWindow((string) $item['window']) ? 'account' : 'character';
+            $owner = $ownerKind === 'account'
+                ? $this->accounts->findById($ownerId)
+                : $this->players->findById($ownerId);
+        }
+
+        $name = is_array($item) ? (string) ($item['name'] ?? '') : '';
+        $title = $name !== ''
+            ? $this->t('admin.owned_items.view_title', ['name' => $name, 'id' => (string) $itemId])
+            : $this->t('admin.owned_items.view_title_id', ['id' => (string) $itemId]);
+
+        return $this->adminView('characters', 'pages/owned-item.twig', [
+            'title' => $title,
+            'pageLead' => $this->t('admin.owned_items.lead'),
+            'itemId' => $itemId,
+            'item' => $item,
+            'owner' => $owner,
+            'ownerKind' => $ownerKind,
+            'itemLogs' => $itemLogs,
+        ]);
+    }
+
     /**
-     * @param list<array{id: string, label: string, columns: list<string>, dateColumn: string|null, rows: list<array<string, mixed>>}> $groups
-     * @return list<array{id: string, label: string, columns: list<array{key: string, label: string}>, dateColumns: list<string>, rows: list<array<string, mixed>>}>
+     * @param list<array{id: string, label: string, columns: list<string>, dateColumn: string|null, itemColumns?: list<string>, rows: list<array<string, mixed>>}> $groups
+     * @return list<array{id: string, label: string, columns: list<array{key: string, label: string}>, dateColumns: list<string>, itemColumns: list<string>, rows: list<array<string, mixed>>}>
      */
     private function decorateLogs(array $groups): array
     {
@@ -104,6 +156,7 @@ class AdminCharactersController extends AdminController
                 'label' => $group['label'],
                 'columns' => $this->columnLabels($group['columns']),
                 'dateColumns' => $this->dateColumns($group['columns']),
+                'itemColumns' => $group['itemColumns'] ?? [],
                 'rows' => $group['rows'],
             ];
         }

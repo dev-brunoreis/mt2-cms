@@ -531,6 +531,22 @@
       "marriage_love": "Love points",
       "marriage_since": "Since"
     },
+    "owned_items": {
+      "view_title": "{name} #{id}",
+      "view_title_id": "Item #{id}",
+      "lead": "This unique item ID and the log rows that mention it.",
+      "not_found": "Item not found.",
+      "tab_data": "Details",
+      "tab_logs": "Item logs",
+      "details": "Item instance",
+      "details_help": "Current row from the player item table. The vnum is the proto; the ID is this instance.",
+      "missing": "This item is no longer in the player database. Logs below still use this ID.",
+      "window": "Window",
+      "owner": "Owner",
+      "logs": "Item logs",
+      "logs_help": "Cube, refine, and item/character log rows for this unique ID.",
+      "logs_empty": "No log rows found for this item ID."
+    },
     "proto": {
       "not_found": "Record not found.",
       "vnum_taken": "That vnum is already in use.",

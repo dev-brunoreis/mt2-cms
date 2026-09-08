@@ -1,0 +1,42 @@
+{% if groups is empty %}
+    <p class="text-sm text-slate-500">{{ empty }}</p>
+{% else %}
+    {% for group in groups %}
+        <section class="admin-fieldset">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
+                {% if query is defined and query %}
+                    <a href="/admin/logs/{{ group.id }}?q={{ query }}" class="admin-link-action">
+                        {{ t('admin.characters.logs_view_all') }}
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="admin-tabs-table">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            {% for column in group.columns %}
+                                <th>{{ column.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in group.rows %}
+                            <tr>
+                                {% for column in group.columns %}
+                                    <td class="text-slate-600">
+                                        {% include 'components/log-cell.twig' with {
+                                            itemColumns: group.itemColumns|default([]),
+                                            dateColumns: group.dateColumns
+                                        } %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endfor %}
+{% endif %}

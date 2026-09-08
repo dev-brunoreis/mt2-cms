@@ -1,0 +1,14 @@
+{% set value = row[column.key] %}
+{% if value is same as(null) or value is same as('') %}
+    —
+{% elseif column.key in ['account_id'] and value %}
+    <a href="/admin/accounts/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+{% elseif column.key in ['pid', 'player_id', 'who'] and value %}
+    <a href="/admin/characters/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+{% elseif column.key in itemColumns|default([]) and value %}
+    <a href="/admin/owned-items/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+{% elseif column.key in dateColumns %}
+    {{ value|game_date }}
+{% else %}
+    {{ value }}
+{% endif %}

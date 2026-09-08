@@ -34,13 +34,17 @@
             {% endfor %}
         </span>
     {% endif %}
-    {% if not icon_src %}
-        <span class="admin-inv-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
-    {% endif %}
-    <span class="admin-inv-tip-meta">#{{ item.id }} · {{ t('admin.characters.items_pos') }} {{ item.pos }}</span>
     {% if item.sockets is not empty %}
         <span class="admin-inv-tip-sockets">
+            <span class="admin-inv-tip-sockets-label">{{ t('admin.characters.items_sockets') }}</span>
             {% include 'components/item-sockets.twig' %}
         </span>
     {% endif %}
+    {% if not icon_src %}
+        <span class="admin-inv-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
+    {% endif %}
+    <span class="admin-inv-tip-meta">
+        <a href="/admin/owned-items/{{ item.id }}" class="admin-inv-tip-id">#{{ item.id }}</a>
+        · {{ t('admin.characters.items_pos') }} {{ item.pos }}
+    </span>
 </span>

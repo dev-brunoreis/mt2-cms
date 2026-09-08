@@ -1,0 +1,99 @@
+<div class="admin-panel admin-tabs overflow-hidden" data-admin-tabs data-default-tab="dados">
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.owned_items.tab_data'), active: true } %}
+        {% include 'components/tab.twig' with { id: 'logs', label: t('admin.owned_items.tab_logs'), active: false } %}
+    </div>
+
+    <div id="admin-tab-panel-dados"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="dados"
+         aria-labelledby="admin-tab-dados">
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.owned_items.details') }}
+                <span class="admin-fieldset-help">{{ t('admin.owned_items.details_help') }}</span>
+            </legend>
+
+            {% if item %}
+                <dl class="admin-stat-grid">
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_id') }}</dt>
+                        <dd>{{ item.id }}</dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_vnum') }}</dt>
+                        <dd>
+                            {% if item.vnum %}
+                                <a href="/admin/items/{{ item.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                                    {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
+                                    <span>{{ item.vnum }}</span>
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_name') }}</dt>
+                        <dd>{{ item.name|default('—') }}</dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_count') }}</dt>
+                        <dd>{{ item.count }}</dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.owned_items.window') }}</dt>
+                        <dd>{{ t('admin.characters.window_' ~ item.window) }}</dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_pos') }}</dt>
+                        <dd>{{ item.pos }}</dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.owned_items.owner') }}</dt>
+                        <dd>
+                            {% if ownerKind == 'account' and item.owner_id %}
+                                <a href="/admin/accounts/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
+                                    {{ owner.login|default(item.owner_id) }}
+                                </a>
+                            {% elseif ownerKind == 'character' and item.owner_id %}
+                                <a href="/admin/characters/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
+                                    {{ owner.name|default(item.owner_id) }}
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div class="admin-stat">
+                        <dt>{{ t('admin.characters.items_sockets') }}</dt>
+                        <dd>{% include 'components/item-sockets.twig' %}</dd>
+                    </div>
+                </dl>
+            {% else %}
+                <p class="text-sm text-slate-500">{{ t('admin.owned_items.missing') }}</p>
+            {% endif %}
+        </fieldset>
+    </div>
+
+    <div id="admin-tab-panel-logs"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="logs"
+         aria-labelledby="admin-tab-logs"
+         hidden>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.owned_items.logs') }}
+                <span class="admin-fieldset-help">{{ t('admin.owned_items.logs_help') }}</span>
+            </legend>
+
+            {% include 'components/log-groups.twig' with {
+                groups: itemLogs,
+                empty: t('admin.owned_items.logs_empty'),
+                query: itemId
+            } %}
+        </fieldset>
+    </div>
+</div>

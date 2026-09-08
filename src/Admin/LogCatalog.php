@@ -16,7 +16,8 @@ class LogCatalog
      *   columns: list<string>,
      *   search: list<string>,
      *   dateColumn: string|null,
-     *   playerColumns: list<string>
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
      * }>
      */
     public static function all(): array
@@ -37,6 +38,7 @@ class LogCatalog
                 ['pid', 'item_vnum', 'item_uid'],
                 'time',
                 ['pid'],
+                ['item_uid'],
             ),
             self::table('dragon_slay_log', ['guild_id', 'vnum', 'start_time', 'end_time'], ['guild_id', 'vnum'], 'start_time'),
             self::table(
@@ -75,6 +77,7 @@ class LogCatalog
                 ['type', 'how', 'hint', 'ip', 'who', 'what', 'vnum'],
                 'time',
                 ['who'],
+                ['what'],
             ),
             self::table(
                 'loginlog',
@@ -117,6 +120,7 @@ class LogCatalog
                 ['item_name', 'step', 'pid', 'item_id'],
                 'time',
                 ['pid'],
+                ['item_id'],
             ),
             self::table('shout_log', ['time', 'channel', 'empire', 'shout'], ['shout', 'channel', 'empire'], 'time'),
             self::table('speed_hack', ['pid', 'time', 'x', 'y', 'hack_count'], ['pid', 'hack_count'], 'time', ['pid']),
@@ -131,7 +135,8 @@ class LogCatalog
      *   columns: list<string>,
      *   search: list<string>,
      *   dateColumn: string|null,
-     *   playerColumns: list<string>
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
      * }>
      */
     public static function forCharacter(): array
@@ -143,6 +148,26 @@ class LogCatalog
     }
 
     /**
+     * @return list<array{
+     *   id: string,
+     *   table: string,
+     *   label: string,
+     *   columns: list<string>,
+     *   search: list<string>,
+     *   dateColumn: string|null,
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
+     * }>
+     */
+    public static function forItem(): array
+    {
+        return array_values(array_filter(
+            self::all(),
+            static fn (array $log): bool => $log['itemColumns'] !== [],
+        ));
+    }
+
+    /**
      * @return array{
      *   id: string,
      *   table: string,
@@ -150,7 +175,8 @@ class LogCatalog
      *   columns: list<string>,
      *   search: list<string>,
      *   dateColumn: string|null,
-     *   playerColumns: list<string>
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
      * }|null
      */
     public static function get(string $id): ?array
@@ -192,6 +218,7 @@ class LogCatalog
      * @param list<string> $columns
      * @param list<string> $search
      * @param list<string> $playerColumns
+     * @param list<string> $itemColumns
      * @return array{
      *   id: string,
      *   table: string,
@@ -199,11 +226,18 @@ class LogCatalog
      *   columns: list<string>,
      *   search: list<string>,
      *   dateColumn: string|null,
-     *   playerColumns: list<string>
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
      * }
      */
-    private static function table(string $id, array $columns, array $search, ?string $dateColumn, array $playerColumns = []): array
-    {
+    private static function table(
+        string $id,
+        array $columns,
+        array $search,
+        ?string $dateColumn,
+        array $playerColumns = [],
+        array $itemColumns = [],
+    ): array {
         return [
             'id' => $id,
             'table' => $id,
@@ -212,6 +246,7 @@ class LogCatalog
             'search' => $search,
             'dateColumn' => $dateColumn,
             'playerColumns' => $playerColumns,
+            'itemColumns' => $itemColumns,
         ];
     }
 }

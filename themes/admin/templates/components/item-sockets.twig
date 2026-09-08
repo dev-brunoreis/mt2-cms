@@ -6,13 +6,27 @@
             <li>
                 {% if socket.kind == 'item' %}
                     <a href="/admin/items/{{ socket.value }}" class="admin-game-icon-row text-indigo-600 hover:underline">
-                        {% include 'components/item-icon.twig' with { vnum: socket.value, size: 'sm' } %}
-                        <span>{{ socket.name|default(socket.value) }}</span>
+                        {% include 'components/item-icon.twig' with { vnum: socket.value, size: 'sm', placeholder: true } %}
+                        <span class="admin-item-socket-text">
+                            <span>{{ socket.name|default(socket.value) }}</span>
+                            {% for apply in socket.applies|default([]) %}
+                                <span class="admin-item-socket-apply">
+                                    {{ t('admin.proto.tokens.' ~ apply.token) }}
+                                    {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}
+                                </span>
+                            {% endfor %}
+                        </span>
                     </a>
                 {% elseif socket.kind == 'empty' %}
-                    <span class="text-slate-400">{{ t('admin.characters.socket_empty') }}</span>
+                    <span class="admin-game-icon-row text-slate-400">
+                        <span class="admin-game-icon admin-game-icon-sm admin-game-icon-empty" aria-hidden="true"></span>
+                        <span>{{ t('admin.characters.socket_empty') }}</span>
+                    </span>
                 {% elseif socket.kind == 'broken' %}
-                    <span>{{ t('admin.characters.socket_broken') }}</span>
+                    <span class="admin-game-icon-row">
+                        {% include 'components/item-icon.twig' with { vnum: socket.value, size: 'sm', placeholder: true } %}
+                        <span>{{ t('admin.characters.socket_broken') }}</span>
+                    </span>
                 {% elseif socket.kind == 'remaining' %}
                     <span>{{ t('admin.characters.socket_remaining', {time: socket.seconds|duration}) }}</span>
                 {% elseif socket.kind == 'expires' %}

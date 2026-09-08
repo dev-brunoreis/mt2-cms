@@ -30,9 +30,27 @@ class ItemSockets
     private const LIMIT_TIMER_BASED_ON_WEAR = 9;
 
     private const UNIX_THRESHOLD = 1_000_000_000;
+    private const ACCESSORY_SOCKET_MAX = 3;
+    private const BELT_MATERIAL_VNUM = 18900;
+
+    /** @var list<int> */
+    private const ACCESSORY_MATERIALS = [
+        50623, 50624, 50625, 50626, 50627, 50628, 50629, 50630,
+        50631, 50632, 50633, 50634, 50635, 50636, 50637, 50638,
+    ];
+
+    /** @var list<array{0: int, 1: int, 2: int, 3: int}> jewel, wrist, neck, ear */
+    private const JEWEL_ACCESSORIES = [
+        [50634, 14420, 16220, 17220],
+        [50635, 14500, 16500, 17500],
+        [50636, 14520, 16520, 17520],
+        [50637, 14540, 16540, 17540],
+        [50638, 14560, 16560, 17560],
+    ];
 
     /**
      * @param list<int> $sockets socket0, socket1, socket2
+     * @param list<array{type: int, value: int}> $applies host proto apply slots
      * @return list<array<string, mixed>>
      */
     public static function describe(
@@ -42,6 +60,8 @@ class ItemSockets
         int $value0,
         int $value2,
         array $sockets,
+        int $vnum = 0,
+        array $applies = [],
     ): array {
         $sockets = array_pad(array_map(
             static fn (mixed $value): int => (int) $value,
@@ -61,7 +81,7 @@ class ItemSockets
         }
 
         if (self::isAccessoryType($type, $subtype)) {
-            return self::accessorySockets($sockets);
+            return self::accessorySockets($sockets, $vnum, $type, $subtype, $applies);
         }
 
         $entries = [];
@@ -71,11 +91,19 @@ class ItemSockets
             $sockets[0] = 0;
         }
 
+        $stones = [];
+
         foreach ($sockets as $value) {
             $stone = self::stoneEntry($value);
 
             if ($stone !== null) {
-                $entries[] = $stone;
+                $stones[] = $stone;
+            }
+        }
+
+        foreach ($stones as $stone) {
+            if (in_array($stone['kind'], ['item', 'broken'], true)) {
+                return array_merge($entries, $stones);
             }
         }
 
@@ -191,23 +219,60 @@ class ItemSockets
 
     /**
      * @param list<int> $sockets
+     * @param list<array{type: int, value: int}> $applies
      * @return list<array<string, mixed>>
      */
-    private static function accessorySockets(array $sockets): array
-    {
-        $filled = max(0, $sockets[0]);
-        $max = max(0, $sockets[1]);
+    private static function accessorySockets(
+        array $sockets,
+        int $vnum,
+        int $type,
+        int $subtype,
+        array $applies,
+    ): array {
+        $filled = max(0, min(self::ACCESSORY_SOCKET_MAX, $sockets[0]));
+        $max = max(0, min(self::ACCESSORY_SOCKET_MAX, $sockets[1]));
+        $max = max($max, $filled);
 
         if ($filled < 1 && $max < 1) {
             return [];
         }
 
-        $entries = [[
-            'kind' => 'accessory',
-            'filled' => $filled,
-            'max' => max($max, $filled),
-            'value' => $filled,
-        ]];
+        $material = self::accessoryMaterialVnum($vnum, $type, $subtype);
+
+        if ($material < 1) {
+            $entries = [[
+                'kind' => 'accessory',
+                'filled' => $filled,
+                'max' => $max,
+                'value' => $filled,
+            ]];
+        } else {
+            $entries = [];
+            $increments = self::accessoryApplyIncrements($applies);
+
+            for ($slot = 0; $slot < $max; $slot++) {
+                if ($slot < $filled) {
+                    $entry = [
+                        'kind' => 'item',
+                        'value' => $material,
+                        'name' => '',
+                    ];
+                    $slotApplies = $increments[$slot] ?? [];
+
+                    if ($slotApplies !== []) {
+                        $entry['applies'] = ItemStats::applyEntries($slotApplies);
+                    }
+
+                    $entries[] = $entry;
+                    continue;
+                }
+
+                $entries[] = [
+                    'kind' => 'empty',
+                    'value' => 1,
+                ];
+            }
+        }
 
         if ($filled > 0 && $sockets[2] > 0) {
             $entries[] = [
@@ -218,6 +283,96 @@ class ItemSockets
         }
 
         return $entries;
+    }
+
+    /**
+     * Accessory diamonds add 10% / 20% / 40% of the host apply, shown per slot as the increment.
+     *
+     * @param list<array{type: int, value: int}> $applies
+     * @return list<list<array{type: int, value: int}>>
+     */
+    private static function accessoryApplyIncrements(array $applies): array
+    {
+        $percents = [10, 20, 40];
+        $perSlot = array_fill(0, self::ACCESSORY_SOCKET_MAX, []);
+
+        foreach ($applies as $apply) {
+            $type = (int) ($apply['type'] ?? 0);
+            $value = (int) ($apply['value'] ?? 0);
+
+            if ($type < 1 || $value === 0) {
+                continue;
+            }
+
+            $levels = [0];
+
+            foreach ($percents as $index => $percent) {
+                $levels[] = max($index + 1, intdiv($value * $percent, 100));
+            }
+
+            for ($slot = 0; $slot < self::ACCESSORY_SOCKET_MAX; $slot++) {
+                $increment = $levels[$slot + 1] - $levels[$slot];
+
+                if ($increment !== 0) {
+                    $perSlot[$slot][] = ['type' => $type, 'value' => $increment];
+                }
+            }
+        }
+
+        return $perSlot;
+    }
+
+    private static function accessoryMaterialVnum(int $vnum, int $type, int $subtype): int
+    {
+        if ($type === self::TYPE_BELT) {
+            return self::BELT_MATERIAL_VNUM;
+        }
+
+        if ($type !== self::TYPE_ARMOR || $vnum < 1) {
+            return 0;
+        }
+
+        $base = intdiv($vnum, 10) * 10;
+
+        foreach (self::JEWEL_ACCESSORIES as $info) {
+            $match = match ($subtype) {
+                self::ARMOR_WRIST => $info[1],
+                self::ARMOR_NECK => $info[2],
+                self::ARMOR_EAR => $info[3],
+                default => 0,
+            };
+
+            if ($match > 0 && $match === $base) {
+                return $info[0];
+            }
+        }
+
+        if ($vnum >= 16210 && $vnum <= 16219) {
+            return 50625;
+        }
+
+        $offset = match ($subtype) {
+            self::ARMOR_WRIST => $vnum - 14000,
+            self::ARMOR_NECK => $vnum - 16000,
+            self::ARMOR_EAR => $vnum - 17000,
+            default => -1,
+        };
+
+        if ($offset < 0) {
+            return 0;
+        }
+
+        $index = intdiv($offset, 20);
+
+        if ($index < 0 || $index >= count(self::ACCESSORY_MATERIALS)) {
+            $index = intdiv($offset - 170, 20);
+        }
+
+        if ($index < 0 || $index >= count(self::ACCESSORY_MATERIALS)) {
+            return 0;
+        }
+
+        return self::ACCESSORY_MATERIALS[$index];
     }
 
     /**

@@ -33,9 +33,18 @@ class ItemStats
 
         return [
             'stats' => self::baseStats($typeName, $subtypeName, $limitType, $limitValue, $values),
-            'applies' => self::namedApplies($applies),
-            'bonuses' => self::namedApplies($attrs),
+            'applies' => self::applyEntries($applies),
+            'bonuses' => self::applyEntries($attrs),
         ];
+    }
+
+    /**
+     * @param list<array{type: int, value: int}> $slots
+     * @return list<array{token: string, value: int, percent: bool}>
+     */
+    public static function applyEntries(array $slots): array
+    {
+        return self::namedApplies($slots);
     }
 
     /**

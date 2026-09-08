@@ -4,52 +4,9 @@
         <span class="admin-fieldset-help">{{ t('admin.characters.logs_help') }}</span>
     </h2>
 
-    {% if characterLogs is empty %}
-        <p class="text-sm text-slate-500">{{ t('admin.characters.logs_empty') }}</p>
-    {% else %}
-        {% for group in characterLogs %}
-            <section class="admin-fieldset">
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
-                    <a href="/admin/logs/{{ group.id }}?q={{ character.id }}" class="admin-link-action">
-                        {{ t('admin.characters.logs_view_all') }}
-                    </a>
-                </div>
-
-                <div class="admin-tabs-table">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                {% for column in group.columns %}
-                                    <th>{{ column.label }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in group.rows %}
-                                <tr>
-                                    {% for column in group.columns %}
-                                        {% set value = row[column.key] %}
-                                        <td class="text-slate-600">
-                                            {% if value is same as(null) or value is same as('') %}
-                                                —
-                                            {% elseif column.key in ['account_id'] and value %}
-                                                <a href="/admin/accounts/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
-                                            {% elseif column.key in ['pid', 'player_id', 'who'] and value %}
-                                                <a href="/admin/characters/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
-                                            {% elseif column.key in group.dateColumns %}
-                                                {{ value|game_date }}
-                                            {% else %}
-                                                {{ value }}
-                                            {% endif %}
-                                        </td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        {% endfor %}
-    {% endif %}
+    {% include 'components/log-groups.twig' with {
+        groups: characterLogs,
+        empty: t('admin.characters.logs_empty'),
+        query: character.id
+    } %}
 </section>

@@ -54,19 +54,8 @@
                     {% for row in rows %}
                         <tr>
                             {% for column in columns %}
-                                {% set value = row[column.key] %}
                                 <td class="text-slate-600">
-                                    {% if value is same as(null) or value is same as('') %}
-                                        —
-                                    {% elseif column.key in ['account_id'] and value %}
-                                        <a href="/admin/accounts/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
-                                    {% elseif column.key in ['pid', 'player_id', 'who'] and value %}
-                                        <a href="/admin/characters/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
-                                    {% elseif column.key in dateColumns %}
-                                        {{ value|game_date }}
-                                    {% else %}
-                                        {{ value }}
-                                    {% endif %}
+                                    {% include 'components/log-cell.twig' %}
                                 </td>
                             {% endfor %}
                         </tr>

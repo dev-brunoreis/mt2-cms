@@ -1,19 +1,21 @@
 {% if item %}
     {% set icon_src = item_icon(item.vnum) %}
-    <a href="/admin/items/{{ item.vnum }}"
-       class="admin-inv-item{% if not icon_src %} is-missing-icon{% endif %}"
-       title="{{ item.name|default(item.vnum) }}">
-        {% if icon_src %}
-            {% include 'components/item-icon.twig' with { vnum: item.vnum, size: 'slot' } %}
-        {% else %}
-            <span class="admin-inv-missing" aria-hidden="true">
-                <span class="admin-inv-missing-mark">?</span>
-                <span class="admin-inv-missing-vnum">{{ item.vnum }}</span>
-            </span>
-        {% endif %}
-        {% if item.count > 1 %}
-            <span class="admin-inv-count">{{ item.count }}</span>
-        {% endif %}
+    <div class="admin-inv-item{% if not icon_src %} is-missing-icon{% endif %}">
+        <a href="/admin/items/{{ item.vnum }}"
+           class="admin-inv-item-link"
+           title="{{ item.name|default(item.vnum) }}">
+            {% if icon_src %}
+                {% include 'components/item-icon.twig' with { vnum: item.vnum, size: 'slot' } %}
+            {% else %}
+                <span class="admin-inv-missing" aria-hidden="true">
+                    <span class="admin-inv-missing-mark">?</span>
+                    <span class="admin-inv-missing-vnum">{{ item.vnum }}</span>
+                </span>
+            {% endif %}
+            {% if item.count > 1 %}
+                <span class="admin-inv-count">{{ item.count }}</span>
+            {% endif %}
+        </a>
         {% include 'components/inventory-tooltip.twig' %}
-    </a>
+    </div>
 {% endif %}

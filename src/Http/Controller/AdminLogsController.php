@@ -64,6 +64,7 @@ class AdminLogsController extends AdminController
             'logPath' => '/admin/logs/' . $table,
             'columns' => $this->columnLabels($log['columns']),
             'dateColumns' => $this->dateColumns($log['columns']),
+            'itemColumns' => $log['itemColumns'],
             'rows' => $missing ? [] : $this->logs->listForAdmin($table, $page, self::PER_PAGE, $filters),
             'missingTable' => $missing,
             'query' => $filters['q'],

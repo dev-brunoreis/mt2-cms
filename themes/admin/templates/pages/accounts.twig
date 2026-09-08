@@ -32,6 +32,7 @@
                         <th>{{ t('admin.accounts.cash') }}</th>
                         <th>{{ t('admin.accounts.mileage') }}</th>
                         <th>{{ t('admin.accounts.last_play') }}</th>
+                        <th>{{ t('admin.accounts.last_ip') }}</th>
                         <th>{{ t('admin.accounts.actions') }}</th>
                     </tr>
                 </thead>
@@ -54,6 +55,7 @@
                             <td class="text-slate-600">{{ account.cash }}</td>
                             <td class="text-slate-600">{{ account.mileage }}</td>
                             <td class="text-slate-600">{{ account.last_play|game_date }}</td>
+                            <td class="text-slate-600">{{ account.ip|default('—') }}</td>
                             <td>
                                 <div class="admin-row-actions">
                                     <a href="/admin/accounts/{{ account.id }}" class="admin-link-action">

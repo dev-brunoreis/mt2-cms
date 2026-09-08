@@ -7,7 +7,7 @@ namespace Mt2Cms\Admin;
 class AdminSections
 {
     /**
-     * @return list<array{id: string, label: string, children: list<array{id: string, path: string, label: string}>}>
+     * @return list<array{id: string, label: string, collapsible?: bool, children: list<array{id: string, path: string, label: string}>}>
      */
     public static function all(): array
     {
@@ -27,6 +27,12 @@ class AdminSections
                         'label' => 'admin.nav.characters',
                     ],
                 ],
+            ],
+            [
+                'id' => 'logs',
+                'label' => 'admin.nav.logs.group',
+                'collapsible' => true,
+                'children' => LogCatalog::navItems(),
             ],
             [
                 'id' => 'configuration',

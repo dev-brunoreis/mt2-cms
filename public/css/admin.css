@@ -8,6 +8,22 @@
   letter-spacing: 0.08em;
 }
 
+.admin-nav-group > summary {
+  outline: none;
+}
+
+.admin-nav-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-nav-group .admin-nav-chevron {
+  transition: transform 0.15s ease;
+}
+
+.admin-nav-group[open] .admin-nav-chevron {
+  transform: rotate(180deg);
+}
+
 .admin-nav-link {
   position: relative;
   transition: background-color 0.15s ease, color 0.15s ease;

@@ -4,7 +4,7 @@ Admin UI lives in **`themes/admin`** (white panel, Magento-style page header).
 
 ## 1. Register menu + submenu
 
-In `src/Admin/AdminSections.php`, add the item under the **Configuration** group `children` array:
+In `src/Admin/AdminSections.php`, add the item under the right group `children` array (**Game**, **Logs**, or **Configuration**). Game log tables belong in the **Logs** group via `LogCatalog`.
 
 ```php
 [

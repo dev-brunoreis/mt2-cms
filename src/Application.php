@@ -14,6 +14,7 @@ use Mt2Cms\Http\Controller\AccountController;
 use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAuthController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
+use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\HomeController;
@@ -28,6 +29,7 @@ use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\AdminRepository;
+use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Service\SettingsService;
@@ -51,6 +53,7 @@ class Application
     private ThemeEngine $adminTheme;
     private AccountRepository $accounts;
     private PlayerRepository $players;
+    private LogRepository $logs;
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
     private ThemeCatalog $themeCatalog;
@@ -118,6 +121,7 @@ class Application
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
+            $r->addRoute('GET', '/admin/logs/{table:[a-z0-9_]+}', [AdminLogsController::class, 'show']);
         }, true);
     }
 
@@ -207,6 +211,7 @@ class Application
         $this->db = new Database();
         $this->accounts = new AccountRepository($this->db);
         $this->players = new PlayerRepository($this->db);
+        $this->logs = new LogRepository($this->db);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
     }
@@ -336,6 +341,7 @@ class Application
                 $this->adminTheme,
                 $this->accounts,
                 $this->players,
+                $this->logs,
             ),
             AdminCharactersController::class => new AdminCharactersController(
                 $this->theme,
@@ -345,6 +351,15 @@ class Application
                 $this->adminAuth,
                 $this->adminTheme,
                 $this->players,
+            ),
+            AdminLogsController::class => new AdminLogsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->logs,
             ),
             default => throw new \RuntimeException('Unknown controller: ' . $class),
         };

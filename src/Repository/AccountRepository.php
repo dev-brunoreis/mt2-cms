@@ -97,7 +97,7 @@ class AccountRepository extends Repository
 
         return $this->revealAdminAll(
             $this->db()->fetchAll(
-                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play
+                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play, ip
                  FROM `account`' . $where . '
                  ORDER BY id DESC
                  LIMIT ? OFFSET ?',
@@ -110,7 +110,7 @@ class AccountRepository extends Repository
     {
         return $this->revealAdmin(
             $this->db()->fetch(
-                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play
+                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play, ip
                  FROM `account` WHERE id = ?',
                 [$id],
             ),

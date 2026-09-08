@@ -10,6 +10,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -26,6 +27,7 @@ class AdminAccountsController extends AdminController
         ThemeEngine $adminTheme,
         private AccountRepository $accounts,
         private PlayerRepository $players,
+        private LogRepository $logs,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
     }
@@ -202,9 +204,11 @@ class AdminAccountsController extends AdminController
     {
         $isEdit = isset($account['id']) && (int) $account['id'] > 0;
         $characters = [];
+        $connectionIps = [];
 
         if ($isEdit) {
             $characters = $this->players->findByAccountId((int) $account['id']);
+            $connectionIps = $this->logs->ipsForAccount((int) $account['id']);
         }
 
         return $this->adminView('accounts', 'pages/account-form.twig', [
@@ -214,6 +218,7 @@ class AdminAccountsController extends AdminController
             'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.accounts.create'),
             'account' => $account,
             'characters' => $characters,
+            'connectionIps' => $connectionIps,
             'isEdit' => $isEdit,
             'error' => $error,
         ], $status);

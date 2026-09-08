@@ -1,0 +1,79 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.accounts.characters') }}
+        <span class="admin-fieldset-help">{{ t('admin.accounts.characters_help') }}</span>
+    </h2>
+
+    {% if characters is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.accounts.characters_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('account.name') }}</th>
+                        <th>{{ t('account.job') }}</th>
+                        <th>{{ t('account.level') }}</th>
+                        <th>{{ t('account.playtime') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in characters %}
+                        <tr>
+                            <td>
+                                <a href="/admin/characters/{{ player.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
+                                    {% include 'components/face-icon.twig' with { job: player.job } %}
+                                    <span>{{ player.name }}</span>
+                                </a>
+                            </td>
+                            <td class="text-slate-600">{{ player.job|job_name }}</td>
+                            <td class="text-slate-600">{{ player.level }}</td>
+                            <td class="text-slate-600">{{ player.playtime|playtime }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>
+
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.accounts.ips') }}
+        <span class="admin-fieldset-help">{{ t('admin.accounts.ips_help') }}</span>
+    </h2>
+
+    {% if account.ip %}
+        <p class="mb-4 text-sm text-slate-600">
+            {{ t('admin.accounts.last_ip') }}:
+            <span class="font-medium text-slate-900">{{ account.ip }}</span>
+        </p>
+    {% endif %}
+
+    {% if connectionIps is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.accounts.ips_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.logs.columns.ip') }}</th>
+                        <th>{{ t('admin.logs.columns.connections') }}</th>
+                        <th>{{ t('admin.logs.columns.first_seen') }}</th>
+                        <th>{{ t('admin.logs.columns.last_seen') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in connectionIps %}
+                        <tr>
+                            <td class="font-medium text-slate-800">{{ row.ip }}</td>
+                            <td class="text-slate-600">{{ row.connections }}</td>
+                            <td class="text-slate-600">{{ row.first_seen|game_date }}</td>
+                            <td class="text-slate-600">{{ row.last_seen|game_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>

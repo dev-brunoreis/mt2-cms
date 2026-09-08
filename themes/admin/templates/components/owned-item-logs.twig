@@ -1,0 +1,12 @@
+<fieldset class="admin-fieldset">
+    <legend>
+        {{ t('admin.owned_items.logs') }}
+        <span class="admin-fieldset-help">{{ t('admin.owned_items.logs_help') }}</span>
+    </legend>
+
+    {% include 'components/log-groups.twig' with {
+        groups: itemLogs,
+        empty: t('admin.owned_items.logs_empty'),
+        query: itemId
+    } %}
+</fieldset>

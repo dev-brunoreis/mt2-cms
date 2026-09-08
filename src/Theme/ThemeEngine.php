@@ -69,6 +69,14 @@ class ThemeEngine
     }
 
     /**
+     * @param array<string, mixed> $data
+     */
+    public function renderTemplate(string $template, array $data = []): string
+    {
+        return $this->twig->render($template, $data);
+    }
+
+    /**
      * @param array<string, mixed> $node
      * @param array<string, mixed> $data
      */

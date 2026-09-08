@@ -1,0 +1,12 @@
+{% set loaded = src|default('') == '' or visible %}
+<div id="admin-tab-panel-{{ id }}"
+     class="admin-tabs-panel"
+     role="tabpanel"
+     data-tab-panel="{{ id }}"
+     aria-labelledby="admin-tab-{{ id }}"
+     {% if not loaded %}data-tab-src="{{ src }}"{% endif %}
+     {% if not visible %}hidden{% endif %}>
+    {% if loaded %}
+        {% include template %}
+    {% endif %}
+</div>

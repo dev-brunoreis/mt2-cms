@@ -64,19 +64,48 @@ const snapshotPanel = (panel) => {
     .join('\n')
 }
 
+const escapeHtml = (value) => {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+const isSafeTabSrc = (src) => {
+  if (typeof src !== 'string' || src === '' || src.includes('\\') || src.includes('\n') || src.includes('\r')) {
+    return false
+  }
+
+  if (!src.startsWith('/admin/') || src.startsWith('//')) {
+    return false
+  }
+
+  try {
+    const url = new URL(src, window.location.origin)
+
+    return url.origin === window.location.origin && url.pathname.startsWith('/admin/')
+  } catch {
+    return false
+  }
+}
+
 const initTabs = (root) => {
   const belongsTo = (el) => el.closest('[data-admin-tabs]') === root
   const persistUrl = !root.parentElement?.closest('[data-admin-tabs]')
   const tabs = Array.from(root.querySelectorAll('[role="tab"][data-tab]')).filter(belongsTo)
   const panels = Array.from(root.querySelectorAll('[data-tab-panel]')).filter(belongsTo)
   const snapshots = new Map()
+  const pending = new Map()
   const defaultTab = root.getAttribute('data-default-tab')
+  const loadingText = root.getAttribute('data-tab-loading') || 'Loading…'
+  const errorText = root.getAttribute('data-tab-load-error') || 'Could not load this section.'
 
   if (tabs.length === 0 || panels.length === 0) {
     return
   }
 
-  const activate = (id, { focus = false } = {}) => {
+  const showPanel = (id, { focus = false } = {}) => {
     tabs.forEach((tab) => {
       const selected = tab.getAttribute('data-tab') === id
 
@@ -95,6 +124,79 @@ const initTabs = (root) => {
 
     if (persistUrl) {
       writeQueryTab(id, id === defaultTab)
+    }
+  }
+
+  const loadPanel = async (panel) => {
+    const src = panel.getAttribute('data-tab-src')
+
+    if (!src || !isSafeTabSrc(src)) {
+      return false
+    }
+
+    panel.classList.add('is-loading')
+    panel.innerHTML = '<p class="admin-tab-status">' + escapeHtml(loadingText) + '</p>'
+
+    try {
+      const response = await fetch(src, {
+        credentials: 'same-origin',
+        redirect: 'manual',
+        headers: {
+          Accept: 'text/html',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+
+      if (response.type === 'opaqueredirect' || response.status === 401) {
+        window.location.reload()
+        return false
+      }
+
+      if (!response.ok) {
+        throw new Error('bad status')
+      }
+
+      panel.innerHTML = await response.text()
+      panel.removeAttribute('data-tab-src')
+      panel.setAttribute('data-tab-loaded', '1')
+      panel.querySelectorAll('[data-admin-tabs]').forEach(initTabs)
+      snapshots.set(panel.getAttribute('data-tab-panel'), snapshotPanel(panel))
+      return true
+    } catch {
+      panel.innerHTML = '<p class="admin-tab-status admin-tab-status-error">' + escapeHtml(errorText) + '</p>'
+      return false
+    } finally {
+      panel.classList.remove('is-loading')
+    }
+  }
+
+  const ensureLoaded = (panel) => {
+    if (!(panel instanceof HTMLElement) || !panel.hasAttribute('data-tab-src')) {
+      return Promise.resolve(true)
+    }
+
+    const id = panel.getAttribute('data-tab-panel') ?? ''
+
+    if (pending.has(id)) {
+      return pending.get(id)
+    }
+
+    const request = loadPanel(panel).finally(() => {
+      pending.delete(id)
+    })
+
+    pending.set(id, request)
+
+    return request
+  }
+
+  const activate = (id, { focus = false } = {}) => {
+    showPanel(id, { focus })
+
+    const panel = panels.find((item) => item.getAttribute('data-tab-panel') === id)
+
+    if (panel) {
+      ensureLoaded(panel)
     }
   }
 

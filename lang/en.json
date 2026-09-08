@@ -202,7 +202,9 @@
     "saved": "Settings saved.",
     "tabs": {
       "label": "Sections",
-      "unsaved": "Unsaved changes"
+      "unsaved": "Unsaved changes",
+      "loading": "Loading…",
+      "load_error": "Could not load this section."
     },
     "toggle_menu": "Toggle menu",
     "nav": {

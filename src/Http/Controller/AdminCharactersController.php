@@ -21,6 +21,14 @@ class AdminCharactersController extends AdminController
 {
     private const PER_PAGE = 20;
 
+    /** @var array<string, string> */
+    private const CHARACTER_TAB_TEMPLATES = [
+        'logs' => 'components/character-logs.twig',
+        'items' => 'components/character-items.twig',
+        'guild' => 'components/character-guild.twig',
+        'marriage' => 'components/character-marriage.twig',
+    ];
+
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -62,6 +70,10 @@ class AdminCharactersController extends AdminController
 
     public function show(string $id): Response
     {
+        if ($guard = $this->denyUnlessAdmin()) {
+            return $guard;
+        }
+
         $character = $this->players->findForAdmin((int) $id);
 
         if ($character === null) {
@@ -73,29 +85,61 @@ class AdminCharactersController extends AdminController
         $playerId = (int) $character['id'];
         $accountId = (int) ($character['account_id'] ?? 0);
         $name = (string) $character['name'];
-        $characterItems = $this->items->forCharacter($playerId);
-        $safebox = $accountId > 0 ? $this->items->safeboxForAccount($accountId) : null;
-
-        return $this->adminView('characters', 'pages/character.twig', [
+        $tab = $this->requestedTab(['dados', 'logs', 'items', 'guild', 'marriage'], 'dados');
+        $data = [
             'title' => $this->t('admin.characters.view_title', ['name' => $name]),
             'pageLead' => $this->t('admin.characters.view_lead'),
             'character' => $character,
-            'characterLogs' => $this->decorateLogs($this->logs->listForCharacter($playerId, $name)),
-            'characterItems' => $characterItems,
-            'characterItemLayout' => InventoryLayout::forCharacter($characterItems),
-            'safebox' => $safebox,
-            'safeboxLayout' => $safebox !== null
+            'activeTab' => $tab,
+            'characterLogs' => [],
+            'characterItems' => [],
+            'characterItemLayout' => null,
+            'safebox' => null,
+            'safeboxLayout' => null,
+            'guild' => null,
+            'marriage' => null,
+        ];
+
+        if ($tab === 'logs') {
+            $data['characterLogs'] = $this->decorateLogs($this->logs->listForCharacter($playerId, $name));
+        }
+
+        if ($tab === 'items') {
+            $characterItems = $this->items->forCharacter($playerId);
+            $safebox = $accountId > 0 ? $this->items->safeboxForAccount($accountId) : null;
+            $data['characterItems'] = $characterItems;
+            $data['characterItemLayout'] = InventoryLayout::forCharacter($characterItems);
+            $data['safebox'] = $safebox;
+            $data['safeboxLayout'] = $safebox !== null
                 ? InventoryLayout::forAccount($safebox['items'], (int) $safebox['size'])
-                : null,
-            'guild' => $this->guilds->profileForPlayer($playerId),
-            'marriage' => $this->players->findMarriageForPlayer($playerId),
-        ]);
+                : null;
+        }
+
+        if ($tab === 'guild') {
+            $data['guild'] = $this->guilds->profileForPlayer($playerId);
+        }
+
+        if ($tab === 'marriage') {
+            $data['marriage'] = $this->players->findMarriageForPlayer($playerId);
+        }
+
+        if ($this->wantsTabPartial()) {
+            $template = self::CHARACTER_TAB_TEMPLATES[$tab] ?? null;
+
+            if ($template === null) {
+                return Response::notFound();
+            }
+
+            return $this->adminFragment($template, $data);
+        }
+
+        return $this->adminView('characters', 'pages/character.twig', $data);
     }
 
     public function showOwnedItem(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
+        if ($guard = $this->denyUnlessAdmin()) {
+            return $guard;
         }
 
         $itemId = (int) $id;
@@ -106,8 +150,13 @@ class AdminCharactersController extends AdminController
             return $this->redirect('/admin/characters');
         }
 
+        $tab = $this->requestedTab(['dados', 'logs'], 'dados');
         $item = $this->items->findById($itemId);
-        $itemLogs = $this->decorateLogs($this->logs->listForItem($itemId));
+        $itemLogs = [];
+
+        if ($item === null || $tab === 'logs') {
+            $itemLogs = $this->decorateLogs($this->logs->listForItem($itemId));
+        }
 
         if ($item === null && $itemLogs === []) {
             $this->flash('error', $this->t('admin.owned_items.not_found'));
@@ -130,8 +179,7 @@ class AdminCharactersController extends AdminController
         $title = $name !== ''
             ? $this->t('admin.owned_items.view_title', ['name' => $name, 'id' => (string) $itemId])
             : $this->t('admin.owned_items.view_title_id', ['id' => (string) $itemId]);
-
-        return $this->adminView('characters', 'pages/owned-item.twig', [
+        $data = [
             'title' => $title,
             'pageLead' => $this->t('admin.owned_items.lead'),
             'itemId' => $itemId,
@@ -139,7 +187,18 @@ class AdminCharactersController extends AdminController
             'owner' => $owner,
             'ownerKind' => $ownerKind,
             'itemLogs' => $itemLogs,
-        ]);
+            'activeTab' => $tab,
+        ];
+
+        if ($this->wantsTabPartial()) {
+            if ($tab !== 'logs') {
+                return Response::notFound();
+            }
+
+            return $this->adminFragment('components/owned-item-logs.twig', $data);
+        }
+
+        return $this->adminView('characters', 'pages/owned-item.twig', $data);
     }
 
     /**

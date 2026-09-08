@@ -8,13 +8,13 @@
       method="post"
       action="{% if isEdit %}/admin/accounts/{{ account.id }}{% else %}/admin/accounts{% endif %}"
       class="admin-panel{% if isEdit %} admin-tabs overflow-hidden{% else %} p-6{% endif %}"
-      {% if isEdit %}data-admin-tabs data-default-tab="dados"{% endif %}>
+      {% if isEdit %}data-admin-tabs data-default-tab="dados" data-tab-loading="{{ t('admin.tabs.loading') }}" data-tab-load-error="{{ t('admin.tabs.load_error') }}"{% endif %}>
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     {% if isEdit %}
         <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
-            {% include 'components/tab.twig' with { id: 'dados', label: t('admin.accounts.tab_data'), active: true } %}
-            {% include 'components/tab.twig' with { id: 'activity', label: t('admin.accounts.tab_activity'), active: false } %}
+            {% include 'components/tab.twig' with { id: 'dados', label: t('admin.accounts.tab_data'), active: activeTab|default('dados') == 'dados' } %}
+            {% include 'components/tab.twig' with { id: 'activity', label: t('admin.accounts.tab_activity'), active: activeTab|default('dados') == 'activity' } %}
         </div>
     {% endif %}
 
@@ -22,7 +22,8 @@
          class="admin-tabs-panel"
          role="tabpanel"
          data-tab-panel="dados"
-         aria-labelledby="admin-tab-dados"{% endif %}>
+         aria-labelledby="admin-tab-dados"
+         {% if activeTab|default('dados') != 'dados' %}hidden{% endif %}{% endif %}>
         <fieldset class="admin-fieldset">
             <legend>
                 {{ t('admin.accounts.details') }}
@@ -110,92 +111,12 @@
     </div>
 
     {% if isEdit %}
-        <div id="admin-tab-panel-activity"
-             class="admin-tabs-panel"
-             role="tabpanel"
-             data-tab-panel="activity"
-             aria-labelledby="admin-tab-activity"
-             hidden>
-            <section class="admin-fieldset">
-                <h2 class="admin-fieldset-title">
-                    {{ t('admin.accounts.characters') }}
-                    <span class="admin-fieldset-help">{{ t('admin.accounts.characters_help') }}</span>
-                </h2>
-
-                {% if characters is empty %}
-                    <p class="text-sm text-slate-500">{{ t('admin.accounts.characters_empty') }}</p>
-                {% else %}
-                    <div class="admin-tabs-table">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('account.name') }}</th>
-                                    <th>{{ t('account.job') }}</th>
-                                    <th>{{ t('account.level') }}</th>
-                                    <th>{{ t('account.playtime') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for player in characters %}
-                                    <tr>
-                                        <td>
-                                            <a href="/admin/characters/{{ player.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
-                                                {% include 'components/face-icon.twig' with { job: player.job } %}
-                                                <span>{{ player.name }}</span>
-                                            </a>
-                                        </td>
-                                        <td class="text-slate-600">{{ player.job|job_name }}</td>
-                                        <td class="text-slate-600">{{ player.level }}</td>
-                                        <td class="text-slate-600">{{ player.playtime|playtime }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </section>
-
-            <section class="admin-fieldset">
-                <h2 class="admin-fieldset-title">
-                    {{ t('admin.accounts.ips') }}
-                    <span class="admin-fieldset-help">{{ t('admin.accounts.ips_help') }}</span>
-                </h2>
-
-                {% if account.ip %}
-                    <p class="mb-4 text-sm text-slate-600">
-                        {{ t('admin.accounts.last_ip') }}:
-                        <span class="font-medium text-slate-900">{{ account.ip }}</span>
-                    </p>
-                {% endif %}
-
-                {% if connectionIps is empty %}
-                    <p class="text-sm text-slate-500">{{ t('admin.accounts.ips_empty') }}</p>
-                {% else %}
-                    <div class="admin-tabs-table">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('admin.logs.columns.ip') }}</th>
-                                    <th>{{ t('admin.logs.columns.connections') }}</th>
-                                    <th>{{ t('admin.logs.columns.first_seen') }}</th>
-                                    <th>{{ t('admin.logs.columns.last_seen') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in connectionIps %}
-                                    <tr>
-                                        <td class="font-medium text-slate-800">{{ row.ip }}</td>
-                                        <td class="text-slate-600">{{ row.connections }}</td>
-                                        <td class="text-slate-600">{{ row.first_seen|game_date }}</td>
-                                        <td class="text-slate-600">{{ row.last_seen|game_date }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </section>
-        </div>
+        {% include 'components/tab-panel.twig' with {
+            id: 'activity',
+            visible: activeTab|default('dados') == 'activity',
+            src: '/admin/accounts/' ~ account.id ~ '?tab=activity&partial=1',
+            template: 'components/account-activity.twig'
+        } %}
     {% endif %}
 </form>
 

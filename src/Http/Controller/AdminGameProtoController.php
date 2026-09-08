@@ -198,6 +198,10 @@ class AdminGameProtoController extends AdminController
         int $status = 200,
         bool $isEdit = false,
     ): Response {
+        if ($guard = $this->denyUnlessAdmin()) {
+            return $guard;
+        }
+
         $internal = $this->protos->kindFromRoute($route);
         $prefix = $this->i18nPrefix($route);
         $tabs = $this->protoFields->decorateTabs(
@@ -216,10 +220,20 @@ class AdminGameProtoController extends AdminController
                 'fields' => [],
                 'kind' => 'drops',
             ];
+        }
+
+        $tabIds = array_map(static fn (array $tab): string => $tab['id'], $tabs);
+        $tab = $this->requestedTab($tabIds, $tabs[0]['id'] ?? 'identity');
+
+        foreach ($tabs as $index => $entry) {
+            $tabs[$index]['active'] = $entry['id'] === $tab;
+        }
+
+        if ($tab === 'drops' && $isEdit && $internal === ProtoSchemas::KIND_MOB) {
             $mobDrops = $this->mobDrops->forMob($record);
         }
 
-        return $this->adminView($route, 'pages/proto-form.twig', [
+        $data = [
             'title' => $this->t($isEdit ? $prefix . '.edit_title' : $prefix . '.create_title'),
             'pageLead' => $this->t($isEdit ? $prefix . '.edit_lead' : $prefix . '.create_lead'),
             'formId' => 'admin-proto-form',
@@ -229,12 +243,23 @@ class AdminGameProtoController extends AdminController
             'protoKind' => $internal,
             'record' => $record,
             'tabs' => $tabs,
+            'activeTab' => $tab,
             'mobDrops' => $mobDrops,
             'subtypesByType' => $this->protoFields->subtypesJsonMap(),
             'valueLabelsByType' => $this->protoFields->valueLabelsJsonMap(),
             'isEdit' => $isEdit,
             'error' => $error,
-        ], $status);
+        ];
+
+        if ($this->wantsTabPartial()) {
+            if ($tab !== 'drops') {
+                return Response::notFound();
+            }
+
+            return $this->adminFragment('components/mob-drops.twig', $data);
+        }
+
+        return $this->adminView($route, 'pages/proto-form.twig', $data, $status);
     }
 
     /**

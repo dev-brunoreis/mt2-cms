@@ -10,6 +10,8 @@
       class="admin-panel admin-tabs overflow-hidden"
       data-admin-tabs
       data-default-tab="{{ tabs[0].id }}"
+      data-tab-loading="{{ t('admin.tabs.loading') }}"
+      data-tab-load-error="{{ t('admin.tabs.load_error') }}"
       {% if protoKind == 'item' %}
           data-proto-form="item"
           data-subtypes-by-type="{{ subtypesByType|json_encode|e('html_attr') }}"
@@ -29,9 +31,14 @@
              role="tabpanel"
              data-tab-panel="{{ tab.id }}"
              aria-labelledby="admin-tab-{{ tab.id }}"
+             {% if tab.kind|default('') == 'drops' and not tab.active %}
+                 data-tab-src="/admin/{{ routeKind }}/{{ record.vnum }}?tab=drops&partial=1"
+             {% endif %}
              {% if not tab.active %}hidden{% endif %}>
             {% if tab.kind|default('') == 'drops' %}
-                {% include 'components/mob-drops.twig' %}
+                {% if tab.active %}
+                    {% include 'components/mob-drops.twig' %}
+                {% endif %}
             {% else %}
                 <fieldset class="admin-fieldset">
                     <legend>{{ tab.label }}</legend>

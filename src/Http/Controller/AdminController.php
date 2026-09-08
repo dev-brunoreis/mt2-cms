@@ -64,4 +64,44 @@ abstract class AdminController extends Controller
 
         return $this->redirect('/admin/login');
     }
+
+    protected function denyUnlessAdmin(): ?Response
+    {
+        if ($this->adminAuth->check()) {
+            return null;
+        }
+
+        if ($this->wantsTabPartial()) {
+            return new Response('', 401);
+        }
+
+        return $this->requireAdmin();
+    }
+
+    /**
+     * @param list<string> $allowed
+     */
+    protected function requestedTab(array $allowed, string $default): string
+    {
+        $tab = (string) ($_GET['tab'] ?? '');
+
+        return in_array($tab, $allowed, true) ? $tab : $default;
+    }
+
+    protected function wantsTabPartial(): bool
+    {
+        return (string) ($_GET['partial'] ?? '') === '1';
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    protected function adminFragment(string $template, array $data = [], int $status = 200): Response
+    {
+        if (!$this->adminAuth->check()) {
+            return new Response('', 401);
+        }
+
+        return Response::html($this->adminTheme->renderTemplate($template, $data), $status);
+    }
 }

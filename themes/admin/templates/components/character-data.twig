@@ -1,0 +1,60 @@
+<fieldset class="admin-fieldset">
+    <legend>
+        {{ t('admin.characters.details') }}
+        <span class="admin-fieldset-help">{{ t('admin.characters.details_help') }}</span>
+    </legend>
+
+    <dl class="admin-stat-grid">
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.id') }}</dt>
+            <dd>{{ character.id }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.name') }}</dt>
+            <dd class="admin-game-icon-row">
+                {% include 'components/face-icon.twig' with { job: character.job } %}
+                <span>{{ character.name }}</span>
+            </dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.account') }}</dt>
+            <dd>
+                {% if character.account_id %}
+                    <a href="/admin/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
+                        {{ character.account_login|default(character.account_id) }}
+                    </a>
+                {% else %}
+                    —
+                {% endif %}
+            </dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.job') }}</dt>
+            <dd>{{ character.job|job_name }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.level') }}</dt>
+            <dd>{{ character.level }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.exp') }}</dt>
+            <dd>{{ character.exp }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.gold') }}</dt>
+            <dd>{{ character.gold }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.playtime') }}</dt>
+            <dd>{{ character.playtime|playtime }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.map') }}</dt>
+            <dd>{{ character.map_index }}</dd>
+        </div>
+        <div class="admin-stat">
+            <dt>{{ t('admin.characters.last_play') }}</dt>
+            <dd>{{ character.last_play|game_date }}</dd>
+        </div>
+    </dl>
+</fieldset>

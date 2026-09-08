@@ -202,16 +202,21 @@ class AdminAccountsController extends AdminController
      */
     private function formView(array $account = [], ?string $error = null, int $status = 200): Response
     {
+        if ($guard = $this->denyUnlessAdmin()) {
+            return $guard;
+        }
+
         $isEdit = isset($account['id']) && (int) $account['id'] > 0;
+        $tab = $isEdit ? $this->requestedTab(['dados', 'activity'], 'dados') : 'dados';
         $characters = [];
         $connectionIps = [];
 
-        if ($isEdit) {
+        if ($isEdit && $tab === 'activity') {
             $characters = $this->players->findByAccountId((int) $account['id']);
             $connectionIps = $this->logs->ipsForAccount((int) $account['id']);
         }
 
-        return $this->adminView('accounts', 'pages/account-form.twig', [
+        $data = [
             'title' => $this->t($isEdit ? 'admin.accounts.edit_title' : 'admin.accounts.create_title'),
             'pageLead' => $this->t($isEdit ? 'admin.accounts.edit_lead' : 'admin.accounts.create_lead'),
             'formId' => 'admin-account-form',
@@ -220,8 +225,19 @@ class AdminAccountsController extends AdminController
             'characters' => $characters,
             'connectionIps' => $connectionIps,
             'isEdit' => $isEdit,
+            'activeTab' => $tab,
             'error' => $error,
-        ], $status);
+        ];
+
+        if ($isEdit && $this->wantsTabPartial()) {
+            if ($tab !== 'activity') {
+                return Response::notFound();
+            }
+
+            return $this->adminFragment('components/account-activity.twig', $data);
+        }
+
+        return $this->adminView('accounts', 'pages/account-form.twig', $data, $status);
     }
 
     /**

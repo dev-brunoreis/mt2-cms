@@ -11,13 +11,13 @@ class RefineRepository extends Repository
         return 'player';
     }
 
-    public function countForAdmin(?string $query = null): int
+    public function countForAdmin(?string $query = null, ?array $usedByRefineIds = null): int
     {
         if (!$this->schemaTableExists('refine_proto')) {
             return 0;
         }
 
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->searchClause($query, $usedByRefineIds);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `refine_proto` r' . $where,
@@ -28,17 +28,18 @@ class RefineRepository extends Repository
     /**
      * @return list<array<string, mixed>>
      */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null): array
+    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?array $usedByRefineIds = null): array
     {
         if (!$this->schemaTableExists('refine_proto')) {
             return [];
         }
 
         $offset = max(0, ($page - 1) * $perPage);
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->searchClause($query, $usedByRefineIds);
 
         $rows = $this->db()->fetchAll(
-            'SELECT id, src_vnum, result_vnum, cost, prob
+            'SELECT id, vnum0, count0, vnum1, count1, vnum2, count2, vnum3, count3, vnum4, count4,
+                    src_vnum, result_vnum, cost, prob
              FROM `refine_proto` r
              ' . $where . '
              ORDER BY id ASC
@@ -181,23 +182,35 @@ class RefineRepository extends Repository
     }
 
     /**
+     * @param list<int>|null $usedByRefineIds
      * @return array{0: string, 1: list<mixed>}
      */
-    private function searchClause(?string $query): array
+    private function searchClause(?string $query, ?array $usedByRefineIds = null): array
     {
-        if ($query === null || $query === '') {
+        $conditions = [];
+        $params = [];
+
+        if ($query !== null && $query !== '' && ctype_digit($query)) {
+            $like = $query . '%';
+            $conditions[] = 'CAST(r.id AS CHAR) LIKE ?';
+            $params[] = $like;
+
+            for ($i = 0; $i < 5; $i++) {
+                $conditions[] = 'CAST(r.vnum' . $i . ' AS CHAR) LIKE ?';
+                $params[] = $like;
+            }
+        }
+
+        if ($usedByRefineIds !== null && $usedByRefineIds !== []) {
+            $placeholders = implode(', ', array_fill(0, count($usedByRefineIds), '?'));
+            $conditions[] = 'r.id IN (' . $placeholders . ')';
+            array_push($params, ...$usedByRefineIds);
+        }
+
+        if ($conditions === []) {
             return ['', []];
         }
 
-        if (ctype_digit($query)) {
-            $id = (int) $query;
-
-            return [
-                ' WHERE r.id = ? OR r.src_vnum = ? OR r.result_vnum = ?',
-                [$id, $id, $id],
-            ];
-        }
-
-        return ['', []];
+        return [' WHERE (' . implode(' OR ', $conditions) . ')', $params];
     }
 }

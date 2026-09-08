@@ -35,8 +35,11 @@ class AdminRefineController extends AdminController
     {
         $q = trim((string) ($_GET['q'] ?? ''));
         $query = $q !== '' ? $q : null;
+        $usedByRefineIds = $query !== null && ctype_digit($query)
+            ? $this->protos->refineIdsForItemVnumPrefix($query)
+            : null;
         $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->refine->countForAdmin($query);
+        $total = $this->refine->countForAdmin($query, $usedByRefineIds);
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
 
         if ($page > $totalPages) {
@@ -48,7 +51,7 @@ class AdminRefineController extends AdminController
             'pageLead' => $this->t('admin.refine.lead'),
             'headerHref' => '/admin/refine/new',
             'headerActionLabel' => $this->t('admin.refine.create'),
-            'recipes' => $this->refine->listForAdmin($page, self::PER_PAGE, $query),
+            'recipes' => $this->enrichRecipesForList($this->refine->listForAdmin($page, self::PER_PAGE, $query, $usedByRefineIds)),
             'query' => $q,
             'page' => $page,
             'total' => $total,
@@ -208,6 +211,25 @@ class AdminRefineController extends AdminController
         }
 
         return $input;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $recipes
+     * @return list<array<string, mixed>>
+     */
+    private function enrichRecipesForList(array $recipes): array
+    {
+        $itemsByRefine = $this->protos->itemsByRefineId();
+
+        foreach ($recipes as &$recipe) {
+            $items = $itemsByRefine[(int) $recipe['id']] ?? [];
+            $recipe['used_by_count'] = count($items);
+            $recipe['used_by_items'] = array_slice($items, 0, 3);
+        }
+
+        unset($recipe);
+
+        return $recipes;
     }
 
     /**

@@ -78,6 +78,61 @@ class GameProtoService
     }
 
     /**
+     * Item proto rows grouped by refine recipe id (item_proto.refine).
+     *
+     * @return array<int, list<array{vnum: int, locale_name: string}>>
+     */
+    public function itemsByRefineId(): array
+    {
+        $map = [];
+
+        foreach ($this->all(ProtoSchemas::KIND_ITEM) as $row) {
+            $refineId = (int) ($row['refine'] ?? 0);
+
+            if ($refineId < 1) {
+                continue;
+            }
+
+            $map[$refineId][] = [
+                'vnum' => (int) $row['vnum'],
+                'locale_name' => (string) ($row['locale_name'] ?? ''),
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Refine recipe ids referenced by items whose vnum starts with the given prefix.
+     *
+     * @return list<int>
+     */
+    public function refineIdsForItemVnumPrefix(string $prefix): array
+    {
+        if ($prefix === '') {
+            return [];
+        }
+
+        $ids = [];
+
+        foreach ($this->all(ProtoSchemas::KIND_ITEM) as $row) {
+            $vnum = (string) ($row['vnum'] ?? '');
+
+            if (!str_starts_with($vnum, $prefix)) {
+                continue;
+            }
+
+            $refineId = (int) ($row['refine'] ?? 0);
+
+            if ($refineId > 0) {
+                $ids[$refineId] = $refineId;
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    /**
      * @param array<string, mixed> $input
      */
     public function create(string $kind, array $input): array

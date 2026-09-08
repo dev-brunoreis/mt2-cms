@@ -15,8 +15,8 @@
                 <thead>
                     <tr>
                         <th>{{ t('admin.refine.id') }}</th>
-                        <th>{{ t('admin.refine.source') }}</th>
-                        <th>{{ t('admin.refine.result') }}</th>
+                        <th>{{ t('admin.refine.used_by') }}</th>
+                        <th>{{ t('admin.refine.materials') }}</th>
                         <th>{{ t('admin.refine.cost') }}</th>
                         <th>{{ t('admin.refine.prob') }}</th>
                         <th>{{ t('admin.refine.actions') }}</th>
@@ -27,20 +27,41 @@
                         <tr>
                             <td class="text-slate-400">{{ recipe.id }}</td>
                             <td>
-                                {% if recipe.src_vnum %}
-                                    <a href="/admin/items/{{ recipe.src_vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
-                                        {% include 'components/item-icon.twig' with { vnum: recipe.src_vnum } %}
-                                        <span>{{ recipe.src_vnum }}</span>
-                                    </a>
-                                {% else %}—{% endif %}
+                                {% if recipe.used_by_count %}
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-xs text-slate-500">{{ t('admin.refine.used_by_count', {count: recipe.used_by_count}) }}</span>
+                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            {% for item in recipe.used_by_items %}
+                                                <a href="/admin/items/{{ item.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline" title="{{ item.locale_name }}">
+                                                    {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
+                                                    <span>{{ item.vnum }}</span>
+                                                </a>
+                                            {% endfor %}
+                                            {% if recipe.used_by_count > recipe.used_by_items|length %}
+                                                <span class="text-xs text-slate-400">{{ t('admin.refine.used_by_more', {count: recipe.used_by_count - recipe.used_by_items|length}) }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-slate-400">—</span>
+                                {% endif %}
                             </td>
                             <td>
-                                {% if recipe.result_vnum %}
-                                    <a href="/admin/items/{{ recipe.result_vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
-                                        {% include 'components/item-icon.twig' with { vnum: recipe.result_vnum } %}
-                                        <span>{{ recipe.result_vnum }}</span>
-                                    </a>
-                                {% else %}—{% endif %}
+                                {% set hasMaterials = false %}
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    {% for mat in recipe.materials %}
+                                        {% if mat.vnum > 0 and mat.count > 0 %}
+                                            {% set hasMaterials = true %}
+                                            <a href="/admin/items/{{ mat.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline" title="{{ mat.vnum }}">
+                                                {% include 'components/item-icon.twig' with { vnum: mat.vnum } %}
+                                                <span>{{ mat.vnum }}×{{ mat.count }}</span>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if not hasMaterials %}
+                                    <span class="text-slate-400">—</span>
+                                {% endif %}
                             </td>
                             <td class="text-slate-600">{{ recipe.cost }}</td>
                             <td class="text-slate-600">{{ recipe.prob }}%</td>

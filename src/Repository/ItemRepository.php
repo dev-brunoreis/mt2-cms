@@ -93,10 +93,12 @@ class ItemRepository extends Repository
                     p.subtype AS proto_subtype,
                     p.limittype0 AS proto_limit_type,
                     p.value0 AS proto_value0,
-                    p.value2 AS proto_value2'
+                    p.value2 AS proto_value2,
+                    p.size AS proto_size'
             : 'NULL AS proto_locale_name, NULL AS proto_name,
                     0 AS proto_type, 0 AS proto_subtype,
-                    0 AS proto_limit_type, 0 AS proto_value0, 0 AS proto_value2';
+                    0 AS proto_limit_type, 0 AS proto_value0, 0 AS proto_value2,
+                    1 AS proto_size';
         $protoJoin = $hasProto ? 'LEFT JOIN `item_proto` p ON p.vnum = i.vnum' : '';
 
         $rows = $this->db()->fetchAll(
@@ -153,6 +155,7 @@ class ItemRepository extends Repository
             'count' => (int) $row['count'],
             'vnum' => (int) $row['vnum'],
             'name' => $this->protoName($row),
+            'size' => max(1, min(3, (int) ($row['proto_size'] ?? 1))),
             'sockets' => $sockets,
         ];
     }

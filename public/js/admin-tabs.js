@@ -36,8 +36,9 @@ const snapshotPanel = (panel) => {
 }
 
 const initTabs = (root) => {
-  const tabs = Array.from(root.querySelectorAll('[role="tab"][data-tab]'))
-  const panels = Array.from(root.querySelectorAll('[data-tab-panel]'))
+  const belongsTo = (el) => el.closest('[data-admin-tabs]') === root
+  const tabs = Array.from(root.querySelectorAll('[role="tab"][data-tab]')).filter(belongsTo)
+  const panels = Array.from(root.querySelectorAll('[data-tab-panel]')).filter(belongsTo)
   const snapshots = new Map()
 
   if (tabs.length === 0 || panels.length === 0) {

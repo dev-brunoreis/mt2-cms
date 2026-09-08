@@ -1,0 +1,12 @@
+<div class="admin-inv-board">
+    <h3 class="admin-inv-title">{{ title }}</h3>
+    <div class="admin-inv-paperdoll" style="width: {{ board.width }}px; height: {{ board.height }}px;">
+        {% for slot in board.slots %}
+            <div class="admin-inv-cell admin-inv-cell-abs"
+                 style="left: {{ slot.x }}px; top: {{ slot.y }}px; width: {{ slot.w }}px; height: {{ slot.h }}px;"
+                 title="{{ t('admin.characters.slot_' ~ slot.key) }}">
+                {% include 'components/inventory-slot.twig' with { item: slot.item } %}
+            </div>
+        {% endfor %}
+    </div>
+</div>

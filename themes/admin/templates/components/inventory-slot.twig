@@ -1,0 +1,30 @@
+{% if item %}
+    {% set icon_src = item_icon(item.vnum) %}
+    <a href="/admin/items/{{ item.vnum }}"
+       class="admin-inv-item{% if not icon_src %} is-missing-icon{% endif %}"
+       title="{{ item.name|default(item.vnum) }}">
+        {% if icon_src %}
+            {% include 'components/item-icon.twig' with { vnum: item.vnum, size: 'slot' } %}
+        {% else %}
+            <span class="admin-inv-missing" aria-hidden="true">
+                <span class="admin-inv-missing-mark">?</span>
+                <span class="admin-inv-missing-vnum">{{ item.vnum }}</span>
+            </span>
+        {% endif %}
+        {% if item.count > 1 %}
+            <span class="admin-inv-count">{{ item.count }}</span>
+        {% endif %}
+        <span class="admin-inv-tip">
+            <strong>{{ item.name|default(item.vnum) }}</strong>
+            {% if not icon_src %}
+                <span class="admin-inv-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
+            {% endif %}
+            <span class="admin-inv-tip-meta">#{{ item.id }} · {{ t('admin.characters.items_pos') }} {{ item.pos }}</span>
+            {% if item.sockets is not empty %}
+                <span class="admin-inv-tip-sockets">
+                    {% include 'components/item-sockets.twig' %}
+                </span>
+            {% endif %}
+        </span>
+    </a>
+{% endif %}

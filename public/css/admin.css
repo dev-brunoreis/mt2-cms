@@ -540,3 +540,199 @@
   gap: 0.75rem;
   min-width: 0;
 }
+
+.admin-game-icon-slot {
+  width: 32px;
+  height: auto;
+  max-width: 32px;
+  max-height: 100%;
+  background: transparent;
+  border-radius: 0;
+}
+
+.admin-inv-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-inv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.admin-inv-board {
+  min-width: 0;
+}
+
+.admin-inv-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.admin-inv-paperdoll {
+  position: relative;
+  background:
+    linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 0.375rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.admin-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--inv-cols, 5), 32px);
+  grid-template-rows: repeat(var(--inv-rows, 9), 32px);
+  gap: 1px;
+  padding: 4px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 0.375rem;
+  width: max-content;
+}
+
+.admin-inv-page-nav {
+  padding: 0;
+  margin-bottom: 0.35rem;
+  background: transparent;
+  border-bottom: 0;
+  gap: 0.25rem;
+}
+
+.admin-inv-page-nav .admin-tab {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  margin-bottom: 0;
+}
+
+.admin-inv-page-nav .admin-tab.is-active {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.admin-inv-cell {
+  position: relative;
+  box-sizing: border-box;
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+.admin-inv-cell-abs {
+  position: absolute;
+}
+
+.admin-inv-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.admin-inv-item.is-missing-icon {
+  align-items: stretch;
+}
+
+.admin-inv-item .admin-game-icon-empty {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.admin-inv-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #334155,
+      #334155 3px,
+      #1e293b 3px,
+      #1e293b 6px
+    );
+  color: #e2e8f0;
+}
+
+.admin-inv-missing-mark {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.admin-inv-missing-vnum {
+  max-width: 100%;
+  padding: 0 1px;
+  font-size: 8px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-inv-count {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  z-index: 1;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 0 2px #000, 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.admin-inv-tip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-decoration: none;
+  pointer-events: none;
+}
+
+.admin-inv-item:hover .admin-inv-tip,
+.admin-inv-item:focus-visible .admin-inv-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-inv-tip-meta {
+  color: #64748b;
+}
+
+.admin-inv-tip-sockets .admin-item-sockets {
+  margin-top: 0.15rem;
+}
+
+.admin-inv-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}

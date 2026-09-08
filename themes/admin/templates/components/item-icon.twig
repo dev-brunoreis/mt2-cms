@@ -1,7 +1,8 @@
 {% set src = item_icon(vnum) %}
-{% set size_class = size|default('') == 'lg' ? ' admin-game-icon-lg' : (size|default('') == 'sm' ? ' admin-game-icon-sm' : '') %}
+{% set kind = size|default('') %}
+{% set size_class = kind == 'lg' ? ' admin-game-icon-lg' : (kind == 'sm' ? ' admin-game-icon-sm' : (kind == 'slot' ? ' admin-game-icon-slot' : '')) %}
 {% if src %}
-    <img src="{{ src }}" alt="" width="{{ size|default('') == 'sm' ? 24 : 48 }}" height="{{ size|default('') == 'sm' ? 24 : 48 }}"
+    <img src="{{ src }}" alt="" width="{{ kind == 'sm' ? 24 : (kind == 'slot' ? 32 : 48) }}" height="{{ kind == 'sm' ? 24 : (kind == 'slot' ? 32 : 48) }}"
          class="admin-game-icon{{ size_class }}"
          loading="lazy">
 {% elseif placeholder|default(false) %}

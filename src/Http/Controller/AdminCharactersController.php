@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Game\InventoryLayout;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\GuildRepository;
@@ -70,14 +71,20 @@ class AdminCharactersController extends AdminController
         $playerId = (int) $character['id'];
         $accountId = (int) ($character['account_id'] ?? 0);
         $name = (string) $character['name'];
+        $characterItems = $this->items->forCharacter($playerId);
+        $safebox = $accountId > 0 ? $this->items->safeboxForAccount($accountId) : null;
 
         return $this->adminView('characters', 'pages/character.twig', [
             'title' => $this->t('admin.characters.view_title', ['name' => $name]),
             'pageLead' => $this->t('admin.characters.view_lead'),
             'character' => $character,
             'characterLogs' => $this->decorateLogs($this->logs->listForCharacter($playerId, $name)),
-            'characterItems' => $this->items->forCharacter($playerId),
-            'safebox' => $accountId > 0 ? $this->items->safeboxForAccount($accountId) : null,
+            'characterItems' => $characterItems,
+            'characterItemLayout' => InventoryLayout::forCharacter($characterItems),
+            'safebox' => $safebox,
+            'safeboxLayout' => $safebox !== null
+                ? InventoryLayout::forAccount($safebox['items'], (int) $safebox['size'])
+                : null,
             'guild' => $this->guilds->profileForPlayer($playerId),
             'marriage' => $this->players->findMarriageForPlayer($playerId),
         ]);

@@ -1,0 +1,44 @@
+<div class="admin-inv-visual">
+    <div class="admin-inv-row">
+        {% include 'components/inventory-paperdoll.twig' with {
+            title: t('admin.characters.window_EQUIPMENT'),
+            board: layout.equipment
+        } %}
+        {% if layout.costume.has_item %}
+            {% include 'components/inventory-paperdoll.twig' with {
+                title: t('admin.characters.slot_costume'),
+                board: layout.costume
+            } %}
+        {% endif %}
+        {% include 'components/inventory-grid.twig' with {
+            title: t('admin.characters.window_BELT_INVENTORY'),
+            grid: layout.belt,
+            prefix: 'inv-belt'
+        } %}
+    </div>
+
+    {% if layout.extra is not empty %}
+        <div class="admin-inv-board">
+            <h3 class="admin-inv-title">{{ t('admin.characters.slot_extra') }}</h3>
+            <div class="admin-inv-extra">
+                {% for item in layout.extra %}
+                    <div class="admin-inv-cell" style="width: 32px; height: {{ 32 * item.size }}px;">
+                        {% include 'components/inventory-slot.twig' %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% include 'components/inventory-grid.twig' with {
+        title: t('admin.characters.window_INVENTORY'),
+        grid: layout.inventory,
+        prefix: 'inv-inventory'
+    } %}
+
+    {% include 'components/inventory-grid.twig' with {
+        title: t('admin.characters.window_DRAGON_SOUL_INVENTORY'),
+        grid: layout.dragonSoul,
+        prefix: 'inv-ds'
+    } %}
+</div>

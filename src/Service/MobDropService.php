@@ -14,6 +14,11 @@ class MobDropService
     /** @var array<string, mixed>|null */
     private ?array $catalog = null;
 
+    public function clearCatalog(): void
+    {
+        $this->catalog = null;
+    }
+
     public function __construct(
         private GameProfile $profile,
         private GameProtoService $protos,

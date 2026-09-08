@@ -1,0 +1,48 @@
+<form id="admin-drops-common-form" method="post" action="/admin/drops/common" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <p class="mb-4 text-sm text-slate-500">{{ t('admin.drops.common_help') }}</p>
+
+    {% for rank in rankNames %}
+        <section class="admin-fieldset mb-6">
+            <h2 class="admin-fieldset-title">{{ rank }}</h2>
+            <div class="admin-tabs-table overflow-x-auto">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t('admin.drops.label') }}</th>
+                            <th>{{ t('admin.drops.level_start') }}</th>
+                            <th>{{ t('admin.drops.level_end') }}</th>
+                            <th>{{ t('admin.drops.chance') }}</th>
+                            <th>{{ t('admin.drops.item_ref') }}</th>
+                            <th>{{ t('admin.drops.one_in') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set rows = ranks[rank]|default([]) %}
+                        {% for row in rows %}
+                            <tr>
+                                <td><input type="text" name="label_{{ rank }}[]" value="{{ row.label }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="level_start_{{ rank }}[]" value="{{ row.level_start }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="level_end_{{ rank }}[]" value="{{ row.level_end }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="chance_{{ rank }}[]" value="{{ row.chance }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="item_ref_{{ rank }}[]" value="{{ row.item_ref }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="one_in_{{ rank }}[]" value="{{ row.one_in }}" class="admin-input admin-input-compact"></td>
+                            </tr>
+                        {% endfor %}
+                        {% for i in 1..3 %}
+                            <tr>
+                                <td><input type="text" name="label_{{ rank }}[]" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="level_start_{{ rank }}[]" value="1" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="level_end_{{ rank }}[]" value="15" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="chance_{{ rank }}[]" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="item_ref_{{ rank }}[]" class="admin-input admin-input-compact"></td>
+                                <td><input type="number" name="one_in_{{ rank }}[]" value="0" class="admin-input admin-input-compact"></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endfor %}
+</form>

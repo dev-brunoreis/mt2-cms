@@ -10,7 +10,11 @@
         <dl class="admin-stat-grid">
             <div class="admin-stat">
                 <dt>{{ t('admin.characters.guild_name') }}</dt>
-                <dd>{{ guild.name }}</dd>
+                <dd>
+                    <a href="/admin/guilds/{{ guild.id }}" class="text-indigo-600 hover:underline">
+                        {{ guild.name }}
+                    </a>
+                </dd>
             </div>
             <div class="admin-stat">
                 <dt>{{ t('admin.characters.guild_role') }}</dt>

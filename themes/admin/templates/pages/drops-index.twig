@@ -1,0 +1,23 @@
+<div class="admin-panel p-6">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-lg border border-slate-200 p-4">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.drops.mob_section') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.drops.mob_section_help') }}</p>
+            <form method="get" action="/admin/drops" class="mt-4 flex flex-wrap gap-2"
+                  onsubmit="event.preventDefault(); const v=document.getElementById('mob-vnum').value; if(v) window.location='/admin/drops/mob/'+v;">
+                <input id="mob-vnum" type="number" min="1" placeholder="{{ t('admin.drops.mob_vnum_placeholder') }}" class="admin-input admin-input-compact">
+                <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">{{ t('admin.drops.open_mob') }}</button>
+            </form>
+        </div>
+        <a href="/admin/drops/etc" class="rounded-lg border border-slate-200 p-4 hover:border-indigo-300">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.drops.etc_section') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.drops.etc_section_help') }}</p>
+        </a>
+        <a href="/admin/drops/common" class="rounded-lg border border-slate-200 p-4 hover:border-indigo-300">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.drops.common_section') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.drops.common_section_help') }}</p>
+        </a>
+    </div>
+
+    <p class="mt-6 text-sm text-slate-500">{{ t('admin.drops.reload_help') }}</p>
+</div>

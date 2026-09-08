@@ -108,6 +108,15 @@
                 </div>
             </div>
         </fieldset>
+
+        {% if isEdit %}
+            <div class="mt-4 px-6 pb-6">
+                <a href="/admin/awards/new?login={{ account.login|url_encode }}"
+                   class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium">
+                    {{ t('admin.awards.send_item') }}
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     {% if isEdit %}

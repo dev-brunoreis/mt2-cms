@@ -27,6 +27,22 @@ class AdminSections
                         'label' => 'admin.nav.characters',
                     ],
                     [
+                        'id' => 'guilds',
+                        'path' => '/admin/guilds',
+                        'label' => 'admin.nav.guilds',
+                    ],
+                    [
+                        'id' => 'awards',
+                        'path' => '/admin/awards',
+                        'label' => 'admin.nav.awards',
+                    ],
+                ],
+            ],
+            [
+                'id' => 'content',
+                'label' => 'admin.nav.content',
+                'children' => [
+                    [
                         'id' => 'items',
                         'path' => '/admin/items',
                         'label' => 'admin.nav.items',
@@ -35,6 +51,21 @@ class AdminSections
                         'id' => 'mobs',
                         'path' => '/admin/mobs',
                         'label' => 'admin.nav.mobs',
+                    ],
+                    [
+                        'id' => 'shops',
+                        'path' => '/admin/shops',
+                        'label' => 'admin.nav.shops',
+                    ],
+                    [
+                        'id' => 'refine',
+                        'path' => '/admin/refine',
+                        'label' => 'admin.nav.refine',
+                    ],
+                    [
+                        'id' => 'drops',
+                        'path' => '/admin/drops',
+                        'label' => 'admin.nav.drops',
                     ],
                 ],
             ],
@@ -62,6 +93,11 @@ class AdminSections
                         'id' => 'locale',
                         'path' => '/admin/locale',
                         'label' => 'admin.nav.locale',
+                    ],
+                    [
+                        'id' => 'gms',
+                        'path' => '/admin/gms',
+                        'label' => 'admin.nav.gms',
                     ],
                 ],
             ],

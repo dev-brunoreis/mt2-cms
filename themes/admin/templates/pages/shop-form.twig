@@ -1,0 +1,63 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-shop-form" method="post"
+      action="{% if isEdit %}/admin/shops/{{ shop.vnum }}{% else %}/admin/shops{% endif %}"
+      class="admin-panel admin-tabs overflow-hidden"
+      data-admin-tabs data-default-tab="dados"
+      data-tab-loading="{{ t('admin.tabs.loading') }}"
+      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.shops.tab_data'), active: activeTab|default('dados') == 'dados' } %}
+        {% if isEdit %}
+            {% include 'components/tab.twig' with { id: 'items', label: t('admin.shops.tab_items'), active: activeTab|default('dados') == 'items' } %}
+        {% endif %}
+    </div>
+
+    <div id="admin-tab-panel-dados" class="admin-tabs-panel" role="tabpanel" data-tab-panel="dados"
+         {% if activeTab|default('dados') != 'dados' %}hidden{% endif %}>
+        <fieldset class="admin-fieldset">
+            <legend>{{ t('admin.shops.details') }}</legend>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field">
+                    <label for="shop-vnum">{{ t('admin.shops.vnum') }}</label>
+                    <input id="shop-vnum" type="number" name="vnum" min="1" required
+                           value="{{ shop.vnum|default('') }}" class="admin-input" {% if isEdit %}readonly{% endif %}>
+                </div>
+                <div class="admin-field">
+                    <label for="shop-name">{{ t('admin.shops.name') }}</label>
+                    <input id="shop-name" type="text" name="name" required maxlength="32"
+                           value="{{ shop.name|default('') }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label for="shop-npc">{{ t('admin.shops.npc') }}</label>
+                    <input id="shop-npc" type="number" name="npc_vnum" min="0"
+                           value="{{ shop.npc_vnum|default(0) }}" class="admin-input">
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    {% if isEdit %}
+        {% include 'components/tab-panel.twig' with {
+            id: 'items',
+            visible: activeTab|default('dados') == 'items',
+            src: '/admin/shops/' ~ shop.vnum ~ '?tab=items&partial=1',
+            template: 'components/shop-items.twig'
+        } %}
+    {% endif %}
+</form>
+
+{% if isEdit %}
+    <div class="mt-4 flex justify-end">
+        <form method="post" action="/admin/shops/{{ shop.vnum }}/delete" data-confirm="{{ t('admin.shops.confirm_delete') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
+                {{ t('admin.shops.delete') }}
+            </button>
+        </form>
+    </div>
+{% endif %}

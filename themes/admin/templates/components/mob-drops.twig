@@ -2,6 +2,11 @@
     <h2 class="admin-fieldset-title">
         {{ t('admin.mobs.drops_title') }}
         <span class="admin-fieldset-help">{{ t('admin.mobs.drops_help') }}</span>
+        {% if record.vnum is defined %}
+            <a href="/admin/drops/mob/{{ record.vnum }}" class="ml-2 text-sm font-medium text-indigo-600 hover:underline">
+                {{ t('admin.drops.edit_mob_drops') }}
+            </a>
+        {% endif %}
     </h2>
 
     {% if mobDrops.drop_groups is empty %}

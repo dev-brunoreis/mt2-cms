@@ -1,0 +1,65 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-award-form" method="post" action="/admin/awards" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.awards.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.awards.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="award-login">{{ t('admin.awards.login') }}</label>
+                <input id="award-login" type="text" name="login" required maxlength="30"
+                       value="{{ award.login|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="award-pid">{{ t('admin.awards.pid') }}</label>
+                <input id="award-pid" type="number" name="pid" min="0"
+                       value="{{ award.pid|default(0) }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.awards.pid_help') }}</span>
+            </div>
+            <div class="admin-field">
+                <label for="award-vnum">{{ t('admin.awards.vnum') }}</label>
+                <input id="award-vnum" type="number" name="vnum" min="1" required
+                       value="{{ award.vnum|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="award-count">{{ t('admin.awards.qty') }}</label>
+                <input id="award-count" type="number" name="count" min="1" required
+                       value="{{ award.count|default(1) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="award-socket0">{{ t('admin.awards.socket0') }}</label>
+                <input id="award-socket0" type="number" name="socket0"
+                       value="{{ award.socket0|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="award-socket1">{{ t('admin.awards.socket1') }}</label>
+                <input id="award-socket1" type="number" name="socket1"
+                       value="{{ award.socket1|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="award-socket2">{{ t('admin.awards.socket2') }}</label>
+                <input id="award-socket2" type="number" name="socket2"
+                       value="{{ award.socket2|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="award-mall">{{ t('admin.awards.mall') }}</label>
+                <select id="award-mall" name="mall" class="admin-input">
+                    <option value="0" {% if not award.mall|default(false) %}selected{% endif %}>{{ t('admin.awards.mall_no') }}</option>
+                    <option value="1" {% if award.mall|default(false) %}selected{% endif %}>{{ t('admin.awards.mall_yes') }}</option>
+                </select>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="award-why">{{ t('admin.awards.why') }}</label>
+                <input id="award-why" type="text" name="why" maxlength="128"
+                       value="{{ award.why|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+        </div>
+    </fieldset>
+</form>

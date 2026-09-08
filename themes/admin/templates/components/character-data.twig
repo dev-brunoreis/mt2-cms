@@ -57,4 +57,11 @@
             <dd>{{ character.last_play|game_date }}</dd>
         </div>
     </dl>
+
+    <div class="mt-4">
+        <a href="/admin/awards/new?login={{ character.account_login|url_encode }}&pid={{ character.id }}"
+           class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium">
+            {{ t('admin.awards.send_item') }}
+        </a>
+    </div>
 </fieldset>

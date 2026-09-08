@@ -121,6 +121,10 @@ Add display labels in `lang/en.json` and `lang/pt-BR.json` under `admin.proto.to
 
 If your source adds columns (e.g. after `addon_type`), append them to `columns`, add to `form_tabs`, and set `defaults`. The parser truncates extra file columns or pads missing ones.
 
+### Admin drop editor
+
+The admin can edit `mob_drop_item.txt`, `etc_drop_item.txt`, and `common_drop_item.txt` under `game/server/` (or `GAME_DIR`). Writes go through `DropFileService` and `GroupTextWriter`. The game server must `/reload` or restart to pick up changes. On first save of `common_drop_item.txt`, a `.bak` copy is created beside the original.
+
 ## What stays in PHP (not configurable yet)
 
 - Inventory paperdoll slot positions (`InventoryLayout.php`)

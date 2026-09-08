@@ -1,0 +1,62 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">{{ t('admin.refine.count', {count: total}) }}{% if query %} {{ t('admin.refine.matching', {query: query}) }}{% endif %}</p>
+        <form method="get" action="/admin/refine" class="flex gap-2">
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.refine.search_placeholder') }}" class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">{{ t('admin.refine.search') }}</button>
+        </form>
+    </div>
+
+    {% if recipes is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.refine.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.refine.id') }}</th>
+                        <th>{{ t('admin.refine.source') }}</th>
+                        <th>{{ t('admin.refine.result') }}</th>
+                        <th>{{ t('admin.refine.cost') }}</th>
+                        <th>{{ t('admin.refine.prob') }}</th>
+                        <th>{{ t('admin.refine.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recipe in recipes %}
+                        <tr>
+                            <td class="text-slate-400">{{ recipe.id }}</td>
+                            <td>
+                                {% if recipe.src_vnum %}
+                                    <a href="/admin/items/{{ recipe.src_vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                                        {% include 'components/item-icon.twig' with { vnum: recipe.src_vnum } %}
+                                        <span>{{ recipe.src_vnum }}</span>
+                                    </a>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if recipe.result_vnum %}
+                                    <a href="/admin/items/{{ recipe.result_vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                                        {% include 'components/item-icon.twig' with { vnum: recipe.result_vnum } %}
+                                        <span>{{ recipe.result_vnum }}</span>
+                                    </a>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="text-slate-600">{{ recipe.cost }}</td>
+                            <td class="text-slate-600">{{ recipe.prob }}%</td>
+                            <td><a href="/admin/refine/{{ recipe.id }}" class="admin-link-action">{{ t('admin.refine.edit') }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}<a href="/admin/refine?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}" class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.refine.previous') }}</a>{% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.refine.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}<a href="/admin/refine?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}" class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.refine.next') }}</a>{% endif %}
+        </nav>
+    {% endif %}
+</div>

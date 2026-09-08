@@ -1,0 +1,49 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-gm-form" method="post"
+      action="{% if isEdit %}/admin/gms/{{ gm.mID }}{% else %}/admin/gms{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.gms.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.gms.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="gm-account">{{ t('admin.gms.account') }}</label>
+                <input id="gm-account" type="text" name="mAccount" required maxlength="32"
+                       value="{{ gm.mAccount|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="gm-name">{{ t('admin.gms.name') }}</label>
+                <input id="gm-name" type="text" name="mName" required maxlength="32"
+                       value="{{ gm.mName|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="gm-contact-ip">{{ t('admin.gms.contact_ip') }}</label>
+                <input id="gm-contact-ip" type="text" name="mContactIP" maxlength="16"
+                       value="{{ gm.mContactIP|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="gm-server-ip">{{ t('admin.gms.server_ip') }}</label>
+                <input id="gm-server-ip" type="text" name="mServerIP" maxlength="16"
+                       value="{{ gm.mServerIP|default('ALL') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="gm-authority">{{ t('admin.gms.authority') }}</label>
+                <select id="gm-authority" name="mAuthority" class="admin-input">
+                    {% for authority in authorities %}
+                        <option value="{{ authority }}" {% if (gm.mAuthority|default('PLAYER')) == authority %}selected{% endif %}>
+                            {{ authority }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </fieldset>
+</form>

@@ -1,0 +1,71 @@
+<section class="admin-fieldset">
+    <fieldset>
+    <legend>
+        {{ t('admin.guilds.details') }}
+        <span class="admin-fieldset-help">{{ t('admin.guilds.details_help') }}</span>
+    </legend>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="admin-field">
+            <label for="guild-name">{{ t('admin.guilds.name') }}</label>
+            <input id="guild-name" type="text" name="name" required maxlength="12"
+                   value="{{ guild.name|default('') }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label>{{ t('admin.guilds.master') }}</label>
+            <p class="admin-input-readonly">
+                {% if guild.master_id %}
+                    <a href="/admin/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
+                        {{ guild.master_name|default(guild.master_id) }}
+                    </a>
+                {% else %}
+                    —
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-level">{{ t('admin.guilds.level') }}</label>
+            <input id="guild-level" type="number" name="level" min="0" max="255"
+                   value="{{ guild.level|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-exp">{{ t('admin.guilds.exp') }}</label>
+            <input id="guild-exp" type="number" name="exp" min="0"
+                   value="{{ guild.exp|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-gold">{{ t('admin.guilds.gold') }}</label>
+            <input id="guild-gold" type="number" name="gold" min="0"
+                   value="{{ guild.gold|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-ladder">{{ t('admin.guilds.ladder') }}</label>
+            <input id="guild-ladder" type="number" name="ladder_point" min="0"
+                   value="{{ guild.ladder_point|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-win">{{ t('admin.guilds.wins') }}</label>
+            <input id="guild-win" type="number" name="win" min="0"
+                   value="{{ guild.win|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-draw">{{ t('admin.guilds.draws') }}</label>
+            <input id="guild-draw" type="number" name="draw" min="0"
+                   value="{{ guild.draw|default(0) }}" class="admin-input">
+        </div>
+
+        <div class="admin-field">
+            <label for="guild-loss">{{ t('admin.guilds.losses') }}</label>
+            <input id="guild-loss" type="number" name="loss" min="0"
+                   value="{{ guild.loss|default(0) }}" class="admin-input">
+        </div>
+    </div>
+    </fieldset>
+</section>

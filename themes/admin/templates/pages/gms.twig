@@ -1,0 +1,96 @@
+<div class="admin-panel overflow-hidden p-6">
+    <p class="mb-6 text-sm text-slate-500">{{ t('admin.gms.hosts_help') }}</p>
+
+    <form method="post" action="/admin/gms/hosts" class="mb-6 flex flex-wrap gap-2">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="text" name="mIP" maxlength="16" placeholder="{{ t('admin.gms.host_placeholder') }}"
+               class="admin-input admin-input-compact">
+        <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+            {{ t('admin.gms.add_host') }}
+        </button>
+    </form>
+
+    {% if hosts is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.gms.hosts_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.gms.host') }}</th>
+                        <th>{{ t('admin.gms.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in hosts %}
+                        <tr>
+                            <td class="font-medium text-slate-800">{{ host }}</td>
+                            <td>
+                                <form method="post" action="/admin/gms/hosts/delete"
+                                      data-confirm="{{ t('admin.gms.confirm_delete_host') }}">
+                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                    <input type="hidden" name="mIP" value="{{ host }}">
+                                    <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                        {{ t('admin.gms.delete_host') }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+<div class="admin-panel mt-4 overflow-hidden">
+    <div class="border-b border-slate-100 px-4 py-4 md:px-6">
+        <p class="text-sm text-slate-500">{{ t('admin.gms.count', {count: gms|length}) }}</p>
+    </div>
+
+    {% if gms is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.gms.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.gms.id') }}</th>
+                        <th>{{ t('admin.gms.account') }}</th>
+                        <th>{{ t('admin.gms.name') }}</th>
+                        <th>{{ t('admin.gms.authority') }}</th>
+                        <th>{{ t('admin.gms.server_ip') }}</th>
+                        <th>{{ t('admin.gms.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gm in gms %}
+                        <tr>
+                            <td class="text-slate-400">{{ gm.mID }}</td>
+                            <td>
+                                <a href="/admin/gms/{{ gm.mID }}" class="font-medium text-indigo-600 hover:underline">
+                                    {{ gm.mAccount }}
+                                </a>
+                            </td>
+                            <td class="text-slate-600">{{ gm.mName }}</td>
+                            <td class="text-slate-600">{{ gm.mAuthority }}</td>
+                            <td class="text-slate-600">{{ gm.mServerIP|default('ALL') }}</td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <a href="/admin/gms/{{ gm.mID }}" class="admin-link-action">{{ t('admin.gms.edit') }}</a>
+                                    <form method="post" action="/admin/gms/{{ gm.mID }}/delete"
+                                          data-confirm="{{ t('admin.gms.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.gms.delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>

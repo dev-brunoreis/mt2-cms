@@ -1,0 +1,30 @@
+<form id="admin-drops-etc-form" method="post" action="/admin/drops/etc" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <p class="mb-4 text-sm text-slate-500">{{ t('admin.drops.reload_help') }}</p>
+
+    <div class="admin-tabs-table">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.drops.etc_name') }}</th>
+                    <th>{{ t('admin.drops.etc_chance') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drop in drops %}
+                    <tr>
+                        <td><input type="text" name="name[]" value="{{ drop.name }}" class="admin-input admin-input-compact w-full"></td>
+                        <td><input type="text" name="chance[]" value="{{ drop.chance }}" class="admin-input admin-input-compact w-full"></td>
+                    </tr>
+                {% endfor %}
+                {% for i in 1..5 %}
+                    <tr>
+                        <td><input type="text" name="name[]" value="" class="admin-input admin-input-compact w-full" placeholder="{{ t('admin.drops.new_row') }}"></td>
+                        <td><input type="text" name="chance[]" value="" class="admin-input admin-input-compact w-full"></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>

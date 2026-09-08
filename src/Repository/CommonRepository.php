@@ -1,9 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mt2Cms\Repository;
 
 class CommonRepository extends Repository
 {
+    private const AUTHORITIES = [
+        'IMPLEMENTOR',
+        'HIGH_WIZARD',
+        'GOD',
+        'LOW_WIZARD',
+        'PLAYER',
+    ];
+
     protected function database(): string
     {
         return 'common';
@@ -11,9 +21,27 @@ class CommonRepository extends Repository
 
     public function gmList(): array
     {
+        if (!$this->schemaTableExists('gmlist')) {
+            return [];
+        }
+
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT mID, mAccount, mName, mAuthority FROM `gmlist`',
+                'SELECT mID, mAccount, mName, mContactIP, mServerIP, mAuthority FROM `gmlist` ORDER BY mID ASC',
+            ),
+        );
+    }
+
+    public function findGmById(int $id): ?array
+    {
+        if ($id < 1 || !$this->schemaTableExists('gmlist')) {
+            return null;
+        }
+
+        return $this->reveal(
+            $this->db()->fetch(
+                'SELECT mID, mAccount, mName, mContactIP, mServerIP, mAuthority FROM `gmlist` WHERE mID = ?',
+                [$id],
             ),
         );
     }
@@ -22,14 +50,180 @@ class CommonRepository extends Repository
     {
         return $this->reveal(
             $this->db()->fetch(
-                'SELECT mID, mAccount, mName, mAuthority FROM `gmlist` WHERE mAccount = ?',
+                'SELECT mID, mAccount, mName, mContactIP, mServerIP, mAuthority FROM `gmlist` WHERE mAccount = ?',
                 [$account],
             ),
         );
     }
 
+    /**
+     * @param array<string, mixed> $input
+     * @return array{mAccount: string, mName: string, mContactIP: string, mServerIP: string, mAuthority: string}
+     */
+    public function createGm(array $input): array
+    {
+        $validated = $this->validateGmInput($input);
+
+        $this->db()->execute(
+            'INSERT INTO `gmlist` (mAccount, mName, mContactIP, mServerIP, mAuthority)
+             VALUES (?, ?, ?, ?, ?)',
+            [
+                $validated['mAccount'],
+                $validated['mName'],
+                $validated['mContactIP'],
+                $validated['mServerIP'],
+                $validated['mAuthority'],
+            ],
+        );
+
+        $id = (int) $this->db()->lastInsertId();
+        $gm = $this->findGmById($id);
+
+        if ($gm === null) {
+            throw new \RuntimeException('admin.gms.create_failed');
+        }
+
+        return $gm;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    public function updateGm(int $id, array $input): void
+    {
+        if ($this->findGmById($id) === null) {
+            throw new \InvalidArgumentException('admin.gms.not_found');
+        }
+
+        $validated = $this->validateGmInput($input);
+
+        $this->db()->execute(
+            'UPDATE `gmlist`
+             SET mAccount = ?, mName = ?, mContactIP = ?, mServerIP = ?, mAuthority = ?
+             WHERE mID = ?',
+            [
+                $validated['mAccount'],
+                $validated['mName'],
+                $validated['mContactIP'],
+                $validated['mServerIP'],
+                $validated['mAuthority'],
+                $id,
+            ],
+        );
+    }
+
+    public function deleteGm(int $id): bool
+    {
+        if ($id < 1 || !$this->schemaTableExists('gmlist')) {
+            return false;
+        }
+
+        return $this->db()->execute('DELETE FROM `gmlist` WHERE mID = ?', [$id]) > 0;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function gmHosts(): array
+    {
+        if (!$this->schemaTableExists('gmhost')) {
+            return [];
+        }
+
+        $rows = $this->db()->fetchAll('SELECT mIP FROM `gmhost` ORDER BY mIP ASC');
+
+        return array_map(static fn (array $row): string => (string) $row['mIP'], $rows);
+    }
+
+    public function addGmHost(string $ip): void
+    {
+        $ip = trim($ip);
+
+        if ($ip === '' || strlen($ip) > 16) {
+            throw new \InvalidArgumentException('admin.gms.invalid_host');
+        }
+
+        if (!$this->schemaTableExists('gmhost')) {
+            throw new \RuntimeException('admin.gms.hosts_unavailable');
+        }
+
+        $exists = $this->db()->fetchColumn('SELECT mIP FROM `gmhost` WHERE mIP = ? LIMIT 1', [$ip]);
+
+        if ($exists !== null) {
+            throw new \InvalidArgumentException('admin.gms.host_exists');
+        }
+
+        $this->db()->execute('INSERT INTO `gmhost` (mIP) VALUES (?)', [$ip]);
+    }
+
+    public function deleteGmHost(string $ip): bool
+    {
+        if (!$this->schemaTableExists('gmhost')) {
+            return false;
+        }
+
+        return $this->db()->execute('DELETE FROM `gmhost` WHERE mIP = ?', [trim($ip)]) > 0;
+    }
+
     public function locales(): array
     {
-        return $this->revealAll($this->db()->fetchAll('SELECT * FROM `locale`'));
+        if (!$this->schemaTableExists('locale')) {
+            return [];
+        }
+
+        return $this->revealAll($this->db()->fetchAll('SELECT mKey, mValue FROM `locale`'));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function authorities(): array
+    {
+        return self::AUTHORITIES;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array{mAccount: string, mName: string, mContactIP: string, mServerIP: string, mAuthority: string}
+     */
+    private function validateGmInput(array $input): array
+    {
+        $account = trim((string) ($input['mAccount'] ?? ''));
+
+        if ($account === '' || strlen($account) > 32) {
+            throw new \InvalidArgumentException('admin.gms.invalid_account');
+        }
+
+        $name = trim((string) ($input['mName'] ?? ''));
+
+        if ($name === '' || strlen($name) > 32) {
+            throw new \InvalidArgumentException('admin.gms.invalid_name');
+        }
+
+        $contactIp = trim((string) ($input['mContactIP'] ?? ''));
+
+        if (strlen($contactIp) > 16) {
+            throw new \InvalidArgumentException('admin.gms.invalid_contact_ip');
+        }
+
+        $serverIp = trim((string) ($input['mServerIP'] ?? 'ALL'));
+
+        if ($serverIp === '' || strlen($serverIp) > 16) {
+            $serverIp = 'ALL';
+        }
+
+        $authority = strtoupper(trim((string) ($input['mAuthority'] ?? 'PLAYER')));
+
+        if (!in_array($authority, self::AUTHORITIES, true)) {
+            throw new \InvalidArgumentException('admin.gms.invalid_authority');
+        }
+
+        return [
+            'mAccount' => $account,
+            'mName' => $name,
+            'mContactIP' => $contactIp,
+            'mServerIP' => $serverIp,
+            'mAuthority' => $authority,
+        ];
     }
 }

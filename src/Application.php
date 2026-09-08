@@ -13,10 +13,16 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Controller\AccountController;
 use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\AdminAwardsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
+use Mt2Cms\Http\Controller\AdminDropsController;
 use Mt2Cms\Http\Controller\AdminGameProtoController;
+use Mt2Cms\Http\Controller\AdminGmsController;
+use Mt2Cms\Http\Controller\AdminGuildsController;
 use Mt2Cms\Http\Controller\AdminLogsController;
+use Mt2Cms\Http\Controller\AdminRefineController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
+use Mt2Cms\Http\Controller\AdminShopsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
@@ -31,12 +37,16 @@ use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\AdminRepository;
+use Mt2Cms\Repository\CommonRepository;
 use Mt2Cms\Repository\GuildRepository;
+use Mt2Cms\Repository\ItemAwardRepository;
 use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
+use Mt2Cms\Repository\RefineRepository;
 use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Repository\ShopRepository;
 use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemIconCatalog;
@@ -45,6 +55,8 @@ use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Drop\GroupTextParser;
+use Mt2Cms\Game\Drop\GroupTextWriter;
+use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
@@ -71,9 +83,14 @@ class Application
     private PlayerRepository $players;
     private ItemRepository $items;
     private GuildRepository $guilds;
+    private CommonRepository $common;
+    private ItemAwardRepository $awards;
+    private ShopRepository $shops;
+    private RefineRepository $refine;
     private LogRepository $logs;
     private GameProtoService $gameProto;
     private MobDropService $mobDrops;
+    private DropFileService $dropFiles;
     private ?GameIconService $icons = null;
     private GameProfile $gameProfile;
     private ProtoSchemas $protoSchemas;
@@ -149,6 +166,45 @@ class Application
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
             $r->addRoute('GET', '/admin/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
+            $r->addRoute('GET', '/admin/guilds', [AdminGuildsController::class, 'index']);
+            $r->addRoute('GET', '/admin/guilds/{id:\d+}', [AdminGuildsController::class, 'show']);
+            $r->addRoute('POST', '/admin/guilds/{id:\d+}', [AdminGuildsController::class, 'update']);
+            $r->addRoute('POST', '/admin/guilds/{id:\d+}/kick', [AdminGuildsController::class, 'kick']);
+            $r->addRoute('POST', '/admin/guilds/{id:\d+}/comment/{commentId:\d+}/delete', [AdminGuildsController::class, 'deleteComment']);
+            $r->addRoute('POST', '/admin/guilds/{id:\d+}/dissolve', [AdminGuildsController::class, 'dissolve']);
+            $r->addRoute('GET', '/admin/awards', [AdminAwardsController::class, 'index']);
+            $r->addRoute('GET', '/admin/awards/new', [AdminAwardsController::class, 'create']);
+            $r->addRoute('POST', '/admin/awards', [AdminAwardsController::class, 'store']);
+            $r->addRoute('POST', '/admin/awards/{id:\d+}/delete', [AdminAwardsController::class, 'destroy']);
+            $r->addRoute('GET', '/admin/shops', [AdminShopsController::class, 'index']);
+            $r->addRoute('GET', '/admin/shops/new', [AdminShopsController::class, 'create']);
+            $r->addRoute('POST', '/admin/shops', [AdminShopsController::class, 'store']);
+            $r->addRoute('GET', '/admin/shops/{id:\d+}', [AdminShopsController::class, 'edit']);
+            $r->addRoute('POST', '/admin/shops/{id:\d+}', [AdminShopsController::class, 'update']);
+            $r->addRoute('POST', '/admin/shops/{id:\d+}/delete', [AdminShopsController::class, 'destroy']);
+            $r->addRoute('POST', '/admin/shops/{id:\d+}/items', [AdminShopsController::class, 'addItem']);
+            $r->addRoute('POST', '/admin/shops/{id:\d+}/items/delete', [AdminShopsController::class, 'removeItem']);
+            $r->addRoute('GET', '/admin/refine', [AdminRefineController::class, 'index']);
+            $r->addRoute('GET', '/admin/refine/new', [AdminRefineController::class, 'create']);
+            $r->addRoute('POST', '/admin/refine', [AdminRefineController::class, 'store']);
+            $r->addRoute('GET', '/admin/refine/{id:\d+}', [AdminRefineController::class, 'edit']);
+            $r->addRoute('POST', '/admin/refine/{id:\d+}', [AdminRefineController::class, 'update']);
+            $r->addRoute('POST', '/admin/refine/{id:\d+}/delete', [AdminRefineController::class, 'destroy']);
+            $r->addRoute('GET', '/admin/drops', [AdminDropsController::class, 'index']);
+            $r->addRoute('GET', '/admin/drops/etc', [AdminDropsController::class, 'etc']);
+            $r->addRoute('POST', '/admin/drops/etc', [AdminDropsController::class, 'saveEtc']);
+            $r->addRoute('GET', '/admin/drops/common', [AdminDropsController::class, 'common']);
+            $r->addRoute('POST', '/admin/drops/common', [AdminDropsController::class, 'saveCommon']);
+            $r->addRoute('GET', '/admin/drops/mob/{id:\d+}', [AdminDropsController::class, 'mob']);
+            $r->addRoute('POST', '/admin/drops/mob/{id:\d+}', [AdminDropsController::class, 'saveMob']);
+            $r->addRoute('GET', '/admin/gms', [AdminGmsController::class, 'index']);
+            $r->addRoute('GET', '/admin/gms/new', [AdminGmsController::class, 'create']);
+            $r->addRoute('POST', '/admin/gms', [AdminGmsController::class, 'store']);
+            $r->addRoute('GET', '/admin/gms/{id:\d+}', [AdminGmsController::class, 'edit']);
+            $r->addRoute('POST', '/admin/gms/{id:\d+}', [AdminGmsController::class, 'update']);
+            $r->addRoute('POST', '/admin/gms/{id:\d+}/delete', [AdminGmsController::class, 'destroy']);
+            $r->addRoute('POST', '/admin/gms/hosts', [AdminGmsController::class, 'addHost']);
+            $r->addRoute('POST', '/admin/gms/hosts/delete', [AdminGmsController::class, 'deleteHost']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'index']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}/new', [AdminGameProtoController::class, 'create']);
             $r->addRoute('POST', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'store']);
@@ -261,16 +317,26 @@ class Application
             $this->itemStats,
         );
         $this->guilds = new GuildRepository($this->db);
+        $this->common = new CommonRepository($this->db);
+        $this->awards = new ItemAwardRepository($this->db);
+        $this->shops = new ShopRepository($this->db);
+        $this->refine = new RefineRepository($this->db);
         $this->logs = new LogRepository($this->db);
         $this->gameProto = new GameProtoService(
             $this->gameProfile,
             $this->protoSchemas,
             new ProtoNameRepository($this->db),
         );
+        $groupParser = new GroupTextParser();
         $this->mobDrops = new MobDropService(
             $this->gameProfile,
             $this->gameProto,
-            new GroupTextParser(),
+            $groupParser,
+        );
+        $this->dropFiles = new DropFileService(
+            $this->gameProfile,
+            $groupParser,
+            new GroupTextWriter(),
         );
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
@@ -445,6 +511,69 @@ class Application
                 $this->adminAuth,
                 $this->adminTheme,
                 $this->logs,
+            ),
+            AdminGuildsController::class => new AdminGuildsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->guilds,
+            ),
+            AdminGmsController::class => new AdminGmsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->common,
+                $this->accounts,
+            ),
+            AdminAwardsController::class => new AdminAwardsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->awards,
+                $this->accounts,
+                $this->players,
+                $this->gameProto,
+            ),
+            AdminShopsController::class => new AdminShopsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->shops,
+                $this->gameProto,
+            ),
+            AdminRefineController::class => new AdminRefineController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->refine,
+                $this->gameProto,
+            ),
+            AdminDropsController::class => new AdminDropsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->dropFiles,
+                $this->mobDrops,
+                $this->gameProto,
+                $this->gameProfile,
             ),
             default => throw new \RuntimeException('Unknown controller: ' . $class),
         };

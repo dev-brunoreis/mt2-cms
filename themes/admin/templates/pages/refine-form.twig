@@ -1,0 +1,60 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-refine-form" method="post"
+      action="{% if isEdit %}/admin/refine/{{ recipe.id }}{% else %}/admin/refine{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>{{ t('admin.refine.details') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="admin-field">
+                <label for="refine-src">{{ t('admin.refine.source') }}</label>
+                <input id="refine-src" type="number" name="src_vnum" min="0" value="{{ recipe.src_vnum|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="refine-result">{{ t('admin.refine.result') }}</label>
+                <input id="refine-result" type="number" name="result_vnum" min="0" value="{{ recipe.result_vnum|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="refine-cost">{{ t('admin.refine.cost') }}</label>
+                <input id="refine-cost" type="number" name="cost" min="0" value="{{ recipe.cost|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="refine-prob">{{ t('admin.refine.prob') }}</label>
+                <input id="refine-prob" type="number" name="prob" min="0" max="100" value="{{ recipe.prob|default(100) }}" class="admin-input">
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset mt-6">
+        <legend>{{ t('admin.refine.materials') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {% for i in 0..4 %}
+                {% set mat = recipe.materials[i]|default({vnum: 0, count: 0}) %}
+                <div class="rounded-md border border-slate-200 p-4">
+                    <p class="mb-2 text-xs font-semibold uppercase text-slate-500">{{ t('admin.refine.material', {n: i + 1}) }}</p>
+                    <div class="grid gap-2">
+                        <input type="number" name="vnum{{ i }}" min="0" placeholder="{{ t('admin.refine.vnum') }}"
+                               value="{{ mat.vnum }}" class="admin-input admin-input-compact">
+                        <input type="number" name="count{{ i }}" min="0" placeholder="{{ t('admin.refine.count') }}"
+                               value="{{ mat.count }}" class="admin-input admin-input-compact">
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+</form>
+
+{% if isEdit %}
+    <div class="mt-4 flex justify-end">
+        <form method="post" action="/admin/refine/{{ recipe.id }}/delete" data-confirm="{{ t('admin.refine.confirm_delete') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
+                {{ t('admin.refine.delete') }}
+            </button>
+        </form>
+    </div>
+{% endif %}

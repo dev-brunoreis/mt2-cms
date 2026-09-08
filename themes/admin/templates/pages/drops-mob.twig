@@ -1,0 +1,103 @@
+<form id="admin-drops-mob-form" method="post" action="/admin/drops/mob/{{ mob.vnum }}" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <p class="mb-4 text-sm text-slate-500">
+        {{ t('admin.drops.mob_editing', {vnum: mob.vnum, name: mob.locale_name|default(mob.name|default(''))}) }}
+        · <a href="/admin/mobs/{{ mob.vnum }}" class="text-indigo-600 hover:underline">{{ t('admin.drops.view_mob') }}</a>
+    </p>
+    <p class="mb-6 text-sm text-slate-500">{{ t('admin.drops.reload_help') }}</p>
+
+    {% if groups is empty %}
+        <p class="mb-4 text-sm text-slate-500">{{ t('admin.drops.mob_empty') }}</p>
+    {% endif %}
+
+    {% for gIndex, group in groups %}
+        <fieldset class="admin-fieldset mb-6">
+            <legend>{{ t('admin.drops.group', {n: gIndex + 1}) }}</legend>
+            <div class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="admin-field">
+                    <label>{{ t('admin.drops.group_name') }}</label>
+                    <input type="text" name="groups[{{ gIndex }}][name]" value="{{ group.name }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label>{{ t('admin.drops.group_type') }}</label>
+                    <input type="text" name="groups[{{ gIndex }}][type]" value="{{ group.attrs.type[0]|default('drop') }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label>{{ t('admin.drops.kill_drop') }}</label>
+                    <input type="text" name="groups[{{ gIndex }}][kill_drop]" value="{{ group.attrs.kill_drop[0]|default('') }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label>{{ t('admin.drops.level_limit') }}</label>
+                    <input type="text" name="groups[{{ gIndex }}][level_limit]" value="{{ group.attrs.level_limit[0]|default('') }}" class="admin-input">
+                </div>
+            </div>
+            <div class="admin-tabs-table">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t('admin.mobs.drops_vnum') }}</th>
+                            <th>{{ t('admin.mobs.drops_count') }}</th>
+                            <th>{{ t('admin.mobs.drops_chance') }}</th>
+                            <th>{{ t('admin.mobs.drops_rare') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for iIndex, item in group.items %}
+                            <tr>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ iIndex }}][vnum]" value="{{ item[0]|default('') }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ iIndex }}][count]" value="{{ item[1]|default('1') }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ iIndex }}][chance]" value="{{ item[2]|default('0') }}" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ iIndex }}][rare]" value="{{ item[3]|default('') }}" class="admin-input admin-input-compact"></td>
+                            </tr>
+                        {% endfor %}
+                        {% set nextIndex = group.items|length %}
+                        {% for i in 0..2 %}
+                            <tr>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ nextIndex + i }}][vnum]" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ nextIndex + i }}][count]" value="1" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ nextIndex + i }}][chance]" value="0" class="admin-input admin-input-compact"></td>
+                                <td><input type="text" name="groups[{{ gIndex }}][items][{{ nextIndex + i }}][rare]" class="admin-input admin-input-compact"></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+    {% endfor %}
+
+    {% set newIndex = groups|length %}
+    <fieldset class="admin-fieldset">
+        <legend>{{ t('admin.drops.new_group') }}</legend>
+        <div class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="admin-field">
+                <label>{{ t('admin.drops.group_name') }}</label>
+                <input type="text" name="groups[{{ newIndex }}][name]" value="NewGroup" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label>{{ t('admin.drops.group_type') }}</label>
+                <input type="text" name="groups[{{ newIndex }}][type]" value="drop" class="admin-input">
+            </div>
+        </div>
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.mobs.drops_vnum') }}</th>
+                        <th>{{ t('admin.mobs.drops_count') }}</th>
+                        <th>{{ t('admin.mobs.drops_chance') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in 0..2 %}
+                        <tr>
+                            <td><input type="text" name="groups[{{ newIndex }}][items][{{ i }}][vnum]" class="admin-input admin-input-compact"></td>
+                            <td><input type="text" name="groups[{{ newIndex }}][items][{{ i }}][count]" value="1" class="admin-input admin-input-compact"></td>
+                            <td><input type="text" name="groups[{{ newIndex }}][items][{{ i }}][chance]" value="0" class="admin-input admin-input-compact"></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</form>

@@ -1,0 +1,95 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.awards.count', {count: total}) }}
+            {% if query %} {{ t('admin.awards.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/awards" class="flex flex-wrap gap-2">
+            <select name="status" class="admin-input admin-input-compact">
+                <option value="">{{ t('admin.awards.status_all') }}</option>
+                <option value="pending" {% if status == 'pending' %}selected{% endif %}>{{ t('admin.awards.status_pending') }}</option>
+                <option value="taken" {% if status == 'taken' %}selected{% endif %}>{{ t('admin.awards.status_taken') }}</option>
+            </select>
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.awards.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.awards.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if awards is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.awards.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.awards.id') }}</th>
+                        <th>{{ t('admin.awards.login') }}</th>
+                        <th>{{ t('admin.awards.pid') }}</th>
+                        <th>{{ t('admin.awards.item') }}</th>
+                        <th>{{ t('admin.awards.qty') }}</th>
+                        <th>{{ t('admin.awards.mall') }}</th>
+                        <th>{{ t('admin.awards.given') }}</th>
+                        <th>{{ t('admin.awards.status') }}</th>
+                        <th>{{ t('admin.awards.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                        <tr>
+                            <td class="text-slate-400">{{ award.id }}</td>
+                            <td class="text-slate-600">{{ award.login }}</td>
+                            <td class="text-slate-600">
+                                {% if award.pid %}
+                                    <a href="/admin/characters/{{ award.pid }}" class="text-indigo-600 hover:underline">{{ award.pid }}</a>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                <div class="admin-game-icon-row">
+                                    {% include 'components/item-icon.twig' with { vnum: award.vnum } %}
+                                    <span>{{ award.vnum }}</span>
+                                </div>
+                            </td>
+                            <td class="text-slate-600">{{ award.count }}</td>
+                            <td class="text-slate-600">{{ award.mall ? t('admin.awards.mall_yes') : t('admin.awards.mall_no') }}</td>
+                            <td class="text-slate-600">{{ award.given_time|game_date }}</td>
+                            <td>
+                                <span class="admin-badge {% if award.pending %}admin-badge-ok{% else %}admin-badge-danger{% endif %}">
+                                    {{ award.pending ? t('admin.awards.status_pending') : t('admin.awards.status_taken') }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if award.pending %}
+                                    <form method="post" action="/admin/awards/{{ award.id }}/delete"
+                                          data-confirm="{{ t('admin.awards.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.awards.delete') }}
+                                        </button>
+                                    </form>
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/awards?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.awards.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.awards.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/awards?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.awards.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

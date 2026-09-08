@@ -1,0 +1,61 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">{{ t('admin.guilds.members') }}</h2>
+
+    {% if guild.members is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.guilds.members_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.characters.name') }}</th>
+                        <th>{{ t('admin.characters.job') }}</th>
+                        <th>{{ t('admin.characters.level') }}</th>
+                        <th>{{ t('admin.characters.guild_grade') }}</th>
+                        <th>{{ t('admin.characters.guild_offer') }}</th>
+                        <th>{{ t('admin.guilds.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in guild.members %}
+                        <tr>
+                            <td>
+                                {% if member.id %}
+                                    <a href="/admin/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
+                                        {{ member.name|default(member.id) }}
+                                    </a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                                {% if member.id == guild.master_id %}
+                                    <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_role_master') }}</span>
+                                {% endif %}
+                                {% if member.is_general %}
+                                    <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_general') }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-slate-600">{{ member.job|job_name }}</td>
+                            <td class="text-slate-600">{{ member.level }}</td>
+                            <td class="text-slate-600">{{ member.grade_name|default(member.grade) }}</td>
+                            <td class="text-slate-600">{{ member.offer }}</td>
+                            <td>
+                                {% if member.id != guild.master_id %}
+                                    <form method="post" action="/admin/guilds/{{ guild.id }}/kick"
+                                          data-confirm="{{ t('admin.guilds.confirm_kick', {name: member.name|default(member.id)}) }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <input type="hidden" name="player_id" value="{{ member.id }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.guilds.kick') }}
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>

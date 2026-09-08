@@ -11,10 +11,10 @@
     <script src="/js/locale-switcher.js" defer></script>
     <title>{{ title|default(t('admin.title')) }} — {{ t('admin.title') }}</title>
 </head>
-<body class="min-h-screen bg-[#f5f7fa] text-slate-800 antialiased">
-    <div class="flex min-h-screen">
+<body class="h-screen overflow-hidden bg-[#f5f7fa] text-slate-800 antialiased">
+    <div class="flex h-full">
         <aside id="admin-sidebar"
-               class="admin-sidebar fixed inset-y-0 left-0 z-40 flex w-[15.5rem] -translate-x-full flex-col border-r border-slate-800/80 transition-transform md:static md:translate-x-0">
+               class="admin-sidebar fixed inset-y-0 left-0 z-40 flex h-full w-[15.5rem] shrink-0 -translate-x-full flex-col border-r border-slate-800/80 transition-transform md:static md:translate-x-0">
             <div class="border-b border-white/10 px-5 py-5">
                 <div class="flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/20 ring-1 ring-indigo-400/30">
@@ -59,7 +59,7 @@
              class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-[1px] md:hidden"
              aria-hidden="true"></div>
 
-        <div class="flex min-w-0 flex-1 flex-col">
+        <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
             <header class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
                 <button type="button" id="admin-sidebar-toggle"
                         class="cursor-pointer rounded-md border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"

@@ -37,7 +37,9 @@
     "invalid_csrf_short": "Token de segurança inválido.",
     "invalid_credentials": "Usuário ou senha inválidos.",
     "login_required": "Faça login para continuar.",
-    "too_many_attempts": "Muitas tentativas. Tente novamente mais tarde."
+    "too_many_attempts": "Muitas tentativas. Tente novamente mais tarde.",
+    "registration_disabled_title": "Cadastro fechado",
+    "registration_disabled": "O cadastro de novas contas está desativado no momento. Tente novamente mais tarde ou fale com a equipe do servidor."
   },
   "account": {
     "title": "Minha conta",
@@ -136,5 +138,76 @@
     "invalid_password": "A senha deve ter entre 5 e 16 caracteres",
     "invalid_social_id": "O PIN deve ser um número positivo",
     "social_id_min_length": "O PIN deve ter pelo menos 7 caracteres"
+  },
+  "setup": {
+    "title": "Configuração inicial",
+    "badge": "Primeira execução",
+    "lead": "Configure a conexão com o banco e crie a conta de administrador.",
+    "step_db": "Banco de dados",
+    "step_admin": "Conta admin",
+    "db_host": "Host do banco",
+    "db_port": "Porta do banco",
+    "db_user": "Usuário do banco",
+    "db_password": "Senha do banco",
+    "theme": "Tema padrão",
+    "continue": "Continuar",
+    "back": "Voltar",
+    "finish": "Concluir setup",
+    "admin_lead": "Esta conta é só para o painel admin do CMS — não é conta do jogo.",
+    "admin_login": "Usuário admin",
+    "admin_password": "Senha admin",
+    "admin_password_confirm": "Confirmar senha",
+    "fields_required": "Preencha todos os campos obrigatórios.",
+    "invalid_port": "Porta do banco inválida.",
+    "invalid_theme": "O tema selecionado não está disponível.",
+    "db_connection_failed": "Não foi possível conectar ao banco. Verifique as credenciais.",
+    "password_mismatch": "As senhas não coincidem.",
+    "install_failed": "Falha na instalação. Tente novamente.",
+    "env_not_writable": "Não foi possível gravar o .env. Verifique as permissões da pasta.",
+    "env_write_failed": "Falha ao salvar o arquivo .env.",
+    "login_exists": "Este usuário admin já existe. Escolha outro ou entre em /admin/login."
+  },
+  "admin": {
+    "title": "Administração",
+    "badge": "Admin",
+    "login_title": "Login admin",
+    "username": "Usuário",
+    "password": "Senha",
+    "submit_login": "Entrar",
+    "logout": "Sair",
+    "welcome_back": "Bem-vindo de volta.",
+    "logged_out": "Você saiu do painel admin.",
+    "login_required": "Faça login para acessar o painel admin.",
+    "invalid_credentials": "Usuário ou senha inválidos.",
+    "invalid_password": "A senha deve ter pelo menos 8 caracteres.",
+    "invalid_login": "Usuário admin inválido.",
+    "login_exists": "Este usuário admin já existe.",
+    "invalid_locale": "O idioma selecionado não está disponível.",
+    "themes_required": "Selecione pelo menos um tema.",
+    "active_theme_invalid": "O tema ativo deve estar entre os temas habilitados.",
+    "save": "Salvar alterações",
+    "saved": "Configurações salvas.",
+    "nav": {
+      "registration": "Cadastros",
+      "themes": "Temas",
+      "locale": "Idioma"
+    },
+    "registration": {
+      "title": "Cadastros",
+      "lead": "Controle se novas contas de jogadores podem ser criadas no site.",
+      "enable": "Permitir novos cadastros",
+      "enable_help": "Quando desativado, a página de registro exibe aviso de cadastro fechado, sem formulário."
+    },
+    "themes": {
+      "title": "Temas",
+      "lead": "Escolha quais temas ficam disponíveis e qual está ativo no site.",
+      "available": "Temas disponíveis",
+      "active": "Tema ativo"
+    },
+    "locale": {
+      "title": "Idioma padrão",
+      "lead": "Idioma padrão para visitantes sem preferência salva.",
+      "default": "Locale padrão"
+    }
   }
 }

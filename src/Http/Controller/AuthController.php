@@ -10,6 +10,7 @@ use Mt2Cms\Auth\RateLimiter;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AuthController extends Controller
@@ -22,6 +23,7 @@ class AuthController extends Controller
         Csrf $csrf,
         Translator $translator,
         private AccountRepository $accounts,
+        private SettingsService $settings,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -79,6 +81,10 @@ class AuthController extends Controller
             return $redirect;
         }
 
+        if (!$this->settings->registrationEnabled()) {
+            return $this->authForm('register', registrationBlocked: true);
+        }
+
         return $this->authForm('register');
     }
 
@@ -86,6 +92,10 @@ class AuthController extends Controller
     {
         if ($redirect = $this->requireGuest()) {
             return $redirect;
+        }
+
+        if (!$this->settings->registrationEnabled()) {
+            return $this->authForm('register', registrationBlocked: true, status: 403);
         }
 
         $username = trim((string) ($_POST['username'] ?? ''));
@@ -165,6 +175,7 @@ class AuthController extends Controller
         string $email = '',
         string $socialId = '',
         ?string $error = null,
+        bool $registrationBlocked = false,
         int $status = 200,
     ): Response {
         return $this->view('auth', [
@@ -174,6 +185,7 @@ class AuthController extends Controller
             'email' => $email,
             'socialId' => $socialId,
             'error' => $error,
+            'registrationBlocked' => $registrationBlocked,
         ], $status);
     }
 }

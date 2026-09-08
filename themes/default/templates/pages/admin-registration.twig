@@ -1,0 +1,25 @@
+<section class="space-y-6">
+    <div>
+        <h2 class="text-2xl font-bold text-white">{{ t('admin.registration.title') }}</h2>
+        <p class="mt-1 text-sm text-slate-400">{{ t('admin.registration.lead') }}</p>
+    </div>
+
+    <form method="post" action="/admin/registration" class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+        <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" name="registration_enabled" value="1"
+                   {% if registrationEnabled %}checked{% endif %}
+                   class="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-blue-500">
+            <span>
+                <span class="block font-medium text-white">{{ t('admin.registration.enable') }}</span>
+                <span class="block text-sm text-slate-400">{{ t('admin.registration.enable_help') }}</span>
+            </span>
+        </label>
+
+        <button type="submit"
+                class="mt-6 cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">
+            {{ t('admin.save') }}
+        </button>
+    </form>
+</section>

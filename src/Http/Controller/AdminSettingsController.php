@@ -1,0 +1,143 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Http\Controller;
+
+use Mt2Cms\Admin\AdminSections;
+use Mt2Cms\Auth\AdminAuth;
+use Mt2Cms\Auth\Auth;
+use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Locales;
+use Mt2Cms\I18n\Translator;
+use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Theme\ThemeEngine;
+
+class AdminSettingsController extends AdminController
+{
+    public function __construct(
+        ThemeEngine $theme,
+        Auth $auth,
+        Csrf $csrf,
+        Translator $translator,
+        AdminAuth $adminAuth,
+        private SettingsService $settings,
+        private ThemeCatalog $themes,
+        private Locales $locales,
+    ) {
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth);
+    }
+
+    public function index(): Response
+    {
+        return $this->redirect(AdminSections::firstPath());
+    }
+
+    public function registration(): Response
+    {
+        return $this->adminView('registration', 'pages/admin-registration.twig', [
+            'title' => $this->t('admin.registration.title'),
+            'registrationEnabled' => $this->settings->registrationEnabled(),
+        ]);
+    }
+
+    public function saveRegistration(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/registration');
+        }
+
+        $enabled = isset($_POST['registration_enabled']);
+        $this->settings->setRegistrationEnabled($enabled);
+        $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect('/admin/registration');
+    }
+
+    public function themes(): Response
+    {
+        $diskThemes = $this->themes->available();
+        $enabledThemes = $this->settings->availableThemes();
+
+        return $this->adminView('themes', 'pages/admin-themes.twig', [
+            'title' => $this->t('admin.themes.title'),
+            'diskThemes' => $diskThemes,
+            'enabledThemes' => $enabledThemes,
+            'activeTheme' => $this->settings->activeTheme(),
+        ]);
+    }
+
+    public function saveThemes(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/themes');
+        }
+
+        $selected = $_POST['themes'] ?? [];
+        $active = trim((string) ($_POST['active_theme'] ?? ''));
+
+        if (!is_array($selected)) {
+            $selected = [];
+        }
+
+        $themes = array_values(array_filter($selected, static fn ($value): bool => is_string($value)));
+
+        try {
+            $this->settings->setAvailableThemes($themes, $active);
+            $this->flash('success', $this->t('admin.saved'));
+        } catch (\InvalidArgumentException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
+
+        return $this->redirect('/admin/themes');
+    }
+
+    public function locale(): Response
+    {
+        return $this->adminView('locale', 'pages/admin-locale.twig', [
+            'title' => $this->t('admin.locale.title'),
+            'availableLocales' => $this->locales->available(),
+            'defaultLocale' => $this->settings->defaultLocale(),
+        ]);
+    }
+
+    public function saveLocale(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/locale');
+        }
+
+        $locale = trim((string) ($_POST['default_locale'] ?? ''));
+
+        if (!$this->locales->isSupported($locale)) {
+            $this->flash('error', $this->t('admin.invalid_locale'));
+
+            return $this->redirect('/admin/locale');
+        }
+
+        $this->settings->setDefaultLocale($locale);
+        $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect('/admin/locale');
+    }
+}

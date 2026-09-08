@@ -110,4 +110,14 @@ class ThemeEngine
     {
         return $this->resolver;
     }
+
+    /**
+     * @param array<string, mixed> $globals
+     */
+    public function setGlobals(array $globals): void
+    {
+        foreach ($globals as $name => $value) {
+            $this->twig->addGlobal($name, $value);
+        }
+    }
 }

@@ -35,6 +35,16 @@
                 {{ t('auth.no_account') }}
                 <a href="/register" class="text-blue-400 hover:underline">{{ t('auth.register_link') }}</a>
             </p>
+        {% elseif registrationBlocked|default(false) %}
+            <div class="rounded-lg border border-amber-700/60 bg-amber-950/40 px-4 py-4 text-center">
+                <p class="font-medium text-amber-200">{{ t('auth.registration_disabled_title') }}</p>
+                <p class="mt-2 text-sm text-amber-200/80">{{ t('auth.registration_disabled') }}</p>
+            </div>
+
+            <p class="mt-6 text-center text-sm text-slate-400">
+                {{ t('auth.have_account') }}
+                <a href="/login" class="text-blue-400 hover:underline">{{ t('auth.login_link') }}</a>
+            </p>
         {% else %}
             <form method="post" action="/register" class="flex flex-col gap-5">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">

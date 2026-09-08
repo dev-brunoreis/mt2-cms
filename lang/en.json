@@ -41,7 +41,9 @@
     "invalid_csrf_short": "Invalid security token.",
     "invalid_credentials": "Invalid username or password.",
     "login_required": "Please log in to continue.",
-    "too_many_attempts": "Too many attempts. Please try again later."
+    "too_many_attempts": "Too many attempts. Please try again later.",
+    "registration_disabled_title": "Registration closed",
+    "registration_disabled": "New account registration is currently disabled. Please try again later or contact the server staff."
   },
   "account": {
     "title": "My Account",
@@ -145,5 +147,76 @@
     "invalid_password": "Password must be between 5 and 16 characters",
     "invalid_social_id": "PIN must be a positive number",
     "social_id_min_length": "PIN must be at least 7 characters long"
+  },
+  "setup": {
+    "title": "Site Setup",
+    "badge": "First run",
+    "lead": "Configure the database connection and create your admin account.",
+    "step_db": "Database",
+    "step_admin": "Admin account",
+    "db_host": "Database host",
+    "db_port": "Database port",
+    "db_user": "Database user",
+    "db_password": "Database password",
+    "theme": "Default theme",
+    "continue": "Continue",
+    "back": "Back",
+    "finish": "Finish setup",
+    "admin_lead": "This account is for the CMS admin panel only — not a game account.",
+    "admin_login": "Admin username",
+    "admin_password": "Admin password",
+    "admin_password_confirm": "Confirm password",
+    "fields_required": "Please fill in all required fields.",
+    "invalid_port": "Invalid database port.",
+    "invalid_theme": "Selected theme is not available.",
+    "db_connection_failed": "Could not connect to the database. Check your credentials.",
+    "password_mismatch": "Passwords do not match.",
+    "install_failed": "Setup failed. Please try again.",
+    "env_not_writable": "Cannot write the .env file. Check folder permissions.",
+    "env_write_failed": "Failed to save the .env file.",
+    "login_exists": "This admin username already exists. Choose another or sign in at /admin/login."
+  },
+  "admin": {
+    "title": "Administration",
+    "badge": "Admin",
+    "login_title": "Admin Login",
+    "username": "Username",
+    "password": "Password",
+    "submit_login": "Sign in",
+    "logout": "Logout",
+    "welcome_back": "Welcome back.",
+    "logged_out": "You have been logged out.",
+    "login_required": "Please sign in to access the admin panel.",
+    "invalid_credentials": "Invalid username or password.",
+    "invalid_password": "Password must be at least 8 characters.",
+    "invalid_login": "Invalid admin username.",
+    "login_exists": "This admin username already exists.",
+    "invalid_locale": "Selected locale is not available.",
+    "themes_required": "Select at least one theme.",
+    "active_theme_invalid": "Active theme must be one of the enabled themes.",
+    "save": "Save changes",
+    "saved": "Settings saved.",
+    "nav": {
+      "registration": "Registrations",
+      "themes": "Themes",
+      "locale": "Language"
+    },
+    "registration": {
+      "title": "Registrations",
+      "lead": "Control whether new player accounts can be created on the site.",
+      "enable": "Allow new registrations",
+      "enable_help": "When disabled, the register page shows a closed message and no signup form."
+    },
+    "themes": {
+      "title": "Themes",
+      "lead": "Choose which themes are available and which one is active on the site.",
+      "available": "Available themes",
+      "active": "Active theme"
+    },
+    "locale": {
+      "title": "Default language",
+      "lead": "Default language for visitors without a saved preference.",
+      "default": "Default locale"
+    }
   }
 }

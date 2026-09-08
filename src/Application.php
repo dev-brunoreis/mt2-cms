@@ -6,35 +6,51 @@ namespace Mt2Cms;
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+use Mt2Cms\Admin\AdminSections;
+use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Controller\AccountController;
+use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\LocaleController;
 use Mt2Cms\Http\Controller\PlayerController;
 use Mt2Cms\Http\Controller\RankingController;
+use Mt2Cms\Http\Controller\SetupController;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Setup\EnvWriter;
+use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Theme\ThemeEngine;
 
 use function FastRoute\simpleDispatcher;
 
 class Application
 {
+    private bool $installed;
     private Database $db;
+    private Database $cmsDb;
     private Auth $auth;
+    private AdminAuth $adminAuth;
     private Csrf $csrf;
     private Locales $locales;
     private Translator $translator;
     private ThemeEngine $theme;
     private AccountRepository $accounts;
     private PlayerRepository $players;
+    private SettingsRepository $settingsRepo;
+    private SettingsService $settings;
+    private ThemeCatalog $themeCatalog;
 
     public function __construct()
     {
@@ -45,28 +61,29 @@ class Application
             session_start();
         }
 
+        $this->installed = $this->isInstalled();
         $this->locales = new Locales(BASE_DIR . '/lang');
-        $defaultLocale = (string) (self::getEnv()->get('LOCALE', 'en') ?: 'en');
-        $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
-
-        $this->db = new Database();
-        $this->accounts = new AccountRepository($this->db);
-        $this->players = new PlayerRepository($this->db);
-        $this->auth = new Auth($this->accounts);
+        $this->themeCatalog = new ThemeCatalog(BASE_DIR . '/themes');
         $this->csrf = new Csrf();
 
-        $themeName = (string) (self::getEnv()->get('THEME', 'default') ?: 'default');
-        $this->theme = new ThemeEngine(
-            BASE_DIR . '/themes',
-            $themeName,
-            $this->translator,
-            $this->locales->available(),
-        );
+        if (!$this->installed) {
+            $this->bootstrapSetup();
+
+            return;
+        }
+
+        $this->bootstrapInstalled();
     }
 
     public function run(): void
     {
-        $dispatcher = simpleDispatcher(function (RouteCollector $r): void {
+        if (!$this->installed) {
+            $this->runSetupOnly();
+
+            return;
+        }
+
+        $this->dispatch(function (RouteCollector $r): void {
             $r->addRoute('GET', '/', [HomeController::class, 'index']);
             $r->addRoute('GET', '/login', [AuthController::class, 'showLogin']);
             $r->addRoute('POST', '/login', [AuthController::class, 'login']);
@@ -77,20 +94,49 @@ class Application
             $r->addRoute('GET', '/account', [AccountController::class, 'index']);
             $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
             $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
-        });
 
+            $r->addRoute('GET', '/admin/login', [AdminAuthController::class, 'showLogin']);
+            $r->addRoute('POST', '/admin/login', [AdminAuthController::class, 'login']);
+            $r->addRoute('POST', '/admin/logout', [AdminAuthController::class, 'logout']);
+            $r->addRoute('GET', '/admin', [AdminSettingsController::class, 'index']);
+            $r->addRoute('GET', '/admin/registration', [AdminSettingsController::class, 'registration']);
+            $r->addRoute('POST', '/admin/registration', [AdminSettingsController::class, 'saveRegistration']);
+            $r->addRoute('GET', '/admin/themes', [AdminSettingsController::class, 'themes']);
+            $r->addRoute('POST', '/admin/themes', [AdminSettingsController::class, 'saveThemes']);
+            $r->addRoute('GET', '/admin/locale', [AdminSettingsController::class, 'locale']);
+            $r->addRoute('POST', '/admin/locale', [AdminSettingsController::class, 'saveLocale']);
+        }, true);
+    }
+
+    private function runSetupOnly(): void
+    {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = $this->normalizeUri();
 
-        if (false !== $pos = strpos($uri, '?')) {
-            $uri = substr($uri, 0, $pos);
+        if ($uri !== '/setup') {
+            Response::redirect('/setup')->send();
+
+            return;
         }
 
-        $uri = rawurldecode($uri);
-        $routeInfo = $dispatcher->dispatch($method, $uri);
+        $this->dispatch(function (RouteCollector $r): void {
+            $r->addRoute('GET', '/setup', [SetupController::class, 'show']);
+            $r->addRoute('POST', '/setup', [SetupController::class, 'submit']);
+        }, false);
+    }
 
-        match ($routeInfo[0]) {
-            Dispatcher::NOT_FOUND => Response::notFound($this->theme->render('player', [
+    /**
+     * @param \Closure(RouteCollector): void $registerRoutes
+     */
+    private function dispatch(callable $registerRoutes, bool $allowSetup404): void
+    {
+        $dispatcher = simpleDispatcher($registerRoutes);
+
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $uri = $this->normalizeUri();
+
+        if ($allowSetup404 && str_starts_with($uri, '/setup')) {
+            Response::notFound($this->theme->render('player', [
                 'title' => $this->translator->get('http.not_found'),
                 'player' => null,
                 'notFound' => true,
@@ -101,6 +147,21 @@ class Application
                 ],
                 'csrf' => $this->csrf->token(),
                 'flash' => null,
+            ]))->send();
+
+            return;
+        }
+
+        $routeInfo = $dispatcher->dispatch($method, $uri);
+
+        match ($routeInfo[0]) {
+            Dispatcher::NOT_FOUND => Response::notFound($this->theme->render('player', [
+                'title' => $this->translator->get('http.not_found'),
+                'player' => null,
+                'notFound' => true,
+                'auth' => $this->authContext(),
+                'csrf' => $this->csrf->token(),
+                'flash' => null,
             ]))->send(),
             Dispatcher::METHOD_NOT_ALLOWED => Response::html(
                 $this->translator->get('http.method_not_allowed'),
@@ -108,6 +169,61 @@ class Application
             )->send(),
             Dispatcher::FOUND => $this->invoke($routeInfo[1], $routeInfo[2])->send(),
         };
+    }
+
+    private function bootstrapSetup(): void
+    {
+        $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve('en'));
+        $this->theme = $this->createThemeEngine('default', true);
+        $this->auth = new Auth(new AccountRepository(new Database(['requirePassword' => false])));
+    }
+
+    private function bootstrapInstalled(): void
+    {
+        $this->cmsDb = Database::forCms();
+        $this->settingsRepo = new SettingsRepository($this->cmsDb);
+        $this->settings = new SettingsService($this->settingsRepo, $this->themeCatalog);
+
+        $defaultLocale = $this->settings->defaultLocale();
+        $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
+
+        $activeTheme = $this->settings->activeTheme();
+        $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled());
+
+        $this->db = new Database();
+        $this->accounts = new AccountRepository($this->db);
+        $this->players = new PlayerRepository($this->db);
+        $this->auth = new Auth($this->accounts);
+        $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+    }
+
+    private function createThemeEngine(string $activeTheme, bool $registrationEnabled): ThemeEngine
+    {
+        $engine = new ThemeEngine(
+            BASE_DIR . '/themes',
+            $activeTheme,
+            $this->translator,
+            $this->locales->available(),
+        );
+
+        $engine->setGlobals([
+            'registration_enabled' => $registrationEnabled,
+            'admin_sections' => AdminSections::all(),
+        ]);
+
+        return $engine;
+    }
+
+    /**
+     * @return array{check: bool, login: string|null, user: array<string, mixed>|null}
+     */
+    private function authContext(): array
+    {
+        return [
+            'check' => $this->auth->check(),
+            'login' => $this->auth->login(),
+            'user' => $this->auth->user(),
+        ];
     }
 
     /**
@@ -137,6 +253,7 @@ class Application
                 $this->csrf,
                 $this->translator,
                 $this->accounts,
+                $this->settings,
             ),
             AccountController::class => new AccountController(
                 $this->theme,
@@ -166,8 +283,51 @@ class Application
                 $this->translator,
                 $this->locales,
             ),
+            SetupController::class => new SetupController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->themeCatalog,
+                new EnvWriter(),
+            ),
+            AdminAuthController::class => new AdminAuthController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+            ),
+            AdminSettingsController::class => new AdminSettingsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->settings,
+                $this->themeCatalog,
+                $this->locales,
+            ),
             default => throw new \RuntimeException('Unknown controller: ' . $class),
         };
+    }
+
+    private function isInstalled(): bool
+    {
+        $value = self::getEnv()->get('APP_INSTALLED', '');
+
+        return in_array(strtolower((string) $value), ['1', 'true', 'yes'], true);
+    }
+
+    private function normalizeUri(): string
+    {
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
+        if (false !== $pos = strpos($uri, '?')) {
+            $uri = substr($uri, 0, $pos);
+        }
+
+        return rawurldecode($uri);
     }
 
     public static function getEnv(): Env

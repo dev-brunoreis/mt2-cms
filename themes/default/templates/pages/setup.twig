@@ -1,0 +1,107 @@
+<div class="mx-auto max-w-lg">
+    <div class="mb-8 text-center">
+        <p class="text-sm uppercase tracking-widest text-blue-400">{{ t('setup.badge') }}</p>
+        <h1 class="mt-2 text-3xl font-bold text-white">{{ t('setup.title') }}</h1>
+        <p class="mt-2 text-slate-400">{{ t('setup.lead') }}</p>
+    </div>
+
+    <div class="mb-8 flex items-center justify-center gap-3 text-sm">
+        <span class="rounded-full px-3 py-1 {% if step == 'db' %}bg-blue-600 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
+            1. {{ t('setup.step_db') }}
+        </span>
+        <span class="text-slate-600">→</span>
+        <span class="rounded-full px-3 py-1 {% if step == 'admin' %}bg-blue-600 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
+            2. {{ t('setup.step_admin') }}
+        </span>
+    </div>
+
+    <div class="rounded-2xl border border-slate-700 bg-slate-900/60 p-8 shadow-2xl">
+        {% if step == 'db' %}
+            <form method="post" action="/setup?step=db" class="flex flex-col gap-5">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+                <div class="flex flex-col gap-2">
+                    <label for="db_host" class="text-sm font-medium text-slate-300">{{ t('setup.db_host') }}</label>
+                    <input id="db_host" type="text" name="db_host" required value="{{ values.db_host }}"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="db_port" class="text-sm font-medium text-slate-300">{{ t('setup.db_port') }}</label>
+                    <input id="db_port" type="text" name="db_port" required value="{{ values.db_port }}"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="db_user" class="text-sm font-medium text-slate-300">{{ t('setup.db_user') }}</label>
+                    <input id="db_user" type="text" name="db_user" required value="{{ values.db_user }}"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="db_password" class="text-sm font-medium text-slate-300">{{ t('setup.db_password') }}</label>
+                    <input id="db_password" type="password" name="db_password" required value="{{ values.db_password }}"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="theme" class="text-sm font-medium text-slate-300">{{ t('setup.theme') }}</label>
+                    <select id="theme" name="theme" required
+                            class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                        {% for themeName in themes %}
+                            <option value="{{ themeName }}" {% if values.theme == themeName %}selected{% endif %}>{{ themeName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if error %}
+                    <p class="text-center text-red-400">{{ error }}</p>
+                {% endif %}
+
+                <button type="submit"
+                        class="mt-2 cursor-pointer rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
+                    {{ t('setup.continue') }}
+                </button>
+            </form>
+        {% else %}
+            <form method="post" action="/setup?step=admin" class="flex flex-col gap-5">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+                <p class="text-sm text-slate-400">{{ t('setup.admin_lead') }}</p>
+
+                <div class="flex flex-col gap-2">
+                    <label for="admin_login" class="text-sm font-medium text-slate-300">{{ t('setup.admin_login') }}</label>
+                    <input id="admin_login" type="text" name="admin_login" required
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="admin_password" class="text-sm font-medium text-slate-300">{{ t('setup.admin_password') }}</label>
+                    <input id="admin_password" type="password" name="admin_password" required minlength="8"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="admin_password_confirm" class="text-sm font-medium text-slate-300">{{ t('setup.admin_password_confirm') }}</label>
+                    <input id="admin_password_confirm" type="password" name="admin_password_confirm" required minlength="8"
+                           class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-blue-500">
+                </div>
+
+                {% if error %}
+                    <p class="text-center text-red-400">{{ error }}</p>
+                {% endif %}
+
+                <div class="flex gap-3">
+                    <a href="/setup?step=db"
+                       class="rounded-lg border border-slate-600 px-4 py-3 text-center font-semibold text-slate-300 transition hover:border-slate-400">
+                        {{ t('setup.back') }}
+                    </a>
+                    <button type="submit"
+                            class="flex-1 cursor-pointer rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
+                        {{ t('setup.finish') }}
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>

@@ -46,11 +46,16 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        PUID: 1000
+        PGID: 1000
     working_dir: /var/www
     volumes:
       - .:/var/www
     depends_on:
       mysql:
+        condition: service_healthy
+      game:
         condition: service_healthy
 
   adminer:

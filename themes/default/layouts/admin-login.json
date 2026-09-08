@@ -1,0 +1,7 @@
+{
+  "id": "root",
+  "template": "layouts/setup-shell.twig",
+  "slots": {
+    "main": [{ "id": "content", "template": "pages/admin-login.twig" }]
+  }
+}

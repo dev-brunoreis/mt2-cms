@@ -1,0 +1,263 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Http\Controller;
+
+use Mt2Cms\Auth\AdminAuth;
+use Mt2Cms\Auth\Auth;
+use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
+use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Theme\ThemeEngine;
+
+class AdminAccountsController extends AdminController
+{
+    private const PER_PAGE = 20;
+
+    public function __construct(
+        ThemeEngine $theme,
+        Auth $auth,
+        Csrf $csrf,
+        Translator $translator,
+        AdminAuth $adminAuth,
+        ThemeEngine $adminTheme,
+        private AccountRepository $accounts,
+        private PlayerRepository $players,
+    ) {
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+    }
+
+    public function index(): Response
+    {
+        $q = trim((string) ($_GET['q'] ?? ''));
+        $query = $q !== '' ? $q : null;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $total = $this->accounts->countForAdmin($query);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        return $this->adminView('accounts', 'pages/accounts.twig', [
+            'title' => $this->t('admin.accounts.title'),
+            'pageLead' => $this->t('admin.accounts.lead'),
+            'headerHref' => '/admin/accounts/new',
+            'headerActionLabel' => $this->t('admin.accounts.create'),
+            'accounts' => $this->accounts->listForAdmin($page, self::PER_PAGE, $query),
+            'query' => $q,
+            'page' => $page,
+            'total' => $total,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return $this->formView();
+    }
+
+    public function store(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/accounts/new');
+        }
+
+        $input = $this->formInput();
+
+        try {
+            $account = $this->accounts->create(
+                $input['login'],
+                $input['email'],
+                (string) ($_POST['password'] ?? ''),
+                trim((string) ($_POST['social_id'] ?? '')),
+            );
+
+            $this->accounts->updateAdmin(
+                (int) $account['id'],
+                $input['login'],
+                $input['email'],
+                $input['status'],
+                $input['empire'],
+                $input['cash'],
+                $input['mileage'],
+            );
+
+            $this->flash('success', $this->t('admin.accounts.created'));
+
+            return $this->redirect('/admin/accounts');
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return $this->formView($input, $this->t($e->getMessage()), 422);
+        }
+    }
+
+    public function edit(string $id): Response
+    {
+        $account = $this->accounts->findForAdmin((int) $id);
+
+        if ($account === null) {
+            $this->flash('error', $this->t('admin.accounts.not_found'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        return $this->formView($account);
+    }
+
+    public function update(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        $accountId = (int) $id;
+        $account = $this->accounts->findForAdmin($accountId);
+
+        if ($account === null) {
+            $this->flash('error', $this->t('admin.accounts.not_found'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/accounts/' . $accountId);
+        }
+
+        $input = $this->formInput();
+
+        try {
+            $this->accounts->updateAdmin(
+                $accountId,
+                $input['login'],
+                $input['email'],
+                $input['status'],
+                $input['empire'],
+                $input['cash'],
+                $input['mileage'],
+                (string) ($_POST['password'] ?? ''),
+                trim((string) ($_POST['social_id'] ?? '')),
+            );
+            $this->flash('success', $this->t('admin.accounts.updated'));
+
+            return $this->redirect('/admin/accounts/' . $accountId);
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return $this->formView(
+                array_merge($account, $input),
+                $this->t($e->getMessage()),
+                422,
+            );
+        }
+    }
+
+    public function block(string $id): Response
+    {
+        return $this->mutateStatus((int) $id, 'block', 'admin.accounts.blocked');
+    }
+
+    public function unblock(string $id): Response
+    {
+        return $this->mutateStatus((int) $id, 'unblock', 'admin.accounts.unblocked');
+    }
+
+    public function destroy(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        try {
+            if (!$this->accounts->delete((int) $id)) {
+                $this->flash('error', $this->t('admin.accounts.not_found'));
+            } else {
+                $this->flash('success', $this->t('admin.accounts.deleted'));
+            }
+        } catch (\InvalidArgumentException $e) {
+            $this->flash('error', $this->t('admin.accounts.not_found'));
+        }
+
+        return $this->redirect('/admin/accounts');
+    }
+
+    /**
+     * @param array<string, mixed> $account
+     */
+    private function formView(array $account = [], ?string $error = null, int $status = 200): Response
+    {
+        $isEdit = isset($account['id']) && (int) $account['id'] > 0;
+        $characters = [];
+
+        if ($isEdit) {
+            $characters = $this->players->findByAccountId((int) $account['id']);
+        }
+
+        return $this->adminView('accounts', 'pages/account-form.twig', [
+            'title' => $this->t($isEdit ? 'admin.accounts.edit_title' : 'admin.accounts.create_title'),
+            'pageLead' => $this->t($isEdit ? 'admin.accounts.edit_lead' : 'admin.accounts.create_lead'),
+            'formId' => 'admin-account-form',
+            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.accounts.create'),
+            'account' => $account,
+            'characters' => $characters,
+            'isEdit' => $isEdit,
+            'error' => $error,
+        ], $status);
+    }
+
+    /**
+     * @return array{login: string, email: string, status: string, empire: int, cash: int, mileage: int}
+     */
+    private function formInput(): array
+    {
+        return [
+            'login' => trim((string) ($_POST['login'] ?? '')),
+            'email' => trim((string) ($_POST['email'] ?? '')),
+            'status' => (string) ($_POST['status'] ?? 'OK'),
+            'empire' => (int) ($_POST['empire'] ?? 0),
+            'cash' => max(0, (int) ($_POST['cash'] ?? 0)),
+            'mileage' => max(0, (int) ($_POST['mileage'] ?? 0)),
+        ];
+    }
+
+    private function mutateStatus(int $id, string $action, string $successKey): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        try {
+            if ($action === 'block') {
+                $this->accounts->block($id);
+            } else {
+                $this->accounts->unblock($id);
+            }
+
+            $this->flash('success', $this->t($successKey));
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
+
+        return $this->redirect('/admin/accounts');
+    }
+}

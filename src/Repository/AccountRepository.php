@@ -72,6 +72,116 @@ class AccountRepository extends Repository
         );
     }
 
+    public function countForAdmin(?string $q = null): int
+    {
+        [$where, $params] = $this->adminWhere($q);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM `account`' . $where,
+            $params,
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForAdmin(int $page, int $perPage, ?string $q = null): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        [$where, $params] = $this->adminWhere($q);
+        $params[] = $perPage;
+        $params[] = $offset;
+
+        return $this->revealAdminAll(
+            $this->db()->fetchAll(
+                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play
+                 FROM `account`' . $where . '
+                 ORDER BY id DESC
+                 LIMIT ? OFFSET ?',
+                $params,
+            ),
+        );
+    }
+
+    public function findForAdmin(int $id): ?array
+    {
+        return $this->revealAdmin(
+            $this->db()->fetch(
+                'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play
+                 FROM `account` WHERE id = ?',
+                [$id],
+            ),
+        );
+    }
+
+    public function updateAdmin(
+        int $id,
+        string $login,
+        string $email,
+        string $status,
+        int $empire,
+        int $cash,
+        int $mileage,
+        ?string $password = null,
+        ?string $socialId = null,
+    ): array {
+        $this->assertId($id);
+        $login = $this->assertLogin($login);
+        $email = $this->assertOptionalEmail($email);
+        $status = $this->assertStatus($status);
+        $empire = $this->assertEmpire($empire);
+        $cash = $this->assertCurrency($cash);
+        $mileage = $this->assertCurrency($mileage);
+
+        if ($this->findById($id) === null) {
+            throw new \RuntimeException('admin.accounts.not_found');
+        }
+
+        $taken = $this->findByLogin($login);
+
+        if ($taken !== null && (int) $taken['id'] !== $id) {
+            throw new \RuntimeException('error.login_exists');
+        }
+
+        $sets = [
+            'login = ?',
+            'email = ?',
+            'status = ?',
+            'empire = ?',
+            'cash = ?',
+            'mileage = ?',
+        ];
+        $params = [$login, $email, $status, $empire, $cash, $mileage];
+
+        if ($password !== null && $password !== '') {
+            $sets[] = 'password = ?';
+            $params[] = $this->hashPassword($this->assertPassword($password));
+        }
+
+        if ($socialId !== null && $socialId !== '') {
+            $sets[] = 'social_id = ?';
+            $params[] = $this->assertSocialId($socialId);
+        }
+
+        $params[] = $id;
+
+        $this->db()->execute(
+            'UPDATE `account` SET ' . implode(', ', $sets) . ' WHERE id = ?',
+            $params,
+        );
+
+        $account = $this->findForAdmin($id);
+
+        if ($account === null) {
+            throw new \RuntimeException('admin.accounts.not_found');
+        }
+
+        return $account;
+    }
+
     public function create(string $login, string $email, string $password, string $socialId): array
     {
         $login = $this->assertLogin($login);
@@ -122,13 +232,10 @@ class AccountRepository extends Repository
     private function setStatus(int $id, string $status): array
     {
         $this->assertId($id);
-
-        if (!in_array($status, ['OK', 'BLOCK'], true)) {
-            throw new \InvalidArgumentException('Invalid status');
-        }
+        $status = $this->assertStatus($status);
 
         if ($this->findById($id) === null) {
-            throw new \RuntimeException('Account not found');
+            throw new \RuntimeException('admin.accounts.not_found');
         }
 
         $this->db()->execute(
@@ -136,7 +243,89 @@ class AccountRepository extends Repository
             [$status, $id],
         );
 
-        return $this->findById($id);
+        $account = $this->findById($id);
+
+        if ($account === null) {
+            throw new \RuntimeException('admin.accounts.not_found');
+        }
+
+        return $account;
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function adminWhere(?string $q): array
+    {
+        if ($q === null || $q === '') {
+            return ['', []];
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+
+        return [
+            ' WHERE login LIKE ? OR email LIKE ?',
+            ['%' . $escaped . '%', '%' . $escaped . '%'],
+        ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function revealAdminAll(array $rows): array
+    {
+        return array_values(array_filter(
+            array_map(fn (array $row): ?array => $this->revealAdmin($row), $rows),
+        ));
+    }
+
+    private function revealAdmin(?array $row): ?array
+    {
+        if ($row === null) {
+            return null;
+        }
+
+        unset($row['password'], $row['social_id'], $row['securitycode']);
+
+        return $row;
+    }
+
+    private function assertOptionalEmail(string $email): string
+    {
+        $email = trim($email);
+
+        if ($email === '') {
+            return '';
+        }
+
+        return $this->assertEmail($email);
+    }
+
+    private function assertStatus(string $status): string
+    {
+        if (!in_array($status, ['OK', 'BLOCK'], true)) {
+            throw new \InvalidArgumentException('admin.accounts.invalid_status');
+        }
+
+        return $status;
+    }
+
+    private function assertEmpire(int $empire): int
+    {
+        if ($empire < 0 || $empire > 3) {
+            throw new \InvalidArgumentException('admin.accounts.invalid_empire');
+        }
+
+        return $empire;
+    }
+
+    private function assertCurrency(int $value): int
+    {
+        if ($value < 0) {
+            throw new \InvalidArgumentException('admin.accounts.invalid_currency');
+        }
+
+        return $value;
     }
 
     private function assertId(int $id): void

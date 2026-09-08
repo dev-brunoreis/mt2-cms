@@ -11,7 +11,9 @@ use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Controller\AccountController;
+use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\AdminCharactersController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\HomeController;
@@ -106,6 +108,16 @@ class Application
             $r->addRoute('POST', '/admin/themes', [AdminSettingsController::class, 'saveThemes']);
             $r->addRoute('GET', '/admin/locale', [AdminSettingsController::class, 'locale']);
             $r->addRoute('POST', '/admin/locale', [AdminSettingsController::class, 'saveLocale']);
+            $r->addRoute('GET', '/admin/accounts', [AdminAccountsController::class, 'index']);
+            $r->addRoute('GET', '/admin/accounts/new', [AdminAccountsController::class, 'create']);
+            $r->addRoute('POST', '/admin/accounts', [AdminAccountsController::class, 'store']);
+            $r->addRoute('GET', '/admin/accounts/{id:\d+}', [AdminAccountsController::class, 'edit']);
+            $r->addRoute('POST', '/admin/accounts/{id:\d+}', [AdminAccountsController::class, 'update']);
+            $r->addRoute('POST', '/admin/accounts/{id:\d+}/block', [AdminAccountsController::class, 'block']);
+            $r->addRoute('POST', '/admin/accounts/{id:\d+}/unblock', [AdminAccountsController::class, 'unblock']);
+            $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
+            $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
+            $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
         }, true);
     }
 
@@ -314,6 +326,25 @@ class Application
                 $this->settings,
                 $this->themeCatalog,
                 $this->locales,
+            ),
+            AdminAccountsController::class => new AdminAccountsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->accounts,
+                $this->players,
+            ),
+            AdminCharactersController::class => new AdminCharactersController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->players,
             ),
             default => throw new \RuntimeException('Unknown controller: ' . $class),
         };

@@ -95,6 +95,76 @@ class PlayerRepository extends Repository
         );
     }
 
+    public function countForAdmin(?string $q = null): int
+    {
+        [$where, $params] = $this->adminWhere($q);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*)
+             FROM `player` p
+             LEFT JOIN `account`.`account` a ON a.id = p.account_id' . $where,
+            $params,
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForAdmin(int $page, int $perPage, ?string $q = null): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        [$where, $params] = $this->adminWhere($q);
+        $params[] = $perPage;
+        $params[] = $offset;
+
+        return $this->revealAll(
+            $this->db()->fetchAll(
+                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                        a.login AS account_login
+                 FROM `player` p
+                 LEFT JOIN `account`.`account` a ON a.id = p.account_id' . $where . '
+                 ORDER BY p.id DESC
+                 LIMIT ? OFFSET ?',
+                $params,
+            ),
+        );
+    }
+
+    public function findForAdmin(int $id): ?array
+    {
+        return $this->reveal(
+            $this->db()->fetch(
+                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                        a.login AS account_login
+                 FROM `player` p
+                 LEFT JOIN `account`.`account` a ON a.id = p.account_id
+                 WHERE p.id = ?',
+                [$id],
+            ),
+        );
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function adminWhere(?string $q): array
+    {
+        if ($q === null || $q === '') {
+            return ['', []];
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+        $like = '%' . $escaped . '%';
+
+        return [
+            ' WHERE p.name LIKE ? OR a.login LIKE ?',
+            [$like, $like],
+        ];
+    }
+
     /**
      * @return array{0: string, 1: list<mixed>}
      */

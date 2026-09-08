@@ -17,7 +17,12 @@
                     <tr>
                         <td class="text-slate-400">{{ item.id }}</td>
                         <td class="text-slate-600">{{ item.vnum }}</td>
-                        <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                        <td>
+                            <div class="admin-game-icon-row">
+                                {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
+                                <span class="font-medium text-slate-800">{{ item.name|default('—') }}</span>
+                            </div>
+                        </td>
                         <td class="text-slate-600">{{ item.count }}</td>
                         <td class="text-slate-600">{{ item.pos }}</td>
                         <td class="text-slate-600">

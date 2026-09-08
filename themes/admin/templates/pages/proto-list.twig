@@ -36,8 +36,11 @@
                             {% for column in columns %}
                                 {% if column.key == 'locale_name' %}
                                     <td>
-                                        <a href="/admin/{{ routeKind }}/{{ record.vnum }}" class="font-medium text-indigo-600 hover:underline">
-                                            {{ record.locale_name|default('—') }}
+                                        <a href="/admin/{{ routeKind }}/{{ record.vnum }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
+                                            {% if routeKind == 'items' %}
+                                                {% include 'components/item-icon.twig' with { vnum: record.vnum } %}
+                                            {% endif %}
+                                            <span>{{ record.locale_name|default('—') }}</span>
                                         </a>
                                     </td>
                                 {% else %}

@@ -41,8 +41,9 @@
                             <td class="px-4 py-3 text-slate-400">{{ offset + loop.index }}</td>
                             <td class="px-4 py-3">
                                 <a href="/player/{{ player.name|url_encode }}"
-                                   class="font-medium text-indigo-600 hover:underline">
-                                    {{ player.name }}
+                                   class="inline-flex items-center gap-2 font-medium text-indigo-600 hover:underline">
+                                    {% include 'components/face-icon.twig' with { job: player.job } %}
+                                    <span>{{ player.name }}</span>
                                 </a>
                             </td>
                             <td class="px-4 py-3 text-slate-600">{{ player.job|job_name }}</td>

@@ -1,0 +1,6 @@
+{% set src = face_icon(job) %}
+{% if src %}
+    <img src="{{ src }}" alt="" width="48" height="48"
+         class="h-12 w-12 shrink-0 object-contain [image-rendering:pixelated]"
+         loading="lazy">
+{% endif %}

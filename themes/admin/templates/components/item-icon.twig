@@ -1,0 +1,8 @@
+{% set src = item_icon(vnum) %}
+{% if src %}
+    <img src="{{ src }}" alt="" width="48" height="48"
+         class="admin-game-icon{% if size|default('') == 'lg' %} admin-game-icon-lg{% endif %}"
+         loading="lazy">
+{% elseif placeholder|default(false) %}
+    <span class="admin-game-icon{% if size|default('') == 'lg' %} admin-game-icon-lg{% endif %} admin-game-icon-empty" aria-hidden="true"></span>
+{% endif %}

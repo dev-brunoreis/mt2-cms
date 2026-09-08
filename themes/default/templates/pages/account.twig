@@ -43,7 +43,12 @@
                     <tbody class="divide-y divide-slate-100">
                         {% for player in players %}
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-3 font-medium text-slate-900">{{ player.name }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="inline-flex items-center gap-2 font-medium text-slate-900">
+                                        {% include 'components/face-icon.twig' with { job: player.job } %}
+                                        <span>{{ player.name }}</span>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-3 text-slate-600">{{ player.job|job_name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ player.level }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ player.playtime|playtime }}</td>

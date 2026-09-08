@@ -39,8 +39,9 @@
                         <tr>
                             <td class="text-slate-400">{{ character.id }}</td>
                             <td>
-                                <a href="/admin/characters/{{ character.id }}" class="font-medium text-indigo-600 hover:underline">
-                                    {{ character.name }}
+                                <a href="/admin/characters/{{ character.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
+                                    {% include 'components/face-icon.twig' with { job: character.job } %}
+                                    <span>{{ character.name }}</span>
                                 </a>
                             </td>
                             <td>

@@ -36,6 +36,12 @@
                 <fieldset class="admin-fieldset">
                     <legend>{{ tab.label }}</legend>
 
+                    {% if tab.id == 'identity' and protoKind == 'item' and isEdit %}
+                        <div class="mb-4">
+                            {% include 'components/item-icon.twig' with { vnum: record.vnum, size: 'lg', placeholder: true } %}
+                        </div>
+                    {% endif %}
+
                     <div class="grid gap-4 sm:grid-cols-2">
                         {% for field in tab.fields %}
                             {% if field.key == 'vnum' %}

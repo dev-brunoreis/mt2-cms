@@ -52,6 +52,14 @@ class Response
         return new self($body, 404);
     }
 
+    public static function png(string $body): self
+    {
+        return new self($body, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
     public function withHeader(string $name, string $value): self
     {
         $headers = $this->headers;

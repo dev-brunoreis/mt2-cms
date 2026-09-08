@@ -6,6 +6,7 @@ namespace Mt2Cms\Theme;
 
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Service\GameIconService;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -15,6 +16,7 @@ class TwigExtension extends AbstractExtension
     public function __construct(
         private Display $display,
         private Translator $translator,
+        private ?GameIconService $icons = null,
     ) {
     }
 
@@ -32,6 +34,12 @@ class TwigExtension extends AbstractExtension
     {
         return [
             new TwigFunction('t', [$this->translator, 'get']),
+            new TwigFunction('item_icon', function (mixed $vnum): ?string {
+                return $this->icons?->itemUrl($vnum);
+            }),
+            new TwigFunction('face_icon', function (mixed $job): ?string {
+                return $this->icons?->faceUrl($job);
+            }),
         ];
     }
 }

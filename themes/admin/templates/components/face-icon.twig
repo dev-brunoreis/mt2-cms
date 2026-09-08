@@ -1,0 +1,6 @@
+{% set src = face_icon(job) %}
+{% if src %}
+    <img src="{{ src }}" alt="" width="48" height="48"
+         class="admin-game-icon admin-game-icon-face{% if size|default('') == 'lg' %} admin-game-icon-lg{% endif %}"
+         loading="lazy">
+{% endif %}

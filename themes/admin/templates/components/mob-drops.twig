@@ -46,7 +46,12 @@
                                                 —
                                             {% endif %}
                                         </td>
-                                        <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                                        <td>
+                                            <div class="admin-game-icon-row">
+                                                {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
+                                                <span class="font-medium text-slate-800">{{ item.name|default('—') }}</span>
+                                            </div>
+                                        </td>
                                         <td class="text-slate-600">{{ item.count }}</td>
                                         <td class="text-slate-600">{{ item.chance|default('—') }}</td>
                                         {% if group.type == 'kill' %}
@@ -72,8 +77,9 @@
     {% if mobDrops.etc_drop %}
         <p class="mb-4 text-sm text-slate-600">
             {{ t('admin.mobs.etc_drop', {chance: mobDrops.etc_drop.chance}) }}
-            <a href="/admin/items/{{ mobDrops.etc_drop.vnum }}" class="text-indigo-600 hover:underline">
-                {{ mobDrops.etc_drop.name|default(mobDrops.etc_drop.vnum) }}
+            <a href="/admin/items/{{ mobDrops.etc_drop.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                {% include 'components/item-icon.twig' with { vnum: mobDrops.etc_drop.vnum } %}
+                <span>{{ mobDrops.etc_drop.name|default(mobDrops.etc_drop.vnum) }}</span>
             </a>
         </p>
     {% endif %}
@@ -98,7 +104,12 @@
                             <td class="text-slate-600">
                                 <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
                             </td>
-                            <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                            <td>
+                                <div class="admin-game-icon-row">
+                                    {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
+                                    <span class="font-medium text-slate-800">{{ item.name|default('—') }}</span>
+                                </div>
+                            </td>
                             <td class="text-slate-600">{{ item.level_start }}–{{ item.level_end }}</td>
                             <td class="text-slate-600">{{ item.chance }}</td>
                             <td class="text-slate-600">{{ item.one_in ? ('1/' ~ item.one_in) : '—' }}</td>

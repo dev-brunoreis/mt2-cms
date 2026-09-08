@@ -18,6 +18,7 @@ use Mt2Cms\Http\Controller\AdminGameProtoController;
 use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AuthController;
+use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\LocaleController;
 use Mt2Cms\Http\Controller\PlayerController;
@@ -38,6 +39,7 @@ use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Drop\GroupTextParser;
+use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\SettingsService;
@@ -66,6 +68,7 @@ class Application
     private LogRepository $logs;
     private GameProtoService $gameProto;
     private MobDropService $mobDrops;
+    private ?GameIconService $icons = null;
     private ProtoFormFields $protoFields;
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
@@ -113,6 +116,7 @@ class Application
             $r->addRoute('GET', '/account', [AccountController::class, 'index']);
             $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
             $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
+            $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);
 
             $r->addRoute('GET', '/admin/login', [AdminAuthController::class, 'showLogin']);
             $r->addRoute('POST', '/admin/login', [AdminAuthController::class, 'login']);
@@ -222,6 +226,10 @@ class Application
 
         $defaultLocale = $this->settings->defaultLocale();
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
+        $this->icons = new GameIconService(
+            BASE_DIR . '/game/client/icon',
+            BASE_DIR . '/var/cache/icons',
+        );
 
         $activeTheme = $this->settings->activeTheme();
         $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
@@ -254,6 +262,7 @@ class Application
             $activeTheme,
             $this->translator,
             $this->locales->available(),
+            $this->icons ?? null,
         );
 
         $globals = ['registration_enabled' => $registrationEnabled];
@@ -328,6 +337,13 @@ class Application
                 $this->csrf,
                 $this->translator,
                 $this->players,
+            ),
+            GameIconController::class => new GameIconController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->icons,
             ),
             LocaleController::class => new LocaleController(
                 $this->theme,

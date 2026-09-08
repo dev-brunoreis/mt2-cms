@@ -26,7 +26,10 @@
                 </div>
                 <div class="admin-stat">
                     <dt>{{ t('admin.characters.name') }}</dt>
-                    <dd>{{ character.name }}</dd>
+                    <dd class="admin-game-icon-row">
+                        {% include 'components/face-icon.twig' with { job: character.job } %}
+                        <span>{{ character.name }}</span>
+                    </dd>
                 </div>
                 <div class="admin-stat">
                     <dt>{{ t('admin.characters.account') }}</dt>

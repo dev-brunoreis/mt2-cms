@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Proto\TabProtoTable;
 use Mt2Cms\Repository\ProtoNameRepository;
@@ -18,18 +19,19 @@ class GameProtoService
     private TabProtoTable $mobs;
 
     public function __construct(
-        string $dbDir,
+        GameProfile $profile,
+        private ProtoSchemas $schemas,
         private ProtoNameRepository $protoNames,
     ) {
         $this->items = new TabProtoTable(
-            $dbDir . '/item_proto.txt',
-            $dbDir . '/item_names_en.txt',
-            ProtoSchemas::columns(ProtoSchemas::KIND_ITEM),
+            $profile->path('item_proto'),
+            $profile->path('item_names'),
+            $profile->columns(ProtoSchemas::KIND_ITEM),
         );
         $this->mobs = new TabProtoTable(
-            $dbDir . '/mob_proto.txt',
-            $dbDir . '/mob_names_en.txt',
-            ProtoSchemas::columns(ProtoSchemas::KIND_MOB),
+            $profile->path('mob_proto'),
+            $profile->path('mob_names'),
+            $profile->columns(ProtoSchemas::KIND_MOB),
         );
     }
 
@@ -121,7 +123,7 @@ class GameProtoService
      */
     public function listColumns(string $kind): array
     {
-        return ProtoSchemas::listColumns($kind);
+        return $this->schemas->listColumns($kind);
     }
 
     /**
@@ -129,7 +131,7 @@ class GameProtoService
      */
     public function formTabs(string $kind): array
     {
-        return ProtoSchemas::formTabs($kind);
+        return $this->schemas->formTabs($kind);
     }
 
     /**
@@ -137,7 +139,7 @@ class GameProtoService
      */
     public function emptyRecord(string $kind): array
     {
-        return ProtoSchemas::defaults($kind);
+        return $this->schemas->defaults($kind);
     }
 
     private function table(string $kind): TabProtoTable
@@ -184,9 +186,9 @@ class GameProtoService
      */
     private function validatedRecord(string $kind, array $input, ?array $current): array
     {
-        $record = $current ?? ProtoSchemas::defaults($kind);
+        $record = $current ?? $this->schemas->defaults($kind);
 
-        foreach (ProtoSchemas::columns($kind) as $key) {
+        foreach ($this->schemas->columns($kind) as $key) {
             if ($key === 'name' || $key === 'vnum') {
                 continue;
             }

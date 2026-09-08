@@ -31,6 +31,7 @@ class ItemRepository extends Repository
     public function __construct(
         Database $db = new Database(),
         private ?ItemDescCatalog $descriptions = null,
+        private ?ItemStats $itemStats = null,
     ) {
         parent::__construct($db);
     }
@@ -192,8 +193,9 @@ class ItemRepository extends Repository
             ],
             (int) ($row['vnum'] ?? 0),
             $applies,
+            $this->itemStats,
         );
-        $tooltip = ItemStats::describe(
+        $tooltip = $this->itemStats?->describe(
             (int) ($row['proto_type'] ?? 0),
             (int) ($row['proto_subtype'] ?? 0),
             (int) ($row['proto_limit_type'] ?? 0),
@@ -216,7 +218,7 @@ class ItemRepository extends Repository
                 ['type' => (int) ($row['attrtype5'] ?? 0), 'value' => (int) ($row['attrvalue5'] ?? 0)],
                 ['type' => (int) ($row['attrtype6'] ?? 0), 'value' => (int) ($row['attrvalue6'] ?? 0)],
             ],
-        );
+        ) ?? ['stats' => [], 'applies' => [], 'bonuses' => []];
 
         return [
             'id' => (int) $row['id'],
@@ -277,12 +279,12 @@ class ItemRepository extends Repository
                         continue;
                     }
 
-                    $grouped[$window][$index]['sockets'][$slot]['applies'] = ItemStats::applyEntries([
+                    $grouped[$window][$index]['sockets'][$slot]['applies'] = $this->itemStats?->applyEntries([
                         [
                             'type' => (int) ($proto['apply_type'] ?? 0),
                             'value' => (int) ($proto['apply_value'] ?? 0),
                         ],
-                    ]);
+                    ]) ?? [];
                 }
             }
         }

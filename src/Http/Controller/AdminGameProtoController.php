@@ -30,6 +30,7 @@ class AdminGameProtoController extends AdminController
         private GameProtoService $protos,
         private ProtoFormFields $protoFields,
         private MobDropService $mobDrops,
+        private ProtoEnums $protoEnums,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
     }
@@ -271,11 +272,12 @@ class AdminGameProtoController extends AdminController
 
         foreach ($this->protos->formTabs($kind) as $tab) {
             foreach ($tab['fields'] as $key) {
-                if (ProtoEnums::widgetForField($kind, $key) === 'bitmask') {
+                if ($this->protoEnums->widgetForField($kind, $key) === 'bitmask') {
                     $posted = $_POST[$key . '_flags'] ?? [];
-                    $input[$key] = ProtoEnums::joinBitmask(
+                    $input[$key] = $this->protoEnums->joinBitmask(
                         is_array($posted) ? array_map('strval', $posted) : [],
                         $key,
+                        $kind,
                     );
 
                     continue;

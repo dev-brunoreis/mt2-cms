@@ -62,6 +62,7 @@ class ItemSockets
         array $sockets,
         int $vnum = 0,
         array $applies = [],
+        ?ItemStats $itemStats = null,
     ): array {
         $sockets = array_pad(array_map(
             static fn (mixed $value): int => (int) $value,
@@ -81,7 +82,7 @@ class ItemSockets
         }
 
         if (self::isAccessoryType($type, $subtype)) {
-            return self::accessorySockets($sockets, $vnum, $type, $subtype, $applies);
+            return self::accessorySockets($sockets, $vnum, $type, $subtype, $applies, $itemStats);
         }
 
         $entries = [];
@@ -228,6 +229,7 @@ class ItemSockets
         int $type,
         int $subtype,
         array $applies,
+        ?ItemStats $itemStats = null,
     ): array {
         $filled = max(0, min(self::ACCESSORY_SOCKET_MAX, $sockets[0]));
         $max = max(0, min(self::ACCESSORY_SOCKET_MAX, $sockets[1]));
@@ -259,8 +261,8 @@ class ItemSockets
                     ];
                     $slotApplies = $increments[$slot] ?? [];
 
-                    if ($slotApplies !== []) {
-                        $entry['applies'] = ItemStats::applyEntries($slotApplies);
+                    if ($slotApplies !== [] && $itemStats !== null) {
+                        $entry['applies'] = $itemStats->applyEntries($slotApplies);
                     }
 
                     $entries[] = $entry;

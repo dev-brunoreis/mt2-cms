@@ -6,18 +6,16 @@ namespace Mt2Cms\Service;
 
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\LocaleText;
+use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 
 class MobDropService
 {
-    /** @var list<string> */
-    private const COMMON_RANKS = ['PAWN', 'S_PAWN', 'KNIGHT', 'S_KNIGHT'];
-
     /** @var array<string, mixed>|null */
     private ?array $catalog = null;
 
     public function __construct(
-        private string $serverDir,
+        private GameProfile $profile,
         private GameProtoService $protos,
         private GroupTextParser $parser,
     ) {
@@ -84,11 +82,11 @@ class MobDropService
     {
         $byMob = [];
 
-        foreach ($this->parseGroups('mob_drop_item.txt') as $group) {
+        foreach ($this->parseDropGroups('mob_drop_item') as $group) {
             $this->appendMobDropGroup($byMob, $group, $itemNames, $originalToVnum, 'mob_drop_item');
         }
 
-        foreach ($this->parseGroups('drop_item_group.txt') as $group) {
+        foreach ($this->parseDropGroups('drop_item_group') as $group) {
             $this->appendDropItemGroup($byMob, $group, $itemNames, $originalToVnum);
         }
 
@@ -198,11 +196,11 @@ class MobDropService
     {
         $byRank = [];
 
-        foreach (self::COMMON_RANKS as $rank) {
+        foreach ($this->profile->commonRanks() as $rank) {
             $byRank[$rank] = [];
         }
 
-        $path = $this->serverDir . '/common_drop_item.txt';
+        $path = $this->profile->dropPath('common_drop_item');
 
         if (!is_file($path) || !is_readable($path)) {
             return $byRank;
@@ -224,7 +222,7 @@ class MobDropService
 
             $cells = explode("\t", $line);
 
-            foreach (self::COMMON_RANKS as $index => $rank) {
+            foreach ($this->profile->commonRanks() as $index => $rank) {
                 $offset = $index * 6;
                 $levelStart = (int) ($cells[$offset + 1] ?? 0);
                 $levelEnd = (int) ($cells[$offset + 2] ?? 0);
@@ -264,7 +262,7 @@ class MobDropService
      */
     private function loadEtcDrops(array $itemNames, array $originalToVnum): array
     {
-        $path = $this->serverDir . '/etc_drop_item.txt';
+        $path = $this->profile->dropPath('etc_drop_item');
 
         if (!is_file($path) || !is_readable($path)) {
             return [];
@@ -322,7 +320,7 @@ class MobDropService
     {
         $groups = [];
 
-        foreach ($this->parseGroups('group.txt') as $group) {
+        foreach ($this->parseDropGroups('group') as $group) {
             $groupVnum = (int) ($group['attrs']['vnum'][0] ?? 0);
 
             if ($groupVnum < 1) {
@@ -354,7 +352,7 @@ class MobDropService
             ];
         }
 
-        foreach ($this->parseGroups('group_group.txt') as $pack) {
+        foreach ($this->parseDropGroups('group_group') as $pack) {
             $packVnum = (int) ($pack['attrs']['vnum'][0] ?? 0);
 
             if ($packVnum < 1) {
@@ -401,9 +399,13 @@ class MobDropService
     /**
      * @return list<array{name: string, attrs: array<string, list<string>>, items: list<list<string>>}>
      */
-    private function parseGroups(string $filename): array
+    private function parseDropGroups(string $key): array
     {
-        $path = $this->serverDir . '/' . $filename;
+        try {
+            $path = $this->profile->dropPath($key);
+        } catch (\RuntimeException) {
+            return [];
+        }
 
         if (!is_file($path) || !is_readable($path)) {
             return [];

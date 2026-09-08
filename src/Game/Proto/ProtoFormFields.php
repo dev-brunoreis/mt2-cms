@@ -8,8 +8,10 @@ use Mt2Cms\I18n\Translator;
 
 class ProtoFormFields
 {
-    public function __construct(private Translator $translator)
-    {
+    public function __construct(
+        private Translator $translator,
+        private ProtoEnums $enums,
+    ) {
     }
 
     /**
@@ -54,11 +56,11 @@ class ProtoFormFields
         string $subtype,
     ): array {
         $current = trim((string) ($record[$fieldKey] ?? ''));
-        $widget = ProtoEnums::widgetForField($kind, $fieldKey);
+        $widget = $this->enums->widgetForField($kind, $fieldKey);
         $labelKey = $prefix . '.fields.' . $fieldKey;
 
         if (str_starts_with($fieldKey, 'value') && $kind === ProtoEnums::KIND_ITEM) {
-            $valueLabels = ProtoEnums::valueLabelsFor($itemType, $subtype);
+            $valueLabels = $this->enums->valueLabelsFor($itemType, $subtype);
             $dynamicKey = $valueLabels[$fieldKey] ?? 'value_0';
             $labelKey = 'admin.proto.values.' . $dynamicKey;
         }
@@ -72,9 +74,9 @@ class ProtoFormFields
 
         if ($widget === 'select' || $widget === 'subtype') {
             $options = $widget === 'subtype'
-                ? ProtoEnums::subtypesForItemType($itemType)
-                : ProtoEnums::optionsForField($kind, $fieldKey);
-            $options = ProtoEnums::ensureOption($options, $current);
+                ? $this->enums->subtypesForItemType($itemType)
+                : $this->enums->optionsForField($kind, $fieldKey);
+            $options = $this->enums->ensureOption($options, $current);
             $config['options'] = array_map(fn (string $token): array => [
                 'value' => $token,
                 'label' => $this->tokenLabel($token),
@@ -86,17 +88,17 @@ class ProtoFormFields
         }
 
         if ($widget === 'bitmask') {
-            $selected = ProtoEnums::parseBitmask($current, $fieldKey);
+            $selected = $this->enums->parseBitmask($current, $fieldKey, $kind);
             $config['selected'] = $selected;
             $config['flags'] = array_map(fn (string $token): array => [
                 'value' => $token,
                 'label' => $this->tokenLabel($token),
                 'checked' => in_array($token, $selected, true),
-            ], ProtoEnums::bitmaskTokens($fieldKey));
+            ], $this->enums->bitmaskTokens($fieldKey, $kind));
         }
 
         if ($fieldKey === 'wear' && $kind === ProtoEnums::KIND_ITEM) {
-            $hintKey = ProtoEnums::equipSlotHint($itemType, $subtype, $current);
+            $hintKey = $this->enums->equipSlotHint($itemType, $subtype, $current);
 
             if ($hintKey !== null) {
                 $fullKey = 'admin.proto.equip.' . $hintKey;
@@ -111,7 +113,7 @@ class ProtoFormFields
 
     private function tokenLabel(string $token): string
     {
-        $key = ProtoEnums::tokenI18nKey($token);
+        $key = $this->enums->tokenI18nKey($token);
 
         return $this->translator->has($key) ? $this->translator->get($key) : $token;
     }
@@ -121,7 +123,7 @@ class ProtoFormFields
      */
     public function subtypesJsonMap(): array
     {
-        return ProtoEnums::itemSubtypesByType();
+        return $this->enums->itemSubtypesByType();
     }
 
     /**
@@ -131,21 +133,21 @@ class ProtoFormFields
     {
         $map = [];
 
-        foreach (ProtoEnums::itemTypes() as $type) {
+        foreach ($this->enums->itemTypes() as $type) {
             $map[$type] = [];
 
-            foreach (ProtoEnums::valueLabelsFor($type) as $field => $labelKey) {
+            foreach ($this->enums->valueLabelsFor($type) as $field => $labelKey) {
                 $fullKey = 'admin.proto.values.' . $labelKey;
                 $map[$type][$field] = $this->translator->has($fullKey)
                     ? $this->translator->get($fullKey)
                     : $labelKey;
             }
 
-            foreach (ProtoEnums::subtypesForItemType($type) as $subtype) {
+            foreach ($this->enums->subtypesForItemType($type) as $subtype) {
                 $subtypeKey = $type . ':' . $subtype;
                 $map[$subtypeKey] = [];
 
-                foreach (ProtoEnums::valueLabelsFor($type, $subtype) as $field => $labelKey) {
+                foreach ($this->enums->valueLabelsFor($type, $subtype) as $field => $labelKey) {
                     $fullKey = 'admin.proto.values.' . $labelKey;
                     $map[$subtypeKey][$field] = $this->translator->has($fullKey)
                         ? $this->translator->get($fullKey)

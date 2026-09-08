@@ -37,9 +37,13 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemIconCatalog;
+use Mt2Cms\Game\ItemStats;
+use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoFormFields;
+use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
@@ -71,6 +75,10 @@ class Application
     private GameProtoService $gameProto;
     private MobDropService $mobDrops;
     private ?GameIconService $icons = null;
+    private GameProfile $gameProfile;
+    private ProtoSchemas $protoSchemas;
+    private ProtoEnums $protoEnums;
+    private ItemStats $itemStats;
     private ProtoFormFields $protoFields;
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
@@ -229,10 +237,15 @@ class Application
 
         $defaultLocale = $this->settings->defaultLocale();
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
+        $this->gameProfile = GameProfile::load();
+        $this->protoSchemas = new ProtoSchemas($this->gameProfile);
+        $this->protoEnums = new ProtoEnums($this->gameProfile);
+        $this->itemStats = new ItemStats($this->protoEnums);
         $this->icons = new GameIconService(
-            BASE_DIR . '/game/client/icon',
+            $this->gameProfile->path('icon_root'),
             BASE_DIR . '/var/cache/icons',
-            new ItemIconCatalog(BASE_DIR . '/game/client/item_list.txt'),
+            $this->gameProfile,
+            new ItemIconCatalog($this->gameProfile->path('item_list')),
         );
 
         $activeTheme = $this->settings->activeTheme();
@@ -244,20 +257,22 @@ class Application
         $this->players = new PlayerRepository($this->db);
         $this->items = new ItemRepository(
             $this->db,
-            new ItemDescCatalog(BASE_DIR . '/game/client/itemdesc.txt'),
+            new ItemDescCatalog($this->gameProfile->path('itemdesc')),
+            $this->itemStats,
         );
         $this->guilds = new GuildRepository($this->db);
         $this->logs = new LogRepository($this->db);
         $this->gameProto = new GameProtoService(
-            BASE_DIR . '/game/db',
+            $this->gameProfile,
+            $this->protoSchemas,
             new ProtoNameRepository($this->db),
         );
         $this->mobDrops = new MobDropService(
-            BASE_DIR . '/game/server',
+            $this->gameProfile,
             $this->gameProto,
             new GroupTextParser(),
         );
-        $this->protoFields = new ProtoFormFields($this->translator);
+        $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
     }
@@ -420,6 +435,7 @@ class Application
                 $this->gameProto,
                 $this->protoFields,
                 $this->mobDrops,
+                $this->protoEnums,
             ),
             AdminLogsController::class => new AdminLogsController(
                 $this->theme,

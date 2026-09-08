@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Icon\PngEncoder;
 use Mt2Cms\Game\Icon\TgaDecoder;
 use Mt2Cms\Game\ItemIconCatalog;
@@ -13,24 +14,13 @@ class GameIconService
     public const KIND_ITEM = 'item';
     public const KIND_FACE = 'face';
 
-    /** @var array<int, string> */
-    private const FACE_BY_JOB = [
-        0 => 'warrior_m.tga',
-        1 => 'assassin_m.tga',
-        2 => 'sura_m.tga',
-        3 => 'shaman_m.tga',
-        4 => 'warrior_w.tga',
-        5 => 'assassin_w.tga',
-        6 => 'sura_w.tga',
-        7 => 'shaman_w.tga',
-    ];
-
     /** @var array<string, bool> */
     private array $exists = [];
 
     public function __construct(
         private string $iconRoot,
         private string $cacheRoot,
+        private GameProfile $profile,
         private ?ItemIconCatalog $itemList = null,
         private TgaDecoder $decoder = new TgaDecoder(),
         private PngEncoder $encoder = new PngEncoder(),
@@ -144,7 +134,7 @@ class GameIconService
 
     private function faceFile(int $job): ?string
     {
-        $name = self::FACE_BY_JOB[$job] ?? null;
+        $name = $this->profile->faceFilename($job);
 
         if ($name === null) {
             return null;

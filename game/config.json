@@ -1,0 +1,31 @@
+{
+    "locale": "en",
+    "paths": {
+        "item_proto": "db/item_proto.txt",
+        "item_names": "db/item_names_en.txt",
+        "mob_proto": "db/mob_proto.txt",
+        "mob_names": "db/mob_names_en.txt",
+        "item_list": "client/item_list.txt",
+        "itemdesc": "client/itemdesc.txt",
+        "icon_root": "client/icon",
+        "drops": "server"
+    },
+    "drops": {
+        "mob_drop_item": "mob_drop_item.txt",
+        "drop_item_group": "drop_item_group.txt",
+        "common_drop_item": "common_drop_item.txt",
+        "etc_drop_item": "etc_drop_item.txt",
+        "group": "group.txt",
+        "group_group": "group_group.txt"
+    },
+    "faces": [
+        "warrior_m.tga",
+        "assassin_m.tga",
+        "sura_m.tga",
+        "shaman_m.tga",
+        "warrior_w.tga",
+        "assassin_w.tga",
+        "sura_w.tga",
+        "shaman_w.tga"
+    ]
+}

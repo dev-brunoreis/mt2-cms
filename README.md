@@ -81,6 +81,7 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 | [docs/add-repository.md](docs/add-repository.md) | New game DB queries |
 | [docs/add-theme.md](docs/add-theme.md) | Child theme / overlay |
 | [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
+| [docs/game-files.md](docs/game-files.md) | Game dumps, JSON config, custom source |
 | [docs/security.md](docs/security.md) | Security rules and PR checklist |
 
 ## Security
@@ -126,6 +127,7 @@ Copy `.env-example` to `.env`. Variables read by the app:
 | `DB_NAME` | *(empty)* | Optional; repositories switch schema themselves |
 | `THEME` | `default` | Active theme folder under `themes/` |
 | `LOCALE` | `en` | Default locale when no cookie is set |
+| `GAME_DIR` | `game/` | Game data root (`config.json`, client/db/server dumps) |
 
 For registration/login against `account.account`, use:
 

@@ -98,10 +98,11 @@ See [docs/security.md](docs/security.md) for the full checklist.
 ## Quick start
 
 ```bash
-cp .env-example .env
 docker compose up --build
 composer install
 ```
+
+The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` by default (override with `PUID` / `PGID` when building) so it can write files in the project directory. Rebuild the PHP image after changing those values: `PUID=$(id -u) PGID=$(id -g) docker compose up --build`.
 
 | Service | URL / port |
 | --- | --- |

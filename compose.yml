@@ -47,8 +47,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
       args:
-        PUID: 1000
-        PGID: 1000
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
     working_dir: /var/www
     volumes:
       - .:/var/www

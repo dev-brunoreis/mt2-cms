@@ -32,6 +32,19 @@ abstract class Repository
         return $this->db->useDatabase($this->database());
     }
 
+    protected function schemaTableExists(string $table): bool
+    {
+        $table = Database::quoteIdentifier($table);
+
+        return $this->db()->fetch(
+            'SELECT TABLE_NAME
+             FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+             LIMIT 1',
+            [$this->database(), $table],
+        ) !== null;
+    }
+
     protected function reveal(?array $row): ?array
     {
         if ($row === null) {

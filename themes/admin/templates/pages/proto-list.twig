@@ -1,0 +1,89 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t(i18nPrefix ~ '.count', {count: total}) }}
+            {% if query %} {{ t(i18nPrefix ~ '.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/{{ routeKind }}" class="flex gap-2">
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="{{ t(i18nPrefix ~ '.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t(i18nPrefix ~ '.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if records is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">
+            {{ t(i18nPrefix ~ '.empty') }}
+        </p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column.label }}</th>
+                        {% endfor %}
+                        <th>{{ t(i18nPrefix ~ '.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            {% for column in columns %}
+                                {% if column.key == 'locale_name' %}
+                                    <td>
+                                        <a href="/admin/{{ routeKind }}/{{ record.vnum }}" class="font-medium text-indigo-600 hover:underline">
+                                            {{ record.locale_name|default('—') }}
+                                        </a>
+                                    </td>
+                                {% else %}
+                                    <td class="text-slate-600">{{ attribute(record, column.key)|default('—') }}</td>
+                                {% endif %}
+                            {% endfor %}
+                            <td>
+                                <div class="admin-row-actions">
+                                    <a href="/admin/{{ routeKind }}/{{ record.vnum }}" class="admin-link-action">
+                                        {{ t(i18nPrefix ~ '.edit') }}
+                                    </a>
+                                    <form method="post" action="/admin/{{ routeKind }}/{{ record.vnum }}/delete"
+                                          data-confirm="{{ t(i18nPrefix ~ '.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t(i18nPrefix ~ '.delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/{{ routeKind }}?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">
+                    {{ t(i18nPrefix ~ '.previous') }}
+                </a>
+            {% endif %}
+
+            <span class="px-2 text-slate-500">
+                {{ t(i18nPrefix ~ '.page_of', {page: page, total: totalPages}) }}
+            </span>
+
+            {% if page < totalPages %}
+                <a href="/admin/{{ routeKind }}?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">
+                    {{ t(i18nPrefix ~ '.next') }}
+                </a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

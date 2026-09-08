@@ -29,15 +29,65 @@ class LogRepository extends Repository
 
     public function tableExists(string $table): bool
     {
-        $table = Database::quoteIdentifier($table);
+        return $this->schemaTableExists($table);
+    }
 
-        return $this->db()->fetch(
-            'SELECT TABLE_NAME
-             FROM information_schema.TABLES
-             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
-             LIMIT 1',
-            ['log', $table],
-        ) !== null;
+    /**
+     * Recent rows from log tables that identify this character.
+     *
+     * @return list<array{
+     *   id: string,
+     *   label: string,
+     *   columns: list<string>,
+     *   dateColumn: string|null,
+     *   rows: list<array<string, mixed>>
+     * }>
+     */
+    public function listForCharacter(int $playerId, string $playerName, int $limit = 15): array
+    {
+        if ($playerId < 1) {
+            return [];
+        }
+
+        $limit = max(1, min(50, $limit));
+        $groups = [];
+
+        foreach (LogCatalog::forCharacter() as $log) {
+            if (!$this->tableExists($log['table'])) {
+                continue;
+            }
+
+            [$where, $params] = $this->characterWhere($log['playerColumns'], $playerId, $playerName);
+
+            if ($where === '') {
+                continue;
+            }
+
+            $params[] = $limit;
+            $rows = $this->sanitizeRows(
+                $this->db()->fetchAll(
+                    'SELECT ' . $this->selectList($log['columns']) . '
+                     FROM `' . Database::quoteIdentifier($log['table']) . '`' . $where . '
+                     ORDER BY ' . $this->orderBy($log) . '
+                     LIMIT ?',
+                    $params,
+                ),
+            );
+
+            if ($rows === []) {
+                continue;
+            }
+
+            $groups[] = [
+                'id' => $log['id'],
+                'label' => $log['label'],
+                'columns' => $log['columns'],
+                'dateColumn' => $log['dateColumn'],
+                'rows' => $rows,
+            ];
+        }
+
+        return $groups;
     }
 
     /**
@@ -195,6 +245,37 @@ class LogRepository extends Repository
         }
 
         return $log;
+    }
+
+    /**
+     * @param list<string> $playerColumns
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function characterWhere(array $playerColumns, int $playerId, string $playerName): array
+    {
+        $clauses = [];
+        $params = [];
+
+        foreach ($playerColumns as $column) {
+            $quoted = '`' . Database::quoteIdentifier($column) . '`';
+
+            if (in_array($column, ['pid', 'player_id', 'who'], true)) {
+                $clauses[] = $quoted . ' = ?';
+                $params[] = $playerId;
+                continue;
+            }
+
+            if (in_array($column, ['name', 'username', 'old_name', 'new_name'], true) && $playerName !== '') {
+                $clauses[] = $quoted . ' = ?';
+                $params[] = $playerName;
+            }
+        }
+
+        if ($clauses === []) {
+            return ['', []];
+        }
+
+        return [' WHERE ' . implode(' OR ', $clauses), $params];
     }
 
     /**

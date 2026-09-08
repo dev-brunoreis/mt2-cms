@@ -14,6 +14,7 @@ use Mt2Cms\Http\Controller\AccountController;
 use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAuthController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
+use Mt2Cms\Http\Controller\AdminGameProtoController;
 use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AuthController;
@@ -29,9 +30,14 @@ use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\AdminRepository;
+use Mt2Cms\Repository\GuildRepository;
+use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Game\Proto\ProtoFormFields;
+use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\ThemeCatalog;
@@ -53,7 +59,11 @@ class Application
     private ThemeEngine $adminTheme;
     private AccountRepository $accounts;
     private PlayerRepository $players;
+    private ItemRepository $items;
+    private GuildRepository $guilds;
     private LogRepository $logs;
+    private GameProtoService $gameProto;
+    private ProtoFormFields $protoFields;
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
     private ThemeCatalog $themeCatalog;
@@ -121,6 +131,12 @@ class Application
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
+            $r->addRoute('GET', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'index']);
+            $r->addRoute('GET', '/admin/{kind:items|mobs}/new', [AdminGameProtoController::class, 'create']);
+            $r->addRoute('POST', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'store']);
+            $r->addRoute('GET', '/admin/{kind:items|mobs}/{id:\d+}', [AdminGameProtoController::class, 'edit']);
+            $r->addRoute('POST', '/admin/{kind:items|mobs}/{id:\d+}', [AdminGameProtoController::class, 'update']);
+            $r->addRoute('POST', '/admin/{kind:items|mobs}/{id:\d+}/delete', [AdminGameProtoController::class, 'destroy']);
             $r->addRoute('GET', '/admin/logs/{table:[a-z0-9_]+}', [AdminLogsController::class, 'show']);
         }, true);
     }
@@ -211,7 +227,14 @@ class Application
         $this->db = new Database();
         $this->accounts = new AccountRepository($this->db);
         $this->players = new PlayerRepository($this->db);
+        $this->items = new ItemRepository($this->db);
+        $this->guilds = new GuildRepository($this->db);
         $this->logs = new LogRepository($this->db);
+        $this->gameProto = new GameProtoService(
+            BASE_DIR . '/game/db',
+            new ProtoNameRepository($this->db),
+        );
+        $this->protoFields = new ProtoFormFields($this->translator);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
     }
@@ -351,6 +374,19 @@ class Application
                 $this->adminAuth,
                 $this->adminTheme,
                 $this->players,
+                $this->items,
+                $this->guilds,
+                $this->logs,
+            ),
+            AdminGameProtoController::class => new AdminGameProtoController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->gameProto,
+                $this->protoFields,
             ),
             AdminLogsController::class => new AdminLogsController(
                 $this->theme,

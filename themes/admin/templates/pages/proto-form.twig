@@ -1,0 +1,78 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        {{ error }}
+    </div>
+{% endif %}
+
+<form id="admin-proto-form"
+      method="post"
+      action="{% if isEdit %}/admin/{{ routeKind }}/{{ record.vnum }}{% else %}/admin/{{ routeKind }}{% endif %}"
+      class="admin-panel admin-tabs overflow-hidden"
+      data-admin-tabs
+      data-default-tab="{{ tabs[0].id }}"
+      {% if protoKind == 'item' %}
+          data-proto-form="item"
+          data-subtypes-by-type="{{ subtypesByType|json_encode|e('html_attr') }}"
+          data-value-labels-by-type="{{ valueLabelsByType|json_encode|e('html_attr') }}"
+      {% endif %}>
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% for tab in tabs %}
+            {% include 'components/tab.twig' with { id: tab.id, label: tab.label, active: tab.active } %}
+        {% endfor %}
+    </div>
+
+    {% for tab in tabs %}
+        <div id="admin-tab-panel-{{ tab.id }}"
+             class="admin-tabs-panel"
+             role="tabpanel"
+             data-tab-panel="{{ tab.id }}"
+             aria-labelledby="admin-tab-{{ tab.id }}"
+             {% if not tab.active %}hidden{% endif %}>
+            <fieldset class="admin-fieldset">
+                <legend>{{ tab.label }}</legend>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {% for field in tab.fields %}
+                        {% if field.key == 'vnum' %}
+                            <div class="admin-field">
+                                <label for="proto-vnum">{{ field.label }}</label>
+                                <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
+                                       value="{{ field.value }}"
+                                       class="admin-input"
+                                       {% if isEdit %}readonly{% endif %}>
+                            </div>
+                        {% elseif field.key == 'locale_name' %}
+                            <div class="admin-field">
+                                <label for="proto-locale_name">{{ field.label }}</label>
+                                <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
+                                       value="{{ field.value }}"
+                                       class="admin-input" autocomplete="off">
+                            </div>
+                        {% else %}
+                            {% include 'components/proto-field.twig' with { field: field } %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </fieldset>
+        </div>
+    {% endfor %}
+</form>
+
+{% if isEdit %}
+    <div class="admin-panel mt-4 p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t(i18nPrefix ~ '.danger') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t(i18nPrefix ~ '.danger_help') }}</p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+            <form method="post" action="/admin/{{ routeKind }}/{{ record.vnum }}/delete"
+                  data-confirm="{{ t(i18nPrefix ~ '.confirm_delete') }}">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <button type="submit" class="admin-btn-danger cursor-pointer rounded-md px-4 py-2 text-sm font-semibold text-white">
+                    {{ t(i18nPrefix ~ '.delete') }}
+                </button>
+            </form>
+        </div>
+    </div>
+{% endif %}

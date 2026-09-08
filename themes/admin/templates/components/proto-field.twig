@@ -1,0 +1,52 @@
+{% if field.widget == 'bitmask' %}
+    <div class="admin-field sm:col-span-2">
+        <span class="mb-2 block text-sm font-medium text-slate-700">{{ field.label }}</span>
+        {% if field.hint is defined and field.hint %}
+            <p class="admin-field-help mb-2">{{ field.hint }}</p>
+        {% endif %}
+        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {% for flag in field.flags %}
+                <label class="admin-toggle-row cursor-pointer text-sm">
+                    <input type="checkbox" name="{{ field.key }}_flags[]" value="{{ flag.value }}"
+                           {% if flag.checked %}checked{% endif %}>
+                    <span>{{ flag.label }}</span>
+                </label>
+            {% endfor %}
+        </div>
+    </div>
+{% elseif field.widget == 'select' or field.widget == 'subtype' %}
+    <div class="admin-field{% if field.widget == 'subtype' %} proto-subtype-field{% endif %}">
+        <label for="proto-{{ field.key }}">{{ field.label }}</label>
+        {% if field.hint is defined and field.hint %}
+            <span class="admin-field-help">{{ field.hint }}</span>
+        {% endif %}
+        <select id="proto-{{ field.key }}" name="{{ field.key }}" class="admin-select"
+                {% if field.widget == 'subtype' %}data-proto-subtype{% endif %}
+                {% if field.key == 'type' %}data-proto-item-type{% endif %}>
+            {% if field.value == '' or field.value == '0' %}
+                <option value="{{ field.value }}" selected>{{ field.value == '0' ? '0' : '—' }}</option>
+            {% endif %}
+            {% for option in field.options %}
+                <option value="{{ option.value }}" {% if option.value == field.value %}selected{% endif %}>
+                    {{ option.label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+{% elseif field.widget == 'number' %}
+    <div class="admin-field{% if field.key starts with 'value' %} proto-value-field{% endif %}"
+         {% if field.key starts with 'value' %}data-value-key="{{ field.key }}"{% endif %}>
+        <label for="proto-{{ field.key }}">{{ field.label }}</label>
+        <input id="proto-{{ field.key }}" type="number" name="{{ field.key }}" step="any"
+               value="{{ field.value }}" class="admin-input" autocomplete="off">
+    </div>
+{% else %}
+    <div class="admin-field">
+        <label for="proto-{{ field.key }}">{{ field.label }}</label>
+        {% if field.hint is defined and field.hint %}
+            <span class="admin-field-help">{{ field.hint }}</span>
+        {% endif %}
+        <input id="proto-{{ field.key }}" type="text" name="{{ field.key }}"
+               value="{{ field.value }}" class="admin-input" autocomplete="off">
+    </div>
+{% endif %}

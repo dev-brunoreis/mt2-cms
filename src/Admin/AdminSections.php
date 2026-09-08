@@ -26,6 +26,16 @@ class AdminSections
                         'path' => '/admin/characters',
                         'label' => 'admin.nav.characters',
                     ],
+                    [
+                        'id' => 'items',
+                        'path' => '/admin/items',
+                        'label' => 'admin.nav.items',
+                    ],
+                    [
+                        'id' => 'mobs',
+                        'path' => '/admin/mobs',
+                        'label' => 'admin.nav.mobs',
+                    ],
                 ],
             ],
             [

@@ -1,0 +1,43 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.characters.tab_marriage') }}
+        <span class="admin-fieldset-help">{{ t('admin.characters.marriage_help') }}</span>
+    </h2>
+
+    {% if marriage is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.characters.marriage_empty') }}</p>
+    {% else %}
+        <dl class="admin-stat-grid">
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.marriage_status') }}</dt>
+                <dd>
+                    {% if marriage.is_married %}
+                        {{ t('admin.characters.marriage_married') }}
+                    {% else %}
+                        {{ t('admin.characters.marriage_engaged') }}
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.marriage_partner') }}</dt>
+                <dd>
+                    {% if marriage.partner_id %}
+                        <a href="/admin/characters/{{ marriage.partner_id }}" class="text-indigo-600 hover:underline">
+                            {{ marriage.partner_name|default(marriage.partner_id) }}
+                        </a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.marriage_love') }}</dt>
+                <dd>{{ marriage.love_point }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.marriage_since') }}</dt>
+                <dd>{{ marriage.married_at|game_date }}</dd>
+            </div>
+        </dl>
+    {% endif %}
+</section>

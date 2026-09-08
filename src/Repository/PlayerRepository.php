@@ -148,6 +148,51 @@ class PlayerRepository extends Repository
     }
 
     /**
+     * @return array{
+     *   is_married: bool,
+     *   love_point: int,
+     *   married_at: string|null,
+     *   partner_id: int,
+     *   partner_name: string|null
+     * }|null
+     */
+    public function findMarriageForPlayer(int $playerId): ?array
+    {
+        if ($playerId < 1 || !$this->schemaTableExists('marriage')) {
+            return null;
+        }
+
+        $row = $this->db()->fetch(
+            'SELECT m.is_married, m.pid1, m.pid2, m.love_point, m.time,
+                    p1.name AS name1, p2.name AS name2
+             FROM `marriage` m
+             LEFT JOIN `player` p1 ON p1.id = m.pid1
+             LEFT JOIN `player` p2 ON p2.id = m.pid2
+             WHERE m.pid1 = ? OR m.pid2 = ?
+             LIMIT 1',
+            [$playerId, $playerId],
+        );
+
+        if ($row === null) {
+            return null;
+        }
+
+        $pid1 = (int) $row['pid1'];
+        $isFirst = $pid1 === $playerId;
+        $time = (int) ($row['time'] ?? 0);
+
+        return [
+            'is_married' => (int) ($row['is_married'] ?? 0) === 1,
+            'love_point' => (int) ($row['love_point'] ?? 0),
+            'married_at' => $time > 0 ? gmdate('Y-m-d H:i:s', $time) : null,
+            'partner_id' => $isFirst ? (int) $row['pid2'] : $pid1,
+            'partner_name' => $isFirst
+                ? ($row['name2'] !== null ? (string) $row['name2'] : null)
+                : ($row['name1'] !== null ? (string) $row['name1'] : null),
+        ];
+    }
+
+    /**
      * @return array{0: string, 1: list<mixed>}
      */
     private function adminWhere(?string $q): array

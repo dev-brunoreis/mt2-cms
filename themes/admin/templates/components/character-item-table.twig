@@ -1,0 +1,35 @@
+<section class="admin-fieldset">
+    <h3 class="mb-3 text-sm font-semibold text-slate-900">{{ t('admin.characters.window_' ~ window) }}</h3>
+    <div class="admin-tabs-table">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.characters.items_id') }}</th>
+                    <th>{{ t('admin.characters.items_vnum') }}</th>
+                    <th>{{ t('admin.characters.items_name') }}</th>
+                    <th>{{ t('admin.characters.items_count') }}</th>
+                    <th>{{ t('admin.characters.items_pos') }}</th>
+                    <th>{{ t('admin.characters.items_sockets') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in rows %}
+                    <tr>
+                        <td class="text-slate-400">{{ item.id }}</td>
+                        <td class="text-slate-600">{{ item.vnum }}</td>
+                        <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                        <td class="text-slate-600">{{ item.count }}</td>
+                        <td class="text-slate-600">{{ item.pos }}</td>
+                        <td class="text-slate-600">
+                            {% if item.sockets is empty %}
+                                —
+                            {% else %}
+                                {{ item.sockets|join(' / ') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

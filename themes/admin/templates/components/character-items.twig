@@ -1,0 +1,14 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.characters.tab_items') }}
+        <span class="admin-fieldset-help">{{ t('admin.characters.items_help') }}</span>
+    </h2>
+
+    {% if characterItems is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.characters.items_empty') }}</p>
+    {% else %}
+        {% for window, rows in characterItems %}
+            {% include 'components/character-item-table.twig' with { window: window, rows: rows } %}
+        {% endfor %}
+    {% endif %}
+</section>

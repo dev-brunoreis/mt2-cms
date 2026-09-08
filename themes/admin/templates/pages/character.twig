@@ -1,59 +1,119 @@
-<div class="admin-panel p-6">
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.characters.details') }}
-            <span class="admin-fieldset-help">{{ t('admin.characters.details_help') }}</span>
-        </legend>
+<div class="admin-panel admin-tabs overflow-hidden" data-admin-tabs data-default-tab="dados">
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.characters.tab_data'), active: true } %}
+        {% include 'components/tab.twig' with { id: 'logs', label: t('admin.characters.tab_logs'), active: false } %}
+        {% include 'components/tab.twig' with { id: 'items', label: t('admin.characters.tab_items'), active: false } %}
+        {% include 'components/tab.twig' with { id: 'safebox', label: t('admin.characters.tab_safebox'), active: false } %}
+        {% include 'components/tab.twig' with { id: 'guild', label: t('admin.characters.tab_guild'), active: false } %}
+        {% include 'components/tab.twig' with { id: 'marriage', label: t('admin.characters.tab_marriage'), active: false } %}
+    </div>
 
-        <dl class="admin-stat-grid">
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.id') }}</dt>
-                <dd>{{ character.id }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.name') }}</dt>
-                <dd>{{ character.name }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.account') }}</dt>
-                <dd>
-                    {% if character.account_id %}
-                        <a href="/admin/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
-                            {{ character.account_login|default(character.account_id) }}
-                        </a>
-                    {% else %}
-                        —
-                    {% endif %}
-                </dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.job') }}</dt>
-                <dd>{{ character.job|job_name }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.level') }}</dt>
-                <dd>{{ character.level }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.exp') }}</dt>
-                <dd>{{ character.exp }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.gold') }}</dt>
-                <dd>{{ character.gold }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.playtime') }}</dt>
-                <dd>{{ character.playtime|playtime }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.map') }}</dt>
-                <dd>{{ character.map_index }}</dd>
-            </div>
-            <div class="admin-stat">
-                <dt>{{ t('admin.characters.last_play') }}</dt>
-                <dd>{{ character.last_play|game_date }}</dd>
-            </div>
-        </dl>
-    </fieldset>
+    <div id="admin-tab-panel-dados"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="dados"
+         aria-labelledby="admin-tab-dados">
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.characters.details') }}
+                <span class="admin-fieldset-help">{{ t('admin.characters.details_help') }}</span>
+            </legend>
+
+            <dl class="admin-stat-grid">
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.id') }}</dt>
+                    <dd>{{ character.id }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.name') }}</dt>
+                    <dd>{{ character.name }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.account') }}</dt>
+                    <dd>
+                        {% if character.account_id %}
+                            <a href="/admin/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
+                                {{ character.account_login|default(character.account_id) }}
+                            </a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.job') }}</dt>
+                    <dd>{{ character.job|job_name }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.level') }}</dt>
+                    <dd>{{ character.level }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.exp') }}</dt>
+                    <dd>{{ character.exp }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.gold') }}</dt>
+                    <dd>{{ character.gold }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.playtime') }}</dt>
+                    <dd>{{ character.playtime|playtime }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.map') }}</dt>
+                    <dd>{{ character.map_index }}</dd>
+                </div>
+                <div class="admin-stat">
+                    <dt>{{ t('admin.characters.last_play') }}</dt>
+                    <dd>{{ character.last_play|game_date }}</dd>
+                </div>
+            </dl>
+        </fieldset>
+    </div>
+
+    <div id="admin-tab-panel-logs"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="logs"
+         aria-labelledby="admin-tab-logs"
+         hidden>
+        {% include 'components/character-logs.twig' %}
+    </div>
+
+    <div id="admin-tab-panel-items"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="items"
+         aria-labelledby="admin-tab-items"
+         hidden>
+        {% include 'components/character-items.twig' %}
+    </div>
+
+    <div id="admin-tab-panel-safebox"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="safebox"
+         aria-labelledby="admin-tab-safebox"
+         hidden>
+        {% include 'components/character-safebox.twig' %}
+    </div>
+
+    <div id="admin-tab-panel-guild"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="guild"
+         aria-labelledby="admin-tab-guild"
+         hidden>
+        {% include 'components/character-guild.twig' %}
+    </div>
+
+    <div id="admin-tab-panel-marriage"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="marriage"
+         aria-labelledby="admin-tab-marriage"
+         hidden>
+        {% include 'components/character-marriage.twig' %}
+    </div>
 </div>

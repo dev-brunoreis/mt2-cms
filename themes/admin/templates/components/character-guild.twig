@@ -1,0 +1,142 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.characters.tab_guild') }}
+        <span class="admin-fieldset-help">{{ t('admin.characters.guild_help') }}</span>
+    </h2>
+
+    {% if guild is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.characters.guild_empty') }}</p>
+    {% else %}
+        <dl class="admin-stat-grid">
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_name') }}</dt>
+                <dd>{{ guild.name }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_role') }}</dt>
+                <dd>
+                    {% if guild.is_master %}
+                        {{ t('admin.characters.guild_role_master') }}
+                    {% else %}
+                        {{ t('admin.characters.guild_role_member') }}
+                    {% endif %}
+                    {% if guild.grade_name %}
+                        <span class="text-slate-500">({{ guild.grade_name }})</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_master') }}</dt>
+                <dd>
+                    {% if guild.master_id %}
+                        <a href="/admin/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
+                            {{ guild.master_name|default(guild.master_id) }}
+                        </a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_level') }}</dt>
+                <dd>{{ guild.level }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_exp') }}</dt>
+                <dd>{{ guild.exp }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_gold') }}</dt>
+                <dd>{{ guild.gold }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_ladder') }}</dt>
+                <dd>{{ guild.ladder_point }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_record') }}</dt>
+                <dd>{{ t('admin.characters.guild_record_value', {win: guild.win, draw: guild.draw, loss: guild.loss}) }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.characters.guild_offer') }}</dt>
+                <dd>{{ guild.offer }}</dd>
+            </div>
+        </dl>
+    {% endif %}
+</section>
+
+{% if guild and guild.members is not empty %}
+    <section class="admin-fieldset">
+        <h2 class="admin-fieldset-title">{{ t('admin.characters.guild_members') }}</h2>
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.characters.name') }}</th>
+                        <th>{{ t('admin.characters.job') }}</th>
+                        <th>{{ t('admin.characters.level') }}</th>
+                        <th>{{ t('admin.characters.guild_grade') }}</th>
+                        <th>{{ t('admin.characters.guild_offer') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in guild.members %}
+                        <tr>
+                            <td>
+                                {% if member.id %}
+                                    <a href="/admin/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
+                                        {{ member.name|default(member.id) }}
+                                    </a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                                {% if member.is_general %}
+                                    <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_general') }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-slate-600">{{ member.job|job_name }}</td>
+                            <td class="text-slate-600">{{ member.level }}</td>
+                            <td class="text-slate-600">{{ member.grade_name|default(member.grade) }}</td>
+                            <td class="text-slate-600">{{ member.offer }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endif %}
+
+{% if guild %}
+    <section class="admin-fieldset">
+        <h2 class="admin-fieldset-title">{{ t('admin.characters.guild_comments') }}</h2>
+        {% if guild.comments is empty %}
+            <p class="text-sm text-slate-500">{{ t('admin.characters.guild_comments_empty') }}</p>
+        {% else %}
+            <div class="admin-tabs-table">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t('admin.characters.name') }}</th>
+                            <th>{{ t('admin.characters.guild_comment') }}</th>
+                            <th>{{ t('admin.characters.guild_comment_time') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comment in guild.comments %}
+                            <tr>
+                                <td class="font-medium text-slate-800">
+                                    {{ comment.name|default('—') }}
+                                    {% if comment.notice %}
+                                        <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_notice') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-slate-600">{{ comment.content|default('—') }}</td>
+                                <td class="text-slate-600">{{ comment.time|game_date }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+{% endif %}

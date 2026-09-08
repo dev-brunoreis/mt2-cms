@@ -11,7 +11,9 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoFormFields;
+use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGameProtoController extends AdminController
@@ -27,6 +29,7 @@ class AdminGameProtoController extends AdminController
         ThemeEngine $adminTheme,
         private GameProtoService $protos,
         private ProtoFormFields $protoFields,
+        private MobDropService $mobDrops,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
     }
@@ -197,6 +200,24 @@ class AdminGameProtoController extends AdminController
     ): Response {
         $internal = $this->protos->kindFromRoute($route);
         $prefix = $this->i18nPrefix($route);
+        $tabs = $this->protoFields->decorateTabs(
+            $internal,
+            $prefix,
+            $this->protos->formTabs($internal),
+            $record,
+        );
+        $mobDrops = null;
+
+        if ($isEdit && $internal === ProtoSchemas::KIND_MOB) {
+            $tabs[] = [
+                'id' => 'drops',
+                'label' => $this->t($prefix . '.tab_drops'),
+                'active' => false,
+                'fields' => [],
+                'kind' => 'drops',
+            ];
+            $mobDrops = $this->mobDrops->forMob($record);
+        }
 
         return $this->adminView($route, 'pages/proto-form.twig', [
             'title' => $this->t($isEdit ? $prefix . '.edit_title' : $prefix . '.create_title'),
@@ -207,12 +228,8 @@ class AdminGameProtoController extends AdminController
             'i18nPrefix' => $prefix,
             'protoKind' => $internal,
             'record' => $record,
-            'tabs' => $this->protoFields->decorateTabs(
-                $internal,
-                $prefix,
-                $this->protos->formTabs($internal),
-                $record,
-            ),
+            'tabs' => $tabs,
+            'mobDrops' => $mobDrops,
             'subtypesByType' => $this->protoFields->subtypesJsonMap(),
             'valueLabelsByType' => $this->protoFields->valueLabelsJsonMap(),
             'isEdit' => $isEdit,

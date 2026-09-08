@@ -68,6 +68,14 @@ class GameProtoService
     }
 
     /**
+     * @return list<array<string, string>>
+     */
+    public function all(string $kind): array
+    {
+        return $this->table($kind)->all();
+    }
+
+    /**
      * @param array<string, mixed> $input
      */
     public function create(string $kind, array $input): array

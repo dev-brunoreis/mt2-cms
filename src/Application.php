@@ -37,7 +37,9 @@ use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Game\Proto\ProtoFormFields;
+use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\ThemeCatalog;
@@ -63,6 +65,7 @@ class Application
     private GuildRepository $guilds;
     private LogRepository $logs;
     private GameProtoService $gameProto;
+    private MobDropService $mobDrops;
     private ProtoFormFields $protoFields;
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
@@ -234,6 +237,11 @@ class Application
             BASE_DIR . '/game/db',
             new ProtoNameRepository($this->db),
         );
+        $this->mobDrops = new MobDropService(
+            BASE_DIR . '/game/server',
+            $this->gameProto,
+            new GroupTextParser(),
+        );
         $this->protoFields = new ProtoFormFields($this->translator);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
@@ -387,6 +395,7 @@ class Application
                 $this->adminTheme,
                 $this->gameProto,
                 $this->protoFields,
+                $this->mobDrops,
             ),
             AdminLogsController::class => new AdminLogsController(
                 $this->theme,

@@ -1,0 +1,167 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.mobs.drops_title') }}
+        <span class="admin-fieldset-help">{{ t('admin.mobs.drops_help') }}</span>
+    </h2>
+
+    {% if mobDrops.drop_groups is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.mobs.drops_empty') }}</p>
+    {% else %}
+        {% for group in mobDrops.drop_groups %}
+            <div class="mb-6 last:mb-0">
+                <div class="mb-3 flex flex-wrap items-center gap-2">
+                    <h3 class="text-sm font-semibold text-slate-900">{{ group.name|default(t('admin.mobs.drops_unnamed')) }}</h3>
+                    <span class="admin-badge admin-badge-ok">{{ group.type }}</span>
+                    {% if group.kill_drop %}
+                        <span class="text-xs text-slate-500">{{ t('admin.mobs.drops_kill_drop', {count: group.kill_drop}) }}</span>
+                    {% endif %}
+                    {% if group.level_limit %}
+                        <span class="text-xs text-slate-500">{{ t('admin.mobs.drops_level_limit', {level: group.level_limit}) }}</span>
+                    {% endif %}
+                </div>
+
+                {% if group.items is empty %}
+                    <p class="text-sm text-slate-500">{{ t('admin.mobs.drops_group_empty') }}</p>
+                {% else %}
+                    <div class="admin-tabs-table">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('admin.mobs.drops_vnum') }}</th>
+                                    <th>{{ t('admin.mobs.drops_item') }}</th>
+                                    <th>{{ t('admin.mobs.drops_count') }}</th>
+                                    <th>{{ t('admin.mobs.drops_chance') }}</th>
+                                    {% if group.type == 'kill' %}
+                                        <th>{{ t('admin.mobs.drops_rare') }}</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in group.items %}
+                                    <tr>
+                                        <td class="text-slate-600">
+                                            {% if item.vnum %}
+                                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                        <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                                        <td class="text-slate-600">{{ item.count }}</td>
+                                        <td class="text-slate-600">{{ item.chance|default('—') }}</td>
+                                        {% if group.type == 'kill' %}
+                                            <td class="text-slate-600">{{ item.rare|default('—') }}</td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</section>
+
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.mobs.common_title') }}
+        <span class="admin-fieldset-help">{{ t('admin.mobs.common_help') }}</span>
+    </h2>
+
+    {% if mobDrops.etc_drop %}
+        <p class="mb-4 text-sm text-slate-600">
+            {{ t('admin.mobs.etc_drop', {chance: mobDrops.etc_drop.chance}) }}
+            <a href="/admin/items/{{ mobDrops.etc_drop.vnum }}" class="text-indigo-600 hover:underline">
+                {{ mobDrops.etc_drop.name|default(mobDrops.etc_drop.vnum) }}
+            </a>
+        </p>
+    {% endif %}
+
+    {% if mobDrops.common_drops is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.mobs.common_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.mobs.drops_vnum') }}</th>
+                        <th>{{ t('admin.mobs.drops_item') }}</th>
+                        <th>{{ t('admin.mobs.drops_levels') }}</th>
+                        <th>{{ t('admin.mobs.drops_chance') }}</th>
+                        <th>{{ t('admin.mobs.drops_one_in') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in mobDrops.common_drops %}
+                        <tr>
+                            <td class="text-slate-600">
+                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                            </td>
+                            <td class="font-medium text-slate-800">{{ item.name|default('—') }}</td>
+                            <td class="text-slate-600">{{ item.level_start }}–{{ item.level_end }}</td>
+                            <td class="text-slate-600">{{ item.chance }}</td>
+                            <td class="text-slate-600">{{ item.one_in ? ('1/' ~ item.one_in) : '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>
+
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.mobs.groups_title') }}
+        <span class="admin-fieldset-help">{{ t('admin.mobs.groups_help') }}</span>
+    </h2>
+
+    {% if mobDrops.spawn_groups is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.mobs.groups_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.mobs.groups_vnum') }}</th>
+                        <th>{{ t('admin.mobs.groups_name') }}</th>
+                        <th>{{ t('admin.mobs.groups_role') }}</th>
+                        <th>{{ t('admin.mobs.groups_members') }}</th>
+                        <th>{{ t('admin.mobs.groups_packs') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in mobDrops.spawn_groups %}
+                        <tr>
+                            <td class="text-slate-600">{{ group.vnum }}</td>
+                            <td class="font-medium text-slate-800">{{ group.name|default('—') }}</td>
+                            <td class="text-slate-600">
+                                {% if group.is_leader %}
+                                    {{ t('admin.mobs.groups_leader') }}
+                                {% else %}
+                                    {{ t('admin.mobs.groups_member') }}
+                                {% endif %}
+                            </td>
+                            <td class="text-slate-600">
+                                {% for member in group.members %}
+                                    <a href="/admin/mobs/{{ member.vnum }}" class="text-indigo-600 hover:underline">
+                                        {{ member.name|default(member.vnum) }}
+                                    </a>{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td class="text-slate-600">
+                                {% if group.group_groups is empty %}
+                                    —
+                                {% else %}
+                                    {% for pack in group.group_groups %}
+                                        <span>{{ pack.name }} ({{ pack.vnum }})</span>{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>

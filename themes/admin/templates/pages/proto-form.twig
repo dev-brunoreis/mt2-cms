@@ -30,32 +30,36 @@
              data-tab-panel="{{ tab.id }}"
              aria-labelledby="admin-tab-{{ tab.id }}"
              {% if not tab.active %}hidden{% endif %}>
-            <fieldset class="admin-fieldset">
-                <legend>{{ tab.label }}</legend>
+            {% if tab.kind|default('') == 'drops' %}
+                {% include 'components/mob-drops.twig' %}
+            {% else %}
+                <fieldset class="admin-fieldset">
+                    <legend>{{ tab.label }}</legend>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    {% for field in tab.fields %}
-                        {% if field.key == 'vnum' %}
-                            <div class="admin-field">
-                                <label for="proto-vnum">{{ field.label }}</label>
-                                <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
-                                       value="{{ field.value }}"
-                                       class="admin-input"
-                                       {% if isEdit %}readonly{% endif %}>
-                            </div>
-                        {% elseif field.key == 'locale_name' %}
-                            <div class="admin-field">
-                                <label for="proto-locale_name">{{ field.label }}</label>
-                                <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
-                                       value="{{ field.value }}"
-                                       class="admin-input" autocomplete="off">
-                            </div>
-                        {% else %}
-                            {% include 'components/proto-field.twig' with { field: field } %}
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </fieldset>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        {% for field in tab.fields %}
+                            {% if field.key == 'vnum' %}
+                                <div class="admin-field">
+                                    <label for="proto-vnum">{{ field.label }}</label>
+                                    <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
+                                           value="{{ field.value }}"
+                                           class="admin-input"
+                                           {% if isEdit %}readonly{% endif %}>
+                                </div>
+                            {% elseif field.key == 'locale_name' %}
+                                <div class="admin-field">
+                                    <label for="proto-locale_name">{{ field.label }}</label>
+                                    <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
+                                           value="{{ field.value }}"
+                                           class="admin-input" autocomplete="off">
+                                </div>
+                            {% else %}
+                                {% include 'components/proto-field.twig' with { field: field } %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </fieldset>
+            {% endif %}
         </div>
     {% endfor %}
 </form>

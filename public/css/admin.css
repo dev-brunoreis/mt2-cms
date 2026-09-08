@@ -507,6 +507,25 @@
   height: 72px;
 }
 
+.admin-game-icon-sm {
+  width: 24px;
+  height: 24px;
+}
+
+.admin-item-sockets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+}
+
+.admin-item-sockets .admin-game-icon-row {
+  gap: 0.4rem;
+}
+
 .admin-game-icon-face {
   background: #1e293b;
 }

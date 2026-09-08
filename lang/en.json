@@ -119,6 +119,9 @@
     "hours": "{n}h",
     "minutes": "{n}m"
   },
+  "duration": {
+    "seconds": "{n}s"
+  },
   "datetime": {
     "never": "Never",
     "now": "just now",
@@ -459,6 +462,16 @@
       "items_count": "Count",
       "items_pos": "Slot",
       "items_sockets": "Sockets",
+      "socket_empty": "Empty",
+      "socket_broken": "Broken stone",
+      "socket_remaining": "{time} left",
+      "socket_expires": "Expires {date}",
+      "socket_accessory": "{filled} / {max} diamonds",
+      "socket_degrade": "Degrades in {time}",
+      "socket_ds_active": "Active",
+      "socket_ds_inactive": "Inactive",
+      "socket_charge": "{current} / {max} left",
+      "socket_charge_active": "Active",
       "window_INVENTORY": "Inventory",
       "window_EQUIPMENT": "Equipment",
       "window_SAFEBOX": "Safebox",

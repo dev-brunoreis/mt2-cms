@@ -61,6 +61,59 @@ class Display
     }
 
     /**
+     * Duration in seconds → compact "2h 5m" / "45s".
+     */
+    public function duration(mixed $seconds): string
+    {
+        $total = max(0, (int) $seconds);
+
+        if ($total < 60) {
+            return $this->translator->get('duration.seconds', ['n' => $total]);
+        }
+
+        $days = intdiv($total, 86400);
+        $hours = intdiv($total % 86400, 3600);
+        $mins = intdiv($total % 3600, 60);
+        $secs = $total % 60;
+        $parts = [];
+
+        if ($days > 0) {
+            $parts[] = $this->translator->get('playtime.days', ['n' => $days]);
+        }
+
+        if ($hours > 0) {
+            $parts[] = $this->translator->get('playtime.hours', ['n' => $hours]);
+        }
+
+        if ($mins > 0) {
+            $parts[] = $this->translator->get('playtime.minutes', ['n' => $mins]);
+        }
+
+        if ($secs > 0 && $days === 0 && $hours === 0) {
+            $parts[] = $this->translator->get('duration.seconds', ['n' => $secs]);
+        }
+
+        return implode(' ', $parts);
+    }
+
+    /**
+     * Unix timestamp → same relative + calendar format as datetime().
+     */
+    public function unixDate(mixed $timestamp): string
+    {
+        $ts = (int) $timestamp;
+
+        if ($ts < 1) {
+            return $this->translator->get('datetime.never');
+        }
+
+        $at = (new \DateTimeImmutable('@' . $ts))
+            ->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+
+        return $this->datetime($at->format('Y-m-d H:i:s'));
+    }
+
+    /**
      * MySQL DATETIME → relative time with calendar date.
      */
     public function datetime(mixed $value): string

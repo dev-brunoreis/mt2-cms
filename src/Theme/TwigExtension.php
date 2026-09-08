@@ -26,6 +26,8 @@ class TwigExtension extends AbstractExtension
             new TwigFilter('job_name', [$this->display, 'job']),
             new TwigFilter('empire_name', [$this->display, 'empire']),
             new TwigFilter('playtime', [$this->display, 'playtime']),
+            new TwigFilter('duration', [$this->display, 'duration']),
+            new TwigFilter('unix_date', [$this->display, 'unixDate']),
             new TwigFilter('game_date', [$this->display, 'datetime']),
         ];
     }

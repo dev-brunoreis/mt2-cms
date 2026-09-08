@@ -1,8 +1,9 @@
 {% set src = item_icon(vnum) %}
+{% set size_class = size|default('') == 'lg' ? ' admin-game-icon-lg' : (size|default('') == 'sm' ? ' admin-game-icon-sm' : '') %}
 {% if src %}
-    <img src="{{ src }}" alt="" width="48" height="48"
-         class="admin-game-icon{% if size|default('') == 'lg' %} admin-game-icon-lg{% endif %}"
+    <img src="{{ src }}" alt="" width="{{ size|default('') == 'sm' ? 24 : 48 }}" height="{{ size|default('') == 'sm' ? 24 : 48 }}"
+         class="admin-game-icon{{ size_class }}"
          loading="lazy">
 {% elseif placeholder|default(false) %}
-    <span class="admin-game-icon{% if size|default('') == 'lg' %} admin-game-icon-lg{% endif %} admin-game-icon-empty" aria-hidden="true"></span>
+    <span class="admin-game-icon{{ size_class }} admin-game-icon-empty" aria-hidden="true"></span>
 {% endif %}

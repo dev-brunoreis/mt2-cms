@@ -16,7 +16,13 @@
                 {% for item in rows %}
                     <tr>
                         <td class="text-slate-400">{{ item.id }}</td>
-                        <td class="text-slate-600">{{ item.vnum }}</td>
+                        <td class="text-slate-600">
+                            {% if item.vnum %}
+                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="admin-game-icon-row">
                                 {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
@@ -26,11 +32,7 @@
                         <td class="text-slate-600">{{ item.count }}</td>
                         <td class="text-slate-600">{{ item.pos }}</td>
                         <td class="text-slate-600">
-                            {% if item.sockets is empty %}
-                                —
-                            {% else %}
-                                {{ item.sockets|join(' / ') }}
-                            {% endif %}
+                            {% include 'components/item-sockets.twig' %}
                         </td>
                     </tr>
                 {% endfor %}

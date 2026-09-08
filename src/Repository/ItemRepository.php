@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Game\ItemSockets;
+
 class ItemRepository extends Repository
 {
     private const CHARACTER_WINDOWS = [
@@ -86,8 +88,15 @@ class ItemRepository extends Repository
         $hasProto = $this->schemaTableExists('item_proto');
         $protoSelect = $hasProto
             ? 'CONVERT(p.locale_name USING utf8mb4) AS proto_locale_name,
-                    CONVERT(p.name USING utf8mb4) AS proto_name'
-            : 'NULL AS proto_locale_name, NULL AS proto_name';
+                    CONVERT(p.name USING utf8mb4) AS proto_name,
+                    p.type AS proto_type,
+                    p.subtype AS proto_subtype,
+                    p.limittype0 AS proto_limit_type,
+                    p.value0 AS proto_value0,
+                    p.value2 AS proto_value2'
+            : 'NULL AS proto_locale_name, NULL AS proto_name,
+                    0 AS proto_type, 0 AS proto_subtype,
+                    0 AS proto_limit_type, 0 AS proto_value0, 0 AS proto_value2';
         $protoJoin = $hasProto ? 'LEFT JOIN `item_proto` p ON p.vnum = i.vnum' : '';
 
         $rows = $this->db()->fetchAll(
@@ -113,7 +122,9 @@ class ItemRepository extends Repository
             $grouped[$window][] = $this->normalizeItem($row);
         }
 
-        return array_filter($grouped, static fn (array $items): bool => $items !== []);
+        return $this->attachSocketNames(
+            array_filter($grouped, static fn (array $items): bool => $items !== []),
+        );
     }
 
     /**
@@ -122,21 +133,18 @@ class ItemRepository extends Repository
      */
     private function normalizeItem(array $row): array
     {
-        $locale = trim((string) ($row['proto_locale_name'] ?? ''));
-        $proto = trim((string) ($row['proto_name'] ?? ''));
-        $name = $locale !== '' && strcasecmp($locale, 'Noname') !== 0
-            ? $locale
-            : ($proto !== '' && strcasecmp($proto, 'Noname') !== 0 ? $proto : '');
-
-        $sockets = [];
-
-        foreach (['socket0', 'socket1', 'socket2'] as $socket) {
-            $value = (int) ($row[$socket] ?? 0);
-
-            if ($value > 0) {
-                $sockets[] = $value;
-            }
-        }
+        $sockets = ItemSockets::describe(
+            (int) ($row['proto_type'] ?? 0),
+            (int) ($row['proto_subtype'] ?? 0),
+            (int) ($row['proto_limit_type'] ?? 0),
+            (int) ($row['proto_value0'] ?? 0),
+            (int) ($row['proto_value2'] ?? 0),
+            [
+                (int) ($row['socket0'] ?? 0),
+                (int) ($row['socket1'] ?? 0),
+                (int) ($row['socket2'] ?? 0),
+            ],
+        );
 
         return [
             'id' => (int) $row['id'],
@@ -144,8 +152,100 @@ class ItemRepository extends Repository
             'pos' => (int) $row['pos'],
             'count' => (int) $row['count'],
             'vnum' => (int) $row['vnum'],
-            'name' => $name,
+            'name' => $this->protoName($row),
             'sockets' => $sockets,
         ];
+    }
+
+    /**
+     * @param array<string, list<array<string, mixed>>> $grouped
+     * @return array<string, list<array<string, mixed>>>
+     */
+    private function attachSocketNames(array $grouped): array
+    {
+        $vnums = [];
+
+        foreach ($grouped as $items) {
+            foreach ($items as $item) {
+                foreach ($item['sockets'] as $socket) {
+                    if (($socket['kind'] ?? '') === 'item') {
+                        $vnums[] = (int) $socket['value'];
+                    }
+                }
+            }
+        }
+
+        $names = $this->protoNames($vnums);
+
+        foreach ($grouped as $window => $items) {
+            foreach ($items as $index => $item) {
+                foreach ($item['sockets'] as $slot => $socket) {
+                    if (($socket['kind'] ?? '') !== 'item') {
+                        continue;
+                    }
+
+                    $name = $names[(int) $socket['value']] ?? '';
+
+                    if ($name === '') {
+                        $grouped[$window][$index]['sockets'][$slot]['kind'] = 'raw';
+                        continue;
+                    }
+
+                    $grouped[$window][$index]['sockets'][$slot]['name'] = $name;
+                }
+            }
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @param list<int> $vnums
+     * @return array<int, string>
+     */
+    private function protoNames(array $vnums): array
+    {
+        $vnums = array_values(array_unique(array_filter($vnums, static fn (int $vnum): bool => $vnum > 0)));
+
+        if ($vnums === [] || !$this->schemaTableExists('item_proto')) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($vnums), '?'));
+        $rows = $this->db()->fetchAll(
+            'SELECT vnum,
+                    CONVERT(locale_name USING utf8mb4) AS proto_locale_name,
+                    CONVERT(name USING utf8mb4) AS proto_name
+             FROM `item_proto`
+             WHERE vnum IN (' . $placeholders . ')',
+            $vnums,
+        );
+
+        $names = [];
+
+        foreach ($rows as $row) {
+            $names[(int) $row['vnum']] = $this->protoName($row);
+        }
+
+        return $names;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function protoName(array $row): string
+    {
+        $locale = trim((string) ($row['proto_locale_name'] ?? ''));
+        $proto = trim((string) ($row['proto_name'] ?? ''));
+
+        if ($locale !== '' && strcasecmp($locale, 'Noname') !== 0) {
+            return $locale;
+        }
+
+        if ($proto !== '' && strcasecmp($proto, 'Noname') !== 0) {
+            return $proto;
+        }
+
+        return '';
     }
 }

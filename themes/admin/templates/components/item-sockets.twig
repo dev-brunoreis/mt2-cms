@@ -1,0 +1,42 @@
+{% if item.sockets is empty %}
+    —
+{% else %}
+    <ul class="admin-item-sockets">
+        {% for socket in item.sockets %}
+            <li>
+                {% if socket.kind == 'item' %}
+                    <a href="/admin/items/{{ socket.value }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                        {% include 'components/item-icon.twig' with { vnum: socket.value, size: 'sm' } %}
+                        <span>{{ socket.name|default(socket.value) }}</span>
+                    </a>
+                {% elseif socket.kind == 'empty' %}
+                    <span class="text-slate-400">{{ t('admin.characters.socket_empty') }}</span>
+                {% elseif socket.kind == 'broken' %}
+                    <span>{{ t('admin.characters.socket_broken') }}</span>
+                {% elseif socket.kind == 'remaining' %}
+                    <span>{{ t('admin.characters.socket_remaining', {time: socket.seconds|duration}) }}</span>
+                {% elseif socket.kind == 'expires' %}
+                    <span>{{ t('admin.characters.socket_expires', {date: socket.value|unix_date}) }}</span>
+                {% elseif socket.kind == 'accessory' %}
+                    <span>{{ t('admin.characters.socket_accessory', {filled: socket.filled, max: socket.max}) }}</span>
+                {% elseif socket.kind == 'degrade' %}
+                    <span class="text-slate-500">{{ t('admin.characters.socket_degrade', {time: socket.seconds|duration}) }}</span>
+                {% elseif socket.kind == 'ds_active' %}
+                    <span>{{ t('admin.characters.socket_ds_active') }}</span>
+                {% elseif socket.kind == 'ds_inactive' %}
+                    <span class="text-slate-400">{{ t('admin.characters.socket_ds_inactive') }}</span>
+                {% elseif socket.kind == 'charge' %}
+                    <span>{{ t('admin.characters.socket_charge', {
+                        current: socket.remaining|number_format(0),
+                        max: socket.full|number_format(0)
+                    }) }}</span>
+                    {% if socket.active %}
+                        <span class="text-slate-500">{{ t('admin.characters.socket_charge_active') }}</span>
+                    {% endif %}
+                {% else %}
+                    <span>{{ socket.value }}</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

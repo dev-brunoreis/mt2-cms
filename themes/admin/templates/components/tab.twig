@@ -1,0 +1,11 @@
+<button type="button"
+        role="tab"
+        id="admin-tab-{{ id }}"
+        class="admin-tab{% if active %} is-active{% endif %}"
+        data-tab="{{ id }}"
+        aria-controls="admin-tab-panel-{{ id }}"
+        aria-selected="{{ active ? 'true' : 'false' }}"
+        tabindex="{{ active ? '0' : '-1' }}">
+    {{ label }}
+    <span class="admin-tab-dirty" hidden title="{{ t('admin.tabs.unsaved') }}"></span>
+</button>

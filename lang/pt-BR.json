@@ -188,6 +188,10 @@
     "active_theme_invalid": "O tema ativo deve estar entre os temas habilitados.",
     "save": "Salvar alterações",
     "saved": "Configurações salvas.",
+    "tabs": {
+      "label": "Seções",
+      "unsaved": "Alterações não salvas"
+    },
     "toggle_menu": "Alternar menu",
     "nav": {
       "store": "Loja",
@@ -379,6 +383,8 @@
       "previous": "Anterior",
       "next": "Próxima",
       "page_of": "Página {page} de {total}",
+      "tab_data": "Dados",
+      "tab_activity": "Personagens / IPs de conexão",
       "details": "Dados da conta",
       "details_help": "Login e e-mail usados no site. Senha e PIN seguem as regras do cliente do jogo.",
       "state": "Status e moedas",

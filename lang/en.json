@@ -197,6 +197,10 @@
     "active_theme_invalid": "Active theme must be one of the enabled themes.",
     "save": "Save changes",
     "saved": "Settings saved.",
+    "tabs": {
+      "label": "Sections",
+      "unsaved": "Unsaved changes"
+    },
     "toggle_menu": "Toggle menu",
     "nav": {
       "store": "Store",
@@ -388,6 +392,8 @@
       "previous": "Previous",
       "next": "Next",
       "page_of": "Page {page} of {total}",
+      "tab_data": "Details",
+      "tab_activity": "Characters / Connection IPs",
       "details": "Account details",
       "details_help": "Login and email used on the site. Password and PIN follow the game client rules.",
       "state": "Status and currency",

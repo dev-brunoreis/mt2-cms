@@ -38,3 +38,26 @@ return $this->adminView('your-section', 'pages/your-section.twig', [
 ## 4. i18n
 
 Add `admin.nav.*` and section keys to `lang/en.json` and `lang/pt-BR.json`.
+
+## 5. Tabs (optional)
+
+Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<form>` wrapping every panel so hidden tabs still submit.
+
+```twig
+<form id="admin-your-section-form" data-admin-tabs data-default-tab="dados" class="admin-panel admin-tabs overflow-hidden">
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.your_section.tab_data'), active: true } %}
+        {% include 'components/tab.twig' with { id: 'extra', label: t('admin.your_section.tab_extra'), active: false } %}
+    </div>
+
+    <div id="admin-tab-panel-dados" class="admin-tabs-panel" role="tabpanel" data-tab-panel="dados" aria-labelledby="admin-tab-dados">
+        {# editable fields #}
+    </div>
+
+    <div id="admin-tab-panel-extra" class="admin-tabs-panel" role="tabpanel" data-tab-panel="extra" aria-labelledby="admin-tab-extra" hidden>
+        {# more fields or read-only tables #}
+    </div>
+</form>
+```
+
+`admin-tabs.js` switches panels and marks a tab dirty (orange dot) when its fields change. Do not `disable` fields in hidden panels — they would drop out of the POST.

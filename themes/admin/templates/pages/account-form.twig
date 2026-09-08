@@ -7,175 +7,198 @@
 <form id="admin-account-form"
       method="post"
       action="{% if isEdit %}/admin/accounts/{{ account.id }}{% else %}/admin/accounts{% endif %}"
-      class="admin-panel p-6">
+      class="admin-panel{% if isEdit %} admin-tabs overflow-hidden{% else %} p-6{% endif %}"
+      {% if isEdit %}data-admin-tabs data-default-tab="dados"{% endif %}>
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.accounts.details') }}
-            <span class="admin-fieldset-help">{{ t('admin.accounts.details_help') }}</span>
-        </legend>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field">
-                <label for="account-login">{{ t('admin.accounts.login') }}</label>
-                <input id="account-login" type="text" name="login" required maxlength="30"
-                       value="{{ account.login|default('') }}" class="admin-input" autocomplete="off">
-            </div>
-
-            <div class="admin-field">
-                <label for="account-email">{{ t('admin.accounts.email') }}</label>
-                <input id="account-email" type="email" name="email" maxlength="64"
-                       value="{{ account.email|default('') }}" class="admin-input"
-                       {% if not isEdit %}required{% endif %} autocomplete="off">
-            </div>
-
-            <div class="admin-field">
-                <label for="account-password">{{ t('admin.accounts.password') }}</label>
-                <input id="account-password" type="password" name="password" maxlength="16"
-                       class="admin-input" autocomplete="new-password"
-                       {% if not isEdit %}required{% endif %}>
-                {% if isEdit %}
-                    <span class="admin-field-help">{{ t('admin.accounts.password_keep') }}</span>
-                {% endif %}
-            </div>
-
-            <div class="admin-field">
-                <label for="account-social-id">{{ t('admin.accounts.social_id') }}</label>
-                <input id="account-social-id" type="password" name="social_id" inputmode="numeric"
-                       class="admin-input" autocomplete="off"
-                       {% if not isEdit %}required{% endif %}>
-                {% if isEdit %}
-                    <span class="admin-field-help">{{ t('admin.accounts.social_id_keep') }}</span>
-                {% endif %}
-            </div>
+    {% if isEdit %}
+        <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+            {% include 'components/tab.twig' with { id: 'dados', label: t('admin.accounts.tab_data'), active: true } %}
+            {% include 'components/tab.twig' with { id: 'activity', label: t('admin.accounts.tab_activity'), active: false } %}
         </div>
-    </fieldset>
+    {% endif %}
 
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.accounts.state') }}
-            <span class="admin-fieldset-help">{{ t('admin.accounts.state_help') }}</span>
-        </legend>
+    <div {% if isEdit %}id="admin-tab-panel-dados"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="dados"
+         aria-labelledby="admin-tab-dados"{% endif %}>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.accounts.details') }}
+                <span class="admin-fieldset-help">{{ t('admin.accounts.details_help') }}</span>
+            </legend>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field">
-                <label for="account-status">{{ t('admin.accounts.status') }}</label>
-                <select id="account-status" name="status" class="admin-select">
-                    <option value="OK" {% if account.status|default('OK') == 'OK' %}selected{% endif %}>
-                        {{ t('admin.accounts.status_ok') }}
-                    </option>
-                    <option value="BLOCK" {% if account.status|default('') == 'BLOCK' %}selected{% endif %}>
-                        {{ t('admin.accounts.status_block') }}
-                    </option>
-                </select>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field">
+                    <label for="account-login">{{ t('admin.accounts.login') }}</label>
+                    <input id="account-login" type="text" name="login" required maxlength="30"
+                           value="{{ account.login|default('') }}" class="admin-input" autocomplete="off">
+                </div>
+
+                <div class="admin-field">
+                    <label for="account-email">{{ t('admin.accounts.email') }}</label>
+                    <input id="account-email" type="email" name="email" maxlength="64"
+                           value="{{ account.email|default('') }}" class="admin-input"
+                           {% if not isEdit %}required{% endif %} autocomplete="off">
+                </div>
+
+                <div class="admin-field">
+                    <label for="account-password">{{ t('admin.accounts.password') }}</label>
+                    <input id="account-password" type="password" name="password" maxlength="16"
+                           class="admin-input" autocomplete="new-password"
+                           {% if not isEdit %}required{% endif %}>
+                    {% if isEdit %}
+                        <span class="admin-field-help">{{ t('admin.accounts.password_keep') }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="admin-field">
+                    <label for="account-social-id">{{ t('admin.accounts.social_id') }}</label>
+                    <input id="account-social-id" type="password" name="social_id" inputmode="numeric"
+                           class="admin-input" autocomplete="off"
+                           {% if not isEdit %}required{% endif %}>
+                    {% if isEdit %}
+                        <span class="admin-field-help">{{ t('admin.accounts.social_id_keep') }}</span>
+                    {% endif %}
+                </div>
             </div>
+        </fieldset>
 
-            <div class="admin-field">
-                <label for="account-empire">{{ t('admin.accounts.empire') }}</label>
-                <select id="account-empire" name="empire" class="admin-select">
-                    <option value="0" {% if account.empire|default(0) == 0 %}selected{% endif %}>{{ t('empire.none') }}</option>
-                    <option value="1" {% if account.empire|default(0) == 1 %}selected{% endif %}>{{ t('empire.1') }}</option>
-                    <option value="2" {% if account.empire|default(0) == 2 %}selected{% endif %}>{{ t('empire.2') }}</option>
-                    <option value="3" {% if account.empire|default(0) == 3 %}selected{% endif %}>{{ t('empire.3') }}</option>
-                </select>
-            </div>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.accounts.state') }}
+                <span class="admin-fieldset-help">{{ t('admin.accounts.state_help') }}</span>
+            </legend>
 
-            <div class="admin-field">
-                <label for="account-cash">{{ t('admin.accounts.cash') }}</label>
-                <input id="account-cash" type="number" name="cash" min="0" step="1"
-                       value="{{ account.cash|default(0) }}" class="admin-input">
-            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field">
+                    <label for="account-status">{{ t('admin.accounts.status') }}</label>
+                    <select id="account-status" name="status" class="admin-select">
+                        <option value="OK" {% if account.status|default('OK') == 'OK' %}selected{% endif %}>
+                            {{ t('admin.accounts.status_ok') }}
+                        </option>
+                        <option value="BLOCK" {% if account.status|default('') == 'BLOCK' %}selected{% endif %}>
+                            {{ t('admin.accounts.status_block') }}
+                        </option>
+                    </select>
+                </div>
 
-            <div class="admin-field">
-                <label for="account-mileage">{{ t('admin.accounts.mileage') }}</label>
-                <input id="account-mileage" type="number" name="mileage" min="0" step="1"
-                       value="{{ account.mileage|default(0) }}" class="admin-input">
+                <div class="admin-field">
+                    <label for="account-empire">{{ t('admin.accounts.empire') }}</label>
+                    <select id="account-empire" name="empire" class="admin-select">
+                        <option value="0" {% if account.empire|default(0) == 0 %}selected{% endif %}>{{ t('empire.none') }}</option>
+                        <option value="1" {% if account.empire|default(0) == 1 %}selected{% endif %}>{{ t('empire.1') }}</option>
+                        <option value="2" {% if account.empire|default(0) == 2 %}selected{% endif %}>{{ t('empire.2') }}</option>
+                        <option value="3" {% if account.empire|default(0) == 3 %}selected{% endif %}>{{ t('empire.3') }}</option>
+                    </select>
+                </div>
+
+                <div class="admin-field">
+                    <label for="account-cash">{{ t('admin.accounts.cash') }}</label>
+                    <input id="account-cash" type="number" name="cash" min="0" step="1"
+                           value="{{ account.cash|default(0) }}" class="admin-input">
+                </div>
+
+                <div class="admin-field">
+                    <label for="account-mileage">{{ t('admin.accounts.mileage') }}</label>
+                    <input id="account-mileage" type="number" name="mileage" min="0" step="1"
+                           value="{{ account.mileage|default(0) }}" class="admin-input">
+                </div>
             </div>
+        </fieldset>
+    </div>
+
+    {% if isEdit %}
+        <div id="admin-tab-panel-activity"
+             class="admin-tabs-panel"
+             role="tabpanel"
+             data-tab-panel="activity"
+             aria-labelledby="admin-tab-activity"
+             hidden>
+            <section class="admin-fieldset">
+                <h2 class="admin-fieldset-title">
+                    {{ t('admin.accounts.characters') }}
+                    <span class="admin-fieldset-help">{{ t('admin.accounts.characters_help') }}</span>
+                </h2>
+
+                {% if characters is empty %}
+                    <p class="text-sm text-slate-500">{{ t('admin.accounts.characters_empty') }}</p>
+                {% else %}
+                    <div class="admin-tabs-table">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('account.name') }}</th>
+                                    <th>{{ t('account.job') }}</th>
+                                    <th>{{ t('account.level') }}</th>
+                                    <th>{{ t('account.playtime') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for player in characters %}
+                                    <tr>
+                                        <td>
+                                            <a href="/admin/characters/{{ player.id }}" class="font-medium text-indigo-600 hover:underline">
+                                                {{ player.name }}
+                                            </a>
+                                        </td>
+                                        <td class="text-slate-600">{{ player.job|job_name }}</td>
+                                        <td class="text-slate-600">{{ player.level }}</td>
+                                        <td class="text-slate-600">{{ player.playtime|playtime }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="admin-fieldset">
+                <h2 class="admin-fieldset-title">
+                    {{ t('admin.accounts.ips') }}
+                    <span class="admin-fieldset-help">{{ t('admin.accounts.ips_help') }}</span>
+                </h2>
+
+                {% if account.ip %}
+                    <p class="mb-4 text-sm text-slate-600">
+                        {{ t('admin.accounts.last_ip') }}:
+                        <span class="font-medium text-slate-900">{{ account.ip }}</span>
+                    </p>
+                {% endif %}
+
+                {% if connectionIps is empty %}
+                    <p class="text-sm text-slate-500">{{ t('admin.accounts.ips_empty') }}</p>
+                {% else %}
+                    <div class="admin-tabs-table">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('admin.logs.columns.ip') }}</th>
+                                    <th>{{ t('admin.logs.columns.connections') }}</th>
+                                    <th>{{ t('admin.logs.columns.first_seen') }}</th>
+                                    <th>{{ t('admin.logs.columns.last_seen') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in connectionIps %}
+                                    <tr>
+                                        <td class="font-medium text-slate-800">{{ row.ip }}</td>
+                                        <td class="text-slate-600">{{ row.connections }}</td>
+                                        <td class="text-slate-600">{{ row.first_seen|game_date }}</td>
+                                        <td class="text-slate-600">{{ row.last_seen|game_date }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </section>
         </div>
-    </fieldset>
+    {% endif %}
 </form>
 
 {% if isEdit %}
-    <div class="admin-panel mt-4 overflow-hidden">
-        <div class="border-b border-slate-100 px-6 py-4">
-            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.accounts.characters') }}</h2>
-            <p class="mt-1 text-sm text-slate-500">{{ t('admin.accounts.characters_help') }}</p>
-        </div>
-
-        {% if characters is empty %}
-            <p class="px-6 py-8 text-sm text-slate-500">{{ t('admin.accounts.characters_empty') }}</p>
-        {% else %}
-            <div class="overflow-x-auto">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>{{ t('account.name') }}</th>
-                            <th>{{ t('account.job') }}</th>
-                            <th>{{ t('account.level') }}</th>
-                            <th>{{ t('account.playtime') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for player in characters %}
-                            <tr>
-                                <td>
-                                    <a href="/admin/characters/{{ player.id }}" class="font-medium text-indigo-600 hover:underline">
-                                        {{ player.name }}
-                                    </a>
-                                </td>
-                                <td class="text-slate-600">{{ player.job|job_name }}</td>
-                                <td class="text-slate-600">{{ player.level }}</td>
-                                <td class="text-slate-600">{{ player.playtime|playtime }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="admin-panel mt-4 overflow-hidden">
-        <div class="border-b border-slate-100 px-6 py-4">
-            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.accounts.ips') }}</h2>
-            <p class="mt-1 text-sm text-slate-500">{{ t('admin.accounts.ips_help') }}</p>
-        </div>
-
-        {% if account.ip %}
-            <div class="border-b border-slate-100 px-6 py-3 text-sm text-slate-600">
-                {{ t('admin.accounts.last_ip') }}:
-                <span class="font-medium text-slate-900">{{ account.ip }}</span>
-            </div>
-        {% endif %}
-
-        {% if connectionIps is empty %}
-            <p class="px-6 py-8 text-sm text-slate-500">{{ t('admin.accounts.ips_empty') }}</p>
-        {% else %}
-            <div class="overflow-x-auto">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>{{ t('admin.logs.columns.ip') }}</th>
-                            <th>{{ t('admin.logs.columns.connections') }}</th>
-                            <th>{{ t('admin.logs.columns.first_seen') }}</th>
-                            <th>{{ t('admin.logs.columns.last_seen') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in connectionIps %}
-                            <tr>
-                                <td class="font-medium text-slate-800">{{ row.ip }}</td>
-                                <td class="text-slate-600">{{ row.connections }}</td>
-                                <td class="text-slate-600">{{ row.first_seen|game_date }}</td>
-                                <td class="text-slate-600">{{ row.last_seen|game_date }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-    </div>
-
     <div class="admin-panel mt-4 p-6">
         <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.accounts.danger') }}</h2>
         <p class="mt-1 text-sm text-slate-500">{{ t('admin.accounts.danger_help') }}</p>

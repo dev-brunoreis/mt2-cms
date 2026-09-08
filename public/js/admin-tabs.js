@@ -1,6 +1,35 @@
 'use strict'
 
+const TAB_QUERY = 'tab'
+const TAB_ID = /^[a-z0-9][a-z0-9_-]*$/i
 const TRACKED_FIELDS = 'input, select, textarea'
+
+const queryTab = () => {
+  const value = new URL(window.location.href).searchParams.get(TAB_QUERY)
+
+  return value && TAB_ID.test(value) ? value : null
+}
+
+const writeQueryTab = (id, isDefault) => {
+  const url = new URL(window.location.href)
+  const current = url.searchParams.get(TAB_QUERY)
+
+  if (isDefault) {
+    if (current === null) {
+      return
+    }
+
+    url.searchParams.delete(TAB_QUERY)
+  } else if (current === id) {
+    return
+  } else {
+    url.searchParams.set(TAB_QUERY, id)
+  }
+
+  const search = url.searchParams.toString()
+
+  history.replaceState(null, '', url.pathname + (search !== '' ? '?' + search : '') + url.hash)
+}
 
 const isTrackedField = (el) => {
   if (!(el instanceof HTMLElement) || !el.name || el.disabled) {
@@ -37,9 +66,11 @@ const snapshotPanel = (panel) => {
 
 const initTabs = (root) => {
   const belongsTo = (el) => el.closest('[data-admin-tabs]') === root
+  const persistUrl = !root.parentElement?.closest('[data-admin-tabs]')
   const tabs = Array.from(root.querySelectorAll('[role="tab"][data-tab]')).filter(belongsTo)
   const panels = Array.from(root.querySelectorAll('[data-tab-panel]')).filter(belongsTo)
   const snapshots = new Map()
+  const defaultTab = root.getAttribute('data-default-tab')
 
   if (tabs.length === 0 || panels.length === 0) {
     return
@@ -61,6 +92,10 @@ const initTabs = (root) => {
     panels.forEach((panel) => {
       panel.hidden = panel.getAttribute('data-tab-panel') !== id
     })
+
+    if (persistUrl) {
+      writeQueryTab(id, id === defaultTab)
+    }
   }
 
   const markDirty = (panel) => {
@@ -113,8 +148,9 @@ const initTabs = (root) => {
     })
   })
 
-  const defaultTab = root.getAttribute('data-default-tab')
-  const initial = tabs.find((tab) => tab.getAttribute('data-tab') === defaultTab)
+  const fromUrl = persistUrl ? queryTab() : null
+  const initial = tabs.find((tab) => tab.getAttribute('data-tab') === fromUrl)
+    ?? tabs.find((tab) => tab.getAttribute('data-tab') === defaultTab)
     ?? tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')
     ?? tabs[0]
 

@@ -60,4 +60,4 @@ Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<fo
 </form>
 ```
 
-`admin-tabs.js` switches panels and marks a tab dirty (orange dot) when its fields change. Do not `disable` fields in hidden panels — they would drop out of the POST.
+`admin-tabs.js` switches panels, keeps the active tab in `?tab=` (so F5 stays on it), and marks a tab dirty (orange dot) when its fields change. Nested tab groups (inventory pages) do not write the query string. Do not `disable` fields in hidden panels — they would drop out of the POST.

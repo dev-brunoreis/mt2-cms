@@ -1,0 +1,14 @@
+<form method="post" action="/locale" class="admin-locale-form">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input type="hidden" name="redirect" value="{{ current_path }}">
+    <label for="locale-switcher" class="sr-only">{{ t('locale.label') }}</label>
+    <select id="locale-switcher" name="locale"
+            class="admin-locale-select {% if variant|default('dark') == 'light' %}admin-locale-select-light{% endif %}">
+        {% for item in locales %}
+            <option value="{{ item.code }}"{% if item.code == locale %} selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+    </select>
+    <noscript>
+        <button type="submit" class="admin-locale-fallback">{{ t('locale.label') }}</button>
+    </noscript>
+</form>

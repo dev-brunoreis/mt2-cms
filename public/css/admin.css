@@ -542,25 +542,33 @@
 }
 
 .admin-game-icon-slot {
-  width: 32px;
+  width: 100%;
   height: auto;
-  max-width: 32px;
+  max-width: var(--inv-cell, 56px);
   max-height: 100%;
   background: transparent;
   border-radius: 0;
 }
 
 .admin-inv-visual {
+  --inv-cell: 56px;
+  --inv-scale: 1.75;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .admin-inv-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
+  gap: 2rem;
   align-items: flex-start;
+}
+
+.admin-inv-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .admin-inv-board {
@@ -574,8 +582,16 @@
   color: #0f172a;
 }
 
+.admin-inv-meta {
+  margin: -0.25rem 0 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
 .admin-inv-paperdoll {
   position: relative;
+  width: calc(var(--board-w) * 1px * var(--inv-scale));
+  height: calc(var(--board-h) * 1px * var(--inv-scale));
   background:
     linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border: 1px solid #334155;
@@ -585,10 +601,10 @@
 
 .admin-inv-grid {
   display: grid;
-  grid-template-columns: repeat(var(--inv-cols, 5), 32px);
-  grid-template-rows: repeat(var(--inv-rows, 9), 32px);
-  gap: 1px;
-  padding: 4px;
+  grid-template-columns: repeat(var(--inv-cols, 5), var(--inv-cell));
+  grid-template-rows: repeat(var(--inv-rows, 9), var(--inv-cell));
+  gap: 2px;
+  padding: 6px;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 0.375rem;
@@ -625,6 +641,10 @@
 
 .admin-inv-cell-abs {
   position: absolute;
+  left: calc(var(--slot-x) * 1px * var(--inv-scale));
+  top: calc(var(--slot-y) * 1px * var(--inv-scale));
+  width: calc(var(--slot-w) * 1px * var(--inv-scale));
+  height: calc(var(--slot-h) * 1px * var(--inv-scale));
 }
 
 .admin-inv-item {
@@ -684,10 +704,10 @@
 
 .admin-inv-count {
   position: absolute;
-  right: 1px;
-  bottom: 0;
+  right: 2px;
+  bottom: 1px;
   z-index: 1;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 700;
   color: #f8fafc;
@@ -695,15 +715,20 @@
   pointer-events: none;
 }
 
+.admin-inv-col-side .admin-inv-tip {
+  left: auto;
+  right: calc(100% + 10px);
+}
+
 .admin-inv-tip {
   display: none;
   position: absolute;
-  left: calc(100% + 8px);
+  left: calc(100% + 10px);
   top: 0;
   z-index: 30;
   width: max-content;
-  max-width: 16rem;
-  padding: 0.5rem 0.65rem;
+  max-width: 18rem;
+  padding: 0.6rem 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.375rem;
   background: #fff;
@@ -711,7 +736,7 @@
   color: #0f172a;
   font-size: 0.75rem;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 1.4;
   text-decoration: none;
   pointer-events: none;
 }
@@ -721,6 +746,21 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.admin-inv-tip-desc {
+  color: #475569;
+}
+
+.admin-inv-tip-stat {
+  color: #0f172a;
+}
+
+.admin-inv-tip-bonuses {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #2563eb;
 }
 
 .admin-inv-tip-meta {

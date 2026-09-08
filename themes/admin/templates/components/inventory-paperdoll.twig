@@ -1,9 +1,9 @@
 <div class="admin-inv-board">
     <h3 class="admin-inv-title">{{ title }}</h3>
-    <div class="admin-inv-paperdoll" style="width: {{ board.width }}px; height: {{ board.height }}px;">
+    <div class="admin-inv-paperdoll" style="--board-w: {{ board.width }}; --board-h: {{ board.height }};">
         {% for slot in board.slots %}
             <div class="admin-inv-cell admin-inv-cell-abs"
-                 style="left: {{ slot.x }}px; top: {{ slot.y }}px; width: {{ slot.w }}px; height: {{ slot.h }}px;"
+                 style="--slot-x: {{ slot.x }}; --slot-y: {{ slot.y }}; --slot-w: {{ slot.w }}; --slot-h: {{ slot.h }};"
                  title="{{ t('admin.characters.slot_' ~ slot.key) }}">
                 {% include 'components/inventory-slot.twig' with { item: slot.item } %}
             </div>

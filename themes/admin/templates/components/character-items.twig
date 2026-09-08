@@ -5,13 +5,4 @@
     </h2>
 
     {% include 'components/character-item-layout.twig' with { layout: characterItemLayout } %}
-
-    {% if characterItems is empty %}
-        <p class="mt-4 text-sm text-slate-500">{{ t('admin.characters.items_empty') }}</p>
-    {% else %}
-        <h3 class="admin-inv-title mt-6">{{ t('admin.characters.items_list') }}</h3>
-        {% for window, rows in characterItems %}
-            {% include 'components/character-item-table.twig' with { window: window, rows: rows } %}
-        {% endfor %}
-    {% endif %}
 </section>

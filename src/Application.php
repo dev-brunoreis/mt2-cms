@@ -37,6 +37,7 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Service\GameIconService;
@@ -238,7 +239,10 @@ class Application
         $this->db = new Database();
         $this->accounts = new AccountRepository($this->db);
         $this->players = new PlayerRepository($this->db);
-        $this->items = new ItemRepository($this->db);
+        $this->items = new ItemRepository(
+            $this->db,
+            new ItemDescCatalog(BASE_DIR . '/game/client/itemdesc.txt'),
+        );
         $this->guilds = new GuildRepository($this->db);
         $this->logs = new LogRepository($this->db);
         $this->gameProto = new GameProtoService(

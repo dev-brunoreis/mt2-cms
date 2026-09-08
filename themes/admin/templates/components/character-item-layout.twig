@@ -1,44 +1,59 @@
 <div class="admin-inv-visual">
     <div class="admin-inv-row">
-        {% include 'components/inventory-paperdoll.twig' with {
-            title: t('admin.characters.window_EQUIPMENT'),
-            board: layout.equipment
-        } %}
-        {% if layout.costume.has_item %}
+        <div class="admin-inv-col admin-inv-col-main">
             {% include 'components/inventory-paperdoll.twig' with {
-                title: t('admin.characters.slot_costume'),
-                board: layout.costume
+                title: t('admin.characters.window_EQUIPMENT'),
+                board: layout.equipment
             } %}
-        {% endif %}
-        {% include 'components/inventory-grid.twig' with {
-            title: t('admin.characters.window_BELT_INVENTORY'),
-            grid: layout.belt,
-            prefix: 'inv-belt'
-        } %}
-    </div>
-
-    {% if layout.extra is not empty %}
-        <div class="admin-inv-board">
-            <h3 class="admin-inv-title">{{ t('admin.characters.slot_extra') }}</h3>
-            <div class="admin-inv-extra">
-                {% for item in layout.extra %}
-                    <div class="admin-inv-cell" style="width: 32px; height: {{ 32 * item.size }}px;">
-                        {% include 'components/inventory-slot.twig' %}
+            {% if layout.costume.has_item %}
+                {% include 'components/inventory-paperdoll.twig' with {
+                    title: t('admin.characters.slot_costume'),
+                    board: layout.costume
+                } %}
+            {% endif %}
+            {% if layout.extra is not empty %}
+                <div class="admin-inv-board">
+                    <h3 class="admin-inv-title">{{ t('admin.characters.slot_extra') }}</h3>
+                    <div class="admin-inv-extra">
+                        {% for item in layout.extra %}
+                            <div class="admin-inv-cell" style="width: var(--inv-cell); height: calc(var(--inv-cell) * {{ item.size }});">
+                                {% include 'components/inventory-slot.twig' %}
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
+                </div>
+            {% endif %}
+            {% include 'components/inventory-grid.twig' with {
+                title: t('admin.characters.window_BELT_INVENTORY'),
+                grid: layout.belt,
+                prefix: 'inv-belt'
+            } %}
+            {% include 'components/inventory-grid.twig' with {
+                title: t('admin.characters.window_INVENTORY'),
+                grid: layout.inventory,
+                prefix: 'inv-inventory'
+            } %}
         </div>
-    {% endif %}
 
-    {% include 'components/inventory-grid.twig' with {
-        title: t('admin.characters.window_INVENTORY'),
-        grid: layout.inventory,
-        prefix: 'inv-inventory'
-    } %}
-
-    {% include 'components/inventory-grid.twig' with {
-        title: t('admin.characters.window_DRAGON_SOUL_INVENTORY'),
-        grid: layout.dragonSoul,
-        prefix: 'inv-ds'
-    } %}
+        <div class="admin-inv-col admin-inv-col-side">
+            {% include 'components/inventory-grid.twig' with {
+                title: t('admin.characters.window_DRAGON_SOUL_INVENTORY'),
+                grid: layout.dragonSoul,
+                prefix: 'inv-ds'
+            } %}
+            {% if safeboxLayout %}
+                {% include 'components/inventory-grid.twig' with {
+                    title: t('admin.characters.window_SAFEBOX'),
+                    subtitle: safebox.has_row ? t('admin.characters.safebox_gold') ~ ': ' ~ safebox.gold : '',
+                    grid: safeboxLayout.safebox,
+                    prefix: 'inv-safebox'
+                } %}
+                {% include 'components/inventory-grid.twig' with {
+                    title: t('admin.characters.window_MALL'),
+                    grid: safeboxLayout.mall,
+                    prefix: 'inv-mall'
+                } %}
+            {% endif %}
+        </div>
+    </div>
 </div>

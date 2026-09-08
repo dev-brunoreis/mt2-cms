@@ -1,0 +1,46 @@
+<span class="admin-inv-tip">
+    <strong>{{ item.name|default(item.vnum) }}</strong>
+    {% if item.description %}
+        <span class="admin-inv-tip-desc">{{ item.description }}</span>
+    {% endif %}
+    {% if item.stats is not empty %}
+        {% for stat in item.stats %}
+            <span class="admin-inv-tip-stat">
+                {% if stat.key == 'damage' %}
+                    {{ t('admin.characters.stat_damage') }}: {{ stat.min }}–{{ stat.max }}
+                {% elseif stat.key == 'magic_attack' %}
+                    {{ t('admin.characters.stat_magic_attack') }}: {{ stat.value }}
+                {% elseif stat.key == 'defence' %}
+                    {{ t('admin.characters.stat_defence') }}: {{ stat.value }}
+                {% elseif stat.key == 'level' %}
+                    {{ t('admin.characters.stat_level') }}: {{ stat.value }}
+                {% endif %}
+            </span>
+        {% endfor %}
+    {% endif %}
+    {% if item.applies is not empty %}
+        {% for apply in item.applies %}
+            <span class="admin-inv-tip-stat">
+                {{ t('admin.proto.tokens.' ~ apply.token) }}:
+                {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}
+            </span>
+        {% endfor %}
+    {% endif %}
+    {% if item.bonuses is not empty %}
+        <span class="admin-inv-tip-bonuses">
+            {% for bonus in item.bonuses %}
+                <span>{{ t('admin.proto.tokens.' ~ bonus.token) }}
+                    {{ bonus.value > 0 ? '+' : '' }}{{ bonus.value }}{% if bonus.percent %}%{% endif %}</span>
+            {% endfor %}
+        </span>
+    {% endif %}
+    {% if not icon_src %}
+        <span class="admin-inv-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
+    {% endif %}
+    <span class="admin-inv-tip-meta">#{{ item.id }} · {{ t('admin.characters.items_pos') }} {{ item.pos }}</span>
+    {% if item.sockets is not empty %}
+        <span class="admin-inv-tip-sockets">
+            {% include 'components/item-sockets.twig' %}
+        </span>
+    {% endif %}
+</span>

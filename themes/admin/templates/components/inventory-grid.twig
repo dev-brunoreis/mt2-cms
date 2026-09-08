@@ -1,6 +1,9 @@
 {% if grid.pages is not empty %}
     <div class="admin-inv-board">
         <h3 class="admin-inv-title">{{ title }}</h3>
+        {% if subtitle|default('') %}
+            <p class="admin-inv-meta">{{ subtitle }}</p>
+        {% endif %}
         <div class="admin-inv-pages" data-admin-tabs data-default-tab="{{ prefix }}-0">
             {% if grid.pages|length > 1 %}
                 <div class="admin-tabs-nav admin-inv-page-nav" role="tablist" aria-label="{{ title }}">

@@ -383,6 +383,26 @@ class ProtoEnums
         return 'admin.proto.tokens.' . $token;
     }
 
+    public static function itemTypeName(int $index): string
+    {
+        return self::ITEM_TYPES[$index] ?? 'ITEM_NONE';
+    }
+
+    public static function itemSubtypeName(string $itemType, int $index): string
+    {
+        return (self::ITEM_SUBTYPES[$itemType] ?? [])[$index] ?? '';
+    }
+
+    public static function applyTypeName(int $index): string
+    {
+        return self::APPLY_TYPES[$index] ?? '';
+    }
+
+    public static function limitTypeName(int $index): string
+    {
+        return self::LIMIT_TYPES[$index] ?? 'LIMIT_NONE';
+    }
+
     /**
      * Include current value in select options when unknown.
      *

@@ -3,7 +3,6 @@
         {% include 'components/tab.twig' with { id: 'dados', label: t('admin.characters.tab_data'), active: true } %}
         {% include 'components/tab.twig' with { id: 'logs', label: t('admin.characters.tab_logs'), active: false } %}
         {% include 'components/tab.twig' with { id: 'items', label: t('admin.characters.tab_items'), active: false } %}
-        {% include 'components/tab.twig' with { id: 'safebox', label: t('admin.characters.tab_safebox'), active: false } %}
         {% include 'components/tab.twig' with { id: 'guild', label: t('admin.characters.tab_guild'), active: false } %}
         {% include 'components/tab.twig' with { id: 'marriage', label: t('admin.characters.tab_marriage'), active: false } %}
     </div>
@@ -91,15 +90,6 @@
          aria-labelledby="admin-tab-items"
          hidden>
         {% include 'components/character-items.twig' %}
-    </div>
-
-    <div id="admin-tab-panel-safebox"
-         class="admin-tabs-panel"
-         role="tabpanel"
-         data-tab-panel="safebox"
-         aria-labelledby="admin-tab-safebox"
-         hidden>
-        {% include 'components/character-safebox.twig' %}
     </div>
 
     <div id="admin-tab-panel-guild"

@@ -14,17 +14,6 @@
         {% if item.count > 1 %}
             <span class="admin-inv-count">{{ item.count }}</span>
         {% endif %}
-        <span class="admin-inv-tip">
-            <strong>{{ item.name|default(item.vnum) }}</strong>
-            {% if not icon_src %}
-                <span class="admin-inv-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
-            {% endif %}
-            <span class="admin-inv-tip-meta">#{{ item.id }} · {{ t('admin.characters.items_pos') }} {{ item.pos }}</span>
-            {% if item.sockets is not empty %}
-                <span class="admin-inv-tip-sockets">
-                    {% include 'components/item-sockets.twig' %}
-                </span>
-            {% endif %}
-        </span>
+        {% include 'components/inventory-tooltip.twig' %}
     </a>
 {% endif %}

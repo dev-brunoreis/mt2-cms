@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemSockets;
+use Mt2Cms\Game\ItemStats;
+use Mt2Cms\Model\Database;
 
 class ItemRepository extends Repository
 {
@@ -19,6 +22,13 @@ class ItemRepository extends Repository
         'SAFEBOX',
         'MALL',
     ];
+
+    public function __construct(
+        Database $db = new Database(),
+        private ?ItemDescCatalog $descriptions = null,
+    ) {
+        parent::__construct($db);
+    }
 
     protected function database(): string
     {
@@ -93,17 +103,37 @@ class ItemRepository extends Repository
                     p.subtype AS proto_subtype,
                     p.limittype0 AS proto_limit_type,
                     p.value0 AS proto_value0,
+                    p.value1 AS proto_value1,
                     p.value2 AS proto_value2,
+                    p.value3 AS proto_value3,
+                    p.value4 AS proto_value4,
+                    p.value5 AS proto_value5,
+                    p.applytype0 AS proto_apply_type0,
+                    p.applyvalue0 AS proto_apply_value0,
+                    p.applytype1 AS proto_apply_type1,
+                    p.applyvalue1 AS proto_apply_value1,
+                    p.applytype2 AS proto_apply_type2,
+                    p.applyvalue2 AS proto_apply_value2,
+                    p.limitvalue0 AS proto_limit_value,
                     p.size AS proto_size'
             : 'NULL AS proto_locale_name, NULL AS proto_name,
                     0 AS proto_type, 0 AS proto_subtype,
-                    0 AS proto_limit_type, 0 AS proto_value0, 0 AS proto_value2,
+                    0 AS proto_limit_type, 0 AS proto_value0, 0 AS proto_value1,
+                    0 AS proto_value2, 0 AS proto_value3, 0 AS proto_value4, 0 AS proto_value5,
+                    0 AS proto_apply_type0, 0 AS proto_apply_value0,
+                    0 AS proto_apply_type1, 0 AS proto_apply_value1,
+                    0 AS proto_apply_type2, 0 AS proto_apply_value2,
+                    0 AS proto_limit_value,
                     1 AS proto_size';
         $protoJoin = $hasProto ? 'LEFT JOIN `item_proto` p ON p.vnum = i.vnum' : '';
 
         $rows = $this->db()->fetchAll(
             'SELECT i.id, i.window, i.pos, i.count, i.vnum,
                     i.socket0, i.socket1, i.socket2,
+                    i.attrtype0, i.attrvalue0, i.attrtype1, i.attrvalue1,
+                    i.attrtype2, i.attrvalue2, i.attrtype3, i.attrvalue3,
+                    i.attrtype4, i.attrvalue4, i.attrtype5, i.attrvalue5,
+                    i.attrtype6, i.attrvalue6,
                     ' . $protoSelect . '
              FROM `item` i
              ' . $protoJoin . '
@@ -147,6 +177,34 @@ class ItemRepository extends Repository
                 (int) ($row['socket2'] ?? 0),
             ],
         );
+        $tooltip = ItemStats::describe(
+            (int) ($row['proto_type'] ?? 0),
+            (int) ($row['proto_subtype'] ?? 0),
+            (int) ($row['proto_limit_type'] ?? 0),
+            (int) ($row['proto_limit_value'] ?? 0),
+            [
+                (int) ($row['proto_value0'] ?? 0),
+                (int) ($row['proto_value1'] ?? 0),
+                (int) ($row['proto_value2'] ?? 0),
+                (int) ($row['proto_value3'] ?? 0),
+                (int) ($row['proto_value4'] ?? 0),
+                (int) ($row['proto_value5'] ?? 0),
+            ],
+            [
+                ['type' => (int) ($row['proto_apply_type0'] ?? 0), 'value' => (int) ($row['proto_apply_value0'] ?? 0)],
+                ['type' => (int) ($row['proto_apply_type1'] ?? 0), 'value' => (int) ($row['proto_apply_value1'] ?? 0)],
+                ['type' => (int) ($row['proto_apply_type2'] ?? 0), 'value' => (int) ($row['proto_apply_value2'] ?? 0)],
+            ],
+            [
+                ['type' => (int) ($row['attrtype0'] ?? 0), 'value' => (int) ($row['attrvalue0'] ?? 0)],
+                ['type' => (int) ($row['attrtype1'] ?? 0), 'value' => (int) ($row['attrvalue1'] ?? 0)],
+                ['type' => (int) ($row['attrtype2'] ?? 0), 'value' => (int) ($row['attrvalue2'] ?? 0)],
+                ['type' => (int) ($row['attrtype3'] ?? 0), 'value' => (int) ($row['attrvalue3'] ?? 0)],
+                ['type' => (int) ($row['attrtype4'] ?? 0), 'value' => (int) ($row['attrvalue4'] ?? 0)],
+                ['type' => (int) ($row['attrtype5'] ?? 0), 'value' => (int) ($row['attrvalue5'] ?? 0)],
+                ['type' => (int) ($row['attrtype6'] ?? 0), 'value' => (int) ($row['attrvalue6'] ?? 0)],
+            ],
+        );
 
         return [
             'id' => (int) $row['id'],
@@ -156,6 +214,10 @@ class ItemRepository extends Repository
             'vnum' => (int) $row['vnum'],
             'name' => $this->protoName($row),
             'size' => max(1, min(3, (int) ($row['proto_size'] ?? 1))),
+            'description' => $this->descriptions?->description((int) $row['vnum']) ?? '',
+            'stats' => $tooltip['stats'],
+            'applies' => $tooltip['applies'],
+            'bonuses' => $tooltip['bonuses'],
             'sockets' => $sockets,
         ];
     }

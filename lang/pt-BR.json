@@ -171,6 +171,7 @@
     "title": "Administração",
     "badge": "Admin",
     "login_title": "Login admin",
+    "login_lead": "Entre para gerenciar as configurações do site.",
     "username": "Usuário",
     "password": "Senha",
     "submit_login": "Entrar",
@@ -187,7 +188,14 @@
     "active_theme_invalid": "O tema ativo deve estar entre os temas habilitados.",
     "save": "Salvar alterações",
     "saved": "Configurações salvas.",
+    "toggle_menu": "Alternar menu",
     "nav": {
+      "store": "Loja",
+      "design": "Design",
+      "configuration": "Configuração",
+      "site": "Site",
+      "appearance": "Aparência",
+      "localization": "Localização",
       "registration": "Cadastros",
       "themes": "Temas",
       "locale": "Idioma"
@@ -202,7 +210,10 @@
       "title": "Temas",
       "lead": "Escolha quais temas ficam disponíveis e qual está ativo no site.",
       "available": "Temas disponíveis",
-      "active": "Tema ativo"
+      "available_help": "Visitantes só podem alternar entre os temas habilitados aqui.",
+      "theme_label": "Pacote de tema",
+      "active": "Tema ativo",
+      "active_help": "Tema exibido por padrão para os visitantes."
     },
     "locale": {
       "title": "Idioma padrão",

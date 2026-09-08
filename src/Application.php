@@ -46,6 +46,7 @@ class Application
     private Locales $locales;
     private Translator $translator;
     private ThemeEngine $theme;
+    private ThemeEngine $adminTheme;
     private AccountRepository $accounts;
     private PlayerRepository $players;
     private SettingsRepository $settingsRepo;
@@ -174,7 +175,7 @@ class Application
     private function bootstrapSetup(): void
     {
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve('en'));
-        $this->theme = $this->createThemeEngine('default', true);
+        $this->theme = $this->createThemeEngine('default', true, false);
         $this->auth = new Auth(new AccountRepository(new Database(['requirePassword' => false])));
     }
 
@@ -188,7 +189,8 @@ class Application
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
 
         $activeTheme = $this->settings->activeTheme();
-        $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled());
+        $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
+        $this->adminTheme = $this->createThemeEngine('admin', true, true);
 
         $this->db = new Database();
         $this->accounts = new AccountRepository($this->db);
@@ -197,7 +199,7 @@ class Application
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
     }
 
-    private function createThemeEngine(string $activeTheme, bool $registrationEnabled): ThemeEngine
+    private function createThemeEngine(string $activeTheme, bool $registrationEnabled, bool $isAdmin): ThemeEngine
     {
         $engine = new ThemeEngine(
             BASE_DIR . '/themes',
@@ -206,10 +208,13 @@ class Application
             $this->locales->available(),
         );
 
-        $engine->setGlobals([
-            'registration_enabled' => $registrationEnabled,
-            'admin_sections' => AdminSections::all(),
-        ]);
+        $globals = ['registration_enabled' => $registrationEnabled];
+
+        if ($isAdmin) {
+            $globals['admin_sections'] = AdminSections::all();
+        }
+
+        $engine->setGlobals($globals);
 
         return $engine;
     }
@@ -297,6 +302,7 @@ class Application
                 $this->csrf,
                 $this->translator,
                 $this->adminAuth,
+                $this->adminTheme,
             ),
             AdminSettingsController::class => new AdminSettingsController(
                 $this->theme,
@@ -304,6 +310,7 @@ class Application
                 $this->csrf,
                 $this->translator,
                 $this->adminAuth,
+                $this->adminTheme,
                 $this->settings,
                 $this->themeCatalog,
                 $this->locales,

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="{{ html_lang|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="/css/admin.css">
+    <script src="/js/admin-sidebar.js" defer></script>
+    <title>{{ title|default(t('admin.title')) }} — {{ t('admin.title') }}</title>
+</head>
+<body class="min-h-screen bg-[#f5f7fa] text-slate-800 antialiased">
+    <div class="flex min-h-screen">
+        <aside id="admin-sidebar"
+               class="admin-sidebar fixed inset-y-0 left-0 z-40 flex w-[15.5rem] -translate-x-full flex-col border-r border-slate-800/80 transition-transform md:static md:translate-x-0">
+            <div class="border-b border-white/10 px-5 py-5">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/20 ring-1 ring-indigo-400/30">
+                        <svg class="h-5 w-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-white">{{ t('admin.title') }}</p>
+                        <p class="text-[11px] text-slate-400">{{ t('admin.badge') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-3 py-4">
+                {{ slots.sidebar|raw }}
+            </div>
+
+            {% if adminUser %}
+                <div class="border-t border-white/10 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="admin-user-badge">{{ adminUser.login|slice(0, 1) }}</div>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-medium text-slate-200">{{ adminUser.login }}</p>
+                            <form method="post" action="/admin/logout" class="mt-0.5">
+                                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                <button type="submit" class="cursor-pointer text-xs text-slate-400 transition hover:text-red-300">
+                                    {{ t('admin.logout') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </aside>
+
+        <div id="admin-sidebar-backdrop"
+             class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-[1px] md:hidden"
+             aria-hidden="true"></div>
+
+        <div class="flex min-w-0 flex-1 flex-col">
+            <header class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+                <button type="button" id="admin-sidebar-toggle"
+                        class="cursor-pointer rounded-md border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
+                        aria-controls="admin-sidebar" aria-expanded="false">
+                    <span class="sr-only">{{ t('admin.toggle_menu') }}</span>
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <span class="text-sm font-semibold text-slate-900">{{ title|default(t('admin.title')) }}</span>
+            </header>
+
+            {% if flash %}
+                <div class="border-b px-4 py-3 text-sm
+                    {% if flash.type == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
+                    {% else %}border-red-200 bg-red-50 text-red-800{% endif %}">
+                    {{ flash.message }}
+                </div>
+            {% endif %}
+
+            {% include 'components/page-header.twig' %}
+
+            <main class="flex-1 p-4 md:p-6">
+                {% if contentTemplate is defined %}
+                    {% include contentTemplate %}
+                {% else %}
+                    {{ slots.main|raw }}
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

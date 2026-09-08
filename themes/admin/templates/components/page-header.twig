@@ -1,0 +1,41 @@
+{% if title is defined and title %}
+    <div class="admin-page-header sticky top-0 z-20">
+        <div class="px-4 py-3 md:px-6">
+            <nav class="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500" aria-label="Breadcrumb">
+                <span>{{ t('admin.title') }}</span>
+                {% if activeGroup is defined and admin_sections is defined %}
+                    {% for group in admin_sections %}
+                        {% if group.id == activeGroup %}
+                            <svg class="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span>{{ t(group.label) }}</span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <svg class="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="font-medium text-slate-700">{{ title }}</span>
+            </nav>
+
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <h1 class="text-[1.35rem] font-semibold leading-tight tracking-tight text-slate-900">{{ title }}</h1>
+                    {% if pageLead is defined and pageLead %}
+                        <p class="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">{{ pageLead }}</p>
+                    {% endif %}
+                </div>
+
+                {% if formId is defined and formId %}
+                    <div class="flex shrink-0 items-center gap-2">
+                        <button type="submit" form="{{ formId }}"
+                                class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400/40">
+                            {{ t('admin.save') }}
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}

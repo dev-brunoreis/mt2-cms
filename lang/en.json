@@ -180,6 +180,7 @@
     "title": "Administration",
     "badge": "Admin",
     "login_title": "Admin Login",
+    "login_lead": "Sign in to manage site settings.",
     "username": "Username",
     "password": "Password",
     "submit_login": "Sign in",
@@ -196,7 +197,14 @@
     "active_theme_invalid": "Active theme must be one of the enabled themes.",
     "save": "Save changes",
     "saved": "Settings saved.",
+    "toggle_menu": "Toggle menu",
     "nav": {
+      "store": "Store",
+      "design": "Design",
+      "configuration": "Configuration",
+      "site": "Site",
+      "appearance": "Appearance",
+      "localization": "Localization",
       "registration": "Registrations",
       "themes": "Themes",
       "locale": "Language"
@@ -211,7 +219,10 @@
       "title": "Themes",
       "lead": "Choose which themes are available and which one is active on the site.",
       "available": "Available themes",
-      "active": "Active theme"
+      "available_help": "Visitors can only switch between themes you enable here.",
+      "theme_label": "Theme package",
+      "active": "Active theme",
+      "active_help": "The theme shown to visitors by default."
     },
     "locale": {
       "title": "Default language",

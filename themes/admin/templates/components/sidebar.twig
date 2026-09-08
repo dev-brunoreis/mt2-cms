@@ -1,0 +1,27 @@
+<nav class="space-y-6">
+    {% for group in admin_sections %}
+        <div>
+            <p class="admin-nav-section mb-2 px-3 text-[10px] font-bold uppercase text-slate-500">
+                {{ t(group.label) }}
+            </p>
+
+            <ul class="space-y-0.5">
+                {% for item in group.children %}
+                    {% set isActive = activeSection is defined and activeSection == item.id %}
+                    <li>
+                        <a href="{{ item.path }}"
+                           class="admin-nav-link flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] font-medium
+                           {% if isActive %}
+                               is-active text-white
+                           {% else %}
+                               text-slate-300
+                           {% endif %}">
+                            {% include 'components/nav-icon.twig' with { sectionId: item.id } only %}
+                            <span>{{ t(item.label) }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</nav>

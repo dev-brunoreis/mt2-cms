@@ -1,0 +1,34 @@
+<div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
+    <div class="mb-8 text-center">
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white">
+            M
+        </div>
+        <h1 class="text-2xl font-semibold text-slate-900">{{ t('admin.login_title') }}</h1>
+        <p class="mt-2 text-sm text-slate-500">{{ t('admin.login_lead') }}</p>
+    </div>
+
+    <form method="post" action="/admin/login" class="space-y-5">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+        <div>
+            <label for="username" class="mb-1.5 block text-sm font-medium text-slate-700">{{ t('admin.username') }}</label>
+            <input id="username" type="text" name="username" required value="{{ username|default('') }}"
+                   class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+
+        <div>
+            <label for="password" class="mb-1.5 block text-sm font-medium text-slate-700">{{ t('admin.password') }}</label>
+            <input id="password" type="password" name="password" required
+                   class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+
+        {% if error %}
+            <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
+        {% endif %}
+
+        <button type="submit"
+                class="w-full cursor-pointer rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-500">
+            {{ t('admin.submit_login') }}
+        </button>
+    </form>
+</div>

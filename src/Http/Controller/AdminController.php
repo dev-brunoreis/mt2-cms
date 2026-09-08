@@ -19,6 +19,7 @@ abstract class AdminController extends Controller
         Csrf $csrf,
         Translator $translator,
         protected AdminAuth $adminAuth,
+        protected ThemeEngine $adminTheme,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
     }
@@ -32,12 +33,25 @@ abstract class AdminController extends Controller
             return $redirect;
         }
 
-        return $this->view('admin', array_merge([
-            'title' => $this->t('admin.title'),
+        return $this->renderAdmin('panel', array_merge([
             'activeSection' => $section,
+            'activeGroup' => \Mt2Cms\Admin\AdminSections::groupForSection($section),
             'contentTemplate' => $contentTemplate,
             'adminUser' => $this->adminAuth->user(),
         ], $data), $status);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    protected function renderAdmin(string $layout, array $data = [], int $status = 200): Response
+    {
+        $data = array_merge([
+            'csrf' => $this->csrf->token(),
+            'flash' => $this->pullFlash(),
+        ], $data);
+
+        return Response::html($this->adminTheme->render($layout, $data), $status);
     }
 
     protected function requireAdmin(): ?Response

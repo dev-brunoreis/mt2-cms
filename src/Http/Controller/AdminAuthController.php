@@ -22,6 +22,7 @@ class AdminAuthController extends Controller
         Csrf $csrf,
         Translator $translator,
         private AdminAuth $adminAuth,
+        private ThemeEngine $adminTheme,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -34,9 +35,7 @@ class AdminAuthController extends Controller
             return $this->redirect('/admin');
         }
 
-        return $this->view('admin-login', [
-            'title' => $this->t('admin.login_title'),
-        ]);
+        return $this->loginForm();
     }
 
     public function login(): Response
@@ -100,10 +99,12 @@ class AdminAuthController extends Controller
         ?string $error = null,
         int $status = 200,
     ): Response {
-        return $this->view('admin-login', [
+        return Response::html($this->adminTheme->render('login', [
             'title' => $this->t('admin.login_title'),
             'username' => $username,
             'error' => $error,
-        ], $status);
+            'csrf' => $this->csrf->token(),
+            'flash' => $this->pullFlash(),
+        ]), $status);
     }
 }

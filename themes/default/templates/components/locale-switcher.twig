@@ -3,13 +3,13 @@
     <input type="hidden" name="redirect" value="{{ current_path }}">
     <label for="locale-switcher" class="sr-only">{{ t('locale.label') }}</label>
     <select id="locale-switcher" name="locale"
-            class="cursor-pointer rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500">
+            class="cursor-pointer rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 outline-none hover:border-slate-400 focus:border-indigo-500">
         {% for item in locales %}
             <option value="{{ item.code }}"{% if item.code == locale %} selected{% endif %}>{{ item.name }}</option>
         {% endfor %}
     </select>
     <noscript>
-        <button type="submit" class="ml-1 rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300">
+        <button type="submit" class="ml-1 rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600">
             {{ t('locale.label') }}
         </button>
     </noscript>

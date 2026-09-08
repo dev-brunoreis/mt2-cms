@@ -1,0 +1,21 @@
+<form id="admin-locale-form" method="post" action="/admin/locale" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.locale.title') }}
+            <span class="admin-fieldset-help">{{ t('admin.locale.lead') }}</span>
+        </legend>
+
+        <label for="default_locale" class="mb-2 block text-sm font-medium text-slate-700">
+            {{ t('admin.locale.default') }}
+        </label>
+        <select id="default_locale" name="default_locale" required class="admin-select">
+            {% for locale in availableLocales %}
+                <option value="{{ locale.code }}" {% if defaultLocale == locale.code %}selected{% endif %}>
+                    {{ locale.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </fieldset>
+</form>

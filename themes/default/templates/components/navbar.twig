@@ -1,25 +1,25 @@
-<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+<header class="border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur">
     <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-        <a href="/" class="text-lg font-bold tracking-tight text-white hover:text-blue-400 transition">
+        <a href="/" class="text-lg font-semibold tracking-tight text-slate-900 hover:text-indigo-600 transition">
             {{ t('app.name') }}
         </a>
 
         <div class="flex flex-wrap items-center gap-4 text-sm">
             {% include 'components/locale-switcher.twig' %}
-            <a href="/ranking" class="text-slate-300 hover:text-white transition">{{ t('nav.ranking') }}</a>
+            <a href="/ranking" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.ranking') }}</a>
 
             {% if auth.check %}
-                <a href="/account" class="text-slate-300 hover:text-white transition">{{ t('nav.account') }}</a>
+                <a href="/account" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.account') }}</a>
                 <form method="post" action="/logout" class="inline">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
-                    <button type="submit" class="cursor-pointer text-slate-400 hover:text-red-400 transition">
+                    <button type="submit" class="cursor-pointer font-medium text-slate-500 hover:text-red-600 transition">
                         {{ t('nav.logout') }}
                     </button>
                 </form>
             {% else %}
-                <a href="/login" class="text-slate-300 hover:text-white transition">{{ t('nav.login') }}</a>
+                <a href="/login" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.login') }}</a>
                 <a href="/register"
-                   class="rounded-lg bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-500 transition">
+                   class="rounded-lg bg-indigo-600 px-3 py-1.5 font-medium text-white shadow-sm hover:bg-indigo-500 transition">
                     {{ t('nav.register') }}
                 </a>
             {% endif %}

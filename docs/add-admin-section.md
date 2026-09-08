@@ -1,10 +1,10 @@
 # Add an admin section
 
-Checklist for a new tab in the protected `/admin` area.
+Admin UI lives in **`themes/admin`** (white panel, Magento-style page header).
 
-## 1. Register the section
+## 1. Register menu + submenu
 
-In `src/Admin/AdminSections.php`, add an entry:
+In `src/Admin/AdminSections.php`, add the item under the **Configuration** group `children` array:
 
 ```php
 [
@@ -14,44 +14,27 @@ In `src/Admin/AdminSections.php`, add an entry:
 ],
 ```
 
-Keep stable `id` values — the sidebar highlights the active tab by `id`.
+The sidebar auto-expands **Configuration** when that section is active.
 
-## 2. Routes + DI
+## 2. Routes + controller
 
-In `src/Application.php`:
+Same as before — extend `AdminController`, wire in `Application.php`.
 
-1. `addRoute` for `GET` and `POST` (if mutating) under `/admin/...`.
-2. Wire the controller in `resolveController()` with admin dependencies (`AdminAuth`, `SettingsService`, etc.).
+Pass page header data in `adminView()`:
 
-Admin routes must call `requireAdmin()` (via `AdminController::adminView()` or explicitly).
+```php
+return $this->adminView('your-section', 'pages/your-section.twig', [
+    'title' => $this->t('admin.your_section.title'),
+    'pageLead' => $this->t('admin.your_section.lead'),
+    'formId' => 'admin-your-section-form',
+]);
+```
 
-## 3. Controller
+## 3. Twig page
 
-Extend `Mt2Cms\Http\Controller\AdminController`.
+- Form gets `id="admin-your-section-form"` matching `formId`
+- **No** title or Save button inside the form — the layout `page-header.twig` renders title + Save (via `form` attribute on the button)
 
-- `GET`: return `$this->adminView('your-section', 'pages/admin-your-section.twig', $data)`.
-- `POST`: `assertCsrf()` first, validate input, persist via repository/service, flash, redirect back.
+## 4. i18n
 
-Use `$this->t('admin....')` for all copy.
-
-## 4. Twig template
-
-Add `themes/default/templates/pages/admin-your-section.twig`.
-
-Match existing admin cards (rounded border, slate palette, primary blue submit button).
-
-## 5. i18n
-
-Add keys to **both** `lang/en.json` and `lang/pt-BR.json`:
-
-- `admin.nav.your_section` — sidebar label
-- Section-specific keys under `admin.your_section.*`
-
-## PR checklist
-
-- [ ] Section registered in `AdminSections`
-- [ ] Routes + controller wired in `Application.php`
-- [ ] GET/POST handlers with CSRF on POST
-- [ ] `requireAdmin()` on every admin page
-- [ ] Twig template + `en` / `pt-BR` keys
-- [ ] No secrets in templates or logs
+Add `admin.nav.*` and section keys to `lang/en.json` and `lang/pt-BR.json`.

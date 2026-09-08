@@ -7,33 +7,58 @@ namespace Mt2Cms\Admin;
 class AdminSections
 {
     /**
-     * @return list<array{id: string, path: string, label: string}>
+     * @return list<array{id: string, label: string, children: list<array{id: string, path: string, label: string}>}>
      */
     public static function all(): array
     {
         return [
             [
-                'id' => 'registration',
-                'path' => '/admin/registration',
-                'label' => 'admin.nav.registration',
-            ],
-            [
-                'id' => 'themes',
-                'path' => '/admin/themes',
-                'label' => 'admin.nav.themes',
-            ],
-            [
-                'id' => 'locale',
-                'path' => '/admin/locale',
-                'label' => 'admin.nav.locale',
+                'id' => 'configuration',
+                'label' => 'admin.nav.configuration',
+                'children' => [
+                    [
+                        'id' => 'registration',
+                        'path' => '/admin/registration',
+                        'label' => 'admin.nav.registration',
+                    ],
+                    [
+                        'id' => 'themes',
+                        'path' => '/admin/themes',
+                        'label' => 'admin.nav.themes',
+                    ],
+                    [
+                        'id' => 'locale',
+                        'path' => '/admin/locale',
+                        'label' => 'admin.nav.locale',
+                    ],
+                ],
             ],
         ];
     }
 
     public static function firstPath(): string
     {
-        $sections = self::all();
+        foreach (self::all() as $group) {
+            $first = $group['children'][0]['path'] ?? null;
 
-        return $sections[0]['path'] ?? '/admin/registration';
+            if (is_string($first) && $first !== '') {
+                return $first;
+            }
+        }
+
+        return '/admin/registration';
+    }
+
+    public static function groupForSection(string $sectionId): ?string
+    {
+        foreach (self::all() as $group) {
+            foreach ($group['children'] as $child) {
+                if ($child['id'] === $sectionId) {
+                    return $group['id'];
+                }
+            }
+        }
+
+        return null;
     }
 }

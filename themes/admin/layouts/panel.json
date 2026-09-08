@@ -1,0 +1,8 @@
+{
+  "id": "root",
+  "template": "layouts/panel.twig",
+  "slots": {
+    "sidebar": [{ "id": "admin-nav", "template": "components/sidebar.twig" }],
+    "main": [{ "id": "content", "template": "pages/placeholder.twig" }]
+  }
+}

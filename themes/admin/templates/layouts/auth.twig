@@ -4,20 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="/js/locale-switcher.js" defer></script>
-    <title>{{ title|default(t('app.name')) }} — {{ t('app.name') }}</title>
+    <title>{{ title|default(t('admin.login_title')) }} — {{ t('admin.title') }}</title>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col">
-    {{ slots.header|raw }}
-
-    <div class="flex-1 w-full max-w-6xl mx-auto px-4 py-8 {% if slots.sidebar %}flex gap-8{% endif %}">
-        {% if slots.sidebar %}
-            <aside class="w-56 shrink-0">
-                {{ slots.sidebar|raw }}
-            </aside>
-        {% endif %}
-
-        <main class="flex-1 min-w-0">
+<body class="min-h-screen bg-gradient-to-br from-slate-100 via-white to-indigo-50 text-slate-800 antialiased">
+    <main class="flex min-h-screen items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
             {% if flash %}
                 <div class="mb-6 rounded-lg border px-4 py-3 text-sm
                     {% if flash.type == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
@@ -27,9 +18,7 @@
             {% endif %}
 
             {{ slots.main|raw }}
-        </main>
-    </div>
-
-    {{ slots.footer|raw }}
+        </div>
+    </main>
 </body>
 </html>

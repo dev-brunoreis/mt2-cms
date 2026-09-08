@@ -1,0 +1,7 @@
+{
+  "id": "root",
+  "template": "layouts/auth.twig",
+  "slots": {
+    "main": [{ "id": "content", "template": "pages/login.twig" }]
+  }
+}

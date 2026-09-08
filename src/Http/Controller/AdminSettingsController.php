@@ -23,11 +23,12 @@ class AdminSettingsController extends AdminController
         Csrf $csrf,
         Translator $translator,
         AdminAuth $adminAuth,
+        ThemeEngine $adminTheme,
         private SettingsService $settings,
         private ThemeCatalog $themes,
         private Locales $locales,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
     }
 
     public function index(): Response
@@ -37,8 +38,10 @@ class AdminSettingsController extends AdminController
 
     public function registration(): Response
     {
-        return $this->adminView('registration', 'pages/admin-registration.twig', [
+        return $this->adminView('registration', 'pages/registration.twig', [
             'title' => $this->t('admin.registration.title'),
+            'pageLead' => $this->t('admin.registration.lead'),
+            'formId' => 'admin-registration-form',
             'registrationEnabled' => $this->settings->registrationEnabled(),
         ]);
     }
@@ -67,8 +70,10 @@ class AdminSettingsController extends AdminController
         $diskThemes = $this->themes->available();
         $enabledThemes = $this->settings->availableThemes();
 
-        return $this->adminView('themes', 'pages/admin-themes.twig', [
+        return $this->adminView('themes', 'pages/themes.twig', [
             'title' => $this->t('admin.themes.title'),
+            'pageLead' => $this->t('admin.themes.lead'),
+            'formId' => 'admin-themes-form',
             'diskThemes' => $diskThemes,
             'enabledThemes' => $enabledThemes,
             'activeTheme' => $this->settings->activeTheme(),
@@ -108,8 +113,10 @@ class AdminSettingsController extends AdminController
 
     public function locale(): Response
     {
-        return $this->adminView('locale', 'pages/admin-locale.twig', [
+        return $this->adminView('locale', 'pages/locale.twig', [
             'title' => $this->t('admin.locale.title'),
+            'pageLead' => $this->t('admin.locale.lead'),
+            'formId' => 'admin-locale-form',
             'availableLocales' => $this->locales->available(),
             'defaultLocale' => $this->settings->defaultLocale(),
         ]);

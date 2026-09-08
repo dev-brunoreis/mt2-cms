@@ -1,0 +1,19 @@
+<form id="admin-registration-form" method="post" action="/admin/registration" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.registration.title') }}
+            <span class="admin-fieldset-help">{{ t('admin.registration.lead') }}</span>
+        </legend>
+
+        <label class="admin-toggle-row cursor-pointer">
+            <input type="checkbox" name="registration_enabled" value="1"
+                   {% if registrationEnabled %}checked{% endif %}>
+            <span>
+                <span class="block text-sm font-semibold text-slate-900">{{ t('admin.registration.enable') }}</span>
+                <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.registration.enable_help') }}</span>
+            </span>
+        </label>
+    </fieldset>
+</form>

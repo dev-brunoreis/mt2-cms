@@ -39,7 +39,7 @@ class SettingsService
 
         $theme = $fromSettings !== null && $fromSettings !== '' ? $fromSettings : $fallback;
 
-        if (!$this->themes->isValid($theme)) {
+        if (!$this->themes->isValid($theme) || !$this->themes->isPublic($theme)) {
             return 'default';
         }
 
@@ -55,7 +55,7 @@ class SettingsService
         $enabled = [];
 
         foreach ($fromSettings as $theme) {
-            if (is_string($theme) && $this->themes->isValid($theme)) {
+            if (is_string($theme) && $this->themes->isValid($theme) && $this->themes->isPublic($theme)) {
                 $enabled[] = $theme;
             }
         }
@@ -77,7 +77,7 @@ class SettingsService
         $valid = [];
 
         foreach ($themes as $theme) {
-            if (is_string($theme) && $this->themes->isValid($theme)) {
+            if (is_string($theme) && $this->themes->isValid($theme) && $this->themes->isPublic($theme)) {
                 $valid[] = $theme;
             }
         }

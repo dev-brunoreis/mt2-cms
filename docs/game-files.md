@@ -115,7 +115,7 @@ The `columns` array defines proto field order. The tab parser maps columns **by 
 
 Inserting in the middle shifts indices and breaks DB tooltips and admin forms.
 
-Add display labels in `lang/en.json` and `lang/pt-BR.json` under `admin.proto.tokens.YOUR_TOKEN`. Missing keys show the raw token.
+Add display labels in `lang/en.json` under `admin.proto.tokens.YOUR_TOKEN`. Missing keys show the raw token.
 
 ### Extra proto columns
 

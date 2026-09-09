@@ -3,7 +3,6 @@
 ## Existing languages
 
 - `lang/en.json` — fallback
-- `lang/pt-BR.json` — Portuguese
 
 Always add new keys to **both** (at least `en` + every shipped locale). Missing keys fall back to `en`, then to the key string itself.
 
@@ -44,5 +43,4 @@ Locale cookie is set via `POST /locale` (CSRF + `safeRedirect`).
 ## PR checklist
 
 - [ ] Key present in `en.json`
-- [ ] Key present in `pt-BR.json` (and any other shipped locales)
 - [ ] No hardcoded UI strings in controllers/Twig

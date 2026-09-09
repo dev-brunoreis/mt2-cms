@@ -49,7 +49,9 @@ class AdminAccountsController extends AdminController
             'pageLead' => $this->t('admin.accounts.lead'),
             'headerHref' => '/admin/accounts/new',
             'headerActionLabel' => $this->t('admin.accounts.create'),
-            'accounts' => $this->accounts->listForAdmin($page, self::PER_PAGE, $query),
+            'accounts' => $this->withPlayerIndexEmpires(
+                $this->accounts->listForAdmin($page, self::PER_PAGE, $query),
+            ),
             'query' => $q,
             'page' => $page,
             'total' => $total,
@@ -89,7 +91,6 @@ class AdminAccountsController extends AdminController
                 $input['login'],
                 $input['email'],
                 $input['status'],
-                $input['empire'],
                 $input['cash'],
                 $input['mileage'],
             );
@@ -144,7 +145,6 @@ class AdminAccountsController extends AdminController
                 $input['login'],
                 $input['email'],
                 $input['status'],
-                $input['empire'],
                 $input['cash'],
                 $input['mileage'],
                 (string) ($_POST['password'] ?? ''),
@@ -221,7 +221,7 @@ class AdminAccountsController extends AdminController
             'pageLead' => $this->t($isEdit ? 'admin.accounts.edit_lead' : 'admin.accounts.create_lead'),
             'formId' => 'admin-account-form',
             'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.accounts.create'),
-            'account' => $account,
+            'account' => $isEdit ? $this->withPlayerIndexEmpire($account) : $account,
             'characters' => $characters,
             'connectionIps' => $connectionIps,
             'isEdit' => $isEdit,
@@ -241,7 +241,7 @@ class AdminAccountsController extends AdminController
     }
 
     /**
-     * @return array{login: string, email: string, status: string, empire: int, cash: int, mileage: int}
+     * @return array{login: string, email: string, status: string, cash: int, mileage: int}
      */
     private function formInput(): array
     {
@@ -249,10 +249,42 @@ class AdminAccountsController extends AdminController
             'login' => trim((string) ($_POST['login'] ?? '')),
             'email' => trim((string) ($_POST['email'] ?? '')),
             'status' => (string) ($_POST['status'] ?? 'OK'),
-            'empire' => (int) ($_POST['empire'] ?? 0),
             'cash' => max(0, (int) ($_POST['cash'] ?? 0)),
             'mileage' => max(0, (int) ($_POST['mileage'] ?? 0)),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $account
+     * @return array<string, mixed>
+     */
+    private function withPlayerIndexEmpire(array $account): array
+    {
+        $account['empire'] = $this->players->findEmpireByAccountId((int) ($account['id'] ?? 0));
+
+        return $account;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $accounts
+     * @return list<array<string, mixed>>
+     */
+    private function withPlayerIndexEmpires(array $accounts): array
+    {
+        $ids = [];
+
+        foreach ($accounts as $account) {
+            $ids[] = (int) ($account['id'] ?? 0);
+        }
+
+        $map = $this->players->mapEmpiresByAccountIds($ids);
+
+        foreach ($accounts as $index => $account) {
+            $id = (int) ($account['id'] ?? 0);
+            $accounts[$index]['empire'] = $map[$id] ?? 0;
+        }
+
+        return $accounts;
     }
 
     private function mutateStatus(int $id, string $action, string $successKey): Response

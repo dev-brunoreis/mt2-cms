@@ -59,6 +59,50 @@ class PlayerRepository extends Repository
         );
     }
 
+    public function findEmpireByAccountId(int $accountId): int
+    {
+        $map = $this->mapEmpiresByAccountIds([$accountId]);
+
+        return $map[$accountId] ?? 0;
+    }
+
+    /**
+     * @param list<int> $accountIds
+     * @return array<int, int>
+     */
+    public function mapEmpiresByAccountIds(array $accountIds): array
+    {
+        $ids = [];
+
+        foreach ($accountIds as $accountId) {
+            $id = (int) $accountId;
+
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        $ids = array_values($ids);
+
+        if ($ids === [] || !$this->schemaTableExists('player_index')) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $rows = $this->db()->fetchAll(
+            'SELECT id, empire FROM `player_index` WHERE id IN (' . $placeholders . ')',
+            $ids,
+        );
+
+        $map = [];
+
+        foreach ($rows as $row) {
+            $map[(int) $row['id']] = (int) ($row['empire'] ?? 0);
+        }
+
+        return $map;
+    }
+
     public function countRanking(?string $q = null): int
     {
         [$where, $params] = $this->rankingWhere($q);

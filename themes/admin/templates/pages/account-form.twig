@@ -85,15 +85,12 @@
                     </select>
                 </div>
 
-                <div class="admin-field">
-                    <label for="account-empire">{{ t('admin.accounts.empire') }}</label>
-                    <select id="account-empire" name="empire" class="admin-select">
-                        <option value="0" {% if account.empire|default(0) == 0 %}selected{% endif %}>{{ t('empire.none') }}</option>
-                        <option value="1" {% if account.empire|default(0) == 1 %}selected{% endif %}>{{ t('empire.1') }}</option>
-                        <option value="2" {% if account.empire|default(0) == 2 %}selected{% endif %}>{{ t('empire.2') }}</option>
-                        <option value="3" {% if account.empire|default(0) == 3 %}selected{% endif %}>{{ t('empire.3') }}</option>
-                    </select>
-                </div>
+                {% if isEdit %}
+                    <div class="admin-field">
+                        <label>{{ t('admin.accounts.empire') }}</label>
+                        <p class="admin-input-readonly">{{ account.empire|empire_name }}</p>
+                    </div>
+                {% endif %}
 
                 <div class="admin-field">
                     <label for="account-cash">{{ t('admin.accounts.cash') }}</label>

@@ -51,7 +51,7 @@ Add `themes/default/templates/pages/your-page.twig`.
 
 ## 5. i18n + nav
 
-1. Add keys to `lang/en.json` **and** `lang/pt-BR.json`.
+1. Add keys to `lang/en.json`.
 2. If the page is public navigation, link it in `themes/default/templates/components/navbar.twig`.
 
 ## PR checklist

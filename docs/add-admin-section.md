@@ -37,7 +37,7 @@ return $this->adminView('your-section', 'pages/your-section.twig', [
 
 ## 4. i18n
 
-Add `admin.nav.*` and section keys to `lang/en.json` and `lang/pt-BR.json`.
+Add `admin.nav.*` and section keys to `lang/en.json`.
 
 ## 5. Tabs (optional)
 

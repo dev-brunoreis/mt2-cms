@@ -122,7 +122,6 @@ class AccountRepository extends Repository
         string $login,
         string $email,
         string $status,
-        int $empire,
         int $cash,
         int $mileage,
         ?string $password = null,
@@ -132,7 +131,6 @@ class AccountRepository extends Repository
         $login = $this->assertLogin($login);
         $email = $this->assertOptionalEmail($email);
         $status = $this->assertStatus($status);
-        $empire = $this->assertEmpire($empire);
         $cash = $this->assertCurrency($cash);
         $mileage = $this->assertCurrency($mileage);
 
@@ -150,11 +148,10 @@ class AccountRepository extends Repository
             'login = ?',
             'email = ?',
             'status = ?',
-            'empire = ?',
             'cash = ?',
             'mileage = ?',
         ];
-        $params = [$login, $email, $status, $empire, $cash, $mileage];
+        $params = [$login, $email, $status, $cash, $mileage];
 
         if ($password !== null && $password !== '') {
             $sets[] = 'password = ?';
@@ -308,15 +305,6 @@ class AccountRepository extends Repository
         }
 
         return $status;
-    }
-
-    private function assertEmpire(int $empire): int
-    {
-        if ($empire < 0 || $empire > 3) {
-            throw new \InvalidArgumentException('admin.accounts.invalid_empire');
-        }
-
-        return $empire;
     }
 
     private function assertCurrency(int $value): int

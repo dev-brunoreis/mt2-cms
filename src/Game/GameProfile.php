@@ -236,6 +236,17 @@ class GameProfile
         return $this->resolvePath($relative);
     }
 
+    public function optionalPath(string $key): ?string
+    {
+        $relative = $this->config['paths'][$key] ?? null;
+
+        if (!is_string($relative) || $relative === '') {
+            return null;
+        }
+
+        return $this->resolvePath($relative);
+    }
+
     public function dropPath(string $key): string
     {
         $dropsDir = $this->path('drops');

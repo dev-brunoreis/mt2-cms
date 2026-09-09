@@ -1,0 +1,79 @@
+<div class="admin-map-layout">
+    <aside class="admin-panel admin-map-list">
+        <label class="sr-only" for="admin-map-select">{{ t('admin.maps.select') }}</label>
+        <select id="admin-map-select" class="admin-select w-full md:hidden">
+            {% for map in maps %}
+                <option value="{{ map.index }}" {% if selected and selected.index == map.index %}selected{% endif %}>
+                    {{ map.label }} ({{ map.online }})
+                </option>
+            {% endfor %}
+        </select>
+
+        <ul class="admin-map-nav hidden md:block">
+            {% for map in maps %}
+                <li>
+                    <a href="/admin/maps?map={{ map.index }}"
+                       class="admin-map-nav-link {% if selected and selected.index == map.index %}is-active{% endif %}">
+                        <span class="min-w-0 truncate">{{ map.label }}</span>
+                        <span class="admin-map-count">{{ map.online }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if maps is empty %}
+            <p class="p-4 text-sm text-slate-500">{{ t('admin.maps.no_files') }}</p>
+        {% endif %}
+    </aside>
+
+    <div class="admin-panel admin-map-stage overflow-hidden">
+        {% if selected %}
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+                <div>
+                    <p class="text-sm font-semibold text-slate-900">{{ payload.map.label }}</p>
+                    <p class="text-xs text-slate-500">{{ t('admin.maps.index_folder', {index: selected.index, folder: selected.folder}) }}</p>
+                </div>
+                <p class="text-sm text-slate-500">
+                    {{ t('admin.maps.online_count', {count: payload.players|length}) }}
+                </p>
+            </div>
+
+            <div class="admin-map-canvas-wrap">
+                <div class="admin-map-canvas" data-admin-map-canvas>
+                    {% if selected.has_atlas %}
+                        <img src="/admin/maps/{{ selected.index }}/atlas"
+                             alt="{{ payload.map.label }}"
+                             class="admin-map-image"
+                             data-admin-map-image>
+                    {% else %}
+                        <div class="admin-map-missing" data-admin-map-image>
+                            {{ t('admin.maps.no_atlas') }}
+                        </div>
+                    {% endif %}
+                    <div class="admin-map-markers">
+                        {% for player in payload.players %}
+                            {% if player.left is not null and player.top is not null %}
+                                <a href="{{ player.href }}"
+                                   class="admin-map-marker empire-{{ player.empire }}"
+                                   style="left: {{ player.left }}%; top: {{ player.top }}%;"
+                                   title="{{ player.name }} · Lv.{{ player.level }} · {{ player.x }}, {{ player.y }}"
+                                   aria-label="{{ player.name }}"></a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 px-4 py-3">
+                <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">{{ t('admin.maps.legend') }}</p>
+                <ul class="flex flex-wrap gap-3 text-xs text-slate-600">
+                    <li class="inline-flex items-center gap-1.5"><span class="admin-map-dot empire-1"></span>{{ t('empire.1') }}</li>
+                    <li class="inline-flex items-center gap-1.5"><span class="admin-map-dot empire-2"></span>{{ t('empire.2') }}</li>
+                    <li class="inline-flex items-center gap-1.5"><span class="admin-map-dot empire-3"></span>{{ t('empire.3') }}</li>
+                </ul>
+            </div>
+        {% else %}
+            <p class="px-4 py-10 text-center text-sm text-slate-500">{{ t('admin.maps.empty') }}</p>
+        {% endif %}
+    </div>
+</div>

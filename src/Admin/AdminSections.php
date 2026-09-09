@@ -38,6 +38,11 @@ class AdminSections
                         'label' => 'admin.nav.characters',
                     ],
                     [
+                        'id' => 'maps',
+                        'path' => '/admin/maps',
+                        'label' => 'admin.nav.maps',
+                    ],
+                    [
                         'id' => 'guilds',
                         'path' => '/admin/guilds',
                         'label' => 'admin.nav.guilds',

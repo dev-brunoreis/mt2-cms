@@ -2,3 +2,4 @@
 .env
 /var/
 /game/client/icon
+/game/client/ui

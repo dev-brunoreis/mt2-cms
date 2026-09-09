@@ -8,7 +8,9 @@
         "item_list": "client/item_list.txt",
         "itemdesc": "client/itemdesc.txt",
         "icon_root": "client/icon",
-        "drops": "server"
+        "drops": "server",
+        "maps": "maps",
+        "atlas": "client/ui"
     },
     "drops": {
         "mob_drop_item": "mob_drop_item.txt",

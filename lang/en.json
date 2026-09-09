@@ -225,6 +225,41 @@
         "7d": "1 week"
       }
     },
+    "maps": {
+      "title": "Live map",
+      "lead": "Characters on the selected map from their saved position. Refresh the page to update.",
+      "select": "Map",
+      "empty": "No maps found. Copy the server map index and Setting.txt files into game/maps.",
+      "no_files": "Map files are missing.",
+      "no_atlas": "This map has no atlas image in the client dump.",
+      "not_found": "Map not found.",
+      "legend": "Empire",
+      "index_folder": "Index {index} · {folder}",
+      "online_count": {
+        "one": "{count} character on this map",
+        "other": "{count} characters on this map"
+      },
+      "names": {
+        "metin2_map_a1": "Shinsoo — village",
+        "metin2_map_a3": "Shinsoo — valley",
+        "metin2_map_b1": "Chunjo — village",
+        "metin2_map_b3": "Chunjo — valley",
+        "metin2_map_c1": "Jinno — village",
+        "metin2_map_c3": "Jinno — valley",
+        "map_n_snowm_01": "Mount Sohan",
+        "metin2_map_n_flame_01": "Fireland",
+        "metin2_map_n_desert_01": "Yongbi Desert",
+        "metin2_map_milgyo": "Hwang Temple",
+        "metin2_map_guild_01": "Shinsoo guild land",
+        "metin2_map_guild_02": "Chunjo guild land",
+        "metin2_map_guild_03": "Jinno guild land",
+        "metin2_map_t1": "Temple 1",
+        "metin2_map_t2": "Temple 2",
+        "metin2_map_t3": "Temple 3",
+        "metin2_map_t4": "Temple 4",
+        "metin2_map_trent": "Grotto of Exile 1"
+      }
+    },
     "toggle_menu": "Toggle menu",
     "nav": {
       "store": "Store",
@@ -239,6 +274,7 @@
       "content": "Content",
       "accounts": "Accounts",
       "characters": "Characters",
+      "maps": "Live map",
       "guilds": "Guilds",
       "awards": "Item awards",
       "items": "Items",

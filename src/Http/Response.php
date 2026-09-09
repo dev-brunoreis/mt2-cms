@@ -60,6 +60,21 @@ class Response
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
+    public static function json(array $data, int $status = 200): self
+    {
+        return new self(
+            json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            $status,
+            [
+                'Content-Type' => 'application/json; charset=UTF-8',
+                'Cache-Control' => 'no-store',
+            ],
+        );
+    }
+
     public function withHeader(string $name, string $value): self
     {
         $headers = $this->headers;

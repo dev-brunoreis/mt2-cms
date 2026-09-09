@@ -14,6 +14,8 @@ game/
     item_list.txt
     itemdesc.txt
     icon/
+    ui/                 # atlas DDS + atlas/{map}/atlas.sub
+  maps/                 # server locale map/index + Setting.txt
   db/                   # tab-delimited proto text files
     item_proto.txt
     item_names_en.txt
@@ -40,6 +42,8 @@ Maps logical names to files under `game/`:
 | `paths.item_list` | `client/item_list.txt` | vnum → icon filename |
 | `paths.itemdesc` | `client/itemdesc.txt` | Item tooltip text |
 | `paths.icon_root` | `client/icon` | TGA icons (`item/`, `face/`) |
+| `paths.maps` | `maps` | Server `index` + `Setting.txt` (admin live map) |
+| `paths.atlas` | `client/ui` | Client atlas `.dds` and `atlas/{folder}/atlas.sub` |
 | `paths.drops` | `server` | Directory for drop txt files |
 | `drops.*` | see default | Filename for each drop parser |
 | `faces` | job index → `.tga` | Character face icons |

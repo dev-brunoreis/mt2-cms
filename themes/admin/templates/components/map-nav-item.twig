@@ -1,0 +1,8 @@
+<li data-map-item
+    data-map-search="{{ map.label }} {{ map.folder }} {{ map.index }}">
+    <a href="/admin/maps?map={{ map.index }}"
+       class="admin-map-nav-link {% if selected and selected.index == map.index %}is-active{% endif %}">
+        <span class="min-w-0 truncate">{{ map.label }}</span>
+        <span class="admin-map-count {% if map.online > 0 %}is-hot{% endif %}">{{ map.online }}</span>
+    </a>
+</li>

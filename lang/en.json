@@ -229,6 +229,14 @@
       "title": "Live map",
       "lead": "Characters on the selected map from their saved position. Refresh the page to update.",
       "select": "Map",
+      "search": "Search maps",
+      "search_placeholder": "Search maps…",
+      "filter_empty": "No maps match this search.",
+      "group_online": "Occupied",
+      "group_empty": "Other maps",
+      "roster": "On this map",
+      "no_players": "Nobody is on this map.",
+      "level": "Lv. {level}",
       "empty": "No maps found. Copy the server map index and Setting.txt files into game/maps.",
       "no_files": "Map files are missing.",
       "no_atlas": "This map has no atlas image in the client dump.",
@@ -236,8 +244,8 @@
       "legend": "Empire",
       "index_folder": "Index {index} · {folder}",
       "online_count": {
-        "one": "{count} character on this map",
-        "other": "{count} characters on this map"
+        "one": "{count} character",
+        "other": "{count} characters"
       },
       "names": {
         "metin2_map_a1": "Shinsoo — village",

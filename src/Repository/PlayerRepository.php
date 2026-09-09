@@ -95,6 +95,50 @@ class PlayerRepository extends Repository
         );
     }
 
+    public function countActiveSinceMinutes(int $minutes): int
+    {
+        $minutes = max(1, $minutes);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM `player` WHERE last_play >= DATE_SUB(NOW(), INTERVAL ? MINUTE)',
+            [$minutes],
+        );
+    }
+
+    public function countAccountsActiveSinceMinutes(int $minutes): int
+    {
+        $minutes = max(1, $minutes);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(DISTINCT account_id) FROM `player` WHERE last_play >= DATE_SUB(NOW(), INTERVAL ? MINUTE)',
+            [$minutes],
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listActiveSinceMinutes(int $minutes, int $page, int $perPage): array
+    {
+        $minutes = max(1, $minutes);
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        return $this->revealAll(
+            $this->db()->fetchAll(
+                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                        a.login AS account_login
+                 FROM `player` p
+                 LEFT JOIN `account`.`account` a ON a.id = p.account_id
+                 WHERE p.last_play >= DATE_SUB(NOW(), INTERVAL ? MINUTE)
+                 ORDER BY p.last_play DESC, p.id DESC
+                 LIMIT ? OFFSET ?',
+                [$minutes, $perPage, $offset],
+            ),
+        );
+    }
+
     public function countForAdmin(?string $q = null): int
     {
         [$where, $params] = $this->adminWhere($q);

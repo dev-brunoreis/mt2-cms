@@ -206,6 +206,25 @@
       "loading": "Loading…",
       "load_error": "Could not load this section."
     },
+    "dashboard": {
+      "title": "Dashboard",
+      "lead": "Players with last activity in the selected window (from character last play time).",
+      "range_label": "Activity window",
+      "players": "Players",
+      "accounts": "Accounts",
+      "empty": "No players in this window.",
+      "list_count": {
+        "one": "{count} player in this window",
+        "other": "{count} players in this window"
+      },
+      "range": {
+        "5m": "5 minutes",
+        "1h": "1 hour",
+        "12h": "12 hours",
+        "24h": "24 hours",
+        "7d": "1 week"
+      }
+    },
     "toggle_menu": "Toggle menu",
     "nav": {
       "store": "Store",
@@ -215,6 +234,8 @@
       "appearance": "Appearance",
       "localization": "Localization",
       "game": "Game",
+      "overview": "Overview",
+      "dashboard": "Dashboard",
       "content": "Content",
       "accounts": "Accounts",
       "characters": "Characters",

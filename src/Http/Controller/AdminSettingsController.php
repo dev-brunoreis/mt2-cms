@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
-use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -29,11 +28,6 @@ class AdminSettingsController extends AdminController
         private Locales $locales,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
-    }
-
-    public function index(): Response
-    {
-        return $this->redirect(AdminSections::firstPath());
     }
 
     public function registration(): Response

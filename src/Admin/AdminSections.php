@@ -13,6 +13,17 @@ class AdminSections
     {
         return [
             [
+                'id' => 'overview',
+                'label' => 'admin.nav.overview',
+                'children' => [
+                    [
+                        'id' => 'dashboard',
+                        'path' => '/admin',
+                        'label' => 'admin.nav.dashboard',
+                    ],
+                ],
+            ],
+            [
                 'id' => 'game',
                 'label' => 'admin.nav.game',
                 'children' => [

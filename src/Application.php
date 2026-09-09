@@ -15,6 +15,7 @@ use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAuthController;
 use Mt2Cms\Http\Controller\AdminAwardsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
+use Mt2Cms\Http\Controller\AdminDashboardController;
 use Mt2Cms\Http\Controller\AdminDropsController;
 use Mt2Cms\Http\Controller\AdminGameProtoController;
 use Mt2Cms\Http\Controller\AdminGmsController;
@@ -148,7 +149,7 @@ class Application
             $r->addRoute('GET', '/admin/login', [AdminAuthController::class, 'showLogin']);
             $r->addRoute('POST', '/admin/login', [AdminAuthController::class, 'login']);
             $r->addRoute('POST', '/admin/logout', [AdminAuthController::class, 'logout']);
-            $r->addRoute('GET', '/admin', [AdminSettingsController::class, 'index']);
+            $r->addRoute('GET', '/admin', [AdminDashboardController::class, 'index']);
             $r->addRoute('GET', '/admin/registration', [AdminSettingsController::class, 'registration']);
             $r->addRoute('POST', '/admin/registration', [AdminSettingsController::class, 'saveRegistration']);
             $r->addRoute('GET', '/admin/themes', [AdminSettingsController::class, 'themes']);
@@ -455,6 +456,15 @@ class Application
                 $this->translator,
                 $this->adminAuth,
                 $this->adminTheme,
+            ),
+            AdminDashboardController::class => new AdminDashboardController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->players,
             ),
             AdminSettingsController::class => new AdminSettingsController(
                 $this->theme,

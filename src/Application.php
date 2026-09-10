@@ -21,16 +21,20 @@ use Mt2Cms\Http\Controller\AdminGameProtoController;
 use Mt2Cms\Http\Controller\AdminGmsController;
 use Mt2Cms\Http\Controller\AdminGuildsController;
 use Mt2Cms\Http\Controller\AdminLogsController;
+use Mt2Cms\Http\Controller\AdminNewsController;
 use Mt2Cms\Http\Controller\AdminRefineController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AdminShopsController;
+use Mt2Cms\Http\Controller\AdminTicketsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\LocaleController;
+use Mt2Cms\Http\Controller\NewsController;
 use Mt2Cms\Http\Controller\PlayerController;
 use Mt2Cms\Http\Controller\RankingController;
 use Mt2Cms\Http\Controller\SetupController;
+use Mt2Cms\Http\Controller\TicketController;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
@@ -43,11 +47,14 @@ use Mt2Cms\Repository\GuildRepository;
 use Mt2Cms\Repository\ItemAwardRepository;
 use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\LogRepository;
+use Mt2Cms\Repository\NewsCommentRepository;
+use Mt2Cms\Repository\NewsRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\RefineRepository;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Repository\ShopRepository;
+use Mt2Cms\Repository\TicketRepository;
 use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemIconCatalog;
@@ -61,9 +68,13 @@ use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
+use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Service\TicketUploadService;
+use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Theme\ThemeEngine;
 
 use function FastRoute\simpleDispatcher;
@@ -101,6 +112,12 @@ class Application
     private SettingsRepository $settingsRepo;
     private SettingsService $settings;
     private ThemeCatalog $themeCatalog;
+    private NewsRepository $news;
+    private NewsCommentRepository $newsComments;
+    private TicketRepository $tickets;
+    private HtmlSanitizer $htmlSanitizer;
+    private NewsUploadService $newsUploads;
+    private TicketUploadService $ticketUploads;
 
     public function __construct()
     {
@@ -142,6 +159,16 @@ class Application
             $r->addRoute('POST', '/logout', [AuthController::class, 'logout']);
             $r->addRoute('POST', '/locale', [LocaleController::class, 'update']);
             $r->addRoute('GET', '/account', [AccountController::class, 'index']);
+            $r->addRoute('GET', '/account/tickets', [TicketController::class, 'index']);
+            $r->addRoute('GET', '/account/tickets/new', [TicketController::class, 'create']);
+            $r->addRoute('POST', '/account/tickets', [TicketController::class, 'store']);
+            $r->addRoute('GET', '/account/tickets/{id:\d+}', [TicketController::class, 'show']);
+            $r->addRoute('GET', '/account/tickets/{id:\d+}/attachments/{attachmentId:\d+}', [TicketController::class, 'downloadAttachment']);
+            $r->addRoute('POST', '/account/tickets/{id:\d+}/reply', [TicketController::class, 'reply']);
+            $r->addRoute('POST', '/account/tickets/{id:\d+}/close', [TicketController::class, 'close']);
+            $r->addRoute('GET', '/news', [NewsController::class, 'index']);
+            $r->addRoute('GET', '/news/{id:\d+}', [NewsController::class, 'show']);
+            $r->addRoute('POST', '/news/{id:\d+}/comment', [NewsController::class, 'comment']);
             $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
             $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
             $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);
@@ -177,6 +204,25 @@ class Application
             $r->addRoute('GET', '/admin/awards/new', [AdminAwardsController::class, 'create']);
             $r->addRoute('POST', '/admin/awards', [AdminAwardsController::class, 'store']);
             $r->addRoute('POST', '/admin/awards/{id:\d+}/delete', [AdminAwardsController::class, 'destroy']);
+            $r->addRoute('GET', '/admin/news', [AdminNewsController::class, 'index']);
+            $r->addRoute('GET', '/admin/news/new', [AdminNewsController::class, 'create']);
+            $r->addRoute('POST', '/admin/news', [AdminNewsController::class, 'store']);
+            $r->addRoute('POST', '/admin/news/upload', [AdminNewsController::class, 'upload']);
+            $r->addRoute('GET', '/admin/news/comments', [AdminNewsController::class, 'comments']);
+            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/approve', [AdminNewsController::class, 'approveComment']);
+            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/reject', [AdminNewsController::class, 'rejectComment']);
+            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/delete', [AdminNewsController::class, 'deleteComment']);
+            $r->addRoute('GET', '/admin/news/settings', [AdminNewsController::class, 'settings']);
+            $r->addRoute('POST', '/admin/news/settings', [AdminNewsController::class, 'saveSettings']);
+            $r->addRoute('GET', '/admin/news/{id:\d+}', [AdminNewsController::class, 'edit']);
+            $r->addRoute('POST', '/admin/news/{id:\d+}', [AdminNewsController::class, 'update']);
+            $r->addRoute('POST', '/admin/news/{id:\d+}/delete', [AdminNewsController::class, 'destroy']);
+            $r->addRoute('GET', '/admin/tickets', [AdminTicketsController::class, 'index']);
+            $r->addRoute('GET', '/admin/tickets/{id:\d+}', [AdminTicketsController::class, 'show']);
+            $r->addRoute('GET', '/admin/tickets/{id:\d+}/attachments/{attachmentId:\d+}', [AdminTicketsController::class, 'downloadAttachment']);
+            $r->addRoute('POST', '/admin/tickets/{id:\d+}/reply', [AdminTicketsController::class, 'reply']);
+            $r->addRoute('POST', '/admin/tickets/{id:\d+}/close', [AdminTicketsController::class, 'close']);
+            $r->addRoute('POST', '/admin/tickets/{id:\d+}/reopen', [AdminTicketsController::class, 'reopen']);
             $r->addRoute('GET', '/admin/shops', [AdminShopsController::class, 'index']);
             $r->addRoute('GET', '/admin/shops/new', [AdminShopsController::class, 'create']);
             $r->addRoute('POST', '/admin/shops', [AdminShopsController::class, 'store']);
@@ -289,8 +335,21 @@ class Application
     private function bootstrapInstalled(): void
     {
         $this->cmsDb = Database::forCms();
+        $schema = new CmsSchema($this->cmsDb);
+        $schema->ensure();
+        $schema->seedDefaults([
+            'news_comments_enabled' => '1',
+            'news_comments_require_approval' => '0',
+        ]);
+
         $this->settingsRepo = new SettingsRepository($this->cmsDb);
         $this->settings = new SettingsService($this->settingsRepo, $this->themeCatalog);
+        $this->htmlSanitizer = new HtmlSanitizer();
+        $this->newsUploads = new NewsUploadService(BASE_DIR . '/public');
+        $this->ticketUploads = new TicketUploadService(BASE_DIR . '/var/uploads/tickets');
+        $this->news = new NewsRepository($this->cmsDb);
+        $this->newsComments = new NewsCommentRepository($this->cmsDb);
+        $this->tickets = new TicketRepository($this->cmsDb);
 
         $defaultLocale = $this->settings->defaultLocale();
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
@@ -396,6 +455,25 @@ class Application
                 $this->auth,
                 $this->csrf,
                 $this->translator,
+                $this->news,
+            ),
+            NewsController::class => new NewsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+            ),
+            TicketController::class => new TicketController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->tickets,
+                $this->ticketUploads,
+                $this->htmlSanitizer,
             ),
             AuthController::class => new AuthController(
                 $this->theme,
@@ -551,6 +629,30 @@ class Application
                 $this->accounts,
                 $this->players,
                 $this->gameProto,
+            ),
+            AdminNewsController::class => new AdminNewsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+                $this->htmlSanitizer,
+                $this->newsUploads,
+            ),
+            AdminTicketsController::class => new AdminTicketsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->tickets,
+                $this->ticketUploads,
+                $this->htmlSanitizer,
             ),
             AdminShopsController::class => new AdminShopsController(
                 $this->theme,

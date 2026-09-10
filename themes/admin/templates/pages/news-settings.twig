@@ -1,0 +1,30 @@
+<form id="admin-news-settings-form" method="post" action="/admin/news/settings" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.news.settings_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.news.settings_lead') }}</span>
+        </legend>
+
+        <div class="space-y-4">
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="news_comments_enabled" value="1"
+                       {% if commentsEnabled %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.enable_comments') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.news.enable_comments_help') }}</span>
+                </span>
+            </label>
+
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="news_comments_require_approval" value="1"
+                       {% if commentsRequireApproval %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.require_approval') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.news.require_approval_help') }}</span>
+                </span>
+            </label>
+        </div>
+    </fieldset>
+</form>

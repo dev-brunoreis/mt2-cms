@@ -11,7 +11,7 @@ class Response
         'X-Content-Type-Options' => 'nosniff',
         'X-Frame-Options' => 'DENY',
         'Referrer-Policy' => 'strict-origin-when-cross-origin',
-        'Content-Security-Policy' => "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        'Content-Security-Policy' => "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob:; font-src 'self' https://cdn.jsdelivr.net data:; connect-src 'self' https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
     ];
 
     /** @var array<string, string> */
@@ -73,6 +73,30 @@ class Response
                 'Cache-Control' => 'no-store',
             ],
         );
+    }
+
+    public static function download(string $absolutePath, string $downloadName, string $mime): self
+    {
+        if (!is_file($absolutePath) || !is_readable($absolutePath)) {
+            return self::notFound();
+        }
+
+        $body = file_get_contents($absolutePath);
+
+        if ($body === false) {
+            return self::notFound();
+        }
+
+        $ascii = preg_replace('/[^A-Za-z0-9._-]+/', '_', $downloadName) ?: 'download';
+        $disposition = 'attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($downloadName);
+
+        return new self($body, 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => $disposition,
+            'Content-Length' => (string) strlen($body),
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function withHeader(string $name, string $value): self

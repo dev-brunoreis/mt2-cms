@@ -1,0 +1,212 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Http\Controller;
+
+use Mt2Cms\Auth\AdminAuth;
+use Mt2Cms\Auth\Auth;
+use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
+use Mt2Cms\Repository\TicketRepository;
+use Mt2Cms\Service\TicketUploadService;
+use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Theme\ThemeEngine;
+
+class AdminTicketsController extends AdminController
+{
+    private const PER_PAGE = 20;
+    private const MAX_HTML_BYTES = 20000;
+    private const MAX_PLAIN_CHARS = 5000;
+
+    public function __construct(
+        ThemeEngine $theme,
+        Auth $auth,
+        Csrf $csrf,
+        Translator $translator,
+        AdminAuth $adminAuth,
+        ThemeEngine $adminTheme,
+        private TicketRepository $tickets,
+        private TicketUploadService $uploads,
+        private HtmlSanitizer $sanitizer,
+    ) {
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+    }
+
+    public function index(): Response
+    {
+        $q = trim((string) ($_GET['q'] ?? ''));
+        $query = $q !== '' ? $q : null;
+        $status = (string) ($_GET['status'] ?? '');
+        $statusFilter = in_array($status, ['open', 'answered', 'closed'], true) ? $status : null;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $total = $this->tickets->countForAdmin($query, $statusFilter);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        return $this->adminView('tickets', 'pages/tickets.twig', [
+            'title' => $this->t('admin.tickets.title'),
+            'pageLead' => $this->t('admin.tickets.lead'),
+            'tickets' => $this->tickets->listForAdmin($page, self::PER_PAGE, $query, $statusFilter),
+            'query' => $q,
+            'status' => $statusFilter ?? '',
+            'page' => $page,
+            'total' => $total,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    public function show(string $id): Response
+    {
+        $ticket = $this->tickets->findById((int) $id);
+
+        if ($ticket === null) {
+            $this->flash('error', $this->t('admin.tickets.not_found'));
+
+            return $this->redirect('/admin/tickets');
+        }
+
+        return $this->adminView('tickets', 'pages/ticket-show.twig', [
+            'title' => $this->t('admin.tickets.view', ['id' => (string) $ticket['id']]),
+            'pageLead' => (string) $ticket['subject'],
+            'ticket' => $ticket,
+            'messages' => $this->tickets->messages((int) $ticket['id']),
+            'attachmentsByMessage' => $this->tickets->attachmentsGroupedByMessage((int) $ticket['id']),
+            'attachmentBase' => '/admin/tickets/' . (int) $ticket['id'] . '/attachments/',
+        ]);
+    }
+
+    public function downloadAttachment(string $id, string $attachmentId): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        $ticket = $this->tickets->findById((int) $id);
+
+        if ($ticket === null) {
+            return Response::notFound();
+        }
+
+        $attachment = $this->tickets->findAttachment((int) $ticket['id'], (int) $attachmentId);
+
+        if ($attachment === null) {
+            return Response::notFound();
+        }
+
+        try {
+            $path = $this->uploads->absolutePath((string) $attachment['stored_name']);
+        } catch (\InvalidArgumentException) {
+            return Response::notFound();
+        }
+
+        return Response::download(
+            $path,
+            (string) $attachment['original_name'],
+            (string) $attachment['mime'],
+        );
+    }
+
+    public function reply(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/tickets/' . (int) $id);
+        }
+
+        $ticket = $this->tickets->findById((int) $id);
+
+        if ($ticket === null) {
+            $this->flash('error', $this->t('admin.tickets.not_found'));
+
+            return $this->redirect('/admin/tickets');
+        }
+
+        if ((string) $ticket['status'] === 'closed') {
+            $this->flash('error', $this->t('admin.tickets.closed'));
+
+            return $this->redirect('/admin/tickets/' . (int) $id);
+        }
+
+        $body = $this->sanitizer->sanitize((string) ($_POST['body'] ?? ''), false);
+
+        if (!$this->isValidHtmlBody($body)) {
+            $this->flash('error', $this->t('admin.tickets.invalid_reply'));
+
+            return $this->redirect('/admin/tickets/' . (int) $id);
+        }
+
+        $admin = $this->adminAuth->user();
+
+        if ($admin === null) {
+            return $this->redirect('/admin/login');
+        }
+
+        $this->tickets->addMessage(
+            (int) $ticket['id'],
+            'admin',
+            (int) $admin['id'],
+            (string) $admin['login'],
+            $body,
+        );
+        $this->tickets->setStatus((int) $ticket['id'], 'answered');
+        $this->tickets->touch((int) $ticket['id']);
+        $this->flash('success', $this->t('admin.tickets.replied'));
+
+        return $this->redirect('/admin/tickets/' . (int) $id);
+    }
+
+    public function close(string $id): Response
+    {
+        return $this->setStatus((int) $id, 'closed', 'admin.tickets.closed_ok');
+    }
+
+    public function reopen(string $id): Response
+    {
+        return $this->setStatus((int) $id, 'open', 'admin.tickets.reopened');
+    }
+
+    private function isValidHtmlBody(string $html): bool
+    {
+        if ($html === '' || mb_strlen($html) > self::MAX_HTML_BYTES) {
+            return false;
+        }
+
+        $plain = trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+        return $plain !== '' && mb_strlen($plain) <= self::MAX_PLAIN_CHARS;
+    }
+
+    private function setStatus(int $id, string $status, string $successKey): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/tickets/' . $id);
+        }
+
+        if ($this->tickets->findById($id) === null) {
+            $this->flash('error', $this->t('admin.tickets.not_found'));
+
+            return $this->redirect('/admin/tickets');
+        }
+
+        $this->tickets->setStatus($id, $status);
+        $this->flash('success', $this->t($successKey));
+
+        return $this->redirect('/admin/tickets/' . $id);
+    }
+}

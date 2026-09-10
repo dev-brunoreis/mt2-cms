@@ -1,0 +1,91 @@
+<div class="space-y-6">
+    <div class="admin-panel p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <a href="/admin/tickets" class="text-sm text-indigo-600 hover:underline">{{ t('admin.tickets.back') }}</a>
+                <p class="mt-3 text-sm text-slate-500">
+                    {{ t('admin.tickets.account') }}:
+                    <span class="font-medium text-slate-800">{{ ticket.account_login }}</span>
+                    · #{{ ticket.id }}
+                    · {{ ticket.created_at|game_date }}
+                </p>
+                <p class="mt-2">
+                    <span class="admin-badge
+                        {% if ticket.status == 'open' %}admin-badge-ok
+                        {% elseif ticket.status == 'answered' %}admin-badge-ok
+                        {% else %}admin-badge-danger{% endif %}">
+                        {{ t('admin.tickets.status_' ~ ticket.status) }}
+                    </span>
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% if ticket.status == 'closed' %}
+                    <form method="post" action="/admin/tickets/{{ ticket.id }}/reopen">
+                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                        <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                            {{ t('admin.tickets.reopen') }}
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" action="/admin/tickets/{{ ticket.id }}/close"
+                          data-confirm="{{ t('admin.tickets.confirm_close') }}">
+                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                        <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                            {{ t('admin.tickets.close') }}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        {% for message in messages %}
+            <div class="admin-panel p-4 {% if message.author_type == 'admin' %}ring-1 ring-indigo-100{% endif %}">
+                <div class="mb-2 flex flex-wrap items-center gap-2 text-sm">
+                    <span class="font-semibold text-slate-800">{{ message.author_login }}</span>
+                    <span class="admin-badge">{{ t('admin.tickets.author_' ~ message.author_type) }}</span>
+                    <span class="text-slate-400">{{ message.created_at|game_date }}</span>
+                </div>
+                <div class="ticket-body space-y-2 text-sm text-slate-700 [&_a]:text-indigo-600 [&_a]:underline [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:text-base [&_h3]:font-semibold [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc">
+                    {{ message.body|ticket_html }}
+                </div>
+                {% set files = attachmentsByMessage[message.id]|default([]) %}
+                {% if files is not empty %}
+                    <ul class="mt-3 space-y-1 border-t border-slate-100 pt-3">
+                        <li class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.tickets.attachments') }}</li>
+                        {% for file in files %}
+                            <li>
+                                <a href="{{ attachmentBase }}{{ file.id }}"
+                                   class="text-sm font-medium text-indigo-600 hover:underline">
+                                    {{ file.original_name }}
+                                    <span class="font-normal text-slate-400">({{ (file.size_bytes / 1024)|number_format(0) }} KB)</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if ticket.status != 'closed' %}
+        <form id="admin-ticket-reply-form" method="post" action="/admin/tickets/{{ ticket.id }}/reply" class="admin-panel p-6 space-y-3">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <div class="admin-field">
+                <label for="ticket-reply">{{ t('admin.tickets.reply') }}</label>
+                <textarea id="ticket-reply" name="body" rows="6" data-html-editor data-editor-height="280"
+                          class="admin-input"></textarea>
+            </div>
+            <button type="submit" class="admin-btn-primary cursor-pointer rounded-md px-4 py-2 text-sm font-semibold text-white">
+                {{ t('admin.tickets.reply_submit') }}
+            </button>
+        </form>
+        <script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.0/tinymce.min.js" referrerpolicy="origin"></script>
+        <script src="/js/html-editor.js" defer></script>
+    {% else %}
+        <p class="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            {{ t('admin.tickets.closed') }}
+        </p>
+    {% endif %}
+</div>

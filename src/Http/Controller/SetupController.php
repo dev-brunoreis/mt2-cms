@@ -185,6 +185,8 @@ class SetupController extends Controller
                 'available_themes' => json_encode([$setup['theme']], JSON_THROW_ON_ERROR),
                 'active_theme' => $setup['theme'],
                 'default_locale' => 'en',
+                'news_comments_enabled' => '1',
+                'news_comments_require_approval' => '0',
             ]);
 
             $admins = new AdminRepository($cmsDb);

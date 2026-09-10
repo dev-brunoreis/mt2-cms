@@ -1,0 +1,416 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Http\Controller;
+
+use Mt2Cms\Auth\AdminAuth;
+use Mt2Cms\Auth\Auth;
+use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Translator;
+use Mt2Cms\Repository\NewsCommentRepository;
+use Mt2Cms\Repository\NewsRepository;
+use Mt2Cms\Service\NewsUploadService;
+use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Theme\ThemeEngine;
+
+class AdminNewsController extends AdminController
+{
+    private const PER_PAGE = 20;
+
+    public function __construct(
+        ThemeEngine $theme,
+        Auth $auth,
+        Csrf $csrf,
+        Translator $translator,
+        AdminAuth $adminAuth,
+        ThemeEngine $adminTheme,
+        private NewsRepository $news,
+        private NewsCommentRepository $comments,
+        private SettingsService $settings,
+        private HtmlSanitizer $sanitizer,
+        private NewsUploadService $uploads,
+    ) {
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+    }
+
+    public function index(): Response
+    {
+        $q = trim((string) ($_GET['q'] ?? ''));
+        $query = $q !== '' ? $q : null;
+        $status = (string) ($_GET['status'] ?? '');
+        $statusFilter = in_array($status, ['draft', 'published'], true) ? $status : null;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $total = $this->news->countForAdmin($query, $statusFilter);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        return $this->adminView('news', 'pages/news.twig', [
+            'title' => $this->t('admin.news.title'),
+            'pageLead' => $this->t('admin.news.lead'),
+            'headerHref' => '/admin/news/new',
+            'headerActionLabel' => $this->t('admin.news.create'),
+            'posts' => $this->news->listForAdmin($page, self::PER_PAGE, $query, $statusFilter),
+            'query' => $q,
+            'status' => $statusFilter ?? '',
+            'page' => $page,
+            'total' => $total,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return $this->formView($this->prefill());
+    }
+
+    public function store(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/new');
+        }
+
+        $input = $this->formInput();
+
+        try {
+            $this->validateInput($input);
+            $admin = $this->adminAuth->user();
+
+            if ($admin === null) {
+                throw new \RuntimeException('admin.login_required');
+            }
+
+            $this->news->create([
+                'title' => $input['title'],
+                'body' => $this->sanitizer->sanitize($input['body']),
+                'cover_image' => $input['cover_image'],
+                'author_admin_id' => (int) $admin['id'],
+                'author_login' => (string) $admin['login'],
+                'status' => $input['status'],
+                'comments_enabled' => $input['comments_enabled'],
+            ]);
+            $this->flash('success', $this->t('admin.news.created'));
+
+            return $this->redirect('/admin/news');
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return $this->formView($input, $this->t($e->getMessage()), 422);
+        }
+    }
+
+    public function edit(string $id): Response
+    {
+        $post = $this->news->findById((int) $id);
+
+        if ($post === null) {
+            $this->flash('error', $this->t('admin.news.not_found'));
+
+            return $this->redirect('/admin/news');
+        }
+
+        return $this->formView([
+            'id' => (int) $post['id'],
+            'title' => (string) $post['title'],
+            'body' => (string) $post['body'],
+            'cover_image' => $post['cover_image'] !== null ? (string) $post['cover_image'] : '',
+            'status' => (string) $post['status'],
+            'comments_enabled' => (int) $post['comments_enabled'] === 1,
+            'author_login' => (string) $post['author_login'],
+            'views' => (int) $post['views'],
+            'published_at' => $post['published_at'],
+        ]);
+    }
+
+    public function update(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/' . (int) $id);
+        }
+
+        $existing = $this->news->findById((int) $id);
+
+        if ($existing === null) {
+            $this->flash('error', $this->t('admin.news.not_found'));
+
+            return $this->redirect('/admin/news');
+        }
+
+        $input = $this->formInput();
+        $input['id'] = (int) $id;
+        $input['author_login'] = (string) $existing['author_login'];
+        $input['views'] = (int) $existing['views'];
+        $input['published_at'] = $existing['published_at'];
+
+        try {
+            $this->validateInput($input);
+            $this->news->update((int) $id, [
+                'title' => $input['title'],
+                'body' => $this->sanitizer->sanitize($input['body']),
+                'cover_image' => $input['cover_image'],
+                'status' => $input['status'],
+                'comments_enabled' => $input['comments_enabled'],
+            ]);
+            $this->flash('success', $this->t('admin.news.update_ok'));
+
+            return $this->redirect('/admin/news/' . (int) $id);
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return $this->formView($input, $this->t($e->getMessage()), 422);
+        }
+    }
+
+    public function destroy(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news');
+        }
+
+        if (!$this->news->delete((int) $id)) {
+            $this->flash('error', $this->t('admin.news.delete_failed'));
+        } else {
+            $this->flash('success', $this->t('admin.news.deleted'));
+        }
+
+        return $this->redirect('/admin/news');
+    }
+
+    public function upload(): Response
+    {
+        if (!$this->adminAuth->check()) {
+            return Response::json(['error' => $this->t('admin.login_required')], 401);
+        }
+
+        $token = $_POST['_csrf'] ?? null;
+
+        if (!$this->csrf->validate(is_string($token) ? $token : null)) {
+            return Response::json(['error' => $this->t('auth.invalid_csrf')], 403);
+        }
+
+        try {
+            $file = $_FILES['file'] ?? null;
+
+            if (!is_array($file)) {
+                throw new \InvalidArgumentException('admin.news.upload_failed');
+            }
+
+            $url = $this->uploads->store($file);
+
+            return Response::json(['location' => $url]);
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return Response::json(['error' => $this->t($e->getMessage())], 422);
+        }
+    }
+
+    public function comments(): Response
+    {
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $total = $this->comments->countPending();
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        return $this->adminView('news-comments', 'pages/news-comments.twig', [
+            'title' => $this->t('admin.news.comments_title'),
+            'pageLead' => $this->t('admin.news.comments_lead'),
+            'comments' => $this->comments->listPending($page, self::PER_PAGE),
+            'page' => $page,
+            'total' => $total,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    public function approveComment(string $id): Response
+    {
+        return $this->setCommentStatus((int) $id, 'approved');
+    }
+
+    public function rejectComment(string $id): Response
+    {
+        return $this->setCommentStatus((int) $id, 'rejected');
+    }
+
+    public function deleteComment(string $id): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/comments');
+        }
+
+        if (!$this->comments->delete((int) $id)) {
+            $this->flash('error', $this->t('admin.news.comment_delete_failed'));
+        } else {
+            $this->flash('success', $this->t('admin.news.comment_deleted'));
+        }
+
+        return $this->redirect('/admin/news/comments');
+    }
+
+    public function settings(): Response
+    {
+        return $this->adminView('news-settings', 'pages/news-settings.twig', [
+            'title' => $this->t('admin.news.settings_title'),
+            'pageLead' => $this->t('admin.news.settings_lead'),
+            'formId' => 'admin-news-settings-form',
+            'commentsEnabled' => $this->settings->newsCommentsEnabled(),
+            'commentsRequireApproval' => $this->settings->newsCommentsRequireApproval(),
+        ]);
+    }
+
+    public function saveSettings(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/settings');
+        }
+
+        $this->settings->setNewsCommentsEnabled(isset($_POST['news_comments_enabled']));
+        $this->settings->setNewsCommentsRequireApproval(isset($_POST['news_comments_require_approval']));
+        $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect('/admin/news/settings');
+    }
+
+    private function setCommentStatus(int $id, string $status): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/comments');
+        }
+
+        if (!$this->comments->setStatus($id, $status)) {
+            $this->flash('error', $this->t('admin.news.comment_update_failed'));
+        } else {
+            $this->flash(
+                'success',
+                $status === 'approved'
+                    ? $this->t('admin.news.comment_approved')
+                    : $this->t('admin.news.comment_rejected'),
+            );
+        }
+
+        return $this->redirect('/admin/news/comments');
+    }
+
+    /**
+     * @param array<string, mixed> $post
+     */
+    private function formView(array $post = [], ?string $error = null, int $status = 200): Response
+    {
+        $isEdit = isset($post['id']);
+
+        return $this->adminView('news', 'pages/news-form.twig', [
+            'title' => $isEdit ? $this->t('admin.news.edit') : $this->t('admin.news.create'),
+            'pageLead' => $this->t('admin.news.form_lead'),
+            'formId' => 'admin-news-form',
+            'post' => $post,
+            'isEdit' => $isEdit,
+            'error' => $error,
+        ], $status);
+    }
+
+    /**
+     * @return array{title: string, body: string, cover_image: string, status: string, comments_enabled: bool}
+     */
+    private function prefill(): array
+    {
+        return [
+            'title' => '',
+            'body' => '',
+            'cover_image' => '',
+            'status' => 'draft',
+            'comments_enabled' => true,
+        ];
+    }
+
+    /**
+     * @return array{title: string, body: string, cover_image: ?string, status: string, comments_enabled: bool}
+     */
+    private function formInput(): array
+    {
+        $cover = trim((string) ($_POST['cover_image'] ?? ''));
+        $status = (string) ($_POST['status'] ?? 'draft');
+
+        if (!in_array($status, ['draft', 'published'], true)) {
+            $status = 'draft';
+        }
+
+        return [
+            'title' => trim((string) ($_POST['title'] ?? '')),
+            'body' => (string) ($_POST['body'] ?? ''),
+            'cover_image' => $cover !== '' ? $cover : null,
+            'status' => $status,
+            'comments_enabled' => isset($_POST['comments_enabled']),
+        ];
+    }
+
+    /**
+     * @param array{title: string, body: string, cover_image: ?string, status: string, comments_enabled: bool} $input
+     */
+    private function validateInput(array $input): void
+    {
+        if ($input['title'] === '' || mb_strlen($input['title']) > 200) {
+            throw new \InvalidArgumentException('admin.news.invalid_title');
+        }
+
+        $body = trim(strip_tags($input['body']));
+
+        if ($body === '') {
+            throw new \InvalidArgumentException('admin.news.invalid_body');
+        }
+
+        if ($input['cover_image'] !== null && !$this->isAllowedCover($input['cover_image'])) {
+            throw new \InvalidArgumentException('admin.news.invalid_cover');
+        }
+    }
+
+    private function isAllowedCover(string $src): bool
+    {
+        if (!str_starts_with($src, '/uploads/news/')) {
+            return false;
+        }
+
+        if (str_contains($src, '..') || str_contains($src, '\\')) {
+            return false;
+        }
+
+        return (bool) preg_match('#^/uploads/news/[0-9]{4}/[0-9]{2}/[a-zA-Z0-9._-]+$#', $src);
+    }
+}

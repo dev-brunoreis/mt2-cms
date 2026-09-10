@@ -3,3 +3,5 @@
 /var/
 /game/client/icon
 /game/client/ui
+/public/uploads/*
+!/public/uploads/.gitkeep

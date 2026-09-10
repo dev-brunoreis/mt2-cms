@@ -1,0 +1,76 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.tickets.count', {count: total}) }}
+            {% if query %} {{ t('admin.tickets.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/tickets" class="flex flex-wrap gap-2">
+            <select name="status" class="admin-input admin-input-compact">
+                <option value="">{{ t('admin.tickets.status_all') }}</option>
+                <option value="open" {% if status == 'open' %}selected{% endif %}>{{ t('admin.tickets.status_open') }}</option>
+                <option value="answered" {% if status == 'answered' %}selected{% endif %}>{{ t('admin.tickets.status_answered') }}</option>
+                <option value="closed" {% if status == 'closed' %}selected{% endif %}>{{ t('admin.tickets.status_closed') }}</option>
+            </select>
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.tickets.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.tickets.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if tickets is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.tickets.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.tickets.id') }}</th>
+                        <th>{{ t('admin.tickets.subject') }}</th>
+                        <th>{{ t('admin.tickets.account') }}</th>
+                        <th>{{ t('admin.tickets.status') }}</th>
+                        <th>{{ t('admin.tickets.updated') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                        <tr>
+                            <td class="text-slate-400">#{{ ticket.id }}</td>
+                            <td>
+                                <a href="/admin/tickets/{{ ticket.id }}" class="font-medium text-indigo-600 hover:underline">
+                                    {{ ticket.subject }}
+                                </a>
+                            </td>
+                            <td class="text-slate-600">{{ ticket.account_login }}</td>
+                            <td>
+                                <span class="admin-badge
+                                    {% if ticket.status == 'open' %}admin-badge-ok
+                                    {% elseif ticket.status == 'answered' %}admin-badge-ok
+                                    {% else %}admin-badge-danger{% endif %}">
+                                    {{ t('admin.tickets.status_' ~ ticket.status) }}
+                                </span>
+                            </td>
+                            <td class="text-slate-600">{{ ticket.updated_at|game_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/tickets?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.tickets.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.tickets.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/tickets?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.tickets.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

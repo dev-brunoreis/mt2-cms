@@ -1,0 +1,98 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-news-form"
+      method="post"
+      action="{% if isEdit %}/admin/news/{{ post.id }}{% else %}/admin/news{% endif %}"
+      class="admin-panel p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.news.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.news.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="news-title">{{ t('admin.news.post_title') }}</label>
+                <input id="news-title" type="text" name="title" required maxlength="200"
+                       value="{{ post.title|default('') }}" class="admin-input">
+            </div>
+
+            <div class="admin-field">
+                <label for="news-status">{{ t('admin.news.status') }}</label>
+                <select id="news-status" name="status" class="admin-select">
+                    <option value="draft" {% if post.status|default('draft') == 'draft' %}selected{% endif %}>
+                        {{ t('admin.news.status_draft') }}
+                    </option>
+                    <option value="published" {% if post.status|default('draft') == 'published' %}selected{% endif %}>
+                        {{ t('admin.news.status_published') }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="admin-field">
+                <label class="flex items-start gap-3">
+                    <input type="checkbox" name="comments_enabled" value="1"
+                           {% if post.comments_enabled|default(true) %}checked{% endif %}
+                           class="mt-1">
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.comments_enabled') }}</span>
+                        <span class="mt-1 block text-sm text-slate-500">{{ t('admin.news.comments_enabled_help') }}</span>
+                    </span>
+                </label>
+            </div>
+
+            {% if isEdit %}
+                <div class="admin-field">
+                    <label>{{ t('admin.news.author') }}</label>
+                    <p class="text-sm text-slate-600">{{ post.author_login }}</p>
+                </div>
+                <div class="admin-field">
+                    <label>{{ t('admin.news.views') }}</label>
+                    <p class="text-sm text-slate-600">{{ post.views|default(0) }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.news.cover') }}
+            <span class="admin-fieldset-help">{{ t('admin.news.cover_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="news-cover-file">{{ t('admin.news.cover_upload') }}</label>
+                <input id="news-cover-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="news-cover-image">{{ t('admin.news.cover_path') }}</label>
+                <input id="news-cover-image" type="text" name="cover_image"
+                       value="{{ post.cover_image|default('') }}" class="admin-input" readonly>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <img id="news-cover-preview"
+                     src="{{ post.cover_image|default('') }}"
+                     alt=""
+                     class="max-h-48 rounded-md border border-slate-200 object-cover"
+                     {% if not post.cover_image|default('') %}hidden{% endif %}>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.news.body') }}
+            <span class="admin-fieldset-help">{{ t('admin.news.body_help') }}</span>
+        </legend>
+        <textarea id="news-body" name="body" rows="16" class="admin-input">{{ post.body|default('') }}</textarea>
+    </fieldset>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.0/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="/js/admin-news-editor.js" defer></script>

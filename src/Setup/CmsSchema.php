@@ -34,6 +34,90 @@ class CmsSchema
                 PRIMARY KEY (setting_key)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
         );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS news (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                title VARCHAR(200) NOT NULL,
+                body MEDIUMTEXT NOT NULL,
+                cover_image VARCHAR(255) NULL,
+                author_admin_id INT UNSIGNED NOT NULL,
+                author_login VARCHAR(64) NOT NULL,
+                status ENUM(\'draft\', \'published\') NOT NULL DEFAULT \'draft\',
+                comments_enabled TINYINT(1) NOT NULL DEFAULT 1,
+                views INT UNSIGNED NOT NULL DEFAULT 0,
+                published_at DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_news_status_published (status, published_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS news_comments (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                news_id INT UNSIGNED NOT NULL,
+                account_id INT UNSIGNED NOT NULL,
+                account_login VARCHAR(64) NOT NULL,
+                body TEXT NOT NULL,
+                status ENUM(\'pending\', \'approved\', \'rejected\') NOT NULL DEFAULT \'pending\',
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_news_comments_news (news_id, status),
+                KEY idx_news_comments_status (status),
+                CONSTRAINT fk_news_comments_news FOREIGN KEY (news_id) REFERENCES news (id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS tickets (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                account_id INT UNSIGNED NOT NULL,
+                account_login VARCHAR(64) NOT NULL,
+                subject VARCHAR(200) NOT NULL,
+                status ENUM(\'open\', \'answered\', \'closed\') NOT NULL DEFAULT \'open\',
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_tickets_account (account_id),
+                KEY idx_tickets_status (status, updated_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS ticket_messages (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                ticket_id INT UNSIGNED NOT NULL,
+                author_type ENUM(\'user\', \'admin\') NOT NULL,
+                author_id INT UNSIGNED NOT NULL,
+                author_login VARCHAR(64) NOT NULL,
+                body TEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_ticket_messages_ticket (ticket_id, created_at),
+                CONSTRAINT fk_ticket_messages_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS ticket_attachments (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                ticket_id INT UNSIGNED NOT NULL,
+                message_id INT UNSIGNED NOT NULL,
+                stored_name VARCHAR(64) NOT NULL,
+                original_name VARCHAR(180) NOT NULL,
+                mime VARCHAR(64) NOT NULL,
+                size_bytes INT UNSIGNED NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY uniq_ticket_attachment_stored (stored_name),
+                KEY idx_ticket_attachments_ticket (ticket_id),
+                KEY idx_ticket_attachments_message (message_id),
+                CONSTRAINT fk_ticket_attachments_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE,
+                CONSTRAINT fk_ticket_attachments_message FOREIGN KEY (message_id) REFERENCES ticket_messages (id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
     }
 
     /**

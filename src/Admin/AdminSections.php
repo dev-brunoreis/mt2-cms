@@ -49,37 +49,27 @@ class AdminSections
                     ],
                 ],
             ],
-            // [
-            //     'id' => 'content',
-            //     'label' => 'admin.nav.content',
-            //     'children' => [
-            //         [
-            //             'id' => 'items',
-            //             'path' => '/admin/items',
-            //             'label' => 'admin.nav.items',
-            //         ],
-            //         [
-            //             'id' => 'mobs',
-            //             'path' => '/admin/mobs',
-            //             'label' => 'admin.nav.mobs',
-            //         ],
-            //         [
-            //             'id' => 'shops',
-            //             'path' => '/admin/shops',
-            //             'label' => 'admin.nav.shops',
-            //         ],
-            //         [
-            //             'id' => 'refine',
-            //             'path' => '/admin/refine',
-            //             'label' => 'admin.nav.refine',
-            //         ],
-            //         [
-            //             'id' => 'drops',
-            //             'path' => '/admin/drops',
-            //             'label' => 'admin.nav.drops',
-            //         ],
-            //     ],
-            // ],
+            [
+                'id' => 'content',
+                'label' => 'admin.nav.content',
+                'children' => [
+                    [
+                        'id' => 'news',
+                        'path' => '/admin/news',
+                        'label' => 'admin.nav.news',
+                    ],
+                    [
+                        'id' => 'news-comments',
+                        'path' => '/admin/news/comments',
+                        'label' => 'admin.nav.news_comments',
+                    ],
+                    [
+                        'id' => 'tickets',
+                        'path' => '/admin/tickets',
+                        'label' => 'admin.nav.tickets',
+                    ],
+                ],
+            ],
             [
                 'id' => 'logs',
                 'label' => 'admin.nav.logs.group',
@@ -94,6 +84,11 @@ class AdminSections
                         'id' => 'registration',
                         'path' => '/admin/registration',
                         'label' => 'admin.nav.registration',
+                    ],
+                    [
+                        'id' => 'news-settings',
+                        'path' => '/admin/news/settings',
+                        'label' => 'admin.nav.news_settings',
                     ],
                     [
                         'id' => 'themes',

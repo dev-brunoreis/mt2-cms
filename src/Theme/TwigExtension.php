@@ -7,6 +7,7 @@ namespace Mt2Cms\Theme;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
+use Mt2Cms\Support\HtmlSanitizer;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -17,6 +18,7 @@ class TwigExtension extends AbstractExtension
         private Display $display,
         private Translator $translator,
         private ?GameIconService $icons = null,
+        private ?HtmlSanitizer $htmlSanitizer = null,
     ) {
     }
 
@@ -30,6 +32,21 @@ class TwigExtension extends AbstractExtension
             new TwigFilter('duration', [$this->display, 'duration']),
             new TwigFilter('unix_date', [$this->display, 'unixDate']),
             new TwigFilter('game_date', [$this->display, 'datetime']),
+            new TwigFilter('news_html', function (mixed $html): string {
+                $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
+
+                return $sanitizer->sanitize((string) $html);
+            }, ['is_safe' => ['html']]),
+            new TwigFilter('ticket_html', function (mixed $html): string {
+                $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
+
+                return $sanitizer->ticketHtml((string) $html);
+            }, ['is_safe' => ['html']]),
+            new TwigFilter('news_excerpt', function (mixed $html, int $max = 160): string {
+                $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
+
+                return $sanitizer->excerpt((string) $html, $max);
+            }),
         ];
     }
 

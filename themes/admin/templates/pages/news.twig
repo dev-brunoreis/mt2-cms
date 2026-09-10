@@ -1,0 +1,87 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.news.count', {count: total}) }}
+            {% if query %} {{ t('admin.news.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/news" class="flex flex-wrap gap-2">
+            <select name="status" class="admin-input admin-input-compact">
+                <option value="">{{ t('admin.news.status_all') }}</option>
+                <option value="published" {% if status == 'published' %}selected{% endif %}>{{ t('admin.news.status_published') }}</option>
+                <option value="draft" {% if status == 'draft' %}selected{% endif %}>{{ t('admin.news.status_draft') }}</option>
+            </select>
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.news.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.news.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if posts is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.news.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.news.id') }}</th>
+                        <th>{{ t('admin.news.post_title') }}</th>
+                        <th>{{ t('admin.news.author') }}</th>
+                        <th>{{ t('admin.news.status') }}</th>
+                        <th>{{ t('admin.news.views') }}</th>
+                        <th>{{ t('admin.news.updated') }}</th>
+                        <th>{{ t('admin.news.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                        <tr>
+                            <td class="text-slate-400">{{ post.id }}</td>
+                            <td>
+                                <a href="/admin/news/{{ post.id }}" class="font-medium text-indigo-600 hover:underline">
+                                    {{ post.title }}
+                                </a>
+                            </td>
+                            <td class="text-slate-600">{{ post.author_login }}</td>
+                            <td>
+                                <span class="admin-badge {% if post.status == 'published' %}admin-badge-ok{% else %}admin-badge-danger{% endif %}">
+                                    {{ t('admin.news.status_' ~ post.status) }}
+                                </span>
+                            </td>
+                            <td class="text-slate-600">{{ post.views }}</td>
+                            <td class="text-slate-600">{{ post.updated_at|game_date }}</td>
+                            <td>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="/admin/news/{{ post.id }}" class="admin-link-action">{{ t('admin.news.edit') }}</a>
+                                    <form method="post" action="/admin/news/{{ post.id }}/delete"
+                                          data-confirm="{{ t('admin.news.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.news.delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/news?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.news.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.news.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/news?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.news.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

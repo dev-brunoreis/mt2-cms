@@ -7,6 +7,7 @@ namespace Mt2Cms\Theme;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
+use Mt2Cms\Support\HtmlSanitizer;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
@@ -36,7 +37,12 @@ class ThemeEngine
             'autoescape' => 'html',
             'strict_variables' => false,
         ]);
-        $this->twig->addExtension(new TwigExtension(new Display($translator), $translator, $icons));
+        $this->twig->addExtension(new TwigExtension(
+            new Display($translator),
+            $translator,
+            $icons,
+            new HtmlSanitizer(),
+        ));
         $this->twig->addGlobal('locale', $translator->locale());
         $this->twig->addGlobal('html_lang', $translator->htmlLang());
         $this->twig->addGlobal('locales', $locales);

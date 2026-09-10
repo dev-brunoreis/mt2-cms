@@ -106,4 +106,36 @@ class SettingsService
     {
         $this->settings->set('default_locale', $locale);
     }
+
+    public function newsCommentsEnabled(): bool
+    {
+        $value = $this->settings->get('news_comments_enabled');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setNewsCommentsEnabled(bool $enabled): void
+    {
+        $this->settings->set('news_comments_enabled', $enabled ? '1' : '0');
+    }
+
+    public function newsCommentsRequireApproval(): bool
+    {
+        $value = $this->settings->get('news_comments_require_approval');
+
+        if ($value === null) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function setNewsCommentsRequireApproval(bool $required): void
+    {
+        $this->settings->set('news_comments_require_approval', $required ? '1' : '0');
+    }
 }

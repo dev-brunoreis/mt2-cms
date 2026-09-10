@@ -122,6 +122,7 @@ class CmsSchema
         $this->db->execute(
             'CREATE TABLE IF NOT EXISTS item_shop_categories (
                 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                parent_id INT UNSIGNED NULL,
                 name VARCHAR(120) NOT NULL,
                 slug VARCHAR(140) NOT NULL,
                 sort_order INT NOT NULL DEFAULT 0,
@@ -130,9 +131,14 @@ class CmsSchema
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),
                 UNIQUE KEY uniq_item_shop_category_slug (slug),
-                KEY idx_item_shop_categories_sort (enabled, sort_order, id)
+                KEY idx_item_shop_categories_parent (parent_id, sort_order, id),
+                KEY idx_item_shop_categories_sort (enabled, sort_order, id),
+                CONSTRAINT fk_item_shop_categories_parent
+                    FOREIGN KEY (parent_id) REFERENCES item_shop_categories (id) ON DELETE RESTRICT
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
         );
+
+        $this->ensureItemShopCategoryParentColumn();
 
         $this->db->execute(
             'CREATE TABLE IF NOT EXISTS item_shop_products (
@@ -181,6 +187,40 @@ class CmsSchema
                 KEY idx_item_shop_orders_product (product_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
         );
+    }
+
+    private function ensureItemShopCategoryParentColumn(): void
+    {
+        $column = $this->db->fetch(
+            'SELECT COLUMN_NAME
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?
+             LIMIT 1',
+            ['item_shop_categories', 'parent_id'],
+        );
+
+        if ($column !== null) {
+            return;
+        }
+
+        $this->db->execute(
+            'ALTER TABLE item_shop_categories
+             ADD COLUMN parent_id INT UNSIGNED NULL AFTER id,
+             ADD KEY idx_item_shop_categories_parent (parent_id, sort_order, id)',
+        );
+
+        // FK may already exist on fresh installs created with parent_id; ignore if add fails on older MySQL quirks.
+        try {
+            $this->db->execute(
+                'ALTER TABLE item_shop_categories
+                 ADD CONSTRAINT fk_item_shop_categories_parent
+                 FOREIGN KEY (parent_id) REFERENCES item_shop_categories (id) ON DELETE RESTRICT',
+            );
+        } catch (\Throwable) {
+            // Column is enough for hierarchy; FK is best-effort on migrate.
+        }
     }
 
     /**

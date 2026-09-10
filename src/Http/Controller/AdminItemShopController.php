@@ -166,32 +166,14 @@ class AdminItemShopController extends AdminController
 
     public function categoriesIndex(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->categories->countForAdmin($query);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
-
-        return $this->adminView('item-shop-categories', 'pages/item-shop-categories.twig', [
-            'title' => $this->t('admin.item_shop.categories.title'),
-            'pageLead' => $this->t('admin.item_shop.categories.lead'),
-            'headerHref' => '/admin/item-shop/categories/new',
-            'headerActionLabel' => $this->t('admin.item_shop.categories.create'),
-            'categories' => $this->categories->listForAdmin($page, self::PER_PAGE, $query),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
-        ]);
+        return $this->categoryWorkspace(null);
     }
 
     public function categoriesCreate(): Response
     {
-        return $this->categoryFormView($this->categoryPrefill());
+        $parentId = (int) ($_GET['parent_id'] ?? 0);
+
+        return $this->categoryWorkspace(null, $this->categoryPrefill($parentId > 0 ? $parentId : null), false);
     }
 
     public function categoriesStore(): Response
@@ -214,7 +196,7 @@ class AdminItemShopController extends AdminController
 
             return $this->redirect('/admin/item-shop/categories/' . $category['id']);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->categoryFormView($input, $this->t($e->getMessage()), 422);
+            return $this->categoryWorkspace(null, $input, false, $this->t($e->getMessage()), 422);
         }
     }
 
@@ -228,7 +210,7 @@ class AdminItemShopController extends AdminController
             return $this->redirect('/admin/item-shop/categories');
         }
 
-        return $this->categoryFormView($category, null, 200, true);
+        return $this->categoryWorkspace($category, $category, true);
     }
 
     public function categoriesUpdate(string $id): Response
@@ -255,12 +237,18 @@ class AdminItemShopController extends AdminController
         $input = $this->categoryInput();
 
         try {
-            $this->categories->update($categoryId, $input);
+            $updated = $this->categories->update($categoryId, $input);
             $this->flash('success', $this->t('admin.item_shop.categories.updated'));
 
             return $this->redirect('/admin/item-shop/categories/' . $categoryId);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->categoryFormView(array_merge($existing, $input), $this->t($e->getMessage()), 422, true);
+            return $this->categoryWorkspace(
+                $existing,
+                array_merge($existing, $input),
+                true,
+                $this->t($e->getMessage()),
+                422,
+            );
         }
     }
 
@@ -287,6 +275,32 @@ class AdminItemShopController extends AdminController
         }
 
         return $this->redirect('/admin/item-shop/categories');
+    }
+
+    public function categoriesMove(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            return Response::json(['ok' => false, 'error' => $this->t('auth.invalid_csrf')], 419);
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $parentRaw = $_POST['parent_id'] ?? null;
+        $parentId = ($parentRaw === null || $parentRaw === '' || (int) $parentRaw === 0)
+            ? null
+            : (int) $parentRaw;
+        $position = (int) ($_POST['position'] ?? 0);
+
+        try {
+            $this->categories->move($id, $parentId, $position);
+
+            return Response::json(['ok' => true]);
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return Response::json(['ok' => false, 'error' => $this->t($e->getMessage())], 422);
+        }
     }
 
     public function ordersIndex(): Response
@@ -318,6 +332,54 @@ class AdminItemShopController extends AdminController
     }
 
     /**
+     * @param array<string, mixed>|null $selected
+     * @param array<string, mixed>|null $form
+     */
+    private function categoryWorkspace(
+        ?array $selected,
+        ?array $form = null,
+        bool $isEdit = false,
+        ?string $error = null,
+        int $status = 200,
+    ): Response {
+        if ($guard = $this->denyUnlessAdmin()) {
+            return $guard;
+        }
+
+        $isCreating = $form !== null && !$isEdit;
+        $showForm = $selected !== null || $isCreating;
+
+        if ($form === null && $selected !== null) {
+            $form = $selected;
+            $isEdit = true;
+            $showForm = true;
+        }
+
+        $data = [
+            'title' => $this->t('admin.item_shop.categories.title'),
+            'pageLead' => $this->t('admin.item_shop.categories.lead'),
+            'categoryTree' => $this->categories->treeForAdmin(),
+            'parentOptions' => $this->categories->listAllForSelect(),
+            'selectedCategory' => $selected,
+            'category' => $form,
+            'isEdit' => $isEdit,
+            'showForm' => $showForm,
+            'error' => $error,
+            'moveUrl' => '/admin/item-shop/categories/move',
+        ];
+
+        if ($showForm) {
+            $data['formId'] = 'admin-item-shop-category-form';
+            $data['saveLabel'] = $this->t($isEdit ? 'admin.save' : 'admin.item_shop.categories.create');
+        } else {
+            $data['headerHref'] = '/admin/item-shop/categories/new';
+            $data['headerActionLabel'] = $this->t('admin.item_shop.categories.add_root');
+        }
+
+        return $this->adminView('item-shop-categories', 'pages/item-shop-categories.twig', $data, $status);
+    }
+
+    /**
      * @param array<string, mixed> $product
      */
     private function productFormView(array $product, ?string $error = null, int $status = 200, bool $isEdit = false): Response
@@ -337,26 +399,6 @@ class AdminItemShopController extends AdminController
             'product' => $product,
             'categories' => $this->categories->listAllForSelect(),
             'itemName' => $itemName,
-            'isEdit' => $isEdit,
-            'error' => $error,
-        ], $status);
-    }
-
-    /**
-     * @param array<string, mixed> $category
-     */
-    private function categoryFormView(array $category, ?string $error = null, int $status = 200, bool $isEdit = false): Response
-    {
-        if ($guard = $this->denyUnlessAdmin()) {
-            return $guard;
-        }
-
-        return $this->adminView('item-shop-categories', 'pages/item-shop-category-form.twig', [
-            'title' => $this->t($isEdit ? 'admin.item_shop.categories.edit_title' : 'admin.item_shop.categories.create_title'),
-            'pageLead' => $this->t($isEdit ? 'admin.item_shop.categories.edit_lead' : 'admin.item_shop.categories.create_lead'),
-            'formId' => 'admin-item-shop-category-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.item_shop.categories.create'),
-            'category' => $category,
             'isEdit' => $isEdit,
             'error' => $error,
         ], $status);
@@ -383,9 +425,10 @@ class AdminItemShopController extends AdminController
     /**
      * @return array<string, mixed>
      */
-    private function categoryPrefill(): array
+    private function categoryPrefill(?int $parentId = null): array
     {
         return [
+            'parent_id' => $parentId,
             'name' => '',
             'slug' => '',
             'sort_order' => 0,
@@ -416,7 +459,10 @@ class AdminItemShopController extends AdminController
      */
     private function categoryInput(): array
     {
+        $parentRaw = $_POST['parent_id'] ?? '';
+
         return [
+            'parent_id' => ($parentRaw === '' || (int) $parentRaw === 0) ? null : (int) $parentRaw,
             'name' => trim((string) ($_POST['name'] ?? '')),
             'slug' => trim((string) ($_POST['slug'] ?? '')),
             'sort_order' => (int) ($_POST['sort_order'] ?? 0),

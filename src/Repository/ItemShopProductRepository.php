@@ -50,16 +50,27 @@ class ItemShopProductRepository extends Repository
     }
 
     /**
+     * @param list<int>|null $categoryIds
      * @return list<array<string, mixed>>
      */
-    public function listEnabled(?int $categoryId = null): array
+    public function listEnabled(?array $categoryIds = null): array
     {
         $clauses = ['p.enabled = 1', 'c.enabled = 1'];
         $params = [];
 
-        if ($categoryId !== null && $categoryId > 0) {
-            $clauses[] = 'p.category_id = ?';
-            $params[] = $categoryId;
+        if ($categoryIds !== null) {
+            $categoryIds = array_values(array_filter(
+                array_map('intval', $categoryIds),
+                static fn (int $id): bool => $id > 0,
+            ));
+
+            if ($categoryIds === []) {
+                return [];
+            }
+
+            $placeholders = implode(', ', array_fill(0, count($categoryIds), '?'));
+            $clauses[] = "p.category_id IN ({$placeholders})";
+            array_push($params, ...$categoryIds);
         }
 
         $where = ' WHERE ' . implode(' AND ', $clauses);

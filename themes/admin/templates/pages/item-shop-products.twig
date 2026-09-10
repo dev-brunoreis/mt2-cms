@@ -10,7 +10,7 @@
                 <option value="">{{ t('admin.item_shop.products.category_all') }}</option>
                 {% for category in categories %}
                     <option value="{{ category.id }}" {% if categoryId == category.id %}selected{% endif %}>
-                        {{ category.name }}{% if not category.enabled %} ({{ t('admin.item_shop.disabled') }}){% endif %}
+                        {{ category.label|default(category.name) }}{% if not category.enabled %} ({{ t('admin.item_shop.disabled') }}){% endif %}
                     </option>
                 {% endfor %}
             </select>

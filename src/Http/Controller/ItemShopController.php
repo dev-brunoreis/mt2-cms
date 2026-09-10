@@ -39,9 +39,9 @@ class ItemShopController extends Controller
     public function index(): Response
     {
         $slug = trim((string) ($_GET['category'] ?? ''));
-        $categories = $this->categories->listEnabled();
+        $categories = $this->categories->treeEnabled();
         $activeCategory = null;
-        $categoryId = null;
+        $categoryIds = null;
 
         if ($slug !== '') {
             $activeCategory = $this->categories->findEnabledBySlug($slug);
@@ -58,10 +58,10 @@ class ItemShopController extends Controller
                 ], 404);
             }
 
-            $categoryId = (int) $activeCategory['id'];
+            $categoryIds = $this->categories->idWithDescendants((int) $activeCategory['id']);
         }
 
-        $products = $this->enrichProducts($this->products->listEnabled($categoryId));
+        $products = $this->enrichProducts($this->products->listEnabled($categoryIds));
         $idempotencyKeys = [];
 
         if ($this->auth->check()) {

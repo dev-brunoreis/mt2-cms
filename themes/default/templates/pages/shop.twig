@@ -1,3 +1,15 @@
+{% macro category_nav(nodes, activeCategory) %}
+    {% for category in nodes %}
+        <a href="/shop?category={{ category.slug|url_encode }}"
+           class="rounded-full px-3 py-1.5 text-sm font-medium {% if activeCategory and activeCategory.id == category.id %}bg-indigo-600 text-white{% else %}bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50{% endif %}">
+            {{ category.name }}
+        </a>
+        {% if category.children is not empty %}
+            {{ _self.category_nav(category.children, activeCategory) }}
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
 <section class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -26,12 +38,8 @@
                    class="rounded-full px-3 py-1.5 text-sm font-medium {% if not activeCategory %}bg-indigo-600 text-white{% else %}bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50{% endif %}">
                     {{ t('shop.all_categories') }}
                 </a>
-                {% for category in categories %}
-                    <a href="/shop?category={{ category.slug|url_encode }}"
-                       class="rounded-full px-3 py-1.5 text-sm font-medium {% if activeCategory and activeCategory.id == category.id %}bg-indigo-600 text-white{% else %}bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50{% endif %}">
-                        {{ category.name }}
-                    </a>
-                {% endfor %}
+                {% import _self as shop_nav %}
+                {{ shop_nav.category_nav(categories, activeCategory) }}
             </div>
         {% endif %}
 

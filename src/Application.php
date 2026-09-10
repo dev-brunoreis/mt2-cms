@@ -6,42 +6,21 @@ namespace Mt2Cms;
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
-use Mt2Cms\Http\Controller\AccountController;
-use Mt2Cms\Http\Controller\AdminAccountsController;
-use Mt2Cms\Http\Controller\AdminAuthController;
-use Mt2Cms\Http\Controller\AdminAwardsController;
-use Mt2Cms\Http\Controller\AdminCharactersController;
-use Mt2Cms\Http\Controller\AdminDashboardController;
-use Mt2Cms\Http\Controller\AdminDropsController;
-use Mt2Cms\Http\Controller\AdminGameProtoController;
-use Mt2Cms\Http\Controller\AdminGmsController;
-use Mt2Cms\Http\Controller\AdminGuildsController;
-use Mt2Cms\Http\Controller\AdminLogsController;
-use Mt2Cms\Http\Controller\AdminNewsController;
-use Mt2Cms\Http\Controller\AdminRefineController;
-use Mt2Cms\Http\Controller\AdminSettingsController;
-use Mt2Cms\Http\Controller\AdminItemShopController;
-use Mt2Cms\Http\Controller\ItemShopController;
-use Mt2Cms\Http\Controller\AdminTicketsController;
-use Mt2Cms\Http\Controller\AuthController;
-use Mt2Cms\Http\Controller\GameIconController;
-use Mt2Cms\Http\Controller\HomeController;
-use Mt2Cms\Http\Controller\LocaleController;
-use Mt2Cms\Http\Controller\NewsController;
-use Mt2Cms\Http\Controller\PlayerController;
-use Mt2Cms\Http\Controller\RankingController;
 use Mt2Cms\Http\Controller\SetupController;
-use Mt2Cms\Http\Controller\TicketController;
+use Mt2Cms\Http\AdminRoutes;
+use Mt2Cms\Http\PublicRoutes;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Model\Database;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Repository\AdminAuditRepository;
 use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Repository\CommonRepository;
 use Mt2Cms\Repository\GuildRepository;
@@ -68,6 +47,7 @@ use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\GroupTextWriter;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
@@ -87,6 +67,7 @@ use function FastRoute\simpleDispatcher;
 
 class Application
 {
+    use \Mt2Cms\Http\ControllerMap;
     private bool $installed;
     private Database $db;
     private Database $cmsDb;
@@ -129,6 +110,7 @@ class Application
     private HtmlSanitizer $htmlSanitizer;
     private NewsUploadService $newsUploads;
     private TicketUploadService $ticketUploads;
+    private AdminAuditService $adminAudit;
 
     public function __construct()
     {
@@ -162,143 +144,8 @@ class Application
         }
 
         $this->dispatch(function (RouteCollector $r): void {
-            $r->addRoute('GET', '/', [HomeController::class, 'index']);
-            $r->addRoute('GET', '/login', [AuthController::class, 'showLogin']);
-            $r->addRoute('POST', '/login', [AuthController::class, 'login']);
-            $r->addRoute('GET', '/register', [AuthController::class, 'showRegister']);
-            $r->addRoute('POST', '/register', [AuthController::class, 'register']);
-            $r->addRoute('POST', '/logout', [AuthController::class, 'logout']);
-            $r->addRoute('POST', '/locale', [LocaleController::class, 'update']);
-            $r->addRoute('GET', '/account', [AccountController::class, 'index']);
-            $r->addRoute('GET', '/account/characters', [AccountController::class, 'characters']);
-            $r->addRoute('GET', '/account/tickets', [TicketController::class, 'index']);
-            $r->addRoute('GET', '/account/tickets/new', [TicketController::class, 'create']);
-            $r->addRoute('POST', '/account/tickets', [TicketController::class, 'store']);
-            $r->addRoute('GET', '/account/tickets/{id:\d+}', [TicketController::class, 'show']);
-            $r->addRoute('GET', '/account/tickets/{id:\d+}/attachments/{attachmentId:\d+}', [TicketController::class, 'downloadAttachment']);
-            $r->addRoute('POST', '/account/tickets/{id:\d+}/reply', [TicketController::class, 'reply']);
-            $r->addRoute('POST', '/account/tickets/{id:\d+}/close', [TicketController::class, 'close']);
-            $r->addRoute('GET', '/news', [NewsController::class, 'index']);
-            $r->addRoute('GET', '/news/{id:\d+}', [NewsController::class, 'show']);
-            $r->addRoute('POST', '/news/{id:\d+}/comment', [NewsController::class, 'comment']);
-            $r->addRoute('GET', '/shop', [ItemShopController::class, 'index']);
-            $r->addRoute('POST', '/shop/buy', [ItemShopController::class, 'buy']);
-            $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
-            $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
-            $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);
-
-            $r->addRoute('GET', '/admin/login', [AdminAuthController::class, 'showLogin']);
-            $r->addRoute('POST', '/admin/login', [AdminAuthController::class, 'login']);
-            $r->addRoute('POST', '/admin/logout', [AdminAuthController::class, 'logout']);
-            $r->addRoute('GET', '/admin', [AdminDashboardController::class, 'index']);
-            $r->addRoute('GET', '/admin/registration', [AdminSettingsController::class, 'registration']);
-            $r->addRoute('POST', '/admin/registration', [AdminSettingsController::class, 'saveRegistration']);
-            $r->addRoute('GET', '/admin/themes', [AdminSettingsController::class, 'themes']);
-            $r->addRoute('POST', '/admin/themes', [AdminSettingsController::class, 'saveThemes']);
-            $r->addRoute('GET', '/admin/locale', [AdminSettingsController::class, 'locale']);
-            $r->addRoute('POST', '/admin/locale', [AdminSettingsController::class, 'saveLocale']);
-            $r->addRoute('GET', '/admin/accounts', [AdminAccountsController::class, 'index']);
-            $r->addRoute('GET', '/admin/accounts/new', [AdminAccountsController::class, 'create']);
-            $r->addRoute('POST', '/admin/accounts', [AdminAccountsController::class, 'store']);
-            $r->addRoute('GET', '/admin/accounts/{id:\d+}', [AdminAccountsController::class, 'edit']);
-            $r->addRoute('POST', '/admin/accounts/{id:\d+}', [AdminAccountsController::class, 'update']);
-            $r->addRoute('POST', '/admin/accounts/{id:\d+}/block', [AdminAccountsController::class, 'block']);
-            $r->addRoute('POST', '/admin/accounts/{id:\d+}/unblock', [AdminAccountsController::class, 'unblock']);
-            $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
-            $r->addRoute('POST', '/admin/accounts/mass', [AdminAccountsController::class, 'mass']);
-            $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
-            $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
-            $r->addRoute('GET', '/admin/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
-            $r->addRoute('GET', '/admin/guilds', [AdminGuildsController::class, 'index']);
-            $r->addRoute('GET', '/admin/guilds/{id:\d+}', [AdminGuildsController::class, 'show']);
-            $r->addRoute('POST', '/admin/guilds/{id:\d+}', [AdminGuildsController::class, 'update']);
-            $r->addRoute('POST', '/admin/guilds/{id:\d+}/kick', [AdminGuildsController::class, 'kick']);
-            $r->addRoute('POST', '/admin/guilds/{id:\d+}/comment/{commentId:\d+}/delete', [AdminGuildsController::class, 'deleteComment']);
-            $r->addRoute('POST', '/admin/guilds/{id:\d+}/dissolve', [AdminGuildsController::class, 'dissolve']);
-            $r->addRoute('GET', '/admin/awards', [AdminAwardsController::class, 'index']);
-            $r->addRoute('GET', '/admin/awards/new', [AdminAwardsController::class, 'create']);
-            $r->addRoute('POST', '/admin/awards', [AdminAwardsController::class, 'store']);
-            $r->addRoute('POST', '/admin/awards/{id:\d+}/delete', [AdminAwardsController::class, 'destroy']);
-            $r->addRoute('POST', '/admin/awards/mass', [AdminAwardsController::class, 'mass']);
-            $r->addRoute('GET', '/admin/news', [AdminNewsController::class, 'index']);
-            $r->addRoute('GET', '/admin/news/new', [AdminNewsController::class, 'create']);
-            $r->addRoute('POST', '/admin/news', [AdminNewsController::class, 'store']);
-            $r->addRoute('POST', '/admin/news/upload', [AdminNewsController::class, 'upload']);
-            $r->addRoute('GET', '/admin/news/comments', [AdminNewsController::class, 'comments']);
-            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/approve', [AdminNewsController::class, 'approveComment']);
-            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/reject', [AdminNewsController::class, 'rejectComment']);
-            $r->addRoute('POST', '/admin/news/comments/{id:\d+}/delete', [AdminNewsController::class, 'deleteComment']);
-            $r->addRoute('GET', '/admin/news/settings', [AdminNewsController::class, 'settings']);
-            $r->addRoute('POST', '/admin/news/settings', [AdminNewsController::class, 'saveSettings']);
-            $r->addRoute('GET', '/admin/news/{id:\d+}', [AdminNewsController::class, 'edit']);
-            $r->addRoute('POST', '/admin/news/{id:\d+}', [AdminNewsController::class, 'update']);
-            $r->addRoute('POST', '/admin/news/{id:\d+}/delete', [AdminNewsController::class, 'destroy']);
-            $r->addRoute('POST', '/admin/news/mass', [AdminNewsController::class, 'mass']);
-            $r->addRoute('POST', '/admin/news/comments/mass', [AdminNewsController::class, 'massComments']);
-            $r->addRoute('GET', '/admin/tickets', [AdminTicketsController::class, 'index']);
-            $r->addRoute('POST', '/admin/tickets/mass', [AdminTicketsController::class, 'mass']);
-            $r->addRoute('GET', '/admin/tickets/{id:\d+}', [AdminTicketsController::class, 'show']);
-            $r->addRoute('GET', '/admin/tickets/{id:\d+}/attachments/{attachmentId:\d+}', [AdminTicketsController::class, 'downloadAttachment']);
-            $r->addRoute('POST', '/admin/tickets/{id:\d+}/reply', [AdminTicketsController::class, 'reply']);
-            $r->addRoute('POST', '/admin/tickets/{id:\d+}/close', [AdminTicketsController::class, 'close']);
-            $r->addRoute('POST', '/admin/tickets/{id:\d+}/reopen', [AdminTicketsController::class, 'reopen']);
-            $r->addRoute('GET', '/admin/item-shop/categories', [AdminItemShopController::class, 'categoriesIndex']);
-            $r->addRoute('GET', '/admin/item-shop/categories/new', [AdminItemShopController::class, 'categoriesCreate']);
-            $r->addRoute('POST', '/admin/item-shop/categories', [AdminItemShopController::class, 'categoriesStore']);
-            $r->addRoute('POST', '/admin/item-shop/categories/move', [AdminItemShopController::class, 'categoriesMove']);
-            $r->addRoute('GET', '/admin/item-shop/categories/{id:\d+}/item-search', [AdminItemShopController::class, 'categoriesItemSearch']);
-            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products', [AdminItemShopController::class, 'categoriesAddProducts']);
-            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products/{productId:\d+}', [AdminItemShopController::class, 'categoriesUpdateProduct']);
-            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products/{productId:\d+}/delete', [AdminItemShopController::class, 'categoriesRemoveProduct']);
-            $r->addRoute('GET', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesEdit']);
-            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesUpdate']);
-            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/delete', [AdminItemShopController::class, 'categoriesDestroy']);
-            $r->addRoute('GET', '/admin/item-shop/orders', [AdminItemShopController::class, 'ordersIndex']);
-            $r->addRoute('GET', '/admin/item-shop', [AdminItemShopController::class, 'productsIndex']);
-            $r->addRoute('GET', '/admin/item-shop/new', [AdminItemShopController::class, 'productsCreate']);
-            $r->addRoute('POST', '/admin/item-shop', [AdminItemShopController::class, 'productsStore']);
-            $r->addRoute('GET', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsEdit']);
-            $r->addRoute('POST', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsUpdate']);
-            $r->addRoute('POST', '/admin/item-shop/{id:\d+}/delete', [AdminItemShopController::class, 'productsDestroy']);
-            $r->addRoute('POST', '/admin/item-shop/mass', [AdminItemShopController::class, 'mass']);
-            $r->addRoute('GET', '/admin/shops', [AdminShopsController::class, 'index']);
-            $r->addRoute('GET', '/admin/shops/new', [AdminShopsController::class, 'create']);
-            $r->addRoute('POST', '/admin/shops', [AdminShopsController::class, 'store']);
-            $r->addRoute('GET', '/admin/shops/{id:\d+}', [AdminShopsController::class, 'edit']);
-            $r->addRoute('POST', '/admin/shops/{id:\d+}', [AdminShopsController::class, 'update']);
-            $r->addRoute('POST', '/admin/shops/{id:\d+}/delete', [AdminShopsController::class, 'destroy']);
-            $r->addRoute('POST', '/admin/shops/{id:\d+}/items', [AdminShopsController::class, 'addItem']);
-            $r->addRoute('POST', '/admin/shops/{id:\d+}/items/delete', [AdminShopsController::class, 'removeItem']);
-            $r->addRoute('GET', '/admin/refine', [AdminRefineController::class, 'index']);
-            $r->addRoute('GET', '/admin/refine/new', [AdminRefineController::class, 'create']);
-            $r->addRoute('POST', '/admin/refine', [AdminRefineController::class, 'store']);
-            $r->addRoute('GET', '/admin/refine/{id:\d+}', [AdminRefineController::class, 'edit']);
-            $r->addRoute('POST', '/admin/refine/{id:\d+}', [AdminRefineController::class, 'update']);
-            $r->addRoute('POST', '/admin/refine/{id:\d+}/delete', [AdminRefineController::class, 'destroy']);
-            $r->addRoute('GET', '/admin/drops', [AdminDropsController::class, 'index']);
-            $r->addRoute('GET', '/admin/drops/etc', [AdminDropsController::class, 'etc']);
-            $r->addRoute('POST', '/admin/drops/etc', [AdminDropsController::class, 'saveEtc']);
-            $r->addRoute('GET', '/admin/drops/common', [AdminDropsController::class, 'common']);
-            $r->addRoute('POST', '/admin/drops/common', [AdminDropsController::class, 'saveCommon']);
-            $r->addRoute('GET', '/admin/drops/mob/{id:\d+}', [AdminDropsController::class, 'mob']);
-            $r->addRoute('POST', '/admin/drops/mob/{id:\d+}', [AdminDropsController::class, 'saveMob']);
-            $r->addRoute('GET', '/admin/gms', [AdminGmsController::class, 'index']);
-            $r->addRoute('GET', '/admin/gms/new', [AdminGmsController::class, 'create']);
-            $r->addRoute('POST', '/admin/gms', [AdminGmsController::class, 'store']);
-            $r->addRoute('GET', '/admin/gms/{id:\d+}', [AdminGmsController::class, 'edit']);
-            $r->addRoute('POST', '/admin/gms/{id:\d+}', [AdminGmsController::class, 'update']);
-            $r->addRoute('POST', '/admin/gms/{id:\d+}/delete', [AdminGmsController::class, 'destroy']);
-            $r->addRoute('POST', '/admin/gms/hosts', [AdminGmsController::class, 'addHost']);
-            $r->addRoute('POST', '/admin/gms/hosts/delete', [AdminGmsController::class, 'deleteHost']);
-            $r->addRoute('POST', '/admin/gms/mass', [AdminGmsController::class, 'mass']);
-            $r->addRoute('GET', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'index']);
-            $r->addRoute('POST', '/admin/{kind:items|mobs}/mass', [AdminGameProtoController::class, 'mass']);
-            $r->addRoute('GET', '/admin/{kind:items|mobs}/new', [AdminGameProtoController::class, 'create']);
-            $r->addRoute('POST', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'store']);
-            $r->addRoute('GET', '/admin/{kind:items|mobs}/{id:\d+}', [AdminGameProtoController::class, 'edit']);
-            $r->addRoute('POST', '/admin/{kind:items|mobs}/{id:\d+}', [AdminGameProtoController::class, 'update']);
-            $r->addRoute('POST', '/admin/{kind:items|mobs}/{id:\d+}/delete', [AdminGameProtoController::class, 'destroy']);
-            $r->addRoute('GET', '/admin/logs/{table:[a-z0-9_]+}', [AdminLogsController::class, 'show']);
+            PublicRoutes::register($r);
+            AdminRoutes::register($r);
         }, true);
     }
 
@@ -381,6 +228,7 @@ class Application
             'news_comments_enabled' => '1',
             'news_comments_require_approval' => '0',
         ]);
+        $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
 
         $this->settingsRepo = new SettingsRepository($this->cmsDb);
         $this->settings = new SettingsService($this->settingsRepo, $this->themeCatalog);
@@ -445,7 +293,10 @@ class Application
         );
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
-        $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+        $this->adminAudit = new AdminAuditService(
+            new AdminAuditRepository($this->cmsDb),
+            $this->adminAuth,
+        );
         $this->itemShopPurchases = new ItemShopPurchaseService(
             $this->itemShopProducts,
             $this->itemShopOrders,
@@ -474,7 +325,8 @@ class Application
         $globals = ['registration_enabled' => $registrationEnabled];
 
         if ($isAdmin) {
-            $globals['admin_sections'] = AdminSections::all();
+            $role = $this->adminAuth->check() ? $this->adminAuth->role() : AdminPermissions::ROLE_SUPER;
+            $globals['admin_sections'] = AdminPermissions::filterSections($role, AdminSections::all());
         }
 
         $engine->setGlobals($globals);
@@ -518,271 +370,6 @@ class Application
         $controller = $this->resolveController($class);
 
         return $controller->{$method}(...array_values($vars));
-    }
-
-    private function resolveController(string $class): object
-    {
-        return match ($class) {
-            HomeController::class => new HomeController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->news,
-            ),
-            NewsController::class => new NewsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->news,
-                $this->newsComments,
-                $this->settings,
-            ),
-            TicketController::class => new TicketController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->tickets,
-                $this->ticketUploads,
-                $this->htmlSanitizer,
-            ),
-            AuthController::class => new AuthController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->accounts,
-                $this->settings,
-            ),
-            AccountController::class => new AccountController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->players,
-            ),
-            ItemShopController::class => new ItemShopController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->itemShopCategories,
-                $this->itemShopProducts,
-                $this->itemShopPurchases,
-                $this->itemTooltips,
-            ),
-            RankingController::class => new RankingController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->players,
-            ),
-            PlayerController::class => new PlayerController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->players,
-            ),
-            GameIconController::class => new GameIconController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->icons,
-            ),
-            LocaleController::class => new LocaleController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->locales,
-            ),
-            SetupController::class => new SetupController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->themeCatalog,
-                new EnvWriter(),
-            ),
-            AdminAuthController::class => new AdminAuthController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-            ),
-            AdminDashboardController::class => new AdminDashboardController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->players,
-            ),
-            AdminSettingsController::class => new AdminSettingsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->settings,
-                $this->themeCatalog,
-                $this->locales,
-            ),
-            AdminAccountsController::class => new AdminAccountsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->accounts,
-                $this->players,
-                $this->logs,
-            ),
-            AdminCharactersController::class => new AdminCharactersController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->players,
-                $this->items,
-                $this->guilds,
-                $this->logs,
-                $this->accounts,
-            ),
-            AdminGameProtoController::class => new AdminGameProtoController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->gameProto,
-                $this->protoFields,
-                $this->mobDrops,
-                $this->protoEnums,
-            ),
-            AdminLogsController::class => new AdminLogsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->logs,
-            ),
-            AdminGuildsController::class => new AdminGuildsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->guilds,
-            ),
-            AdminGmsController::class => new AdminGmsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->common,
-                $this->accounts,
-            ),
-            AdminAwardsController::class => new AdminAwardsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->awards,
-                $this->accounts,
-                $this->players,
-                $this->gameProto,
-            ),
-            AdminNewsController::class => new AdminNewsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->news,
-                $this->newsComments,
-                $this->settings,
-                $this->htmlSanitizer,
-                $this->newsUploads,
-            ),
-            AdminTicketsController::class => new AdminTicketsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->tickets,
-                $this->ticketUploads,
-                $this->htmlSanitizer,
-            ),
-            AdminItemShopController::class => new AdminItemShopController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->itemShopCategories,
-                $this->itemShopProducts,
-                $this->itemShopOrders,
-                $this->gameProto,
-            ),
-            AdminShopsController::class => new AdminShopsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->shops,
-                $this->gameProto,
-            ),
-            AdminRefineController::class => new AdminRefineController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->refine,
-                $this->gameProto,
-            ),
-            AdminDropsController::class => new AdminDropsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->dropFiles,
-                $this->mobDrops,
-                $this->gameProto,
-                $this->gameProfile,
-            ),
-            default => throw new \RuntimeException('Unknown controller: ' . $class),
-        };
     }
 
     private function isInstalled(): bool

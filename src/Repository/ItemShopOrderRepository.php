@@ -50,17 +50,6 @@ class ItemShopOrderRepository extends Repository implements ProvidesAdminGrid
         return 'cms';
     }
 
-    public function countForAdmin(?string $query = null, ?string $status = null): int
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'created_at', 'desc', $filters));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         [$where, $params] = $this->gridWhere($query);
@@ -69,20 +58,6 @@ class ItemShopOrderRepository extends Repository implements ProvidesAdminGrid
             'SELECT COUNT(*) FROM item_shop_orders' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'created_at', 'desc', $filters));
     }
 
     /**

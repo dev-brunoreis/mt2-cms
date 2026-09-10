@@ -50,11 +50,6 @@ class CommonRepository extends Repository implements ProvidesAdminGrid
         return $this->listForGrid(new GridQuery(null, 1, 10000, 'mID', 'asc', []));
     }
 
-    public function countForAdmin(?string $q = null): int
-    {
-        return $this->countForGrid(new GridQuery($q, 1, 20, 'mID', 'asc', []));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         if (!$this->schemaTableExists('gmlist')) {
@@ -67,14 +62,6 @@ class CommonRepository extends Repository implements ProvidesAdminGrid
             'SELECT COUNT(*) FROM `gmlist`' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $q = null): array
-    {
-        return $this->listForGrid(new GridQuery($q, $page, $perPage, 'mID', 'asc', []));
     }
 
     /**

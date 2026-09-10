@@ -34,11 +34,6 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
         return 'player';
     }
 
-    public function countForAdmin(?string $query = null): int
-    {
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', []));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         if (!$this->schemaTableExists('guild')) {
@@ -53,14 +48,6 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
              LEFT JOIN `player` p ON p.id = g.master' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null): array
-    {
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', []));
     }
 
     /**

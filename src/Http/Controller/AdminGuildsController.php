@@ -11,6 +11,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\GuildRepository;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGuildsController extends AdminController
@@ -29,9 +30,10 @@ class AdminGuildsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private GuildRepository $guilds,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -116,6 +118,7 @@ class AdminGuildsController extends AdminController
 
         try {
             $this->guilds->updateAdmin($guildId, $input);
+            $this->audit('guild.update', 'guild', $guildId);
             $this->flash('success', $this->t('admin.guilds.updated'));
 
             return $this->redirect('/admin/guilds/' . $guildId);
@@ -148,6 +151,7 @@ class AdminGuildsController extends AdminController
         if (!$this->guilds->deleteComment((int) $id, (int) $commentId)) {
             $this->flash('error', $this->t('admin.guilds.comment_not_found'));
         } else {
+            $this->audit('guild.comment_delete', 'guild_comment', (int) $commentId, ['guild_id' => (int) $id]);
             $this->flash('success', $this->t('admin.guilds.comment_deleted'));
         }
 
@@ -169,6 +173,7 @@ class AdminGuildsController extends AdminController
         if (!$this->guilds->dissolve((int) $id)) {
             $this->flash('error', $this->t('admin.guilds.not_found'));
         } else {
+            $this->audit('guild.dissolve', 'guild', (int) $id);
             $this->flash('success', $this->t('admin.guilds.dissolved'));
         }
 
@@ -234,6 +239,7 @@ class AdminGuildsController extends AdminController
             if (!$ok) {
                 $this->flash('error', $this->t('admin.guilds.member_not_found'));
             } else {
+                $this->audit('guild.kick', 'guild', $guildId, ['player_id' => $playerId]);
                 $this->flash('success', $this->t($successKey));
             }
         } catch (\InvalidArgumentException $e) {

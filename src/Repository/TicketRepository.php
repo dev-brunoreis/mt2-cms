@@ -83,17 +83,6 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
-    public function countForAdmin(?string $query = null, ?string $status = null): int
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'updated_at', 'desc', $filters));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         [$where, $params] = $this->gridWhere($query);
@@ -102,20 +91,6 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
             'SELECT COUNT(*) FROM tickets t' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'updated_at', 'desc', $filters));
     }
 
     /**

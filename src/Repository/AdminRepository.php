@@ -36,8 +36,8 @@ class AdminRepository extends Repository
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
         $this->db()->execute(
-            'INSERT INTO admins (login, password) VALUES (?, ?)',
-            [$login, $hash],
+            'INSERT INTO admins (login, password, role) VALUES (?, ?, ?)',
+            [$login, $hash, 'super'],
         );
 
         return (int) $this->db()->lastInsertId();
@@ -54,7 +54,7 @@ class AdminRepository extends Repository
     public function findById(int $id): ?array
     {
         return $this->reveal($this->db()->fetch(
-            'SELECT id, login, created_at FROM admins WHERE id = ? LIMIT 1',
+            'SELECT id, login, role, created_at FROM admins WHERE id = ? LIMIT 1',
             [$id],
         ));
     }

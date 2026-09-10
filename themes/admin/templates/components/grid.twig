@@ -19,7 +19,7 @@
                     {% endfor %}
                     {% if grid.sort %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
                     {% if grid.dir %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
-                    {% if grid.perPage != 20 %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
+                    {% if grid.perPage != grid.defaultPerPage|default(20) %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
                     <input type="search" name="q" value="{{ grid.query }}"
                            placeholder="{{ t(grid.i18nPrefix ~ '.search_placeholder') }}"
                            class="admin-input admin-input-compact">
@@ -46,7 +46,7 @@
     {% if grid.filters is not empty %}
         <form method="get" action="{{ grid.action }}" class="admin-grid-filters">
             {% if grid.query %}<input type="hidden" name="q" value="{{ grid.query }}">{% endif %}
-            {% if grid.perPage != 20 %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
+            {% if grid.perPage != grid.defaultPerPage|default(20) %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
             {% if grid.sort %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
             {% if grid.dir %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
             <div class="admin-grid-filters-row">

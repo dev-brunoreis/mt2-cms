@@ -16,6 +16,7 @@ use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGameProtoController extends AdminController
@@ -27,12 +28,13 @@ class AdminGameProtoController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private GameProtoService $protos,
         private ProtoFormFields $protoFields,
         private MobDropService $mobDrops,
         private ProtoEnums $protoEnums,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(string $kind): Response
@@ -64,35 +66,15 @@ class AdminGameProtoController extends AdminController
         $internal = $this->protos->kindFromRoute($route);
         $prefix = $this->i18nPrefix($route);
 
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/' . $route);
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                if ($action !== 'delete' || !$this->protos->delete($internal, $id)) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-            } catch (\RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t($prefix . '.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/' . $route);
+        return $this->runMassActions(
+            $this->protoGridSpec($route),
+            '/admin/' . $route,
+            [
+                'delete' => fn (int $id): bool => $this->protos->delete($internal, $id),
+            ],
+            'proto_' . $route,
+            $prefix . '.mass_done',
+        );
     }
 
     public function create(string $kind): Response
@@ -121,6 +103,8 @@ class AdminGameProtoController extends AdminController
 
         try {
             $this->protos->create($internal, $input);
+            $vnum = (int) ($input['vnum'] ?? 0);
+            $this->audit($route . '.create', 'proto_' . $route, $vnum > 0 ? $vnum : null);
             $this->flash('success', $this->t($this->i18nPrefix($route) . '.created'));
 
             return $this->redirect('/admin/' . $route);
@@ -172,6 +156,7 @@ class AdminGameProtoController extends AdminController
 
         try {
             $this->protos->update($internal, $vnum, $input);
+            $this->audit($route . '.update', 'proto_' . $route, $vnum);
             $this->flash('success', $this->t($this->i18nPrefix($route) . '.updated'));
 
             return $this->redirect('/admin/' . $route . '/' . $vnum);
@@ -207,6 +192,7 @@ class AdminGameProtoController extends AdminController
             if (!$this->protos->delete($internal, (int) $id)) {
                 $this->flash('error', $this->t($prefix . '.not_found'));
             } else {
+                $this->audit($route . '.delete', 'proto_' . $route, (int) $id);
                 $this->flash('success', $this->t($prefix . '.deleted'));
             }
         } catch (\InvalidArgumentException | \RuntimeException $e) {

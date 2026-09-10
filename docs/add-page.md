@@ -4,10 +4,10 @@ Checklist for a new public or authenticated page.
 
 ## 1. Route + DI
 
-In `src/Application.php`:
+In `src/Http/PublicRoutes.php` or `src/Http/AdminRoutes.php`:
 
 1. `addRoute` for the method/path → `[YourController::class, 'action']`.
-2. If the controller is new, register it in `resolveController()` and inject dependencies (theme, auth, csrf, translator, repositories).
+2. If the controller is new, register it in `src/Http/ControllerMap.php` and inject dependencies (theme, auth, csrf, translator, repositories).
 
 Do not instantiate repositories inside the controller.
 

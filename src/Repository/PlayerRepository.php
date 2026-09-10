@@ -273,11 +273,6 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         };
     }
 
-    public function countForAdmin(?string $q = null): int
-    {
-        return $this->countForGrid(new GridQuery($q, 1, 20, 'id', 'desc', []));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         [$where, $params] = $this->gridWhere($query);
@@ -288,14 +283,6 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
              LEFT JOIN `account`.`account` a ON a.id = p.account_id' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $q = null): array
-    {
-        return $this->listForGrid(new GridQuery($q, $page, $perPage, 'id', 'desc', []));
     }
 
     /**

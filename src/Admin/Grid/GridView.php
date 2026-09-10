@@ -43,8 +43,11 @@ final class GridView
             'rows' => $this->rows,
             'total' => $this->total,
             'totalPages' => $this->totalPages,
+            'defaultSort' => $this->spec->defaultSort,
+            'defaultPerPage' => $this->spec->defaultPerPage,
+            'defaultDir' => $this->spec->defaultDir,
             'urls' => [
-                'base' => GridUrl::build($this->spec->action, $this->query),
+                'base' => GridUrl::build($this->spec->action, $this->query, [], $this->spec),
                 'reset' => GridUrl::reset($this->spec->action),
             ],
         ];

@@ -50,17 +50,6 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
         return 'player';
     }
 
-    public function countForAdmin(?string $query = null, ?string $status = null): int
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'given_time', 'desc', $filters));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         if (!$this->schemaTableExists('item_award')) {
@@ -73,20 +62,6 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
             'SELECT COUNT(*) FROM `item_award` a' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
-    {
-        $filters = [];
-
-        if ($status !== null && $status !== '') {
-            $filters['status'] = $status;
-        }
-
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'given_time', 'desc', $filters));
     }
 
     /**
@@ -180,7 +155,7 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
         );
 
         $id = (int) $this->db()->lastInsertId();
-        $rows = $this->listForAdmin(1, 1, (string) $id, null);
+        $rows = $this->listForGrid(new GridQuery((string) $id, 1, 1, 'id', 'desc', []));
 
         if ($rows === []) {
             throw new \RuntimeException('admin.awards.create_failed');

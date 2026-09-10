@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Mt2Cms\Auth;
 
 /**
- * Simple session + IP rate limiter for auth endpoints (no Redis required).
+ * File-backed IP + action rate limiter (no Redis or DB required).
  */
 class RateLimiter
 {
-    private const SESSION_KEY = '_rate_limit';
-
     public function __construct(
         private int $maxAttempts = 10,
         private int $windowSeconds = 900,
+        private ?string $storageDir = null,
     ) {
     }
 
@@ -28,30 +27,18 @@ class RateLimiter
     {
         $this->prune($bucket);
 
-        $all = $_SESSION[self::SESSION_KEY] ?? [];
-        if (!is_array($all)) {
-            $all = [];
-        }
-
-        $hits = $all[$bucket] ?? [];
-        if (!is_array($hits)) {
-            $hits = [];
-        }
-
+        $hits = $this->hits($bucket);
         $hits[] = time();
-        $all[$bucket] = $hits;
-        $_SESSION[self::SESSION_KEY] = $all;
+        $this->write($bucket, $hits);
     }
 
     public function clear(string $bucket): void
     {
-        $all = $_SESSION[self::SESSION_KEY] ?? [];
-        if (!is_array($all)) {
-            return;
-        }
+        $path = $this->pathFor($bucket);
 
-        unset($all[$bucket]);
-        $_SESSION[self::SESSION_KEY] = $all;
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 
     /**
@@ -59,17 +46,70 @@ class RateLimiter
      */
     private function hits(string $bucket): array
     {
-        $all = $_SESSION[self::SESSION_KEY] ?? [];
-        if (!is_array($all)) {
+        $path = $this->pathFor($bucket);
+
+        if (!is_file($path)) {
             return [];
         }
 
-        $hits = $all[$bucket] ?? [];
-        if (!is_array($hits)) {
+        $handle = @fopen($path, 'c+');
+
+        if ($handle === false) {
             return [];
         }
 
-        return array_values(array_map('intval', $hits));
+        try {
+            if (!flock($handle, LOCK_SH)) {
+                return [];
+            }
+
+            $raw = stream_get_contents($handle);
+            flock($handle, LOCK_UN);
+
+            if ($raw === false || $raw === '') {
+                return [];
+            }
+
+            $decoded = json_decode($raw, true);
+
+            if (!is_array($decoded)) {
+                return [];
+            }
+
+            return array_values(array_map('intval', $decoded));
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @param list<int> $hits
+     */
+    private function write(string $bucket, array $hits): void
+    {
+        $this->ensureStorageDir();
+        $path = $this->pathFor($bucket);
+        $handle = @fopen($path, 'c+');
+
+        if ($handle === false) {
+            return;
+        }
+
+        try {
+            if (!flock($handle, LOCK_EX)) {
+                return;
+            }
+
+            ftruncate($handle, 0);
+            rewind($handle);
+            fwrite($handle, json_encode($hits, JSON_THROW_ON_ERROR));
+            fflush($handle);
+            flock($handle, LOCK_UN);
+        } catch (\JsonException) {
+            // Ignore write failures.
+        } finally {
+            fclose($handle);
+        }
     }
 
     private function prune(string $bucket): void
@@ -80,17 +120,35 @@ class RateLimiter
             static fn (int $at): bool => $at >= $cutoff,
         ));
 
-        $all = $_SESSION[self::SESSION_KEY] ?? [];
-        if (!is_array($all)) {
-            $all = [];
-        }
-
         if ($hits === []) {
-            unset($all[$bucket]);
-        } else {
-            $all[$bucket] = $hits;
+            $this->clear($bucket);
+
+            return;
         }
 
-        $_SESSION[self::SESSION_KEY] = $all;
+        $this->write($bucket, $hits);
+    }
+
+    private function pathFor(string $bucket): string
+    {
+        return $this->dir() . '/' . hash('sha256', $bucket) . '.json';
+    }
+
+    private function dir(): string
+    {
+        if ($this->storageDir !== null) {
+            return rtrim($this->storageDir, '/');
+        }
+
+        return BASE_DIR . '/var/rate-limit';
+    }
+
+    private function ensureStorageDir(): void
+    {
+        $dir = $this->dir();
+
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
     }
 }

@@ -4,201 +4,11 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
-use Mt2Cms\Admin\Grid\GridRunner;
-use Mt2Cms\Admin\Grid\GridSpec;
-use Mt2Cms\Auth\AdminAuth;
-use Mt2Cms\Auth\Auth;
-use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Http\Response;
-use Mt2Cms\I18n\Translator;
-use Mt2Cms\Repository\ItemShopCategoryRepository;
-use Mt2Cms\Repository\ItemShopOrderRepository;
-use Mt2Cms\Repository\ItemShopProductRepository;
-use Mt2Cms\Service\GameProtoService;
-use Mt2Cms\Theme\ThemeEngine;
 
-class AdminItemShopController extends AdminController
+class AdminItemShopCategoriesController extends AdminItemShopBaseController
 {
-    public function __construct(
-        ThemeEngine $theme,
-        Auth $auth,
-        Csrf $csrf,
-        Translator $translator,
-        AdminAuth $adminAuth,
-        ThemeEngine $adminTheme,
-        private ItemShopCategoryRepository $categories,
-        private ItemShopProductRepository $products,
-        private ItemShopOrderRepository $orders,
-        private GameProtoService $protos,
-    ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
-    }
-
-    public function productsIndex(): Response
-    {
-        $spec = $this->productsGridSpec();
-        $query = $this->gridQuery($spec);
-        $grid = GridRunner::fetch(
-            $spec,
-            $query,
-            fn ($q) => $this->products->countForGrid($q),
-            fn ($q) => $this->enrichProducts($this->products->listForGrid($q)),
-        );
-
-        return $this->adminView('item-shop', 'pages/item-shop-products.twig', [
-            'title' => $this->t('admin.item_shop.products.title'),
-            'pageLead' => $this->t('admin.item_shop.products.lead'),
-            'headerHref' => '/admin/item-shop/new',
-            'headerActionLabel' => $this->t('admin.item_shop.products.create'),
-            'grid' => $grid,
-        ]);
-    }
-
-    public function mass(): Response
-    {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/item-shop');
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                $product = $this->products->findById($id);
-
-                if ($product === null) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $ok = match ($action) {
-                    'enable' => $this->updateProductEnabled($product, 1),
-                    'disable' => $this->updateProductEnabled($product, 0),
-                    'delete' => $this->products->delete($id),
-                    default => throw new \InvalidArgumentException('invalid'),
-                };
-
-                if (!$ok) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-            } catch (\InvalidArgumentException | \RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t('admin.item_shop.products.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/item-shop');
-    }
-
-    public function productsCreate(): Response
-    {
-        return $this->productFormView($this->productPrefill());
-    }
-
-    public function productsStore(): Response
-    {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/item-shop/new');
-        }
-
-        $input = $this->productInput();
-
-        try {
-            $this->assertKnownVnum((int) $input['vnum']);
-            $product = $this->products->create($input);
-            $this->flash('success', $this->t('admin.item_shop.products.created'));
-
-            return $this->redirect('/admin/item-shop/' . $product['id']);
-        } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->productFormView($input, $this->t($e->getMessage()), 422);
-        }
-    }
-
-    public function productsEdit(string $id): Response
-    {
-        $product = $this->products->findById((int) $id);
-
-        if ($product === null) {
-            $this->flash('error', $this->t('admin.item_shop.products.not_found'));
-
-            return $this->redirect('/admin/item-shop');
-        }
-
-        return $this->productFormView($product, null, 200, true);
-    }
-
-    public function productsUpdate(string $id): Response
-    {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        $productId = (int) $id;
-        $existing = $this->products->findById($productId);
-
-        if ($existing === null) {
-            $this->flash('error', $this->t('admin.item_shop.products.not_found'));
-
-            return $this->redirect('/admin/item-shop');
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/item-shop/' . $productId);
-        }
-
-        $input = $this->productInput();
-
-        try {
-            $this->assertKnownVnum((int) $input['vnum']);
-            $this->products->update($productId, $input);
-            $this->flash('success', $this->t('admin.item_shop.products.updated'));
-
-            return $this->redirect('/admin/item-shop/' . $productId);
-        } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->productFormView(array_merge($existing, $input), $this->t($e->getMessage()), 422, true);
-        }
-    }
-
-    public function productsDestroy(string $id): Response
-    {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/item-shop');
-        }
-
-        if (!$this->products->delete((int) $id)) {
-            $this->flash('error', $this->t('admin.item_shop.products.not_found'));
-        } else {
-            $this->flash('success', $this->t('admin.item_shop.products.deleted'));
-        }
-
-        return $this->redirect('/admin/item-shop');
-    }
-
     public function categoriesIndex(): Response
     {
         return $this->categoryWorkspace(null);
@@ -227,6 +37,7 @@ class AdminItemShopController extends AdminController
 
         try {
             $category = $this->categories->create($input);
+            $this->audit('item_shop.category.create', 'item_shop_category', (int) $category['id']);
             $this->flash('success', $this->t('admin.item_shop.categories.created'));
 
             return $this->redirect('/admin/item-shop/categories/' . $category['id']);
@@ -272,7 +83,8 @@ class AdminItemShopController extends AdminController
         $input = $this->categoryInput();
 
         try {
-            $updated = $this->categories->update($categoryId, $input);
+            $this->categories->update($categoryId, $input);
+            $this->audit('item_shop.category.update', 'item_shop_category', $categoryId);
             $this->flash('success', $this->t('admin.item_shop.categories.updated'));
 
             return $this->redirect('/admin/item-shop/categories/' . $categoryId);
@@ -303,6 +115,7 @@ class AdminItemShopController extends AdminController
             if (!$this->categories->delete((int) $id)) {
                 $this->flash('error', $this->t('admin.item_shop.categories.not_found'));
             } else {
+                $this->audit('item_shop.category.delete', 'item_shop_category', (int) $id);
                 $this->flash('success', $this->t('admin.item_shop.categories.deleted'));
             }
         } catch (\RuntimeException $e) {
@@ -331,6 +144,7 @@ class AdminItemShopController extends AdminController
 
         try {
             $this->categories->move($id, $parentId, $position);
+            $this->audit('item_shop.category.move', 'item_shop_category', $id);
 
             return Response::json(['ok' => true]);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
@@ -443,6 +257,9 @@ class AdminItemShopController extends AdminController
 
         try {
             $created = $this->products->createManyForCategory($categoryId, $items);
+            $this->audit('item_shop.category.products_add', 'item_shop_category', $categoryId, [
+                'count' => count($created),
+            ]);
             $this->flash('success', $this->t('admin.item_shop.categories.products_added', ['count' => count($created)]));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -480,6 +297,7 @@ class AdminItemShopController extends AdminController
                 (int) ($_POST['price'] ?? 0),
                 (int) ($_POST['count'] ?? 1),
             );
+            $this->audit('item_shop.product.update', 'item_shop_product', $pid);
             $this->flash('success', $this->t('admin.item_shop.products.updated'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -510,28 +328,11 @@ class AdminItemShopController extends AdminController
         } elseif (!$this->products->delete($pid)) {
             $this->flash('error', $this->t('admin.item_shop.products.not_found'));
         } else {
+            $this->audit('item_shop.product.delete', 'item_shop_product', $pid);
             $this->flash('success', $this->t('admin.item_shop.products.deleted'));
         }
 
         return $this->redirect('/admin/item-shop/categories/' . $categoryId . '?tab=products');
-    }
-
-    public function ordersIndex(): Response
-    {
-        $spec = $this->orders->gridDefinition()->spec();
-        $query = $this->gridQuery($spec);
-        $grid = GridRunner::fetch(
-            $spec,
-            $query,
-            fn ($q) => $this->orders->countForGrid($q),
-            fn ($q) => $this->enrichOrders($this->orders->listForGrid($q)),
-        );
-
-        return $this->adminView('item-shop-orders', 'pages/item-shop-orders.twig', [
-            'title' => $this->t('admin.item_shop.orders.title'),
-            'pageLead' => $this->t('admin.item_shop.orders.lead'),
-            'grid' => $grid,
-        ]);
     }
 
     /**
@@ -596,49 +397,6 @@ class AdminItemShopController extends AdminController
     }
 
     /**
-     * @param array<string, mixed> $product
-     */
-    private function productFormView(array $product, ?string $error = null, int $status = 200, bool $isEdit = false): Response
-    {
-        if ($guard = $this->denyUnlessAdmin()) {
-            return $guard;
-        }
-
-        $vnum = (int) ($product['vnum'] ?? 0);
-        $itemName = $vnum > 0 ? $this->itemName($vnum) : '';
-
-        return $this->adminView('item-shop', 'pages/item-shop-product-form.twig', [
-            'title' => $this->t($isEdit ? 'admin.item_shop.products.edit_title' : 'admin.item_shop.products.create_title'),
-            'pageLead' => $this->t($isEdit ? 'admin.item_shop.products.edit_lead' : 'admin.item_shop.products.create_lead'),
-            'formId' => 'admin-item-shop-product-form',
-            'saveLabel' => $this->t('admin.save'),
-            'product' => $product,
-            'categories' => $this->categories->listAllForSelect(),
-            'itemName' => $itemName,
-            'isEdit' => $isEdit,
-            'error' => $error,
-        ], $status);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function productPrefill(): array
-    {
-        return [
-            'category_id' => 0,
-            'vnum' => '',
-            'count' => 1,
-            'price' => 1,
-            'socket0' => 0,
-            'socket1' => 0,
-            'socket2' => 0,
-            'enabled' => 1,
-            'sort_order' => 0,
-        ];
-    }
-
-    /**
      * @return array<string, mixed>
      */
     private function categoryPrefill(?int $parentId = null): array
@@ -649,24 +407,6 @@ class AdminItemShopController extends AdminController
             'slug' => '',
             'sort_order' => 0,
             'enabled' => 1,
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function productInput(): array
-    {
-        return [
-            'category_id' => (int) ($_POST['category_id'] ?? 0),
-            'vnum' => (int) ($_POST['vnum'] ?? 0),
-            'count' => (int) ($_POST['count'] ?? 1),
-            'price' => (int) ($_POST['price'] ?? 0),
-            'socket0' => (int) ($_POST['socket0'] ?? 0),
-            'socket1' => (int) ($_POST['socket1'] ?? 0),
-            'socket2' => (int) ($_POST['socket2'] ?? 0),
-            'enabled' => isset($_POST['enabled']) ? 1 : 0,
-            'sort_order' => (int) ($_POST['sort_order'] ?? 0),
         ];
     }
 
@@ -684,87 +424,5 @@ class AdminItemShopController extends AdminController
             'sort_order' => (int) ($_POST['sort_order'] ?? 0),
             'enabled' => isset($_POST['enabled']) ? 1 : 0,
         ];
-    }
-
-    private function assertKnownVnum(int $vnum): void
-    {
-        if ($vnum < 1 || $this->protos->find(ProtoSchemas::KIND_ITEM, $vnum) === null) {
-            throw new \InvalidArgumentException('admin.item_shop.products.vnum_not_found');
-        }
-    }
-
-    private function itemName(int $vnum): string
-    {
-        $row = $this->protos->find(ProtoSchemas::KIND_ITEM, $vnum);
-
-        if ($row === null) {
-            return '';
-        }
-
-        $locale = trim((string) ($row['locale_name'] ?? ''));
-
-        return $locale !== '' ? $locale : trim((string) ($row['name'] ?? ''));
-    }
-
-    /**
-     * @param list<array<string, mixed>> $rows
-     * @return list<array<string, mixed>>
-     */
-    private function productsGridSpec(): GridSpec
-    {
-        $categoryOptions = [];
-
-        foreach ($this->categories->listAllForSelect() as $category) {
-            $categoryOptions[(string) $category['id']] = (string) $category['name'];
-        }
-
-        return $this->products->gridDefinition()
-            ->filterOptions('category_id', $categoryOptions, false)
-            ->spec();
-    }
-
-    /**
-     * @param array<string, mixed> $product
-     */
-    private function updateProductEnabled(array $product, int $enabled): bool
-    {
-        try {
-            $this->products->update((int) $product['id'], array_merge($product, ['enabled' => $enabled]));
-
-            return true;
-        } catch (\InvalidArgumentException | \RuntimeException) {
-            return false;
-        }
-    }
-
-    /**
-     * @param list<array<string, mixed>> $rows
-     * @return list<array<string, mixed>>
-     */
-    private function enrichProducts(array $rows): array
-    {
-        foreach ($rows as &$row) {
-            $row['item_name'] = $this->itemName((int) $row['vnum']);
-            $row['enabled'] = (string) (int) ($row['enabled'] ?? 0);
-        }
-
-        unset($row);
-
-        return $rows;
-    }
-
-    /**
-     * @param list<array<string, mixed>> $rows
-     * @return list<array<string, mixed>>
-     */
-    private function enrichOrders(array $rows): array
-    {
-        foreach ($rows as &$row) {
-            $row['item_name'] = $this->itemName((int) $row['vnum']);
-        }
-
-        unset($row);
-
-        return $rows;
     }
 }

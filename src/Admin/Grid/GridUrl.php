@@ -9,8 +9,16 @@ final class GridUrl
     /**
      * @param array<string, scalar|null> $overrides
      */
-    public static function build(string $action, GridQuery $query, array $overrides = []): string
-    {
+    public static function build(
+        string $action,
+        GridQuery $query,
+        array $overrides = [],
+        ?GridSpec $spec = null,
+    ): string {
+        $defaultPerPage = $spec?->defaultPerPage ?? 20;
+        $defaultSort = $spec?->defaultSort ?? 'id';
+        $defaultDir = $spec?->defaultDir ?? 'desc';
+
         $params = [];
 
         if ($query->q !== null && $query->q !== '') {
@@ -26,15 +34,15 @@ final class GridUrl
             $params['page'] = $page;
         }
 
-        if ($limit !== 20) {
+        if ($limit !== $defaultPerPage) {
             $params['limit'] = $limit;
         }
 
-        if (array_key_exists('sort', $overrides) || $sort !== 'id') {
+        if (array_key_exists('sort', $overrides) || $sort !== $defaultSort) {
             $params['sort'] = $sort;
         }
 
-        if (array_key_exists('dir', $overrides) || $dir !== 'desc') {
+        if (array_key_exists('dir', $overrides) || $dir !== $defaultDir) {
             $params['dir'] = $dir;
         }
 
@@ -61,8 +69,12 @@ final class GridUrl
         return $action . '?' . http_build_query($params);
     }
 
-    public static function sort(string $action, GridQuery $query, string $column): string
-    {
+    public static function sort(
+        string $action,
+        GridQuery $query,
+        string $column,
+        ?GridSpec $spec = null,
+    ): string {
         $dir = 'asc';
 
         if ($query->sort === $column && $query->dir === 'asc') {
@@ -73,20 +85,20 @@ final class GridUrl
             'sort' => $column,
             'dir' => $dir,
             'page' => 1,
-        ]);
+        ], $spec);
     }
 
-    public static function page(string $action, GridQuery $query, int $page): string
+    public static function page(string $action, GridQuery $query, int $page, ?GridSpec $spec = null): string
     {
-        return self::build($action, $query, ['page' => $page]);
+        return self::build($action, $query, ['page' => $page], $spec);
     }
 
-    public static function limit(string $action, GridQuery $query, int $limit): string
+    public static function limit(string $action, GridQuery $query, int $limit, ?GridSpec $spec = null): string
     {
         return self::build($action, $query, [
             'limit' => $limit,
             'page' => 1,
-        ]);
+        ], $spec);
     }
 
     public static function reset(string $action): string
@@ -101,8 +113,9 @@ final class GridUrl
     public static function fromGrid(array $grid, array $overrides = []): string
     {
         $query = self::queryFromGrid($grid);
+        $spec = self::specFromGrid($grid);
 
-        return self::build((string) ($grid['action'] ?? '/admin'), $query, $overrides);
+        return self::build((string) ($grid['action'] ?? '/admin'), $query, $overrides, $spec);
     }
 
     /**
@@ -111,8 +124,9 @@ final class GridUrl
     public static function sortFromGrid(array $grid, string $column): string
     {
         $query = self::queryFromGrid($grid);
+        $spec = self::specFromGrid($grid);
 
-        return self::sort((string) ($grid['action'] ?? '/admin'), $query, $column);
+        return self::sort((string) ($grid['action'] ?? '/admin'), $query, $column, $spec);
     }
 
     /**
@@ -129,6 +143,25 @@ final class GridUrl
             (string) ($grid['sort'] ?? 'id'),
             (string) ($grid['dir'] ?? 'desc'),
             is_array($grid['filterValues'] ?? null) ? $grid['filterValues'] : [],
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $grid
+     */
+    private static function specFromGrid(array $grid): ?GridSpec
+    {
+        if (!isset($grid['defaultSort'], $grid['defaultPerPage'], $grid['defaultDir'])) {
+            return null;
+        }
+
+        return new GridSpec(
+            action: (string) ($grid['action'] ?? '/admin'),
+            i18nPrefix: (string) ($grid['i18nPrefix'] ?? 'admin.grid'),
+            columns: [],
+            defaultPerPage: (int) $grid['defaultPerPage'],
+            defaultSort: (string) $grid['defaultSort'],
+            defaultDir: (string) $grid['defaultDir'],
         );
     }
 }

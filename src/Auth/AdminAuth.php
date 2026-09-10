@@ -65,6 +65,19 @@ class AdminAuth
         return $this->admins->findById($id);
     }
 
+    public function role(): string
+    {
+        $user = $this->user();
+
+        if ($user === null) {
+            return 'super';
+        }
+
+        return \Mt2Cms\Admin\AdminPermissions::normalizeRole(
+            isset($user['role']) ? (string) $user['role'] : null,
+        );
+    }
+
     public function logout(): void
     {
         unset($_SESSION[self::SESSION_ID], $_SESSION[self::SESSION_LOGIN]);

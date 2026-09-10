@@ -1,0 +1,375 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Http;
+
+use Mt2Cms\Http\Controller\AccountController;
+use Mt2Cms\Http\Controller\AdminAccountsController;
+use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\AdminAwardsController;
+use Mt2Cms\Http\Controller\AdminCharactersController;
+use Mt2Cms\Http\Controller\AdminDashboardController;
+use Mt2Cms\Http\Controller\AdminDropsController;
+use Mt2Cms\Http\Controller\AdminGameProtoController;
+use Mt2Cms\Http\Controller\AdminGmsController;
+use Mt2Cms\Http\Controller\AdminGuildsController;
+use Mt2Cms\Http\Controller\AdminItemShopCategoriesController;
+use Mt2Cms\Http\Controller\AdminItemShopOrdersController;
+use Mt2Cms\Http\Controller\AdminItemShopProductsController;
+use Mt2Cms\Http\Controller\AdminLogsController;
+use Mt2Cms\Http\Controller\AdminNewsCommentsController;
+use Mt2Cms\Http\Controller\AdminNewsPostsController;
+use Mt2Cms\Http\Controller\AdminNewsSettingsController;
+use Mt2Cms\Http\Controller\AdminRefineController;
+use Mt2Cms\Http\Controller\AdminSettingsController;
+use Mt2Cms\Http\Controller\AdminShopsController;
+use Mt2Cms\Http\Controller\AdminTicketsController;
+use Mt2Cms\Http\Controller\AuthController;
+use Mt2Cms\Http\Controller\GameIconController;
+use Mt2Cms\Http\Controller\HomeController;
+use Mt2Cms\Http\Controller\ItemShopController;
+use Mt2Cms\Http\Controller\LocaleController;
+use Mt2Cms\Http\Controller\NewsController;
+use Mt2Cms\Http\Controller\PlayerController;
+use Mt2Cms\Http\Controller\RankingController;
+use Mt2Cms\Http\Controller\SetupController;
+use Mt2Cms\Http\Controller\TicketController;
+use Mt2Cms\Setup\EnvWriter;
+
+trait ControllerMap
+{
+private function resolveController(string $class): object
+    {
+        return match ($class) {
+            HomeController::class => new HomeController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->news,
+            ),
+            NewsController::class => new NewsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+            ),
+            TicketController::class => new TicketController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->tickets,
+                $this->ticketUploads,
+                $this->htmlSanitizer,
+            ),
+            AuthController::class => new AuthController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->accounts,
+                $this->settings,
+            ),
+            AccountController::class => new AccountController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->players,
+            ),
+            ItemShopController::class => new ItemShopController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopPurchases,
+                $this->itemTooltips,
+            ),
+            RankingController::class => new RankingController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->players,
+            ),
+            PlayerController::class => new PlayerController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->players,
+            ),
+            GameIconController::class => new GameIconController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->icons,
+            ),
+            LocaleController::class => new LocaleController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->locales,
+            ),
+            SetupController::class => new SetupController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->themeCatalog,
+                new EnvWriter(),
+            ),
+            AdminAuthController::class => new AdminAuthController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+            ),
+            AdminDashboardController::class => new AdminDashboardController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->players,
+            ),
+            AdminSettingsController::class => new AdminSettingsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->settings,
+                $this->themeCatalog,
+                $this->locales,
+            ),
+            AdminAccountsController::class => new AdminAccountsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->accounts,
+                $this->players,
+                $this->logs,
+            ),
+            AdminCharactersController::class => new AdminCharactersController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->players,
+                $this->items,
+                $this->guilds,
+                $this->logs,
+                $this->accounts,
+            ),
+            AdminGameProtoController::class => new AdminGameProtoController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->gameProto,
+                $this->protoFields,
+                $this->mobDrops,
+                $this->protoEnums,
+            ),
+            AdminLogsController::class => new AdminLogsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->logs,
+            ),
+            AdminGuildsController::class => new AdminGuildsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->guilds,
+            ),
+            AdminGmsController::class => new AdminGmsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->common,
+                $this->accounts,
+            ),
+            AdminAwardsController::class => new AdminAwardsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->awards,
+                $this->accounts,
+                $this->players,
+                $this->gameProto,
+            ),
+            AdminNewsPostsController::class => new AdminNewsPostsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+                $this->htmlSanitizer,
+                $this->newsUploads,
+            ),
+            AdminNewsCommentsController::class => new AdminNewsCommentsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+                $this->htmlSanitizer,
+                $this->newsUploads,
+            ),
+            AdminNewsSettingsController::class => new AdminNewsSettingsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+                $this->htmlSanitizer,
+                $this->newsUploads,
+            ),
+            AdminTicketsController::class => new AdminTicketsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->tickets,
+                $this->ticketUploads,
+                $this->htmlSanitizer,
+            ),
+            AdminItemShopProductsController::class => new AdminItemShopProductsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopOrders,
+                $this->gameProto,
+            ),
+            AdminItemShopCategoriesController::class => new AdminItemShopCategoriesController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopOrders,
+                $this->gameProto,
+            ),
+            AdminItemShopOrdersController::class => new AdminItemShopOrdersController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopOrders,
+                $this->gameProto,
+            ),
+            AdminShopsController::class => new AdminShopsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->shops,
+                $this->gameProto,
+            ),
+            AdminRefineController::class => new AdminRefineController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->refine,
+                $this->gameProto,
+            ),
+            AdminDropsController::class => new AdminDropsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->adminAudit,
+                $this->dropFiles,
+                $this->mobDrops,
+                $this->gameProto,
+                $this->gameProfile,
+            ),
+            default => throw new \RuntimeException('Unknown controller: ' . $class),
+        };
+    }
+}

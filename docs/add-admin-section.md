@@ -93,7 +93,22 @@ return $this->adminView('your-section', 'pages/your-section.twig', [
 ]);
 ```
 
-4. For mass actions: set `massActionPath` on the spec, register `POST /admin/your-section/mass`, call `assertCsrf()`, read IDs via `$this->gridMassIds()`, action via `$this->gridMassAction()`.
+4. For mass actions: set `massActionPath` on the spec, register `POST /admin/your-section/mass`, and delegate to `runMassActions()` on `AdminController` — it handles CSRF, ID/action parsing, per-row handlers, audit logging, and the success flash. Example:
+
+```php
+public function mass(): Response
+{
+    return $this->runMassActions(
+        $this->repo->gridDefinition()->spec(),
+        '/admin/your-section',
+        [
+            'delete' => fn (int $id): bool => $this->repo->delete($id),
+        ],
+        'your_entity',
+        'admin.your_section.mass_done',
+    );
+}
+```
 
 ### Twig
 

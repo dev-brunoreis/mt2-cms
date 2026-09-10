@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\TicketRepository;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminTicketsController extends AdminController
@@ -27,11 +28,12 @@ class AdminTicketsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private TicketRepository $tickets,
         private TicketUploadService $uploads,
         private HtmlSanitizer $sanitizer,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -54,39 +56,21 @@ class AdminTicketsController extends AdminController
 
     public function mass(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
+        return $this->runMassActions(
+            $this->tickets->gridDefinition()->spec(),
+            '/admin/tickets',
+            [
+                'close' => function (int $id): bool {
+                    if ($this->tickets->findById($id) === null) {
+                        return false;
+                    }
 
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/tickets');
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                if ($action !== 'close') {
-                    throw new \InvalidArgumentException('invalid');
-                }
-
-                if ($this->tickets->findById($id) === null || !$this->tickets->setStatus($id, 'closed')) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-            } catch (\InvalidArgumentException | \RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t('admin.tickets.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/tickets');
+                    return $this->tickets->setStatus($id, 'closed');
+                },
+            ],
+            'ticket',
+            'admin.tickets.mass_done',
+        );
     }
 
     public function show(string $id): Response
@@ -189,6 +173,7 @@ class AdminTicketsController extends AdminController
         );
         $this->tickets->setStatus((int) $ticket['id'], 'answered');
         $this->tickets->touch((int) $ticket['id']);
+        $this->audit('ticket.reply', 'ticket', (int) $ticket['id']);
         $this->flash('success', $this->t('admin.tickets.replied'));
 
         return $this->redirect('/admin/tickets/' . (int) $id);
@@ -251,6 +236,7 @@ class AdminTicketsController extends AdminController
         }
 
         $this->tickets->setStatus($id, $status);
+        $this->audit($status === 'closed' ? 'ticket.close' : 'ticket.reopen', 'ticket', $id);
         $this->flash('success', $this->t($successKey));
 
         return $this->redirect('/admin/tickets/' . $id);

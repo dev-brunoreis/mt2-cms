@@ -13,7 +13,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Open redirect | `Locales::safeRedirect` — internal paths only |
 | Cookies | Locale cookie: `HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS |
 | Session | Hardened cookie params; `session_regenerate_id(true)` on successful login |
-| Brute force | Session + IP rate limit on login/register |
+| Brute force | File-backed IP + action rate limit on login/register/admin login and other sensitive POSTs (`var/rate-limit/`) |
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (allows jsDelivr for Tailwind) |
 | Config | `DB_PASSWORD` required in `.env` (no hardcoded runtime default) |
 

@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAccountsController extends AdminController
@@ -24,11 +25,12 @@ class AdminAccountsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private LogRepository $logs,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -53,44 +55,17 @@ class AdminAccountsController extends AdminController
 
     public function mass(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/accounts');
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-
-        if ($ids === [] || $action === '') {
-            $this->flash('error', $this->t('admin.grid.no_selection'));
-
-            return $this->redirect('/admin/accounts');
-        }
-
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                match ($action) {
-                    'block' => $this->accounts->block($id),
-                    'unblock' => $this->accounts->unblock($id),
-                    'delete' => $this->accounts->delete($id) ? true : throw new \RuntimeException('skip'),
-                    default => throw new \InvalidArgumentException('invalid'),
-                };
-                $count++;
-            } catch (\InvalidArgumentException | \RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t('admin.accounts.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/accounts');
+        return $this->runMassActions(
+            $this->accounts->gridDefinition()->spec(),
+            '/admin/accounts',
+            [
+                'block' => fn (int $id): bool => $this->accounts->block($id),
+                'unblock' => fn (int $id): bool => $this->accounts->unblock($id),
+                'delete' => fn (int $id): bool => $this->accounts->delete($id),
+            ],
+            'account',
+            'admin.accounts.mass_done',
+        );
     }
 
     public function create(): Response
@@ -129,6 +104,7 @@ class AdminAccountsController extends AdminController
                 $input['mileage'],
             );
 
+            $this->audit('account.create', 'account', (int) $account['id']);
             $this->flash('success', $this->t('admin.accounts.created'));
 
             return $this->redirect('/admin/accounts');
@@ -184,6 +160,7 @@ class AdminAccountsController extends AdminController
                 (string) ($_POST['password'] ?? ''),
                 trim((string) ($_POST['social_id'] ?? '')),
             );
+            $this->audit('account.update', 'account', $accountId);
             $this->flash('success', $this->t('admin.accounts.updated'));
 
             return $this->redirect('/admin/accounts/' . $accountId);
@@ -222,6 +199,7 @@ class AdminAccountsController extends AdminController
             if (!$this->accounts->delete((int) $id)) {
                 $this->flash('error', $this->t('admin.accounts.not_found'));
             } else {
+                $this->audit('account.delete', 'account', (int) $id);
                 $this->flash('success', $this->t('admin.accounts.deleted'));
             }
         } catch (\InvalidArgumentException $e) {
@@ -340,6 +318,7 @@ class AdminAccountsController extends AdminController
                 $this->accounts->unblock($id);
             }
 
+            $this->audit('account.' . $action, 'account', $id);
             $this->flash('success', $this->t($successKey));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));

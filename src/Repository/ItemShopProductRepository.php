@@ -51,17 +51,6 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
         return 'cms';
     }
 
-    public function countForAdmin(?string $query = null, ?int $categoryId = null): int
-    {
-        $filters = [];
-
-        if ($categoryId !== null && $categoryId > 0) {
-            $filters['category_id'] = (string) $categoryId;
-        }
-
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', $filters));
-    }
-
     public function countForGrid(GridQuery $query): int
     {
         [$where, $params] = $this->gridWhere($query);
@@ -72,20 +61,6 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
              INNER JOIN item_shop_categories c ON c.id = p.category_id' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?int $categoryId = null): array
-    {
-        $filters = [];
-
-        if ($categoryId !== null && $categoryId > 0) {
-            $filters['category_id'] = (string) $categoryId;
-        }
-
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', $filters));
     }
 
     /**

@@ -33,11 +33,6 @@ class RefineRepository extends Repository implements ProvidesAdminGrid
         return 'player';
     }
 
-    public function countForAdmin(?string $query = null, ?array $usedByRefineIds = null): int
-    {
-        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', []), $usedByRefineIds);
-    }
-
     /**
      * @param list<int>|null $usedByRefineIds
      */
@@ -53,14 +48,6 @@ class RefineRepository extends Repository implements ProvidesAdminGrid
             'SELECT COUNT(*) FROM `refine_proto` r' . $where,
             $params,
         );
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $page, int $perPage, ?string $query = null, ?array $usedByRefineIds = null): array
-    {
-        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', []), $usedByRefineIds);
     }
 
     /**

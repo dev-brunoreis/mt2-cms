@@ -12,6 +12,7 @@ use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminSettingsController extends AdminController
@@ -23,11 +24,12 @@ class AdminSettingsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private SettingsService $settings,
         private ThemeCatalog $themes,
         private Locales $locales,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function registration(): Response
@@ -54,6 +56,7 @@ class AdminSettingsController extends AdminController
 
         $enabled = isset($_POST['registration_enabled']);
         $this->settings->setRegistrationEnabled($enabled);
+        $this->audit('settings.registration_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect('/admin/registration');
@@ -97,6 +100,7 @@ class AdminSettingsController extends AdminController
 
         try {
             $this->settings->setAvailableThemes($themes, $active);
+            $this->audit('settings.themes_save', 'settings', null);
             $this->flash('success', $this->t('admin.saved'));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -137,6 +141,7 @@ class AdminSettingsController extends AdminController
         }
 
         $this->settings->setDefaultLocale($locale);
+        $this->audit('settings.locale_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect('/admin/locale');

@@ -13,6 +13,7 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\RefineRepository;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminRefineController extends AdminController
@@ -24,10 +25,11 @@ class AdminRefineController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private RefineRepository $refine,
         private GameProtoService $protos,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -75,6 +77,7 @@ class AdminRefineController extends AdminController
         try {
             $this->validateVnums($input);
             $recipe = $this->refine->create($input);
+            $this->audit('refine.create', 'refine', (int) $recipe['id']);
             $this->flash('success', $this->t('admin.refine.created'));
 
             return $this->redirect('/admin/refine/' . $recipe['id']);
@@ -122,6 +125,7 @@ class AdminRefineController extends AdminController
         try {
             $this->validateVnums($input);
             $this->refine->update($recipeId, $input);
+            $this->audit('refine.update', 'refine', $recipeId);
             $this->flash('success', $this->t('admin.refine.updated'));
 
             return $this->redirect('/admin/refine/' . $recipeId);
@@ -145,6 +149,7 @@ class AdminRefineController extends AdminController
         if (!$this->refine->delete((int) $id)) {
             $this->flash('error', $this->t('admin.refine.not_found'));
         } else {
+            $this->audit('refine.delete', 'refine', (int) $id);
             $this->flash('success', $this->t('admin.refine.deleted'));
         }
 

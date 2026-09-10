@@ -155,7 +155,7 @@ class LogRepository extends Repository
 
     public function countForGrid(string $id, GridQuery $query): int
     {
-        return $this->countForAdmin($id, $this->filtersFromGrid($query));
+        return $this->countLogTable($id, $this->filtersFromGrid($query));
     }
 
     /**
@@ -163,7 +163,7 @@ class LogRepository extends Repository
      */
     public function listForGrid(string $id, GridQuery $query): array
     {
-        return $this->listForAdmin($id, $query->page, $query->perPage, $this->filtersFromGrid($query));
+        return $this->listLogTable($id, $query->page, $query->perPage, $this->filtersFromGrid($query));
     }
 
     public function countConnectionsForGrid(GridQuery $query): int
@@ -194,7 +194,7 @@ class LogRepository extends Repository
     /**
      * @param array{q?: string, from?: string, to?: string} $filters
      */
-    public function countForAdmin(string $id, array $filters): int
+    private function countLogTable(string $id, array $filters): int
     {
         $log = $this->requireLog($id);
 
@@ -214,7 +214,7 @@ class LogRepository extends Repository
      * @param array{q?: string, from?: string, to?: string} $filters
      * @return list<array<string, mixed>>
      */
-    public function listForAdmin(string $id, int $page, int $perPage, array $filters): array
+    private function listLogTable(string $id, int $page, int $perPage, array $filters): array
     {
         $log = $this->requireLog($id);
 

@@ -15,6 +15,7 @@ use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\ItemAwardRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAwardsController extends AdminController
@@ -26,12 +27,13 @@ class AdminAwardsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private ItemAwardRepository $awards,
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private GameProtoService $protos,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -56,35 +58,15 @@ class AdminAwardsController extends AdminController
 
     public function mass(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/awards');
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                if ($action !== 'delete' || !$this->awards->deletePending($id)) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-            } catch (\RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t('admin.awards.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/awards');
+        return $this->runMassActions(
+            $this->awards->gridDefinition()->spec(),
+            '/admin/awards',
+            [
+                'delete' => fn (int $id): bool => $this->awards->deletePending($id),
+            ],
+            'award',
+            'admin.awards.mass_done',
+        );
     }
 
     public function create(): Response
@@ -109,6 +91,7 @@ class AdminAwardsController extends AdminController
         try {
             $this->validateAwardInput($input);
             $this->awards->create($input);
+            $this->audit('award.create', 'award', null);
             $this->flash('success', $this->t('admin.awards.created'));
 
             return $this->redirect('/admin/awards');
@@ -132,6 +115,7 @@ class AdminAwardsController extends AdminController
         if (!$this->awards->deletePending((int) $id)) {
             $this->flash('error', $this->t('admin.awards.delete_failed'));
         } else {
+            $this->audit('award.delete', 'award', (int) $id);
             $this->flash('success', $this->t('admin.awards.deleted'));
         }
 

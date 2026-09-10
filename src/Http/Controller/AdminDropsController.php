@@ -14,6 +14,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminDropsController extends AdminController
@@ -25,12 +26,13 @@ class AdminDropsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private DropFileService $drops,
         private MobDropService $mobDrops,
         private GameProtoService $protos,
         private GameProfile $profile,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -71,6 +73,7 @@ class AdminDropsController extends AdminController
             $rows = $this->parseEtcInput();
             $this->drops->saveEtcDrops($rows);
             $this->mobDrops->clearCatalog();
+            $this->audit('drops.etc_save', 'drops_etc', null);
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -109,6 +112,7 @@ class AdminDropsController extends AdminController
         try {
             $this->drops->saveCommonDrops($this->parseCommonInput());
             $this->mobDrops->clearCatalog();
+            $this->audit('drops.common_save', 'drops_common', null);
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -161,6 +165,7 @@ class AdminDropsController extends AdminController
         try {
             $this->drops->saveMobDropGroupsFor($mobVnum, $this->parseMobGroupsInput());
             $this->mobDrops->clearCatalog();
+            $this->audit('drops.mob_save', 'drops_mob', $mobVnum);
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));

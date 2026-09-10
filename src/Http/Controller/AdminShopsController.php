@@ -13,6 +13,7 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ShopRepository;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminShopsController extends AdminController
@@ -29,10 +30,11 @@ class AdminShopsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private ShopRepository $shops,
         private GameProtoService $protos,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -76,6 +78,7 @@ class AdminShopsController extends AdminController
 
         try {
             $shop = $this->shops->create($input);
+            $this->audit('shop.create', 'shop', (int) $shop['vnum']);
             $this->flash('success', $this->t('admin.shops.created'));
 
             return $this->redirect('/admin/shops/' . $shop['vnum']);
@@ -148,6 +151,7 @@ class AdminShopsController extends AdminController
 
         try {
             $this->shops->update($vnum, $input);
+            $this->audit('shop.update', 'shop', $vnum);
             $this->flash('success', $this->t('admin.shops.updated'));
 
             return $this->redirect('/admin/shops/' . $vnum);
@@ -171,6 +175,7 @@ class AdminShopsController extends AdminController
         if (!$this->shops->delete((int) $id)) {
             $this->flash('error', $this->t('admin.shops.not_found'));
         } else {
+            $this->audit('shop.delete', 'shop', (int) $id);
             $this->flash('success', $this->t('admin.shops.deleted'));
         }
 
@@ -242,12 +247,14 @@ class AdminShopsController extends AdminController
                 }
 
                 $this->shops->addItem($shopVnum, $itemVnum, $count);
+                $this->audit('shop.item_add', 'shop', $shopVnum, ['item_vnum' => $itemVnum]);
                 $this->flash('success', $this->t('admin.shops.item_added'));
             } else {
                 if (!$this->shops->removeItem($shopVnum, $itemVnum, $count)) {
                     throw new \InvalidArgumentException('admin.shops.item_not_found');
                 }
 
+                $this->audit('shop.item_remove', 'shop', $shopVnum, ['item_vnum' => $itemVnum]);
                 $this->flash('success', $this->t('admin.shops.item_removed'));
             }
         } catch (\InvalidArgumentException | \RuntimeException $e) {

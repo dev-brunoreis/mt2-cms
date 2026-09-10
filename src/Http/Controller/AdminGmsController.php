@@ -12,6 +12,7 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\CommonRepository;
+use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGmsController extends AdminController
@@ -23,10 +24,11 @@ class AdminGmsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AdminAuditService $auditLog,
         private CommonRepository $common,
         private AccountRepository $accounts,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
     }
 
     public function index(): Response
@@ -52,35 +54,15 @@ class AdminGmsController extends AdminController
 
     public function mass(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/gms');
-        }
-
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
-        $count = 0;
-
-        foreach ($ids as $id) {
-            try {
-                if ($action !== 'delete' || !$this->common->deleteGm($id)) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-            } catch (\RuntimeException) {
-                continue;
-            }
-        }
-
-        $this->flash('success', $this->t('admin.gms.mass_done', ['count' => $count]));
-
-        return $this->redirect('/admin/gms');
+        return $this->runMassActions(
+            $this->common->gridDefinition()->spec(),
+            '/admin/gms',
+            [
+                'delete' => fn (int $id): bool => $this->common->deleteGm($id),
+            ],
+            'gm',
+            'admin.gms.mass_done',
+        );
     }
 
     public function create(): Response
@@ -104,7 +86,8 @@ class AdminGmsController extends AdminController
 
         try {
             $this->assertAccountExists((string) $input['mAccount']);
-            $this->common->createGm($input);
+            $gm = $this->common->createGm($input);
+            $this->audit('gm.create', 'gm', (int) $gm['mID']);
             $this->flash('success', $this->t('admin.gms.created'));
 
             return $this->redirect('/admin/gms');
@@ -152,6 +135,7 @@ class AdminGmsController extends AdminController
         try {
             $this->assertAccountExists((string) $input['mAccount']);
             $this->common->updateGm($gmId, $input);
+            $this->audit('gm.update', 'gm', $gmId);
             $this->flash('success', $this->t('admin.gms.updated'));
 
             return $this->redirect('/admin/gms/' . $gmId);
@@ -175,6 +159,7 @@ class AdminGmsController extends AdminController
         if (!$this->common->deleteGm((int) $id)) {
             $this->flash('error', $this->t('admin.gms.not_found'));
         } else {
+            $this->audit('gm.delete', 'gm', (int) $id);
             $this->flash('success', $this->t('admin.gms.deleted'));
         }
 
@@ -195,6 +180,7 @@ class AdminGmsController extends AdminController
 
         try {
             $this->common->addGmHost(trim((string) ($_POST['mIP'] ?? '')));
+            $this->audit('gm.host_add', 'gm_host', null);
             $this->flash('success', $this->t('admin.gms.host_added'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -218,6 +204,7 @@ class AdminGmsController extends AdminController
         if (!$this->common->deleteGmHost(trim((string) ($_POST['mIP'] ?? '')))) {
             $this->flash('error', $this->t('admin.gms.host_not_found'));
         } else {
+            $this->audit('gm.host_delete', 'gm_host', null);
             $this->flash('success', $this->t('admin.gms.host_deleted'));
         }
 

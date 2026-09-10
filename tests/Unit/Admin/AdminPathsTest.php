@@ -27,30 +27,6 @@ final class AdminPathsTest extends TestCase
         self::assertSame('/admin/game-data/shops', AdminSections::sectionPath('shops'));
     }
 
-    public function testLegacyRedirects(): void
-    {
-        self::assertSame(
-            '/admin/logs?tab=command_log',
-            AdminPaths::resolveLegacyRedirect('/admin/logs/command_log'),
-        );
-        self::assertSame(
-            '/admin/content/news?tab=comments',
-            AdminPaths::resolveLegacyRedirect('/admin/news/comments'),
-        );
-        self::assertSame(
-            '/admin/store?tab=products',
-            AdminPaths::resolveLegacyRedirect('/admin/item-shop'),
-        );
-        self::assertSame(
-            '/admin/game-data/items/42',
-            AdminPaths::resolveLegacyRedirect('/admin/items/42'),
-        );
-        self::assertSame(
-            '/admin/content/news/posts/7',
-            AdminPaths::resolveLegacyRedirect('/admin/news/7'),
-        );
-    }
-
     public function testLogCatalogHasGroupedTabsIncludingConnections(): void
     {
         $groups = LogCatalog::groupedTabs();

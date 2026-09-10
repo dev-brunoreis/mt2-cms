@@ -176,7 +176,5 @@ final class AdminRoutes
 
         // Logs hub
         $r->addRoute('GET', '/admin/logs', [AdminLogsController::class, 'index']);
-
-        AdminLegacyRoutes::register($r);
     }
 }

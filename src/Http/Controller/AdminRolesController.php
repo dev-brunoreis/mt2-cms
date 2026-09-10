@@ -34,11 +34,6 @@ class AdminRolesController extends AdminController
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
-    public function legacyRedirect(): Response
-    {
-        return $this->redirect('/admin/system/roles');
-    }
-
     public function mass(): Response
     {
         return $this->runMassActions(

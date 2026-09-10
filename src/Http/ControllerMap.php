@@ -19,7 +19,6 @@ use Mt2Cms\Http\Controller\AdminGuildsController;
 use Mt2Cms\Http\Controller\AdminItemShopCategoriesController;
 use Mt2Cms\Http\Controller\AdminItemShopOrdersController;
 use Mt2Cms\Http\Controller\AdminItemShopProductsController;
-use Mt2Cms\Http\Controller\AdminLegacyRedirectController;
 use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminNewsCommentsController;
 use Mt2Cms\Http\Controller\AdminNewsHubController;
@@ -256,12 +255,6 @@ private function resolveController(string $class): object
                 $this->accounts,
                 $this->players,
                 $this->gameProto,
-            ),
-            AdminLegacyRedirectController::class => new AdminLegacyRedirectController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
             ),
             AdminNewsHubController::class => new AdminNewsHubController(
                 $this->theme,

@@ -45,11 +45,11 @@
       subtypeSelect.appendChild(opt)
     } else {
       if (current !== '' && !options.includes(current)) {
-        const legacy = document.createElement('option')
-        legacy.value = current
-        legacy.textContent = current
-        legacy.selected = true
-        subtypeSelect.appendChild(legacy)
+        const currentOption = document.createElement('option')
+        currentOption.value = current
+        currentOption.textContent = current
+        currentOption.selected = true
+        subtypeSelect.appendChild(currentOption)
       }
 
       options.forEach((value) => {

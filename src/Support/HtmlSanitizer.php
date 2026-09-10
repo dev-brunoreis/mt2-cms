@@ -57,7 +57,7 @@ class HtmlSanitizer
     }
 
     /**
-     * Ticket messages: sanitize HTML, or escape + nl2br for legacy plain text.
+     * Ticket messages: sanitize HTML, or escape + nl2br for plain text.
      */
     public function ticketHtml(string $html): string
     {

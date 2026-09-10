@@ -38,7 +38,3 @@ Rows that must not be bulk-selected (e.g. system Super role) set `'can_mass' => 
 ## Non-numeric row IDs
 
 When `idField` is not numeric (e.g. role `slug`), set `->massIdType('string')`.
-
-## Legacy pages
-
-Some older pages still mix custom tables with the grid (e.g. GMs hosts table). When touching them, migrate to `GridDefinition` + `grid.twig` and follow the mass **or** row-actions rule above.

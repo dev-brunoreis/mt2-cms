@@ -17,7 +17,7 @@ Admin routes use area prefixes:
 | System | `/admin/system/` | admins, roles, audit-log |
 | Settings | `/admin/settings/` | registration, themes, locale |
 
-Use [`AdminPaths.php`](../src/Admin/AdminPaths.php) for canonical paths (and `admin_path()` in Twig). Legacy URLs redirect via [`AdminLegacyRoutes.php`](../src/Http/AdminLegacyRoutes.php).
+Use [`AdminPaths.php`](../src/Admin/AdminPaths.php) for paths (and `admin_path()` in Twig).
 
 Hub pages (news, store, logs) use `[data-admin-tabs]` with lazy `?partial=1` fragments — see §5.
 

@@ -113,28 +113,4 @@ final class AdminSectionCatalog
     {
         return in_array($sectionId, self::SUPER_ONLY, true);
     }
-
-    /**
-     * Legacy section IDs collapsed during IA migration.
-     *
-     * @return list<string>
-     */
-    public static function obsoleteSectionIds(): array
-    {
-        $ids = [];
-
-        foreach (LogCatalog::all() as $log) {
-            $ids[] = 'log-' . $log['id'];
-        }
-
-        $ids[] = 'log-' . LogCatalog::CONNECTIONS_ID;
-
-        return array_merge($ids, [
-            'news-comments',
-            'news-settings',
-            'store',
-            'item-shop-categories',
-            'item-shop-orders',
-        ]);
-    }
 }

@@ -12,6 +12,11 @@ use Mt2Cms\Http\Controller\AdminAuditLogController;
 use Mt2Cms\Http\Controller\AdminAuthController;
 use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\AdminAwardsController;
+use Mt2Cms\Http\Controller\AdminBansController;
+use Mt2Cms\Http\Controller\AdminCashPackagesController;
+use Mt2Cms\Http\Controller\AdminCommunityController;
+use Mt2Cms\Http\Controller\AdminDownloadsController;
+use Mt2Cms\Http\Controller\AdminPaymentsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
 use Mt2Cms\Http\Controller\AdminDashboardController;
 use Mt2Cms\Http\Controller\AdminDropsController;
@@ -57,6 +62,8 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/settings/locale', [AdminSettingsController::class, 'saveLocale']);
         $r->addRoute('GET', '/admin/settings/security', [AdminSettingsController::class, 'security']);
         $r->addRoute('POST', '/admin/settings/security', [AdminSettingsController::class, 'saveSecurity']);
+        $r->addRoute('GET', '/admin/settings/community', [AdminCommunityController::class, 'channels']);
+        $r->addRoute('POST', '/admin/settings/community', [AdminCommunityController::class, 'saveChannels']);
 
         // System
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);
@@ -101,6 +108,10 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/game/awards', [AdminAwardsController::class, 'store']);
         $r->addRoute('POST', '/admin/game/awards/{id:\d+}/delete', [AdminAwardsController::class, 'destroy']);
         $r->addRoute('POST', '/admin/game/awards/mass', [AdminAwardsController::class, 'mass']);
+        $r->addRoute('GET', '/admin/game/bans', [AdminBansController::class, 'index']);
+        $r->addRoute('GET', '/admin/game/bans/new', [AdminBansController::class, 'create']);
+        $r->addRoute('POST', '/admin/game/bans', [AdminBansController::class, 'store']);
+        $r->addRoute('POST', '/admin/game/bans/mass', [AdminBansController::class, 'mass']);
 
         // Content — news hub
         $r->addRoute('GET', '/admin/content/news', [AdminNewsHubController::class, 'index']);
@@ -125,6 +136,12 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/content/tickets/{id:\d+}/reply', [AdminTicketsController::class, 'reply']);
         $r->addRoute('POST', '/admin/content/tickets/{id:\d+}/close', [AdminTicketsController::class, 'close']);
         $r->addRoute('POST', '/admin/content/tickets/{id:\d+}/reopen', [AdminTicketsController::class, 'reopen']);
+        $r->addRoute('GET', '/admin/content/downloads', [AdminDownloadsController::class, 'index']);
+        $r->addRoute('GET', '/admin/content/downloads/new', [AdminDownloadsController::class, 'create']);
+        $r->addRoute('POST', '/admin/content/downloads', [AdminDownloadsController::class, 'store']);
+        $r->addRoute('GET', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'edit']);
+        $r->addRoute('POST', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'update']);
+        $r->addRoute('POST', '/admin/content/downloads/mass', [AdminDownloadsController::class, 'mass']);
 
         // Store hub
         $r->addRoute('GET', '/admin/store', [AdminStoreHubController::class, 'index']);
@@ -147,6 +164,14 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/store/categories/{id:\d+}', [AdminItemShopCategoriesController::class, 'categoriesUpdate']);
         $r->addRoute('POST', '/admin/store/categories/{id:\d+}/delete', [AdminItemShopCategoriesController::class, 'categoriesDestroy']);
         $r->addRoute('GET', '/admin/store/orders', [AdminItemShopOrdersController::class, 'ordersIndex']);
+        $r->addRoute('GET', '/admin/store/packages', [AdminCashPackagesController::class, 'index']);
+        $r->addRoute('GET', '/admin/store/packages/new', [AdminCashPackagesController::class, 'create']);
+        $r->addRoute('POST', '/admin/store/packages', [AdminCashPackagesController::class, 'store']);
+        $r->addRoute('GET', '/admin/store/packages/{id:\d+}', [AdminCashPackagesController::class, 'edit']);
+        $r->addRoute('POST', '/admin/store/packages/{id:\d+}', [AdminCashPackagesController::class, 'update']);
+        $r->addRoute('POST', '/admin/store/packages/mass', [AdminCashPackagesController::class, 'mass']);
+        $r->addRoute('GET', '/admin/store/payments', [AdminPaymentsController::class, 'index']);
+        $r->addRoute('POST', '/admin/store/payments/{id:\d+}/recredit', [AdminPaymentsController::class, 'recredit']);
 
         // Game data
         $r->addRoute('GET', '/admin/game-data/shops', [AdminShopsController::class, 'index']);

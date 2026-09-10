@@ -1,0 +1,32 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-ban-form" method="post" action="/admin/game/bans" class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.bans.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.bans.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="ban-login">{{ t('admin.bans.login') }}</label>
+                <input id="ban-login" type="text" name="login" required maxlength="30"
+                       value="{{ values.login|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="ban-expires">{{ t('admin.bans.expires_at') }}</label>
+                <input id="ban-expires" type="datetime-local" name="expires_at"
+                       value="{{ values.expires_at|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.bans.expires_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="ban-reason">{{ t('admin.bans.reason') }}</label>
+                <textarea id="ban-reason" name="reason" rows="3" maxlength="500" class="admin-input">{{ values.reason|default('') }}</textarea>
+            </div>
+        </div>
+    </fieldset>
+</form>

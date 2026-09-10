@@ -176,6 +176,35 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         return (int) $count;
     }
 
+    public function countPlaytimeRanking(?string $q = null): int
+    {
+        return $this->countRanking($q);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listPlaytimeRanking(int $page, int $perPage, ?string $q = null): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        [$where, $params] = $this->rankingWhere($q);
+        $params[] = $perPage;
+        $params[] = $offset;
+
+        return $this->revealAll(
+            $this->db()->fetchAll(
+                'SELECT ' . self::PUBLIC_COLUMNS . '
+                 FROM `player`' . $where . '
+                 ORDER BY playtime DESC, level DESC, id ASC
+                 LIMIT ? OFFSET ?',
+                $params,
+            ),
+        );
+    }
+
     /**
      * @return list<array<string, mixed>>
      */

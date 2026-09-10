@@ -11,6 +11,11 @@ use Mt2Cms\Http\Controller\AdminAdminsController;
 use Mt2Cms\Http\Controller\AdminAuditLogController;
 use Mt2Cms\Http\Controller\AdminAuthController;
 use Mt2Cms\Http\Controller\AdminAwardsController;
+use Mt2Cms\Http\Controller\AdminBansController;
+use Mt2Cms\Http\Controller\AdminCashPackagesController;
+use Mt2Cms\Http\Controller\AdminCommunityController;
+use Mt2Cms\Http\Controller\AdminDownloadsController;
+use Mt2Cms\Http\Controller\AdminPaymentsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
 use Mt2Cms\Http\Controller\AdminDashboardController;
 use Mt2Cms\Http\Controller\AdminDropsController;
@@ -33,13 +38,19 @@ use Mt2Cms\Http\Controller\AdminShopsController;
 use Mt2Cms\Http\Controller\AdminTicketsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\CaptchaController;
+use Mt2Cms\Http\Controller\DonateController;
+use Mt2Cms\Http\Controller\DownloadsController;
+use Mt2Cms\Http\Controller\EmailVerificationController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\ItemShopController;
 use Mt2Cms\Http\Controller\LocaleController;
 use Mt2Cms\Http\Controller\NewsController;
+use Mt2Cms\Http\Controller\PasswordController;
+use Mt2Cms\Http\Controller\PaymentWebhookController;
 use Mt2Cms\Http\Controller\PlayerController;
 use Mt2Cms\Http\Controller\RankingController;
+use Mt2Cms\Http\Controller\StatusController;
 use Mt2Cms\Http\Controller\SetupController;
 use Mt2Cms\Http\Controller\TicketController;
 use Mt2Cms\Setup\EnvWriter;
@@ -55,6 +66,8 @@ private function resolveController(string $class): object
                 $this->csrf,
                 $this->translator,
                 $this->news,
+                $this->players,
+                $this->settings,
             ),
             NewsController::class => new NewsController(
                 $this->theme,
@@ -81,6 +94,9 @@ private function resolveController(string $class): object
                 $this->translator,
                 $this->accounts,
                 $this->settings,
+                $this->accountEmailService,
+                $this->banService,
+                $this->mailer,
             ),
             AccountController::class => new AccountController(
                 $this->theme,
@@ -89,6 +105,65 @@ private function resolveController(string $class): object
                 $this->translator,
                 $this->players,
                 $this->accounts,
+                $this->accountEmailService,
+                $this->itemShopOrders,
+                $this->payments,
+                $this->mailer,
+            ),
+            PasswordController::class => new PasswordController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->accountEmailService,
+                $this->mailer,
+                $this->settings,
+            ),
+            EmailVerificationController::class => new EmailVerificationController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->accountEmailService,
+                $this->mailer,
+            ),
+            StatusController::class => new StatusController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->players,
+                $this->serverChannels,
+                $this->settings,
+            ),
+            DownloadsController::class => new DownloadsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->downloads,
+                $this->downloadUploads,
+            ),
+            DonateController::class => new DonateController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->cashPackages,
+                $this->payments,
+                $this->paymentCheckout,
+                $this->cashCredits,
+                $this->paypal,
+                $this->accountEmailService,
+                $this->settings,
+            ),
+            PaymentWebhookController::class => new PaymentWebhookController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->paypal,
+                $this->cashCredits,
             ),
             ItemShopController::class => new ItemShopController(
                 $this->theme,
@@ -99,6 +174,8 @@ private function resolveController(string $class): object
                 $this->itemShopProducts,
                 $this->itemShopPurchases,
                 $this->itemTooltips,
+                $this->settings,
+                $this->accountEmailService,
             ),
             RankingController::class => new RankingController(
                 $this->theme,
@@ -106,6 +183,7 @@ private function resolveController(string $class): object
                 $this->csrf,
                 $this->translator,
                 $this->players,
+                $this->guilds,
             ),
             PlayerController::class => new PlayerController(
                 $this->theme,
@@ -480,6 +558,67 @@ private function resolveController(string $class): object
                 $this->acl,
                 $this->adminAudit,
                 new \Mt2Cms\Repository\AdminAuditRepository($this->cmsDb),
+            ),
+            AdminBansController::class => new AdminBansController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->banRepo,
+                $this->banService,
+                $this->accounts,
+            ),
+            AdminDownloadsController::class => new AdminDownloadsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->downloads,
+                $this->downloadUploads,
+            ),
+            AdminCommunityController::class => new AdminCommunityController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->serverChannels,
+                $this->settings,
+            ),
+            AdminCashPackagesController::class => new AdminCashPackagesController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->cashPackages,
+                $this->settings,
+            ),
+            AdminPaymentsController::class => new AdminPaymentsController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->payments,
+                $this->cashCredits,
             ),
             default => throw new \RuntimeException('Unknown controller: ' . $class),
         };

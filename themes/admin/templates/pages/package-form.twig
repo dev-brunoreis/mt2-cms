@@ -1,0 +1,56 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+{% set isEdit = package.id is defined and package.id %}
+<form id="admin-package-form" method="post"
+      action="{% if isEdit %}/admin/store/packages/{{ package.id }}{% else %}/admin/store/packages{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.packages.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.packages.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="package-title">{{ t('admin.packages.title') }}</label>
+                <input id="package-title" type="text" name="title" required maxlength="120"
+                       value="{{ package.title|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="package-cash">{{ t('admin.packages.cash_amount') }}</label>
+                <input id="package-cash" type="number" name="cash_amount" min="1" required
+                       value="{{ package.cash_amount|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="package-price">{{ t('admin.packages.price_cents') }}</label>
+                <input id="package-price" type="number" name="price_cents" min="1" required
+                       value="{{ package.price_cents|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.packages.price_cents_help') }}</span>
+            </div>
+            <div class="admin-field">
+                <label for="package-currency">{{ t('admin.packages.currency') }}</label>
+                <input id="package-currency" type="text" name="currency" maxlength="3" required
+                       value="{{ package.currency|default(defaultCurrency) }}" class="admin-input uppercase">
+            </div>
+            <div class="admin-field">
+                <label for="package-sort">{{ t('admin.packages.sort') }}</label>
+                <input id="package-sort" type="number" name="sort_order" min="0"
+                       value="{{ package.sort_order|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="enabled" value="1"
+                           {% if package.enabled|default(true) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.packages.enabled') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.packages.enabled_help') }}</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+</form>

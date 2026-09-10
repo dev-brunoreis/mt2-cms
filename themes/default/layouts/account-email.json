@@ -1,0 +1,30 @@
+{
+  "id": "root",
+  "template": "layouts/shell.twig",
+  "slots": {
+    "header": [
+      {
+        "id": "navbar",
+        "template": "components/navbar.twig"
+      }
+    ],
+    "sidebar": [
+      {
+        "id": "account-nav",
+        "template": "components/account-sidebar.twig"
+      }
+    ],
+    "main": [
+      {
+        "id": "content",
+        "template": "pages/account-email.twig"
+      }
+    ],
+    "footer": [
+      {
+        "id": "footer",
+        "template": "components/footer.twig"
+      }
+    ]
+  }
+}

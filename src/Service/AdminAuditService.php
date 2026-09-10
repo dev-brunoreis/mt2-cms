@@ -6,6 +6,7 @@ namespace Mt2Cms\Service;
 
 use Mt2Cms\Admin\AdminAuditMeta;
 use Mt2Cms\Auth\AdminAuth;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Repository\AdminAuditRepository;
 
 class AdminAuditService
@@ -50,6 +51,6 @@ class AdminAuditService
 
     private function clientIp(): string
     {
-        return (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        return Request::clientIp();
     }
 }

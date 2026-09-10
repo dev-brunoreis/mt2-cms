@@ -219,6 +219,28 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
         return $account;
     }
 
+    public function verifyPassword(int $id, string $current): bool
+    {
+        $this->assertId($id);
+
+        if ($current === '') {
+            return false;
+        }
+
+        $row = $this->db()->fetch(
+            'SELECT password FROM `account` WHERE id = ?',
+            [$id],
+        );
+
+        if ($row === null) {
+            return false;
+        }
+
+        $hash = (string) ($row['password'] ?? '');
+
+        return $hash !== '' && hash_equals($hash, $this->hashPassword($current));
+    }
+
     public function changePassword(int $id, string $current, string $new): void
     {
         $this->assertId($id);
@@ -321,6 +343,127 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
              WHERE id = ? AND status = ? AND cash >= ?',
             [$amount, $id, 'OK', $amount],
         ) === 1;
+    }
+
+    public function creditCash(int $id, int $amount): bool
+    {
+        $this->assertId($id);
+        $amount = $this->assertCurrency($amount);
+
+        if ($amount < 1) {
+            throw new \InvalidArgumentException('admin.accounts.invalid_currency');
+        }
+
+        return $this->db()->execute(
+            'UPDATE `account`
+             SET cash = cash + ?, total_cash = total_cash + ?
+             WHERE id = ? AND status = ?',
+            [$amount, $amount, $id, 'OK'],
+        ) === 1;
+    }
+
+    /**
+     * Lookup for password reset — returns id + email only when a valid email exists.
+     *
+     * @return array{id: int, email: string}|null
+     */
+    public function findForPasswordReset(string $loginOrEmail): ?array
+    {
+        $value = trim($loginOrEmail);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (str_contains($value, '@')) {
+            $row = $this->db()->fetch(
+                'SELECT id, email FROM `account` WHERE email = ? LIMIT 1',
+                [$value],
+            );
+        } else {
+            $row = $this->db()->fetch(
+                'SELECT id, email FROM `account` WHERE login = ? LIMIT 1',
+                [$value],
+            );
+        }
+
+        if ($row === null) {
+            return null;
+        }
+
+        $email = trim((string) ($row['email'] ?? ''));
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
+        return ['id' => (int) $row['id'], 'email' => $email];
+    }
+
+    public function findEmailById(int $id): ?string
+    {
+        $this->assertId($id);
+        $row = $this->db()->fetch('SELECT email FROM `account` WHERE id = ?', [$id]);
+
+        if ($row === null) {
+            return null;
+        }
+
+        $email = trim((string) ($row['email'] ?? ''));
+
+        return $email !== '' ? $email : null;
+    }
+
+    public function updateEmail(int $id, string $email): void
+    {
+        $this->assertId($id);
+        $email = $this->assertEmail($email);
+
+        $this->db()->execute(
+            'UPDATE `account` SET email = ? WHERE id = ?',
+            [$email, $id],
+        );
+    }
+
+    public function resetPassword(int $id, string $newPassword): void
+    {
+        $this->assertId($id);
+        $newPassword = $this->assertPassword($newPassword);
+
+        $this->db()->execute(
+            'UPDATE `account` SET password = ? WHERE id = ?',
+            [$this->hashPassword($newPassword), $id],
+        );
+    }
+
+    public function changeSocialId(int $id, string $currentPassword, string $newSocialId): void
+    {
+        $this->assertId($id);
+        $newSocialId = $this->assertSocialId($newSocialId);
+
+        if ($currentPassword === '') {
+            throw new \InvalidArgumentException('account.wrong_password');
+        }
+
+        $row = $this->db()->fetch(
+            'SELECT password FROM `account` WHERE id = ?',
+            [$id],
+        );
+
+        if ($row === null) {
+            throw new \RuntimeException('error.account_not_found');
+        }
+
+        $hash = (string) ($row['password'] ?? '');
+
+        if ($hash === '' || !hash_equals($hash, $this->hashPassword($currentPassword))) {
+            throw new \InvalidArgumentException('account.wrong_password');
+        }
+
+        $this->db()->execute(
+            'UPDATE `account` SET social_id = ? WHERE id = ?',
+            [$newSocialId, $id],
+        );
     }
 
     public function acquireNamedLock(string $name, int $timeoutSeconds = 5): bool

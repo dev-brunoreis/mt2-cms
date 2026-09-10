@@ -37,6 +37,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.characters', 'characters', ['view']),
                 self::flatModule('admin.nav.guilds', 'guilds', ['view', 'edit', 'kick', 'delete_comment', 'dissolve']),
                 self::flatModule('admin.nav.awards', 'awards', ['view', 'create', 'delete', 'mass']),
+                self::flatModule('admin.nav.bans', 'bans', ['view', 'create', 'mass']),
             ]),
             self::group('admin.nav.content', 'content', [
                 self::subgroup('admin.nav.news', 'news', [
@@ -45,11 +46,14 @@ final class AdminResourceCatalog
                     self::entity('admin.resources.news_settings', 'settings', ['view', 'edit']),
                 ]),
                 self::flatModule('admin.nav.tickets', 'tickets', ['view', 'reply', 'close', 'reopen', 'mass']),
+                self::flatModule('admin.nav.downloads', 'downloads', ['view', 'create', 'edit', 'delete', 'mass']),
             ]),
             self::group('admin.nav.store', 'store', [
                 self::flatModule('admin.resources.categories', 'categories', ['view', 'create', 'edit', 'delete', 'move']),
                 self::flatModule('admin.resources.products', 'products', ['create', 'edit', 'delete', 'mass']),
                 self::flatModule('admin.resources.orders', 'orders', ['view']),
+                self::flatModule('admin.nav.packages', 'packages', ['view', 'create', 'edit', 'delete', 'mass']),
+                self::flatModule('admin.nav.payments', 'payments', ['view', 'edit']),
             ]),
             self::group('admin.nav.game_data', 'game-data', self::gameDataModules(), navHidden: true),
             self::group('admin.nav.logs.group', 'logs', self::logModules()),
@@ -58,6 +62,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.themes', 'themes', ['view', 'edit']),
                 self::flatModule('admin.nav.locale', 'locale', ['view', 'edit']),
                 self::flatModule('admin.nav.security', 'security', ['view', 'edit']),
+                self::flatModule('admin.nav.community', 'community', ['view', 'edit']),
             ]),
         ];
     }
@@ -197,12 +202,28 @@ final class AdminResourceCatalog
             return 'awards';
         }
 
+        if (str_starts_with($resourceId, 'game/bans/')) {
+            return 'bans';
+        }
+
         if (str_starts_with($resourceId, 'content/news/')) {
             return 'news';
         }
 
         if (str_starts_with($resourceId, 'content/tickets/')) {
             return 'tickets';
+        }
+
+        if (str_starts_with($resourceId, 'content/downloads/')) {
+            return 'downloads';
+        }
+
+        if (str_starts_with($resourceId, 'store/packages/')) {
+            return 'packages';
+        }
+
+        if (str_starts_with($resourceId, 'store/payments/')) {
+            return 'payments';
         }
 
         if (str_starts_with($resourceId, 'store/')) {
@@ -229,6 +250,10 @@ final class AdminResourceCatalog
             return 'security';
         }
 
+        if (str_starts_with($resourceId, 'settings/community/')) {
+            return 'community';
+        }
+
         foreach (self::navHiddenSectionIds() as $sectionId) {
             if (str_starts_with($resourceId, 'game-data/' . $sectionId . '/')) {
                 return $sectionId;
@@ -246,14 +271,19 @@ final class AdminResourceCatalog
             'characters' => 'game/characters',
             'guilds' => 'game/guilds',
             'awards' => 'game/awards',
+            'bans' => 'game/bans',
             'news' => 'content/news',
             'tickets' => 'content/tickets',
+            'downloads' => 'content/downloads',
             'store' => 'store',
+            'packages' => 'store/packages',
+            'payments' => 'store/payments',
             'logs' => 'logs',
             'registration' => 'settings/registration',
             'themes' => 'settings/themes',
             'locale' => 'settings/locale',
             'security' => 'settings/security',
+            'community' => 'settings/community',
             'shops', 'refine', 'drops', 'items', 'mobs', 'gms' => 'game-data/' . $sectionId,
             default => null,
         };

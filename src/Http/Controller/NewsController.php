@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\NewsCommentRepository;
@@ -172,8 +173,6 @@ class NewsController extends Controller
 
     private function clientIp(): string
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-
-        return is_string($ip) ? $ip : '0.0.0.0';
+        return Request::clientIp();
     }
 }

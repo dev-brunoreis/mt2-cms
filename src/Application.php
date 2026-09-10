@@ -62,6 +62,21 @@ use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
+use Mt2Cms\Ban\BanRepository;
+use Mt2Cms\Ban\BanService;
+use Mt2Cms\Mail\MailerInterface;
+use Mt2Cms\Mail\SymfonyMailer;
+use Mt2Cms\Payment\PayPalGateway;
+use Mt2Cms\Repository\AccountEmailRepository;
+use Mt2Cms\Repository\CashPackageRepository;
+use Mt2Cms\Repository\DownloadRepository;
+use Mt2Cms\Repository\EmailTokenRepository;
+use Mt2Cms\Repository\PaymentRepository;
+use Mt2Cms\Repository\ServerChannelRepository;
+use Mt2Cms\Service\AccountEmailService;
+use Mt2Cms\Service\CashCreditService;
+use Mt2Cms\Service\DownloadUploadService;
+use Mt2Cms\Service\PaymentCheckoutService;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\MigrationRunner;
@@ -122,6 +137,20 @@ class Application
     private AclService $acl;
     private AdminRoleRepository $adminRoles;
     private AdminTotpRepository $adminTotp;
+    private MailerInterface $mailer;
+    private AccountEmailRepository $accountEmails;
+    private EmailTokenRepository $emailTokens;
+    private AccountEmailService $accountEmailService;
+    private BanRepository $banRepo;
+    private BanService $banService;
+    private ServerChannelRepository $serverChannels;
+    private DownloadRepository $downloads;
+    private DownloadUploadService $downloadUploads;
+    private CashPackageRepository $cashPackages;
+    private PaymentRepository $payments;
+    private PayPalGateway $paypal;
+    private CashCreditService $cashCredits;
+    private PaymentCheckoutService $paymentCheckout;
 
     public function __construct()
     {
@@ -263,6 +292,19 @@ class Application
         $this->itemShopCategories = new ItemShopCategoryRepository($this->cmsDb);
         $this->itemShopProducts = new ItemShopProductRepository($this->cmsDb);
         $this->itemShopOrders = new ItemShopOrderRepository($this->cmsDb);
+        $this->accountEmails = new AccountEmailRepository($this->cmsDb);
+        $this->emailTokens = new EmailTokenRepository($this->cmsDb);
+        $this->banRepo = new BanRepository($this->cmsDb);
+        $this->serverChannels = new ServerChannelRepository($this->cmsDb);
+        $this->downloads = new DownloadRepository($this->cmsDb);
+        $this->downloadUploads = new DownloadUploadService(BASE_DIR . '/var/downloads');
+        $this->cashPackages = new CashPackageRepository($this->cmsDb);
+        $this->payments = new PaymentRepository($this->cmsDb);
+        $this->mailer = new SymfonyMailer(
+            $this->settings->mailFromAddress(),
+            $this->settings->mailFromName(),
+        );
+        $this->paypal = new PayPalGateway($this->settings);
 
         $defaultLocale = $this->settings->defaultLocale();
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
@@ -315,6 +357,21 @@ class Application
         );
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
+        $this->banService = new BanService($this->banRepo, $this->accounts);
+        $this->accountEmailService = new AccountEmailService(
+            $this->accounts,
+            $this->accountEmails,
+            $this->emailTokens,
+            $this->mailer,
+            $this->settings,
+        );
+        $this->cashCredits = new CashCreditService($this->payments, $this->accounts);
+        $this->paymentCheckout = new PaymentCheckoutService(
+            $this->cashPackages,
+            $this->payments,
+            $this->paypal,
+            $this->settings,
+        );
         $this->adminAudit = new AdminAuditService(
             new AdminAuditRepository($this->cmsDb),
             $this->adminAuth,

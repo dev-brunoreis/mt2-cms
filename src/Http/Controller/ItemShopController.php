@@ -11,8 +11,10 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ItemShopCategoryRepository;
 use Mt2Cms\Repository\ItemShopProductRepository;
+use Mt2Cms\Service\AccountEmailService;
 use Mt2Cms\Service\ItemShopPurchaseService;
 use Mt2Cms\Service\ItemTooltipBuilder;
+use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class ItemShopController extends Controller
@@ -30,6 +32,8 @@ class ItemShopController extends Controller
         private ItemShopProductRepository $products,
         private ItemShopPurchaseService $purchases,
         private ItemTooltipBuilder $tooltips,
+        private SettingsService $settings,
+        private AccountEmailService $accountEmails,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
         $this->rateLimiter = new RateLimiter(10, 60);
@@ -92,6 +96,10 @@ class ItemShopController extends Controller
     {
         if ($redirect = $this->requireAuth()) {
             return $redirect;
+        }
+
+        if ($block = $this->requireVerifiedIfNeeded()) {
+            return $block;
         }
 
         if (!$this->assertCsrf()) {
@@ -207,5 +215,22 @@ class ItemShopController extends Controller
         unset($row);
 
         return $rows;
+    }
+
+    private function requireVerifiedIfNeeded(): ?Response
+    {
+        if (!$this->settings->requireVerifiedEmail()) {
+            return null;
+        }
+
+        $accountId = $this->auth->id();
+
+        if ($accountId !== null && !$this->accountEmails->isVerified($accountId)) {
+            $this->flash('error', $this->t('auth.email_not_verified'));
+
+            return $this->redirect('/account');
+        }
+
+        return null;
     }
 }

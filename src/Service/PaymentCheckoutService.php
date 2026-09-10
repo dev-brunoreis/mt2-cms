@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mt2Cms\Service;
+
+use Mt2Cms\Payment\PaymentGateway;
+use Mt2Cms\Payment\PaymentIntent;
+use Mt2Cms\Repository\CashPackageRepository;
+use Mt2Cms\Repository\PaymentRepository;
+
+class PaymentCheckoutService
+{
+    public function __construct(
+        private CashPackageRepository $packages,
+        private PaymentRepository $payments,
+        private PaymentGateway $gateway,
+        private SettingsService $settings,
+    ) {
+    }
+
+    /**
+     * @return array{approval_url: string, payment_id: int}
+     */
+    public function startCheckout(int $accountId, string $accountLogin, int $packageId): array
+    {
+        $package = $this->packages->findEnabledById($packageId);
+
+        if ($package === null) {
+            throw new \RuntimeException('donate.package_unavailable');
+        }
+
+        $tempRef = 'tmp-' . bin2hex(random_bytes(16));
+        $payment = $this->payments->createPending([
+            'account_id' => $accountId,
+            'account_login' => $accountLogin,
+            'package_id' => $packageId,
+            'provider' => $this->gateway->id(),
+            'provider_ref' => $tempRef,
+            'amount_cents' => (int) $package['price_cents'],
+            'currency' => (string) ($package['currency'] ?? $this->settings->paypalCurrency()),
+            'cash_amount' => (int) $package['cash_amount'],
+        ]);
+
+        $paymentId = (int) $payment['id'];
+        $base = rtrim($this->settings->siteUrl(), '/');
+        $intent = new PaymentIntent(
+            $paymentId,
+            $accountId,
+            $accountLogin,
+            $packageId,
+            (int) $package['price_cents'],
+            (string) ($package['currency'] ?? $this->settings->paypalCurrency()),
+            (int) $package['cash_amount'],
+            $base . '/donate/return?payment_id=' . $paymentId,
+            $base . '/donate/cancel?payment_id=' . $paymentId,
+        );
+
+        $redirect = $this->gateway->createCheckout($intent);
+
+        $this->payments->updateProviderRef($paymentId, $redirect->providerRef);
+
+        return ['approval_url' => $redirect->approvalUrl, 'payment_id' => $paymentId];
+    }
+}

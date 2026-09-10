@@ -55,6 +55,19 @@ class NewsUploadService
             throw new \InvalidArgumentException('admin.news.upload_invalid');
         }
 
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+            if ($finfo !== false) {
+                $detected = finfo_file($finfo, $tmp);
+                finfo_close($finfo);
+
+                if (is_string($detected) && $detected !== $mime) {
+                    throw new \InvalidArgumentException('admin.news.upload_invalid');
+                }
+            }
+        }
+
         $year = date('Y');
         $month = date('m');
         $relativeDir = 'uploads/news/' . $year . '/' . $month;

@@ -47,6 +47,11 @@ class AdminSections
                         'path' => AdminPaths::gameAwards(),
                         'label' => 'admin.nav.awards',
                     ],
+                    [
+                        'id' => 'bans',
+                        'path' => AdminPaths::gameBans(),
+                        'label' => 'admin.nav.bans',
+                    ],
                 ],
             ],
             [
@@ -63,6 +68,11 @@ class AdminSections
                         'path' => AdminPaths::contentTickets(),
                         'label' => 'admin.nav.tickets',
                     ],
+                    [
+                        'id' => 'downloads',
+                        'path' => AdminPaths::contentDownloads(),
+                        'label' => 'admin.nav.downloads',
+                    ],
                 ],
             ],
             [
@@ -73,6 +83,16 @@ class AdminSections
                         'id' => 'store',
                         'path' => AdminPaths::store(),
                         'label' => 'admin.nav.item_shop',
+                    ],
+                    [
+                        'id' => 'packages',
+                        'path' => AdminPaths::storePackages(),
+                        'label' => 'admin.nav.packages',
+                    ],
+                    [
+                        'id' => 'payments',
+                        'path' => AdminPaths::storePayments(),
+                        'label' => 'admin.nav.payments',
                     ],
                 ],
             ],
@@ -167,6 +187,11 @@ class AdminSections
                         'id' => 'security',
                         'path' => AdminPaths::settingsSecurity(),
                         'label' => 'admin.nav.security',
+                    ],
+                    [
+                        'id' => 'community',
+                        'path' => AdminPaths::settingsCommunity(),
+                        'label' => 'admin.nav.community',
                     ],
                 ],
             ],

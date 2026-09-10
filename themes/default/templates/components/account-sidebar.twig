@@ -22,6 +22,31 @@
        {% if current_path starts with '/account/password' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
         {{ t('account.password') }}
     </a>
+    <a href="/account/email"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/email' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('account.email') }}
+    </a>
+    <a href="/account/pin"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/pin' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('account.pin') }}
+    </a>
+    <a href="/account/orders"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/orders' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('account.orders') }}
+    </a>
+    <a href="/account/payments"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/payments' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('account.payments') }}
+    </a>
+    <a href="/donate"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/donate' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('nav.donate') }}
+    </a>
     <form method="post" action="/logout" class="pt-2">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <button type="submit"

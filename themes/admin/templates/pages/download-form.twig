@@ -1,0 +1,68 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+{% set isEdit = download.id is defined and download.id %}
+<form id="admin-download-form" method="post" enctype="multipart/form-data"
+      action="{% if isEdit %}/admin/content/downloads/{{ download.id }}{% else %}/admin/content/downloads{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.downloads.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.downloads.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="download-title">{{ t('admin.downloads.title') }}</label>
+                <input id="download-title" type="text" name="title" required maxlength="200"
+                       value="{{ download.title|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="download-category">{{ t('admin.downloads.category') }}</label>
+                <select id="download-category" name="category" class="admin-input">
+                    <option value="client" {% if download.category|default('client') == 'client' %}selected{% endif %}>{{ t('admin.downloads.category_client') }}</option>
+                    <option value="patch" {% if download.category|default('') == 'patch' %}selected{% endif %}>{{ t('admin.downloads.category_patch') }}</option>
+                    <option value="tools" {% if download.category|default('') == 'tools' %}selected{% endif %}>{{ t('admin.downloads.category_tools') }}</option>
+                    <option value="other" {% if download.category|default('') == 'other' %}selected{% endif %}>{{ t('admin.downloads.category_other') }}</option>
+                </select>
+            </div>
+            <div class="admin-field">
+                <label for="download-sort">{{ t('admin.downloads.sort') }}</label>
+                <input id="download-sort" type="number" name="sort_order" min="0"
+                       value="{{ download.sort_order|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="download-description">{{ t('admin.downloads.description') }}</label>
+                <textarea id="download-description" name="description" rows="3" class="admin-input">{{ download.description|default('') }}</textarea>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="download-external">{{ t('admin.downloads.external_url') }}</label>
+                <input id="download-external" type="url" name="external_url"
+                       value="{{ download.external_url|default('') }}" class="admin-input" placeholder="https://">
+                <span class="admin-field-help">{{ t('admin.downloads.external_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="download-file">{{ t('admin.downloads.file') }}</label>
+                <input id="download-file" type="file" name="file" class="admin-input">
+                {% if download.original_name|default('') %}
+                    <span class="admin-field-help">{{ t('admin.downloads.current_file', {name: download.original_name}) }}</span>
+                {% else %}
+                    <span class="admin-field-help">{{ t('admin.downloads.file_help') }}</span>
+                {% endif %}
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="enabled" value="1"
+                           {% if download.enabled|default(true) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.downloads.enabled') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.downloads.enabled_help') }}</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+</form>

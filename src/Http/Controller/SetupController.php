@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Model\Database;
@@ -257,8 +258,6 @@ class SetupController extends Controller
 
     private function authBucket(string $action): string
     {
-        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-
-        return $action . ':' . $ip;
+        return $action . ':' . Request::clientIp();
     }
 }

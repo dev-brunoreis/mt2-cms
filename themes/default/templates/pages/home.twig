@@ -6,9 +6,23 @@
                 <h1 class="mb-3 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
                     {{ t('home.title') }}
                 </h1>
-                <p class="mb-8 max-w-xl text-slate-600">
+                <p class="mb-6 max-w-xl text-slate-600">
                     {{ t('home.lead') }}
                 </p>
+
+                <div class="mb-8 flex flex-wrap items-center gap-4 rounded-xl border border-indigo-100 bg-indigo-50/80 px-5 py-4 text-sm">
+                    <div>
+                        <span class="text-indigo-700">{{ t('status.players_online') }}:</span>
+                        <span class="ml-1 font-semibold text-indigo-900">{{ playersOnline }}</span>
+                    </div>
+                    <div>
+                        <span class="text-indigo-700">{{ t('status.accounts_online') }}:</span>
+                        <span class="ml-1 font-semibold text-indigo-900">{{ accountsOnline }}</span>
+                    </div>
+                    <span class="text-indigo-600/70">{{ t('status.window_hint', {minutes: windowMinutes}) }}</span>
+                    <a href="/status" class="font-medium text-indigo-600 hover:underline">{{ t('home.view_status') }}</a>
+                </div>
+
                 <div class="flex flex-wrap gap-3">
                     <a href="/ranking"
                        class="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 transition">

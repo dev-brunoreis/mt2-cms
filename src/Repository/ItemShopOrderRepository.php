@@ -203,6 +203,25 @@ class ItemShopOrderRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public function listByAccountId(int $accountId, int $limit = 50): array
+    {
+        if ($accountId < 1) {
+            return [];
+        }
+
+        return $this->db()->fetchAll(
+            'SELECT id, product_id, vnum, count, price, status, created_at
+             FROM item_shop_orders
+             WHERE account_id = ?
+             ORDER BY id DESC
+             LIMIT ?',
+            [$accountId, max(1, min(100, $limit))],
+        );
+    }
+
+    /**
      * @return array{0: string, 1: list<mixed>}
      */
     private function gridWhere(GridQuery $query): array

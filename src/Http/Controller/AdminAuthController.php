@@ -10,6 +10,7 @@ use Mt2Cms\Auth\Captcha;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
 use Mt2Cms\Auth\Totp;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AdminTotpRepository;
@@ -200,9 +201,7 @@ class AdminAuthController extends Controller
 
     private function authBucket(string $action): string
     {
-        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-
-        return $action . ':' . $ip;
+        return $action . ':' . Request::clientIp();
     }
 
     private function loginForm(

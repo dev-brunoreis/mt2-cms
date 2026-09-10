@@ -186,4 +186,128 @@ class SettingsService
     {
         $this->settings->set('admin_2fa_required', $required ? '1' : '0');
     }
+
+    public function requireVerifiedEmail(): bool
+    {
+        $value = $this->settings->get('require_verified_email');
+
+        if ($value === null) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function setRequireVerifiedEmail(bool $required): void
+    {
+        $this->settings->set('require_verified_email', $required ? '1' : '0');
+    }
+
+    public function mailFromAddress(): string
+    {
+        $value = trim((string) ($this->settings->get('mail_from_address') ?? ''));
+
+        if ($value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return $value;
+        }
+
+        return 'noreply@localhost';
+    }
+
+    public function mailFromName(): string
+    {
+        $value = trim((string) ($this->settings->get('mail_from_name') ?? ''));
+
+        return $value !== '' ? $value : 'Mt2 CMS';
+    }
+
+    public function setMailFrom(string $address, string $name): void
+    {
+        if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('settings.invalid_mail_from');
+        }
+
+        $this->settings->set('mail_from_address', $address);
+        $this->settings->set('mail_from_name', trim($name));
+    }
+
+    public function mailSubjectPrefix(): string
+    {
+        $name = $this->mailFromName();
+
+        return '[' . $name . '] ';
+    }
+
+    public function siteUrl(): string
+    {
+        $fromSettings = trim((string) ($this->settings->get('site_url') ?? ''));
+
+        if ($fromSettings !== '') {
+            return rtrim($fromSettings, '/');
+        }
+
+        $fromEnv = trim((string) (Env::getInstance()->get('APP_URL') ?? ''));
+
+        if ($fromEnv !== '') {
+            return rtrim($fromEnv, '/');
+        }
+
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+        return $scheme . '://' . $host;
+    }
+
+    public function setSiteUrl(string $url): void
+    {
+        $url = rtrim(trim($url), '/');
+
+        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+            throw new \InvalidArgumentException('settings.invalid_site_url');
+        }
+
+        $this->settings->set('site_url', $url);
+    }
+
+    public function onlineWindowMinutes(): int
+    {
+        $value = (int) ($this->settings->get('online_window_minutes') ?? 15);
+
+        return max(1, min(120, $value));
+    }
+
+    public function setOnlineWindowMinutes(int $minutes): void
+    {
+        $this->settings->set('online_window_minutes', (string) max(1, min(120, $minutes)));
+    }
+
+    public function paypalMode(): string
+    {
+        $value = strtolower(trim((string) ($this->settings->get('paypal_mode') ?? 'sandbox')));
+
+        return $value === 'live' ? 'live' : 'sandbox';
+    }
+
+    public function setPaypalMode(string $mode): void
+    {
+        $this->settings->set('paypal_mode', $mode === 'live' ? 'live' : 'sandbox');
+    }
+
+    public function paypalCurrency(): string
+    {
+        $value = strtoupper(trim((string) ($this->settings->get('paypal_currency') ?? 'USD')));
+
+        return strlen($value) === 3 ? $value : 'USD';
+    }
+
+    public function setPaypalCurrency(string $currency): void
+    {
+        $currency = strtoupper(trim($currency));
+
+        if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+            throw new \InvalidArgumentException('settings.invalid_currency');
+        }
+
+        $this->settings->set('paypal_currency', $currency);
+    }
 }

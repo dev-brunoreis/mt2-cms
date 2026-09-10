@@ -100,6 +100,55 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
         }, $rows);
     }
 
+    public function countPublicRanking(): int
+    {
+        if (!$this->schemaTableExists('guild')) {
+            return 0;
+        }
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `guild`');
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listPublicRanking(int $page, int $perPage): array
+    {
+        if (!$this->schemaTableExists('guild')) {
+            return [];
+        }
+
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+        $memberJoin = $this->schemaTableExists('guild_member')
+            ? 'LEFT JOIN (SELECT guild_id, COUNT(*) AS member_count FROM `guild_member` GROUP BY guild_id) mc ON mc.guild_id = g.id'
+            : '';
+        $memberSelect = $this->schemaTableExists('guild_member') ? ', COALESCE(mc.member_count, 0) AS member_count' : ', 0 AS member_count';
+
+        $rows = $this->db()->fetchAll(
+            'SELECT g.id, g.name, g.level, g.win, g.draw, g.loss, g.ladder_point, p.name AS master_name' . $memberSelect . '
+             FROM `guild` g
+             LEFT JOIN `player` p ON p.id = g.master
+             ' . $memberJoin . '
+             ORDER BY g.level DESC, g.ladder_point DESC, g.win DESC, g.id ASC
+             LIMIT ? OFFSET ?',
+            [$perPage, $offset],
+        );
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'name' => (string) $row['name'],
+            'level' => (int) ($row['level'] ?? 0),
+            'win' => (int) ($row['win'] ?? 0),
+            'draw' => (int) ($row['draw'] ?? 0),
+            'loss' => (int) ($row['loss'] ?? 0),
+            'ladder_point' => (int) ($row['ladder_point'] ?? 0),
+            'member_count' => (int) ($row['member_count'] ?? 0),
+            'master_name' => $row['master_name'] !== null ? (string) $row['master_name'] : null,
+        ], $rows);
+    }
+
     /**
      * @return array<string, mixed>|null
      */

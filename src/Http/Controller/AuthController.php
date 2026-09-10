@@ -8,9 +8,13 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Captcha;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Ban\BanService;
+use Mt2Cms\Mail\MailerInterface;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Service\AccountEmailService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -26,6 +30,9 @@ class AuthController extends Controller
         Translator $translator,
         private AccountRepository $accounts,
         private SettingsService $settings,
+        private AccountEmailService $accountEmails,
+        private BanService $bans,
+        private MailerInterface $mailer,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -74,6 +81,12 @@ class AuthController extends Controller
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
 
+        $account = $this->accounts->findByLogin($username);
+
+        if ($account !== null) {
+            $this->bans->refreshAccount((int) $account['id']);
+        }
+
         if (!$this->auth->attempt($username, $password)) {
             $this->rateLimiter->hit($bucket);
 
@@ -86,6 +99,18 @@ class AuthController extends Controller
         }
 
         $this->rateLimiter->clear($bucket);
+
+        if ($this->settings->requireVerifiedEmail()) {
+            $accountId = $this->auth->id();
+
+            if ($accountId !== null && !$this->accountEmails->isVerified($accountId)) {
+                $this->auth->logout();
+                $this->flash('error', $this->t('auth.email_not_verified'));
+
+                return $this->redirect('/login');
+            }
+        }
+
         $this->flash('success', $this->t('auth.welcome_back'));
 
         return $this->redirect('/account');
@@ -159,7 +184,17 @@ class AuthController extends Controller
         }
 
         try {
-            $this->accounts->create($username, $email, $password, $socialId);
+            $account = $this->accounts->create($username, $email, $password, $socialId);
+            $this->accountEmails->syncFromAccount((int) $account['id'], $email, false);
+
+            if ($this->mailer->isConfigured()) {
+                try {
+                    $this->accountEmails->sendVerification((int) $account['id'], $email);
+                } catch (\RuntimeException) {
+                    // Registration still succeeds; user can resend from account.
+                }
+            }
+
             $this->auth->attempt($username, $password);
             $this->rateLimiter->clear($bucket);
             $this->flash('success', $this->t('auth.account_created'));
@@ -195,9 +230,7 @@ class AuthController extends Controller
 
     private function authBucket(string $action): string
     {
-        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-
-        return $action . ':' . $ip;
+        return $action . ':' . Request::clientIp();
     }
 
     private function authForm(

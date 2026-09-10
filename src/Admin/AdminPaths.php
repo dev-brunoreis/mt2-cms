@@ -35,6 +35,11 @@ final class AdminPaths
         return '/admin/game/awards';
     }
 
+    public static function gameBans(): string
+    {
+        return '/admin/game/bans';
+    }
+
     // Content
     public static function contentNews(?string $tab = null): string
     {
@@ -54,6 +59,11 @@ final class AdminPaths
     public static function contentTickets(): string
     {
         return '/admin/content/tickets';
+    }
+
+    public static function contentDownloads(): string
+    {
+        return '/admin/content/downloads';
     }
 
     // Store
@@ -112,6 +122,16 @@ final class AdminPaths
     public static function storeOrders(): string
     {
         return '/admin/store/orders';
+    }
+
+    public static function storePackages(): string
+    {
+        return '/admin/store/packages';
+    }
+
+    public static function storePayments(): string
+    {
+        return '/admin/store/payments';
     }
 
     // Game data
@@ -188,6 +208,11 @@ final class AdminPaths
         return '/admin/settings/security';
     }
 
+    public static function settingsCommunity(): string
+    {
+        return '/admin/settings/community';
+    }
+
     public static function accountSecurity(): string
     {
         return '/admin/account/security';
@@ -201,9 +226,13 @@ final class AdminPaths
             'characters' => self::gameCharacters(),
             'guilds' => self::gameGuilds(),
             'awards' => self::gameAwards(),
+            'bans' => self::gameBans(),
             'news' => self::contentNews(),
             'tickets' => self::contentTickets(),
+            'downloads' => self::contentDownloads(),
             'store' => self::store(),
+            'packages' => self::storePackages(),
+            'payments' => self::storePayments(),
             'shops' => self::gameDataShops(),
             'refine' => self::gameDataRefine(),
             'drops' => self::gameDataDrops(),
@@ -218,6 +247,7 @@ final class AdminPaths
             'themes' => self::settingsThemes(),
             'locale' => self::settingsLocale(),
             'security' => self::settingsSecurity(),
+            'community' => self::settingsCommunity(),
             default => null,
         };
     }

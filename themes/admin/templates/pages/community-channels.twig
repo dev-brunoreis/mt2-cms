@@ -1,0 +1,138 @@
+<form id="admin-community-form" method="post" action="/admin/settings/community" class="admin-panel p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.site_settings') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.site_settings_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="site-url">{{ t('admin.community.site_url') }}</label>
+                <input id="site-url" type="url" name="site_url" value="{{ siteUrl|default('') }}" class="admin-input" placeholder="https://">
+            </div>
+            <div class="admin-field">
+                <label for="mail-from-address">{{ t('admin.community.mail_from_address') }}</label>
+                <input id="mail-from-address" type="email" name="mail_from_address"
+                       value="{{ mailFromAddress|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="mail-from-name">{{ t('admin.community.mail_from_name') }}</label>
+                <input id="mail-from-name" type="text" name="mail_from_name"
+                       value="{{ mailFromName|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="online-window">{{ t('admin.community.online_window') }}</label>
+                <input id="online-window" type="number" name="online_window_minutes" min="1" max="1440"
+                       value="{{ onlineWindowMinutes|default(15) }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.community.online_window_help') }}</span>
+            </div>
+            <div class="admin-field">
+                <label for="paypal-mode">{{ t('admin.community.paypal_mode') }}</label>
+                <select id="paypal-mode" name="paypal_mode" class="admin-input">
+                    <option value="sandbox" {% if paypalMode|default('sandbox') == 'sandbox' %}selected{% endif %}>{{ t('admin.community.paypal_sandbox') }}</option>
+                    <option value="live" {% if paypalMode|default('') == 'live' %}selected{% endif %}>{{ t('admin.community.paypal_live') }}</option>
+                </select>
+            </div>
+            <div class="admin-field">
+                <label for="paypal-currency">{{ t('admin.community.paypal_currency') }}</label>
+                <input id="paypal-currency" type="text" name="paypal_currency" maxlength="3"
+                       value="{{ paypalCurrency|default('USD') }}" class="admin-input uppercase">
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="require_verified_email" value="1"
+                           {% if requireVerifiedEmail|default(false) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.community.require_verified_email') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.community.require_verified_email_help') }}</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.channels') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.channels_help') }}</span>
+        </legend>
+
+        <div class="space-y-4">
+            {% for channel in channels %}
+                <div class="rounded-md border border-slate-200 p-4">
+                    <input type="hidden" name="channel_id[]" value="{{ channel.id }}">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="admin-field">
+                            <label>{{ t('admin.community.channel_name') }}</label>
+                            <input type="text" name="channel_name[]" value="{{ channel.name }}" class="admin-input" maxlength="32">
+                        </div>
+                        <div class="admin-field">
+                            <label>{{ t('admin.community.channel_label') }}</label>
+                            <input type="text" name="channel_label[]" value="{{ channel.label }}" class="admin-input" maxlength="64">
+                        </div>
+                        <div class="admin-field">
+                            <label>{{ t('admin.community.channel_host') }}</label>
+                            <input type="text" name="channel_host[]" value="{{ channel.host|default('') }}" class="admin-input" maxlength="255">
+                        </div>
+                        <div class="admin-field">
+                            <label>{{ t('admin.community.channel_port') }}</label>
+                            <input type="number" name="channel_port[]" value="{{ channel.port|default('') }}" class="admin-input" min="1" max="65535">
+                        </div>
+                        <div class="admin-field">
+                            <label>{{ t('admin.community.channel_sort') }}</label>
+                            <input type="number" name="channel_sort[]" value="{{ channel.sort_order|default(0) }}" class="admin-input" min="0">
+                        </div>
+                        <div class="admin-field flex items-end">
+                            <label class="admin-toggle-row cursor-pointer">
+                                <input type="checkbox" name="channel_enabled[{{ loop.index0 }}]" value="1"
+                                       {% if channel.enabled|default(false) %}checked{% endif %}>
+                                <span class="text-sm font-semibold text-slate-900">{{ t('admin.community.channel_enabled') }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="rounded-md border border-dashed border-slate-300 p-4">
+                <p class="mb-3 text-sm font-medium text-slate-600">{{ t('admin.community.channel_new') }}</p>
+                <input type="hidden" name="channel_id[]" value="0">
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="admin-field">
+                        <label>{{ t('admin.community.channel_name') }}</label>
+                        <input type="text" name="channel_name[]" value="" class="admin-input" maxlength="32">
+                    </div>
+                    <div class="admin-field">
+                        <label>{{ t('admin.community.channel_label') }}</label>
+                        <input type="text" name="channel_label[]" value="" class="admin-input" maxlength="64">
+                    </div>
+                    <div class="admin-field">
+                        <label>{{ t('admin.community.channel_host') }}</label>
+                        <input type="text" name="channel_host[]" value="" class="admin-input" maxlength="255">
+                    </div>
+                    <div class="admin-field">
+                        <label>{{ t('admin.community.channel_port') }}</label>
+                        <input type="number" name="channel_port[]" value="" class="admin-input" min="1" max="65535">
+                    </div>
+                    <div class="admin-field">
+                        <label>{{ t('admin.community.channel_sort') }}</label>
+                        <input type="number" name="channel_sort[]" value="0" class="admin-input" min="0">
+                    </div>
+                    <div class="admin-field flex items-end">
+                        <label class="admin-toggle-row cursor-pointer">
+                            <input type="checkbox" name="channel_enabled[{{ channels|length }}]" value="1" checked>
+                            <span class="text-sm font-semibold text-slate-900">{{ t('admin.community.channel_enabled') }}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="flex justify-end">
+        <button type="submit" class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white">
+            {{ t('admin.save') }}
+        </button>
+    </div>
+</form>

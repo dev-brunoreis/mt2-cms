@@ -52,6 +52,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);
         $r->addRoute('GET', '/admin/system/admins/new', [AdminAdminsController::class, 'create']);
         $r->addRoute('POST', '/admin/system/admins', [AdminAdminsController::class, 'store']);
+        $r->addRoute('POST', '/admin/system/admins/mass', [AdminAdminsController::class, 'mass']);
         $r->addRoute('GET', '/admin/system/admins/{id:\d+}', [AdminAdminsController::class, 'edit']);
         $r->addRoute('POST', '/admin/system/admins/{id:\d+}', [AdminAdminsController::class, 'update']);
         $r->addRoute('POST', '/admin/system/admins/{id:\d+}/delete', [AdminAdminsController::class, 'destroy']);
@@ -61,6 +62,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/system/roles', [AdminRolesController::class, 'store']);
         $r->addRoute('GET', '/admin/system/roles/{slug:[a-z0-9-]+}', [AdminRolesController::class, 'edit']);
         $r->addRoute('POST', '/admin/system/roles/{slug:[a-z0-9-]+}', [AdminRolesController::class, 'update']);
+        $r->addRoute('POST', '/admin/system/roles/{slug:[a-z0-9-]+}/reassign', [AdminRolesController::class, 'reassign']);
         $r->addRoute('POST', '/admin/system/roles/{slug:[a-z0-9-]+}/delete', [AdminRolesController::class, 'destroy']);
         $r->addRoute('GET', '/admin/system/audit-log', [AdminAuditLogController::class, 'index']);
 

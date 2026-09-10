@@ -61,6 +61,81 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
+    /**
+     * Custom roles plus Super, for assigning an admin.
+     *
+     * @return list<array{slug: string, label: string}>
+     */
+    public function listForAssign(): array
+    {
+        $roles = $this->listForSelect();
+        $roles[] = [
+            'slug' => AdminPermissions::ROLE_SUPER,
+            'label' => 'Super',
+        ];
+
+        return $roles;
+    }
+
+    /**
+     * @return list<array{id: int, login: string}>
+     */
+    public function listAdminsBySlug(string $slug): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT id, login FROM admins WHERE role = ? ORDER BY login ASC',
+            [$slug],
+        );
+        $admins = [];
+
+        foreach ($rows as $row) {
+            $admins[] = [
+                'id' => (int) $row['id'],
+                'login' => (string) $row['login'],
+            ];
+        }
+
+        return $admins;
+    }
+
+    public function reassignAdmins(string $fromSlug, string $toSlug): int
+    {
+        $fromSlug = RoleSlug::assertValid($fromSlug);
+        $toSlug = strtolower(trim($toSlug));
+
+        if ($toSlug === '' || $toSlug === $fromSlug) {
+            throw new \InvalidArgumentException($toSlug === $fromSlug
+                ? 'admin.roles.reassign_same'
+                : 'admin.roles.reassign_invalid');
+        }
+
+        if (!AdminPermissions::isSuper($toSlug)) {
+            $toSlug = RoleSlug::assertValid($toSlug);
+
+            if ($this->findBySlug($toSlug) === null) {
+                throw new \InvalidArgumentException('admin.roles.reassign_invalid');
+            }
+        }
+
+        $admins = $this->listAdminsBySlug($fromSlug);
+
+        if ($admins === []) {
+            return 0;
+        }
+
+        $count = $this->db()->execute(
+            'UPDATE admins SET role = ?, use_custom_acl = 0 WHERE role = ?',
+            [$toSlug, $fromSlug],
+        );
+        $acl = new AclRepository($this->db());
+
+        foreach ($admins as $admin) {
+            $acl->replaceAdminResources($admin['id'], []);
+        }
+
+        return $count;
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $slug = RoleSlug::assertValid($slug);

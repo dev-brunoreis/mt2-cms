@@ -4,12 +4,36 @@
     </div>
 {% endif %}
 
-{% if isEdit and adminCount|default(0) > 0 %}
+{% if isEdit and assignedAdmins|default([]) is not empty %}
     <div class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        {{ t('admin.roles.in_use_hint', {count: adminCount}) }}
-        <a href="/admin/system/admins?filter[role]={{ role.slug|url_encode }}" class="font-medium text-indigo-700 hover:underline">
-            {{ t('admin.roles.view_admins') }}
-        </a>
+        <p>{{ t('admin.roles.in_use_hint', {count: adminCount}) }}</p>
+        <ul class="mt-2 list-disc pl-5">
+            {% for admin in assignedAdmins %}
+                <li>
+                    <a href="/admin/system/admins/{{ admin.id }}" class="font-medium text-indigo-700 hover:underline">
+                        {{ admin.login }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if reassignOptions|default([]) is not empty %}
+            <form method="post" action="/admin/system/roles/{{ role.slug }}/reassign"
+                  class="mt-3 flex flex-wrap items-end gap-3"
+                  data-confirm="{{ t('admin.roles.confirm_reassign') }}">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <div class="admin-field mb-0">
+                    <label for="role-reassign-target">{{ t('admin.roles.reassign_to') }}</label>
+                    <select id="role-reassign-target" name="target_role" class="admin-select" required>
+                        {% for option in reassignOptions %}
+                            <option value="{{ option.slug }}">{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                    {{ t('admin.roles.reassign') }}
+                </button>
+            </form>
+        {% endif %}
     </div>
 {% endif %}
 

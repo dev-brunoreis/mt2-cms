@@ -41,7 +41,7 @@
     </fieldset>
 
     {% if not isEdit or admin.role|default('') != 'super' %}
-        <fieldset class="admin-fieldset mt-6">
+        <fieldset class="admin-fieldset mt-6" data-admin-permissions>
             <legend>{{ t('admin.admins.permissions') }}</legend>
             <label class="mb-4 flex items-center gap-2 text-sm text-slate-700">
                 <input type="checkbox" name="use_custom_acl" value="1"
@@ -67,6 +67,12 @@ document.querySelector('[data-admin-custom-acl-toggle]')?.addEventListener('chan
     const panel = document.querySelector('[data-admin-custom-acl-panel]');
     if (panel) {
         panel.hidden = !event.target.checked;
+    }
+});
+document.getElementById('admin-role')?.addEventListener('change', (event) => {
+    const permissions = document.querySelector('[data-admin-permissions]');
+    if (permissions) {
+        permissions.hidden = event.target.value === 'super';
     }
 });
 </script>

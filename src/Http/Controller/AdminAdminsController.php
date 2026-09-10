@@ -57,6 +57,28 @@ class AdminAdminsController extends AdminController
         ]);
     }
 
+    public function mass(): Response
+    {
+        $selfId = (int) ($this->adminAuth->id() ?? 0);
+
+        return $this->runMassActions(
+            $this->admins->gridDefinition()->spec(),
+            '/admin/system/admins',
+            [
+                'delete' => function (int $id) use ($selfId): bool {
+                    if ($id === $selfId) {
+                        return false;
+                    }
+
+                    return $this->admins->delete($id);
+                },
+            ],
+            'admin',
+            'admin.admins.mass_done',
+            'system/admins/mass',
+        );
+    }
+
     public function create(): Response
     {
         return $this->formView();
@@ -221,7 +243,7 @@ class AdminAdminsController extends AdminController
     {
         $admin = $data['admin'] ?? null;
         $isEdit = is_array($admin) && isset($admin['id']);
-        $roleOptions = $this->roles->listForSelect();
+        $roleOptions = $this->roles->listForAssign();
         $defaultRole = $roleOptions[0]['slug'] ?? 'support';
 
         return $this->adminView('admins', 'pages/admin-form.twig', [
@@ -247,11 +269,7 @@ class AdminAdminsController extends AdminController
     private function formInput(): array
     {
         $role = strtolower(trim((string) ($_POST['role'] ?? '')));
-
-        if (AdminPermissions::isSuper($role)) {
-            throw new \InvalidArgumentException('admin.admins.cannot_assign_super');
-        }
-
+        $useCustomAcl = (string) ($_POST['use_custom_acl'] ?? '') === '1';
         $resources = [];
 
         foreach ((array) ($_POST['resources'] ?? []) as $resourceId) {
@@ -262,10 +280,15 @@ class AdminAdminsController extends AdminController
             }
         }
 
+        if (AdminPermissions::isSuper($role)) {
+            $useCustomAcl = false;
+            $resources = [];
+        }
+
         return [
             'login' => trim((string) ($_POST['login'] ?? '')),
             'role' => $role,
-            'use_custom_acl' => (string) ($_POST['use_custom_acl'] ?? '') === '1',
+            'use_custom_acl' => $useCustomAcl,
             'resources' => $resources,
         ];
     }

@@ -205,6 +205,44 @@ class AdminRolesController extends AdminController
         return $this->redirect('/admin/system/roles');
     }
 
+    public function reassign(string $slug): Response
+    {
+        if (AdminPermissions::isSuper($slug)) {
+            $this->flash('error', $this->t('admin.roles.super_readonly'));
+
+            return $this->redirect('/admin/system/roles');
+        }
+
+        if ($redirect = $this->requireAdminSection('roles')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/system/roles/' . rawurlencode($slug));
+        }
+
+        $target = strtolower(trim((string) ($_POST['target_role'] ?? '')));
+        $admins = $this->roles->listAdminsBySlug($slug);
+        $fromLogins = array_map(static fn (array $admin): string => $admin['login'], $admins);
+
+        try {
+            $count = $this->roles->reassignAdmins($slug, $target);
+            $this->auditChange('role.reassign', 'admin_role', null, [
+                'role' => $slug,
+                'logins' => $fromLogins,
+            ], [
+                'role' => $target,
+            ], ['count' => $count]);
+            $this->flash('success', $this->t('admin.roles.reassigned', ['count' => $count]));
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
+
+        return $this->redirect('/admin/system/roles/' . rawurlencode($slug));
+    }
+
     private function systemRoleView(): Response
     {
         return $this->adminView('roles', 'pages/role-system.twig', [
@@ -222,6 +260,16 @@ class AdminRolesController extends AdminController
         $role = $data['role'] ?? null;
         $isEdit = is_array($role) && isset($role['slug']);
         $slug = $isEdit ? (string) $role['slug'] : '';
+        $assignedAdmins = $isEdit ? $this->roles->listAdminsBySlug($slug) : [];
+        $reassignOptions = [];
+
+        if ($isEdit) {
+            foreach ($this->roles->listForAssign() as $option) {
+                if ((string) $option['slug'] !== $slug) {
+                    $reassignOptions[] = $option;
+                }
+            }
+        }
 
         return $this->adminView('roles', 'pages/role-form.twig', [
             'title' => $this->t($isEdit ? 'admin.roles.edit_title' : 'admin.roles.create_title'),
@@ -234,7 +282,9 @@ class AdminRolesController extends AdminController
             ],
             'selectedResources' => $data['resources'] ?? [],
             'resourceTree' => AdminResourceCatalog::tree(),
-            'adminCount' => $isEdit ? $this->roles->countAdminsBySlug($slug) : 0,
+            'adminCount' => $isEdit ? count($assignedAdmins) : 0,
+            'assignedAdmins' => $assignedAdmins,
+            'reassignOptions' => $reassignOptions,
             'error' => $error,
         ], $status);
     }

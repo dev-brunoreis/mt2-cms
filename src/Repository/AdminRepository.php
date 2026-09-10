@@ -48,6 +48,9 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'use_custom_acl', 'label' => 'admin.admins.custom_acl', 'type' => 'bool'],
                 ['key' => 'created_at', 'label' => 'admin.admins.created_at', 'sort' => 'created_at', 'type' => 'date'],
             ])
+            ->massActions('/admin/system/admins/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.admins.confirm_mass_delete'],
+            ])
             ->filters([
                 ['key' => 'role', 'label' => 'admin.admins.role', 'type' => 'select', 'options' => [], 'translateOptions' => false],
             ]);
@@ -160,6 +163,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
             $role = (string) ($row['role'] ?? '');
             $row['use_custom_acl'] = (string) (int) ($row['use_custom_acl'] ?? 0);
             $row['role_label'] = $labels[$role] ?? $role;
+            $row['can_mass'] = !AdminPermissions::isSuper($role);
         }
 
         unset($row);
@@ -183,7 +187,9 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
 
     public function update(int $id, string $login, string $role, bool $useCustomAcl, ?string $password = null): void
     {
-        $this->assertId($id);
+        if ($id < 1) {
+            throw new \InvalidArgumentException('admin.admins.not_found');
+        }
         $login = trim($login);
         $role = strtolower(trim($role));
 
@@ -201,6 +207,10 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
 
         if (AdminPermissions::isSuper((string) ($existing['role'] ?? ''))) {
             throw new \InvalidArgumentException('admin.admins.cannot_edit_super');
+        }
+
+        if (AdminPermissions::isSuper($role)) {
+            $useCustomAcl = false;
         }
 
         $duplicate = $this->db()->fetch(
@@ -222,19 +232,23 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
                 'UPDATE admins SET login = ?, role = ?, use_custom_acl = ?, password = ? WHERE id = ?',
                 [$login, $role, $useCustomAcl ? 1 : 0, $hash, $id],
             );
-
-            return;
+        } else {
+            $this->db()->execute(
+                'UPDATE admins SET login = ?, role = ?, use_custom_acl = ? WHERE id = ?',
+                [$login, $role, $useCustomAcl ? 1 : 0, $id],
+            );
         }
 
-        $this->db()->execute(
-            'UPDATE admins SET login = ?, role = ?, use_custom_acl = ? WHERE id = ?',
-            [$login, $role, $useCustomAcl ? 1 : 0, $id],
-        );
+        if (AdminPermissions::isSuper($role)) {
+            (new AclRepository($this->db))->replaceAdminResources($id, []);
+        }
     }
 
     public function delete(int $id): bool
     {
-        $this->assertId($id);
+        if ($id < 1) {
+            return false;
+        }
         $row = $this->findById($id);
 
         if ($row === null) {
@@ -255,7 +269,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
     private function assertAssignableRole(string $role): void
     {
         if (AdminPermissions::isSuper($role)) {
-            throw new \InvalidArgumentException('admin.admins.cannot_assign_super');
+            return;
         }
 
         if (!$this->roleRepository()->slugExists($role)) {

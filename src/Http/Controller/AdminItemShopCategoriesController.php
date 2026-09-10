@@ -23,7 +23,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesStore(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -61,7 +61,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesUpdate(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -101,7 +101,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesDestroy(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -127,7 +127,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesMove(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -154,7 +154,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesItemSearch(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -203,7 +203,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesAddProducts(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -270,7 +270,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesUpdateProduct(string $id, string $productId): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 
@@ -308,7 +308,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesRemoveProduct(string $id, string $productId): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('item-shop-categories')) {
             return $redirect;
         }
 

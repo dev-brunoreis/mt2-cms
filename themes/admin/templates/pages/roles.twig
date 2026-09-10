@@ -1,0 +1,14 @@
+<div class="admin-panel mb-4 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+    <p class="font-medium text-slate-900">{{ t('admin.roles.super_callout_title') }}</p>
+    <p class="mt-1">{{ t('admin.roles.super_callout_body') }}</p>
+    <p class="mt-2">
+        <a href="/admin/roles/super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.super_view') }}</a>
+        ·
+        <a href="/admin/admins?filter[role]=super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.view_admins') }}</a>
+        {% if superAdminCount > 0 %}
+            ({{ superAdminCount }})
+        {% endif %}
+    </p>
+</div>
+
+{% include 'components/grid.twig' with {grid: grid} %}

@@ -16,6 +16,7 @@ use Mt2Cms\Repository\GuildRepository;
 use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -36,6 +37,7 @@ class AdminCharactersController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private PlayerRepository $players,
         private ItemRepository $items,
@@ -43,7 +45,7 @@ class AdminCharactersController extends AdminController
         private LogRepository $logs,
         private AccountRepository $accounts,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response

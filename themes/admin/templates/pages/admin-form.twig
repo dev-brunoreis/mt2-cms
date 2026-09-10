@@ -1,0 +1,96 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        {{ error }}
+    </div>
+{% endif %}
+
+<form id="admin-admin-form"
+      method="post"
+      action="{% if isEdit %}/admin/admins/{{ admin.id }}{% else %}/admin/admins{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>{{ t('admin.admins.details') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="admin-login">{{ t('admin.admins.login') }}</label>
+                <input id="admin-login" type="text" name="login" required maxlength="64"
+                       value="{{ admin.login|default('') }}" class="admin-input" autocomplete="off">
+            </div>
+            <div class="admin-field">
+                <label for="admin-role">{{ t('admin.admins.role') }}</label>
+                <select id="admin-role" name="role" class="admin-select" {% if isEdit and admin.role|default('') == 'super' %}disabled{% endif %}>
+                    {% for role in roleOptions %}
+                        <option value="{{ role.slug }}" {% if admin.role|default(roleOptions[0].slug|default('')) == role.slug %}selected{% endif %}>
+                            {{ role.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if isEdit and admin.role|default('') == 'super' %}
+                    <input type="hidden" name="role" value="super">
+                    <p class="mt-1 text-xs text-slate-500">{{ t('admin.admins.super_readonly') }}</p>
+                {% endif %}
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="admin-password">{{ t(isEdit ? 'admin.admins.password_optional' : 'admin.admins.password') }}</label>
+                <input id="admin-password" type="password" name="password" {% if not isEdit %}required minlength="8"{% endif %}
+                       class="admin-input" autocomplete="new-password">
+            </div>
+        </div>
+    </fieldset>
+
+    {% if not isEdit or admin.role|default('') != 'super' %}
+        <fieldset class="admin-fieldset mt-6">
+            <legend>{{ t('admin.admins.permissions') }}</legend>
+            <label class="mb-4 flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="use_custom_acl" value="1"
+                       {% if admin.use_custom_acl|default(false) %}checked{% endif %}
+                       data-admin-custom-acl-toggle>
+                {{ t('admin.admins.use_custom_acl') }}
+            </label>
+            <div data-admin-custom-acl-panel {% if not admin.use_custom_acl|default(false) %}hidden{% endif %}>
+                <p class="mb-3 text-sm text-slate-500">{{ t('admin.admins.custom_acl_help') }}</p>
+                {% for group in sectionGroups %}
+                    {% set visibleChildren = group.children|filter(c => c.id in assignableSections) %}
+                    {% if visibleChildren|length > 0 %}
+                        <div class="mb-4">
+                            <h3 class="mb-2 text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
+                            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                {% for child in visibleChildren %}
+                                    <label class="flex items-center gap-2 text-sm text-slate-700">
+                                        <input type="checkbox" name="sections[]" value="{{ child.id }}"
+                                               {% if child.id in selectedSections %}checked{% endif %}>
+                                        {{ t(child.label) }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </fieldset>
+    {% endif %}
+
+</form>
+
+{% if isEdit and admin.role|default('') != 'super' %}
+    <div class="mt-4">
+        <form method="post" action="/admin/admins/{{ admin.id }}/delete"
+              data-confirm="{{ t('admin.admins.confirm_delete') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                {{ t('admin.admins.delete') }}
+            </button>
+        </form>
+    </div>
+{% endif %}
+
+<script>
+document.querySelector('[data-admin-custom-acl-toggle]')?.addEventListener('change', (event) => {
+    const panel = document.querySelector('[data-admin-custom-acl-panel]');
+    if (panel) {
+        panel.hidden = !event.target.checked;
+    }
+});
+</script>

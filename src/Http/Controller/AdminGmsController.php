@@ -12,6 +12,7 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\CommonRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -24,11 +25,12 @@ class AdminGmsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private CommonRepository $common,
         private AccountRepository $accounts,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -62,6 +64,7 @@ class AdminGmsController extends AdminController
             ],
             'gm',
             'admin.gms.mass_done',
+        'gms',
         );
     }
 
@@ -72,7 +75,7 @@ class AdminGmsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('gms')) {
             return $redirect;
         }
 
@@ -111,7 +114,7 @@ class AdminGmsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('gms')) {
             return $redirect;
         }
 
@@ -146,7 +149,7 @@ class AdminGmsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('gms')) {
             return $redirect;
         }
 
@@ -168,7 +171,7 @@ class AdminGmsController extends AdminController
 
     public function addHost(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('gms')) {
             return $redirect;
         }
 
@@ -191,7 +194,7 @@ class AdminGmsController extends AdminController
 
     public function deleteHost(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('gms')) {
             return $redirect;
         }
 

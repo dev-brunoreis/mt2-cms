@@ -1,0 +1,78 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        {{ error }}
+    </div>
+{% endif %}
+
+{% if isEdit and adminCount|default(0) > 0 %}
+    <div class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        {{ t('admin.roles.in_use_hint', {count: adminCount}) }}
+        <a href="/admin/admins?filter[role]={{ role.slug|url_encode }}" class="font-medium text-indigo-700 hover:underline">
+            {{ t('admin.roles.view_admins') }}
+        </a>
+    </div>
+{% endif %}
+
+<form id="admin-role-form"
+      method="post"
+      action="{% if isEdit %}/admin/roles/{{ role.slug }}{% else %}/admin/roles{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>{{ t('admin.roles.details') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="role-label">{{ t('admin.roles.label') }}</label>
+                <input id="role-label" type="text" name="label" required maxlength="64"
+                       value="{{ role.label|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="role-slug">{{ t('admin.roles.slug') }}</label>
+                {% if isEdit %}
+                    <input id="role-slug" type="text" value="{{ role.slug }}" class="admin-input" disabled>
+                    <p class="mt-1 text-xs text-slate-500">{{ t('admin.roles.slug_readonly') }}</p>
+                {% else %}
+                    <input id="role-slug" type="text" name="slug" maxlength="32" pattern="[a-z0-9-]*"
+                           autocomplete="off"
+                           placeholder="{{ t('admin.roles.slug_optional') }}"
+                           value="{{ role.slug|default('') }}" class="admin-input">
+                {% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset mt-6">
+        <legend>{{ t('admin.roles.sections') }}</legend>
+        <p class="mb-4 text-sm text-slate-500">{{ t('admin.roles.sections_help') }}</p>
+        {% for group in sectionGroups %}
+            {% set visibleChildren = group.children|filter(c => c.id in assignableSections) %}
+            {% if visibleChildren|length > 0 %}
+                <div class="mb-4">
+                    <h3 class="mb-2 text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
+                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {% for child in visibleChildren %}
+                            <label class="flex items-center gap-2 text-sm text-slate-700">
+                                <input type="checkbox" name="sections[]" value="{{ child.id }}"
+                                       {% if child.id in selectedSections %}checked{% endif %}>
+                                {{ t(child.label) }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </fieldset>
+</form>
+
+{% if isEdit and adminCount|default(0) == 0 %}
+    <div class="mt-4">
+        <form method="post" action="/admin/roles/{{ role.slug }}/delete"
+              data-confirm="{{ t('admin.roles.confirm_delete') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                {{ t('admin.roles.delete') }}
+            </button>
+        </form>
+    </div>
+{% endif %}

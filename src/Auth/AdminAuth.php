@@ -73,9 +73,7 @@ class AdminAuth
             return 'super';
         }
 
-        return \Mt2Cms\Admin\AdminPermissions::normalizeRole(
-            isset($user['role']) ? (string) $user['role'] : null,
-        );
+        return (string) ($user['role'] ?? \Mt2Cms\Admin\AdminPermissions::ROLE_SUPER);
     }
 
     public function logout(): void

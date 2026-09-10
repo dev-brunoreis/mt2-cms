@@ -8,6 +8,7 @@ alwaysApply: false
 
 Follow the project guides — do not invent a parallel stack:
 
+- Admin list pages: `.cursor/rules/admin-grid.mdc` + `docs/add-admin-section.md` §6 (`GridDefinition`, `grid.twig`, mass actions when row actions exist)
 - Pages: `docs/add-page.md` (route → controller → layout JSON → Twig → i18n)
 - Repositories: `docs/add-repository.md` (PDO prepared, `reveal()`, DI in `Application`)
 - Themes: `docs/add-theme.md` (parent theme, override by path and node `id`)

@@ -4,11 +4,47 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class AdminAuditRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class AdminAuditRepository extends Repository implements ProvidesAdminGrid
 {
     protected function database(): string
     {
         return 'cms';
+    }
+
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/audit-log', 'admin.audit_log')
+            ->defaultSort('created_at', 'desc')
+            ->searchable(false)
+            ->orderBy([
+                'id' => 'id',
+                'login' => 'login',
+                'action' => 'action',
+                'target_type' => 'target_type',
+                'target_id' => 'target_id',
+                'ip' => 'ip',
+                'created_at' => 'created_at',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.audit_log.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'created_at', 'label' => 'admin.audit_log.created', 'sort' => 'created_at', 'type' => 'date'],
+                ['key' => 'login', 'label' => 'admin.audit_log.login', 'sort' => 'login', 'type' => 'text'],
+                ['key' => 'action', 'label' => 'admin.audit_log.action', 'sort' => 'action', 'type' => 'text'],
+                ['key' => 'target_type', 'label' => 'admin.audit_log.target_type', 'sort' => 'target_type', 'type' => 'text'],
+                ['key' => 'target_id', 'label' => 'admin.audit_log.target_id', 'sort' => 'target_id', 'type' => 'number'],
+                ['key' => 'ip', 'label' => 'admin.audit_log.ip', 'sort' => 'ip', 'type' => 'text'],
+                ['key' => 'meta_summary', 'label' => 'admin.audit_log.meta', 'type' => 'text'],
+            ])
+            ->filters([
+                ['key' => 'login', 'label' => 'admin.audit_log.login', 'type' => 'text'],
+                ['key' => 'action', 'label' => 'admin.audit_log.action', 'type' => 'text'],
+                ['key' => 'target_type', 'label' => 'admin.audit_log.target_type', 'type' => 'text'],
+            ]);
     }
 
     /**
@@ -35,5 +71,98 @@ class AdminAuditRepository extends Repository
              VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
             [$adminId, $login, $action, $targetType, $targetId, $metaJson, $ip],
         );
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM admin_audit_log' . $where,
+            $params,
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'id DESC');
+
+        $rows = $this->db()->fetchAll(
+            'SELECT id, admin_id, login, action, target_type, target_id, meta, ip, created_at
+             FROM admin_audit_log' . $where . $order . '
+             LIMIT ? OFFSET ?',
+            $params,
+        );
+
+        foreach ($rows as &$row) {
+            $row['meta_summary'] = $this->metaSummary($row['meta'] ?? null);
+        }
+
+        unset($row);
+
+        return $rows;
+    }
+
+    private function metaSummary(mixed $meta): string
+    {
+        if ($meta === null || $meta === '') {
+            return '';
+        }
+
+        if (is_string($meta)) {
+            $decoded = json_decode($meta, true);
+
+            if (!is_array($decoded)) {
+                return strlen($meta) > 120 ? substr($meta, 0, 117) . '...' : $meta;
+            }
+
+            $meta = $decoded;
+        }
+
+        if (!is_array($meta)) {
+            return '';
+        }
+
+        $json = json_encode($meta, JSON_UNESCAPED_UNICODE);
+
+        if (!is_string($json)) {
+            return '';
+        }
+
+        return strlen($json) > 120 ? substr($json, 0, 117) . '...' : $json;
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function gridWhere(GridQuery $query): array
+    {
+        $where = ' WHERE 1=1';
+        $params = [];
+
+        foreach ($query->filters as $key => $value) {
+            if ($value === '') {
+                continue;
+            }
+
+            if ($key === 'login') {
+                $where .= ' AND login LIKE ?';
+                $params[] = '%' . $value . '%';
+            } elseif ($key === 'action') {
+                $where .= ' AND action LIKE ?';
+                $params[] = '%' . $value . '%';
+            } elseif ($key === 'target_type') {
+                $where .= ' AND target_type LIKE ?';
+                $params[] = '%' . $value . '%';
+            }
+        }
+
+        return [$where, $params];
     }
 }

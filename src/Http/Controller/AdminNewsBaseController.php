@@ -10,6 +10,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\NewsCommentRepository;
 use Mt2Cms\Repository\NewsRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\SettingsService;
@@ -25,6 +26,7 @@ abstract class AdminNewsBaseController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         protected NewsRepository $news,
         protected NewsCommentRepository $comments,
@@ -32,6 +34,6 @@ abstract class AdminNewsBaseController extends AdminController
         protected HtmlSanitizer $sanitizer,
         protected NewsUploadService $uploads,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 }

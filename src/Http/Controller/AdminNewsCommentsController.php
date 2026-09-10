@@ -29,7 +29,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function massComments(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('news-comments')) {
             return $redirect;
         }
 
@@ -39,8 +39,9 @@ class AdminNewsCommentsController extends AdminNewsBaseController
             return $this->redirect('/admin/news/comments');
         }
 
+        $spec = $this->comments->gridDefinition()->spec();
         $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
+        $ids = $this->gridMassIds($spec);
         $count = 0;
         $succeeded = [];
 
@@ -89,7 +90,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function deleteComment(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('news-comments')) {
             return $redirect;
         }
 
@@ -111,7 +112,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     private function setCommentStatus(int $id, string $status): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('news-comments')) {
             return $redirect;
         }
 

@@ -201,15 +201,14 @@ Action whitelist comes from the spec.
 
 ### Tests
 
-There are no `*Test.php` files. Highest ROI before refactoring `Application` or Grid:
+PHPUnit is set up (`composer test`). Current unit coverage:
 
-- `GridRequest` (sort/filter whitelist)
-- `GridSql`
-- `HtmlSanitizer`
-- `TicketUploadService`
+- `GridRequest` (sort/limit whitelist, mass ids)
+- `RateLimiter` (file-backed hits/window)
 - `Csrf`
-- `Locales::safeRedirect`
-- file-backed `RateLimiter`
+- `AclService`
+
+Still useful to add later: `GridSql`, `HtmlSanitizer`, `TicketUploadService`, `Locales::safeRedirect`, integration tests with MySQL.
 
 ### Plugins / events
 

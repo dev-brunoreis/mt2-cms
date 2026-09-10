@@ -11,6 +11,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -23,10 +24,11 @@ class AdminDashboardController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private PlayerRepository $players,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response

@@ -11,6 +11,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\GuildRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -30,10 +31,11 @@ class AdminGuildsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private GuildRepository $guilds,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -95,7 +97,7 @@ class AdminGuildsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('guilds')) {
             return $redirect;
         }
 
@@ -138,7 +140,7 @@ class AdminGuildsController extends AdminController
 
     public function deleteComment(string $id, string $commentId): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('guilds')) {
             return $redirect;
         }
 
@@ -160,7 +162,7 @@ class AdminGuildsController extends AdminController
 
     public function dissolve(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('guilds')) {
             return $redirect;
         }
 
@@ -221,7 +223,7 @@ class AdminGuildsController extends AdminController
 
     private function memberAction(int $guildId, string $action, string $successKey): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('guilds')) {
             return $redirect;
         }
 

@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ItemShopCategoryRepository;
 use Mt2Cms\Repository\ItemShopOrderRepository;
 use Mt2Cms\Repository\ItemShopProductRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Theme\ThemeEngine;
@@ -26,13 +27,14 @@ abstract class AdminItemShopBaseController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         protected ItemShopCategoryRepository $categories,
         protected ItemShopProductRepository $products,
         protected ItemShopOrderRepository $orders,
         protected GameProtoService $protos,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     protected function assertKnownVnum(int $vnum): void

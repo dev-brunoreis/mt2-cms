@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
-use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridRequest;
 use Mt2Cms\Admin\Grid\GridSpec;
@@ -13,6 +12,7 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -26,6 +26,7 @@ abstract class AdminController extends Controller
         protected AdminAuth $adminAuth,
         protected ThemeEngine $adminTheme,
         protected AdminAuditService $auditLog,
+        protected AclService $acl,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
     }
@@ -39,7 +40,7 @@ abstract class AdminController extends Controller
             return $redirect;
         }
 
-        if ($deny = $this->denyUnlessSectionAllowed($section)) {
+        if ($deny = $this->denyUnlessCanAccess($section)) {
             return $deny;
         }
 
@@ -73,6 +74,15 @@ abstract class AdminController extends Controller
         $this->flash('error', $this->t('admin.login_required'));
 
         return $this->redirect('/admin/login');
+    }
+
+    protected function requireAdminSection(string $section): ?Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        return $this->denyUnlessCanAccess($section);
     }
 
     protected function denyUnlessAdmin(): ?Response
@@ -121,11 +131,11 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * @return list<int>
+     * @return list<int|string>
      */
-    protected function gridMassIds(int $max = 100): array
+    protected function gridMassIds(GridSpec $spec, int $max = 100): array
     {
-        return GridRequest::massIds($max);
+        return GridRequest::massIdsForSpec($spec, $max);
     }
 
     protected function gridMassAction(): string
@@ -146,7 +156,7 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * @param array<string, callable(int): bool> $handlers action id => handler (return true on success)
+     * @param array<string, callable(int|string): bool> $handlers action id => handler (return true on success)
      */
     protected function runMassActions(
         GridSpec $spec,
@@ -154,8 +164,9 @@ abstract class AdminController extends Controller
         array $handlers,
         string $targetType,
         string $successKey,
+        string $section,
     ): Response {
-        if ($redirectResponse = $this->requireAdmin()) {
+        if ($redirectResponse = $this->requireAdminSection($section)) {
             return $redirectResponse;
         }
 
@@ -166,7 +177,7 @@ abstract class AdminController extends Controller
         }
 
         $action = $this->gridMassAction();
-        $ids = $this->gridMassIds();
+        $ids = $this->gridMassIds($spec);
 
         if ($ids === [] || $action === '') {
             $this->flash('error', $this->t('admin.grid.no_selection'));
@@ -201,22 +212,43 @@ abstract class AdminController extends Controller
                 'ids' => $succeeded,
                 'count' => $count,
             ]);
+            $this->flash('success', $this->t($successKey, ['count' => $count]));
+        } else {
+            $this->flash('error', $this->t('admin.grid.mass_none'));
         }
-
-        $this->flash('success', $this->t($successKey, ['count' => $count]));
 
         return $this->redirect($redirect);
     }
 
-    protected function denyUnlessSectionAllowed(string $section): ?Response
+    protected function adminLandingPath(): string
     {
-        if (AdminPermissions::canAccessSection($this->adminAuth->role(), $section)) {
+        return $this->acl->firstAccessiblePath($this->adminAuth->user()) ?? '/admin/login';
+    }
+
+    protected function denyUnlessCanAccess(string $section): ?Response
+    {
+        if ($this->acl->canAccess($this->adminAuth->user(), $section)) {
             return null;
         }
 
         $this->flash('error', $this->t('admin.access_denied'));
 
-        return $this->redirect('/admin');
+        $landing = $this->adminLandingPath();
+        $deniedPath = \Mt2Cms\Admin\AdminSections::sectionPath($section);
+
+        if ($landing === '/admin/login' || ($deniedPath !== null && $landing === $deniedPath)) {
+            return $this->denyWithoutAnySection();
+        }
+
+        return $this->redirect($landing);
+    }
+
+    protected function denyWithoutAnySection(): Response
+    {
+        $this->adminAuth->logout();
+        $this->flash('error', $this->t('admin.no_sections'));
+
+        return $this->redirect('/admin/login');
     }
 
     private function isAllowedMassAction(GridSpec $spec, string $action): bool

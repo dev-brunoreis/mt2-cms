@@ -6,7 +6,6 @@ namespace Mt2Cms;
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -47,6 +46,9 @@ use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\GroupTextWriter;
+use Mt2Cms\Repository\AclRepository;
+use Mt2Cms\Repository\AdminRoleRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
@@ -111,6 +113,8 @@ class Application
     private NewsUploadService $newsUploads;
     private TicketUploadService $ticketUploads;
     private AdminAuditService $adminAudit;
+    private AclService $acl;
+    private AdminRoleRepository $adminRoles;
 
     public function __construct()
     {
@@ -229,6 +233,8 @@ class Application
             'news_comments_require_approval' => '0',
         ]);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+        $this->adminRoles = new AdminRoleRepository($this->cmsDb);
+        $this->acl = new AclService(new AclRepository($this->cmsDb), $this->adminRoles);
 
         $this->settingsRepo = new SettingsRepository($this->cmsDb);
         $this->settings = new SettingsService($this->settingsRepo, $this->themeCatalog);
@@ -325,8 +331,8 @@ class Application
         $globals = ['registration_enabled' => $registrationEnabled];
 
         if ($isAdmin) {
-            $role = $this->adminAuth->check() ? $this->adminAuth->role() : AdminPermissions::ROLE_SUPER;
-            $globals['admin_sections'] = AdminPermissions::filterSections($role, AdminSections::all());
+            $admin = $this->adminAuth->check() ? $this->adminAuth->user() : null;
+            $globals['admin_sections'] = $this->acl->filterSections($admin, AdminSections::all());
         }
 
         $engine->setGlobals($globals);

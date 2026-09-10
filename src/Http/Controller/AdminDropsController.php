@@ -14,6 +14,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -26,13 +27,14 @@ class AdminDropsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private DropFileService $drops,
         private MobDropService $mobDrops,
         private GameProtoService $protos,
         private GameProfile $profile,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -59,7 +61,7 @@ class AdminDropsController extends AdminController
 
     public function saveEtc(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('drops')) {
             return $redirect;
         }
 
@@ -99,7 +101,7 @@ class AdminDropsController extends AdminController
 
     public function saveCommon(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('drops')) {
             return $redirect;
         }
 
@@ -144,7 +146,7 @@ class AdminDropsController extends AdminController
 
     public function saveMob(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('drops')) {
             return $redirect;
         }
 

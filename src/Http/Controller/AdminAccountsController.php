@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -25,12 +26,13 @@ class AdminAccountsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private LogRepository $logs,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -65,6 +67,7 @@ class AdminAccountsController extends AdminController
             ],
             'account',
             'admin.accounts.mass_done',
+        'accounts',
         );
     }
 
@@ -75,7 +78,7 @@ class AdminAccountsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('accounts')) {
             return $redirect;
         }
 
@@ -128,7 +131,7 @@ class AdminAccountsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('accounts')) {
             return $redirect;
         }
 
@@ -185,7 +188,7 @@ class AdminAccountsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('accounts')) {
             return $redirect;
         }
 
@@ -301,7 +304,7 @@ class AdminAccountsController extends AdminController
 
     private function mutateStatus(int $id, string $action, string $successKey): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('accounts')) {
             return $redirect;
         }
 

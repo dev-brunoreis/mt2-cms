@@ -22,6 +22,7 @@ final class GridSpec
         public readonly array $massActions = [],
         public readonly bool $searchable = true,
         public readonly string $idField = 'id',
+        public readonly string $massIdType = 'int',
         public readonly array $perPageOptions = [20, 50, 100],
         public readonly int $defaultPerPage = 20,
         public readonly string $defaultSort = 'id',
@@ -33,6 +34,11 @@ final class GridSpec
     public function hasMassActions(): bool
     {
         return $this->massActionPath !== null && $this->massActions !== [];
+    }
+
+    public function usesStringMassIds(): bool
+    {
+        return $this->massIdType === 'string';
     }
 
     /**

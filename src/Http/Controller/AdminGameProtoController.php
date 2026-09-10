@@ -16,6 +16,7 @@ use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -28,13 +29,14 @@ class AdminGameProtoController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private GameProtoService $protos,
         private ProtoFormFields $protoFields,
         private MobDropService $mobDrops,
         private ProtoEnums $protoEnums,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(string $kind): Response
@@ -74,6 +76,7 @@ class AdminGameProtoController extends AdminController
             ],
             'proto_' . $route,
             $prefix . '.mass_done',
+            $route,
         );
     }
 
@@ -88,7 +91,7 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection($route)) {
             return $redirect;
         }
 
@@ -132,7 +135,7 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection($route)) {
             return $redirect;
         }
 
@@ -175,7 +178,7 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection($route)) {
             return $redirect;
         }
 

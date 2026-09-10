@@ -27,7 +27,11 @@
     <span class="text-slate-600">{{ value|playtime }}</span>
 
 {% elseif type == 'link' %}
-    {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode}) %}
+    {% if row.is_system|default(false) %}
+        {% set href = '/admin/roles/' ~ rowId|url_encode %}
+    {% else %}
+        {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode}) %}
+    {% endif %}
     <a href="{{ href }}" class="font-medium text-indigo-600 hover:underline">{{ value|default('—') }}</a>
 
 {% elseif type == 'icon_link' %}
@@ -40,6 +44,9 @@
         {% endif %}
         <span>{{ value|default('—') }}</span>
     </a>
+
+{% elseif type == 'bool' %}
+    <span class="text-slate-600">{{ (value == 1 or value == '1') ? t('admin.yes') : t('admin.no') }}</span>
 
 {% elseif type == 'badge' %}
     {% set mapKey = (value == 1 or value == '1') ? '1' : ((value == 0 or value == '0') ? '0' : value ~ '') %}

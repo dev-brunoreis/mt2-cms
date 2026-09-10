@@ -1,4 +1,5 @@
 /vendor/
+.phpunit.cache/
 .env
 /var/
 /game/client/icon

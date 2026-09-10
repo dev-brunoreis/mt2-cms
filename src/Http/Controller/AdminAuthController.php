@@ -10,6 +10,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAuthController extends Controller
@@ -23,6 +24,7 @@ class AdminAuthController extends Controller
         Translator $translator,
         private AdminAuth $adminAuth,
         private ThemeEngine $adminTheme,
+        private AclService $acl,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -32,7 +34,7 @@ class AdminAuthController extends Controller
     public function showLogin(): Response
     {
         if ($this->adminAuth->check()) {
-            return $this->redirect('/admin');
+            return $this->redirect($this->landingPath());
         }
 
         return $this->loginForm();
@@ -41,7 +43,7 @@ class AdminAuthController extends Controller
     public function login(): Response
     {
         if ($this->adminAuth->check()) {
-            return $this->redirect('/admin');
+            return $this->redirect($this->landingPath());
         }
 
         if (!$this->assertCsrf()) {
@@ -70,7 +72,7 @@ class AdminAuthController extends Controller
         $this->rateLimiter->clear($bucket);
         $this->flash('success', $this->t('admin.welcome_back'));
 
-        return $this->redirect('/admin');
+        return $this->redirect($this->landingPath());
     }
 
     public function logout(): Response
@@ -85,6 +87,11 @@ class AdminAuthController extends Controller
         $this->flash('success', $this->t('admin.logged_out'));
 
         return $this->redirect('/admin/login');
+    }
+
+    private function landingPath(): string
+    {
+        return $this->acl->firstAccessiblePath($this->adminAuth->user()) ?? '/admin/login';
     }
 
     private function authBucket(string $action): string

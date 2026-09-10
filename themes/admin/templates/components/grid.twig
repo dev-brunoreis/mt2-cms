@@ -90,7 +90,8 @@
         </p>
     {% else %}
         {% if grid.hasMassActions %}
-            <form method="post" action="{{ grid.massActionPath }}" data-grid-mass-form>
+            {% set massFormId = 'admin-grid-mass-' ~ grid.i18nPrefix|replace({'.': '-'}) %}
+            <form id="{{ massFormId }}" method="post" action="{{ grid.massActionPath }}" data-grid-mass-form>
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
                 <div class="admin-grid-mass-bar">
                     <select name="mass_action" class="admin-input admin-input-compact" data-grid-mass-action required>
@@ -109,6 +110,7 @@
                     <span class="admin-grid-selected text-sm text-slate-500" data-grid-selected-count
                           data-template="{{ t('admin.grid.selected', {count: '__COUNT__'})|e('html_attr') }}" hidden></span>
                 </div>
+            </form>
         {% endif %}
 
         <div class="overflow-x-auto">
@@ -134,7 +136,7 @@
                             </th>
                         {% endfor %}
                         {% if hasActions %}
-                            <th>{{ t(grid.i18nPrefix ~ '.actions') }}</th>
+                            <th>{{ t('admin.grid.actions') }}</th>
                         {% endif %}
                     </tr>
                 </thead>
@@ -143,8 +145,11 @@
                         <tr{% if row._rowClass is defined %} class="{{ row._rowClass }}"{% endif %}>
                             {% if grid.hasMassActions %}
                                 <td class="admin-grid-check-col">
-                                    <input type="checkbox" name="ids[]" value="{{ attribute(row, grid.idField) }}"
-                                           data-grid-row-check>
+                                    {% if row.can_mass|default(true) %}
+                                        <input type="checkbox" name="ids[]" value="{{ attribute(row, grid.idField) }}"
+                                               {% if grid.hasMassActions %}form="{{ massFormId }}"{% endif %}
+                                               data-grid-row-check>
+                                    {% endif %}
                                 </td>
                             {% endif %}
                             {% for column in dataColumns %}
@@ -164,10 +169,6 @@
                 </tbody>
             </table>
         </div>
-
-        {% if grid.hasMassActions %}
-            </form>
-        {% endif %}
     {% endif %}
 
     {% if grid.totalPages > 1 %}

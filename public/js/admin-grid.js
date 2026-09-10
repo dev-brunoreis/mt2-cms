@@ -20,14 +20,14 @@
             return;
         }
 
-        var selectAll = massForm.querySelector('[data-grid-select-all]');
-        var rowChecks = massForm.querySelectorAll('[data-grid-row-check]');
+        var selectAll = root.querySelector('[data-grid-select-all]');
+        var rowChecks = root.querySelectorAll('[data-grid-row-check]');
         var massAction = massForm.querySelector('[data-grid-mass-action]');
         var massSubmit = massForm.querySelector('[data-grid-mass-submit]');
         var selectedCount = massForm.querySelector('[data-grid-selected-count]');
 
         function updateMassState() {
-            var checked = massForm.querySelectorAll('[data-grid-row-check]:checked');
+            var checked = root.querySelectorAll('[data-grid-row-check]:checked');
             var count = checked.length;
 
             if (massSubmit) {
@@ -69,7 +69,7 @@
         }
 
         massForm.addEventListener('submit', function (event) {
-            var checked = massForm.querySelectorAll('[data-grid-row-check]:checked');
+            var checked = root.querySelectorAll('[data-grid-row-check]:checked');
 
             if (checked.length === 0) {
                 event.preventDefault();

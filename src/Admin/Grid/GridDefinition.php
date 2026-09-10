@@ -26,6 +26,7 @@ final class GridDefinition
         private array $massActions,
         private bool $searchable,
         private string $idField,
+        private string $massIdType,
         private array $perPageOptions,
         private int $defaultPerPage,
         private string $defaultSort,
@@ -45,6 +46,7 @@ final class GridDefinition
             massActions: [],
             searchable: true,
             idField: 'id',
+            massIdType: 'int',
             perPageOptions: [20, 50, 100],
             defaultPerPage: 20,
             defaultSort: 'id',
@@ -91,6 +93,11 @@ final class GridDefinition
     public function idField(string $idField): self
     {
         return $this->cloneWith(['idField' => $idField]);
+    }
+
+    public function massIdType(string $type): self
+    {
+        return $this->cloneWith(['massIdType' => $type]);
     }
 
     public function searchable(bool $searchable): self
@@ -148,6 +155,7 @@ final class GridDefinition
             massActions: $this->massActions,
             searchable: $this->searchable,
             idField: $this->idField,
+            massIdType: $this->massIdType,
             perPageOptions: $this->perPageOptions,
             defaultPerPage: $this->defaultPerPage,
             defaultSort: $this->defaultSort,

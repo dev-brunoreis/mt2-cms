@@ -15,6 +15,7 @@ use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\ItemAwardRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -27,13 +28,14 @@ class AdminAwardsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private ItemAwardRepository $awards,
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private GameProtoService $protos,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -66,6 +68,7 @@ class AdminAwardsController extends AdminController
             ],
             'award',
             'admin.awards.mass_done',
+        'awards',
         );
     }
 
@@ -76,7 +79,7 @@ class AdminAwardsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('awards')) {
             return $redirect;
         }
 
@@ -102,7 +105,7 @@ class AdminAwardsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('awards')) {
             return $redirect;
         }
 

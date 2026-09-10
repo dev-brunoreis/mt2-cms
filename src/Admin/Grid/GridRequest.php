@@ -69,6 +69,16 @@ final class GridRequest
     }
 
     /**
+     * @return list<int|string>
+     */
+    public static function massIdsForSpec(GridSpec $spec, int $max = 100): array
+    {
+        return $spec->usesStringMassIds()
+            ? self::massStringKeys($max)
+            : self::massIds($max);
+    }
+
+    /**
      * @return list<int>
      */
     public static function massIds(int $max = 100): array
@@ -99,6 +109,35 @@ final class GridRequest
         }
 
         return array_values($ids);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function massStringKeys(int $max = 100): array
+    {
+        $raw = $_POST['ids'] ?? [];
+        $keys = [];
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        foreach ($raw as $id) {
+            $key = strtolower(trim((string) $id));
+
+            if ($key === '' || strlen($key) > 32 || !preg_match('/^[a-z0-9-]+$/', $key)) {
+                continue;
+            }
+
+            $keys[$key] = $key;
+
+            if (count($keys) >= $max) {
+                break;
+            }
+        }
+
+        return array_values($keys);
     }
 
     public static function massAction(): string

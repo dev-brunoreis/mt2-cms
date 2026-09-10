@@ -14,6 +14,8 @@ What the CMS already enforces, and what every change must keep intact.
 | Cookies | Locale cookie: `HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS |
 | Session | Hardened cookie params; `session_regenerate_id(true)` on successful login |
 | Brute force | File-backed IP + action rate limit on login/register/admin login and other sensitive POSTs (`var/rate-limit/`) |
+| Admin ACL | Section-based access via `AclService` (dynamic roles in `admin_roles` + templates in `acl_role_sections`, optional per-admin overrides). Super-only: admins, roles, audit log |
+| Admin audit | Mutating admin POSTs write to `admin_audit_log`; super admins can browse `/admin/audit-log` |
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (allows jsDelivr for Tailwind) |
 | Config | `DB_PASSWORD` required in `.env` (no hardcoded runtime default) |
 

@@ -1,0 +1,22 @@
+<div class="admin-panel p-6">
+    <p class="mb-4 text-sm text-slate-600">{{ t('admin.roles.super_lead') }}</p>
+
+    <dl class="grid gap-4 sm:grid-cols-2 text-sm">
+        <div>
+            <dt class="font-medium text-slate-900">{{ t('admin.roles.slug') }}</dt>
+            <dd class="text-slate-600">super</dd>
+        </div>
+        <div>
+            <dt class="font-medium text-slate-900">{{ t('admin.roles.admin_count') }}</dt>
+            <dd class="text-slate-600">{{ adminCount }}</dd>
+        </div>
+        <div>
+            <dt class="font-medium text-slate-900">{{ t('admin.roles.section_count') }}</dt>
+            <dd class="text-slate-600">{{ t('admin.roles.super_sections') }}</dd>
+        </div>
+    </dl>
+
+    <p class="mt-6">
+        <a href="/admin/admins?filter[role]=super" class="admin-link-action">{{ t('admin.roles.view_admins') }}</a>
+    </p>
+</div>

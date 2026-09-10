@@ -92,6 +92,27 @@ class AdminSections
                 'children' => LogCatalog::navItems(),
             ],
             [
+                'id' => 'system',
+                'label' => 'admin.nav.system',
+                'children' => [
+                    [
+                        'id' => 'admins',
+                        'path' => '/admin/admins',
+                        'label' => 'admin.nav.admins',
+                    ],
+                    [
+                        'id' => 'roles',
+                        'path' => '/admin/roles',
+                        'label' => 'admin.nav.roles',
+                    ],
+                    [
+                        'id' => 'audit-log',
+                        'path' => '/admin/audit-log',
+                        'label' => 'admin.nav.audit_log',
+                    ],
+                ],
+            ],
+            [
                 'id' => 'configuration',
                 'label' => 'admin.nav.configuration',
                 'children' => [
@@ -127,15 +148,55 @@ class AdminSections
 
     public static function firstPath(): string
     {
-        foreach (self::all() as $group) {
-            $first = $group['children'][0]['path'] ?? null;
+        foreach (self::navSectionIds() as $sectionId) {
+            $path = self::sectionPath($sectionId);
 
-            if (is_string($first) && $first !== '') {
-                return $first;
+            if ($path !== null) {
+                return $path;
             }
         }
 
         return '/admin/registration';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function navSectionIds(): array
+    {
+        $ids = [];
+
+        foreach (self::all() as $group) {
+            foreach ($group['children'] as $child) {
+                $ids[] = (string) $child['id'];
+            }
+        }
+
+        foreach (['shops', 'refine', 'drops', 'items', 'mobs'] as $sectionId) {
+            $ids[] = $sectionId;
+        }
+
+        return $ids;
+    }
+
+    public static function sectionPath(string $sectionId): ?string
+    {
+        foreach (self::all() as $group) {
+            foreach ($group['children'] as $child) {
+                if (($child['id'] ?? '') === $sectionId) {
+                    return (string) ($child['path'] ?? '');
+                }
+            }
+        }
+
+        return match ($sectionId) {
+            'shops' => '/admin/shops',
+            'refine' => '/admin/refine',
+            'drops' => '/admin/drops',
+            'items' => '/admin/items',
+            'mobs' => '/admin/mobs',
+            default => null,
+        };
     }
 
     public static function groupForSection(string $sectionId): ?string

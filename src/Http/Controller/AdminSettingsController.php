@@ -12,6 +12,7 @@ use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -24,12 +25,13 @@ class AdminSettingsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private SettingsService $settings,
         private ThemeCatalog $themes,
         private Locales $locales,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function registration(): Response
@@ -44,7 +46,7 @@ class AdminSettingsController extends AdminController
 
     public function saveRegistration(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('registration')) {
             return $redirect;
         }
 
@@ -79,7 +81,7 @@ class AdminSettingsController extends AdminController
 
     public function saveThemes(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('themes')) {
             return $redirect;
         }
 
@@ -122,7 +124,7 @@ class AdminSettingsController extends AdminController
 
     public function saveLocale(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('locale')) {
             return $redirect;
         }
 

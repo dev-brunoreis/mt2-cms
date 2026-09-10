@@ -1,0 +1,44 @@
+---
+description: Admin list/grid pages must use the shared GridDefinition + grid.twig system
+globs: src/Repository/**/*,src/Http/Controller/Admin*.php,themes/admin/templates/pages/*.twig,docs/add-admin-section.md
+alwaysApply: false
+---
+
+# Admin grid (list pages)
+
+Every admin **index/list** page must use the abstract grid system — never hand-roll `<table class="admin-table">` markup.
+
+Follow `docs/add-admin-section.md` §6.
+
+## Required stack
+
+1. Repository implements `ProvidesAdminGrid` with `gridDefinition()`, `countForGrid()`, `listForGrid()`.
+2. Controller `index()` uses `GridRunner::fetch()` and passes `'grid' => $grid` to Twig.
+3. Twig is only: `{% include 'components/grid.twig' with {grid: grid} %}` (+ optional callouts above the grid).
+
+## Actions: mass **or** row column — never both
+
+Grids use **one** action model:
+
+| Model | UI | When |
+| --- | --- | --- |
+| **Mass actions** (preferred for list CRUD) | Checkboxes + mass-action bar | Delete, block, publish, etc. on many rows |
+| **Actions column** (`type: actions`) | Per-row Edit/Delete links | Only when there is **no** `massActions()` |
+
+**Do not** combine `->massActions(...)` with an `actions` column. Edit opens via a **link** column (e.g. name/title → detail page). Delete (and similar) goes through mass actions + checkboxes.
+
+Mass actions require:
+
+- `->massActions('/admin/…/mass', [...])` on `GridDefinition`
+- `POST /admin/…/mass` route + controller `mass()` → `runMassActions()`
+- i18n: `confirm_mass_*`, `mass_done`
+
+Rows that must not be bulk-selected (e.g. system Super role) set `'can_mass' => false`.
+
+## Non-numeric row IDs
+
+When `idField` is not numeric (e.g. role `slug`), set `->massIdType('string')`.
+
+## Legacy pages
+
+Some older pages still mix custom tables with the grid (e.g. GMs hosts table). When touching them, migrate to `GridDefinition` + `grid.twig` and follow the mass **or** row-actions rule above.

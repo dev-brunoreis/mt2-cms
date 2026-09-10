@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\TicketRepository;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -28,12 +29,13 @@ class AdminTicketsController extends AdminController
         Translator $translator,
         AdminAuth $adminAuth,
         ThemeEngine $adminTheme,
+        AclService $acl,
         AdminAuditService $auditLog,
         private TicketRepository $tickets,
         private TicketUploadService $uploads,
         private HtmlSanitizer $sanitizer,
     ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog);
+        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
@@ -70,6 +72,7 @@ class AdminTicketsController extends AdminController
             ],
             'ticket',
             'admin.tickets.mass_done',
+        'tickets',
         );
     }
 
@@ -95,7 +98,7 @@ class AdminTicketsController extends AdminController
 
     public function downloadAttachment(string $id, string $attachmentId): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('tickets')) {
             return $redirect;
         }
 
@@ -126,7 +129,7 @@ class AdminTicketsController extends AdminController
 
     public function reply(string $id): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('tickets')) {
             return $redirect;
         }
 
@@ -219,7 +222,7 @@ class AdminTicketsController extends AdminController
 
     private function setStatus(int $id, string $status, string $successKey): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('tickets')) {
             return $redirect;
         }
 

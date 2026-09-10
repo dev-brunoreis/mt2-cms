@@ -21,7 +21,7 @@ class AdminNewsSettingsController extends AdminNewsBaseController
 
     public function saveSettings(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
+        if ($redirect = $this->requireAdminSection('news-settings')) {
             return $redirect;
         }
 

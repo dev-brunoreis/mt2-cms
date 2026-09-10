@@ -31,9 +31,6 @@ class AccountController extends Controller
 
         $accountId = $this->auth->id();
         $account = $this->auth->user();
-        $players = $accountId !== null
-            ? $this->players->findByAccountId($accountId)
-            : [];
 
         if ($account !== null && $accountId !== null) {
             $account['empire'] = $this->players->findEmpireByAccountId($accountId);
@@ -42,6 +39,22 @@ class AccountController extends Controller
         return $this->view('account', [
             'title' => $this->t('account.title'),
             'account' => $account,
+        ]);
+    }
+
+    public function characters(): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        $accountId = $this->auth->id();
+        $players = $accountId !== null
+            ? $this->players->findByAccountId($accountId)
+            : [];
+
+        return $this->view('characters', [
+            'title' => $this->t('account.characters'),
             'players' => $players,
         ]);
     }

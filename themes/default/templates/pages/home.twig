@@ -14,10 +14,12 @@
                        class="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
                         {{ t('home.view_ranking') }}
                     </a>
-                    <a href="/news"
-                       class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
-                        {{ t('home.view_news') }}
-                    </a>
+                    {% if posts is not empty %}
+                        <a href="/news"
+                           class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
+                            {{ t('home.view_news') }}
+                        </a>
+                    {% endif %}
                     {% if not auth.check %}
                         <a href="/register"
                            class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
@@ -34,20 +36,16 @@
         </div>
     </div>
 
-    <div class="mt-10">
-        <div class="mb-4 flex items-end justify-between gap-4">
-            <div>
-                <h2 class="text-xl font-semibold text-slate-900">{{ t('home.news_title') }}</h2>
-                <p class="mt-1 text-sm text-slate-500">{{ t('home.news_lead') }}</p>
+    {% if posts is not empty %}
+        <div class="mt-10">
+            <div class="mb-4 flex items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-900">{{ t('home.news_title') }}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ t('home.news_lead') }}</p>
+                </div>
+                <a href="/news" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">{{ t('home.news_all') }}</a>
             </div>
-            <a href="/news" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">{{ t('home.news_all') }}</a>
-        </div>
 
-        {% if posts is empty %}
-            <p class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-                {{ t('news.empty') }}
-            </p>
-        {% else %}
             <div class="grid gap-4 md:grid-cols-2">
                 {% for post in posts %}
                     <a href="/news/{{ post.id }}"
@@ -74,6 +72,6 @@
                     </a>
                 {% endfor %}
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 </section>

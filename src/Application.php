@@ -170,6 +170,7 @@ class Application
             $r->addRoute('POST', '/logout', [AuthController::class, 'logout']);
             $r->addRoute('POST', '/locale', [LocaleController::class, 'update']);
             $r->addRoute('GET', '/account', [AccountController::class, 'index']);
+            $r->addRoute('GET', '/account/characters', [AccountController::class, 'characters']);
             $r->addRoute('GET', '/account/tickets', [TicketController::class, 'index']);
             $r->addRoute('GET', '/account/tickets/new', [TicketController::class, 'create']);
             $r->addRoute('POST', '/account/tickets', [TicketController::class, 'store']);
@@ -399,6 +400,9 @@ class Application
         );
         $activeTheme = $this->settings->activeTheme();
         $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
+        $this->theme->setGlobals([
+            'has_news' => $this->news->countPublished() > 0,
+        ]);
         $this->adminTheme = $this->createThemeEngine('admin', true, true);
 
         $this->db = new Database();

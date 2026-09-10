@@ -37,6 +37,10 @@ class ItemShopController extends Controller
 
     public function index(): Response
     {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
         $slug = trim((string) ($_GET['category'] ?? ''));
         $categories = $this->categories->treeEnabled();
         $activeCategory = null;

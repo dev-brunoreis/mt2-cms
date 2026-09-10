@@ -7,8 +7,9 @@
        {% if current_path == '/account' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
         {{ t('account.dashboard') }}
     </a>
-    <a href="/account#characters"
-       class="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
+    <a href="/account/characters"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/characters' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
         {{ t('account.characters') }}
     </a>
     <a href="/account/tickets"

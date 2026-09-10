@@ -1,0 +1,45 @@
+<section class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">{{ t('account.characters') }}</h1>
+        <p class="mt-1 text-slate-500">{{ t('account.characters_lead') }}</p>
+    </div>
+
+    {% if players is empty %}
+        <p class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+            {{ t('account.empty') }}
+        </p>
+    {% else %}
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">{{ t('account.name') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ t('account.job') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ t('account.level') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ t('account.playtime') }}</th>
+                        <th class="px-4 py-3 font-medium"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for player in players %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-4 py-3">
+                                <div class="inline-flex items-center gap-2 font-medium text-slate-900">
+                                    {% include 'components/face-icon.twig' with { job: player.job } %}
+                                    <span>{{ player.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-600">{{ player.job|job_name(player.skill_group) }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ player.level }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ player.playtime|playtime }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="/player/{{ player.name|url_encode }}"
+                                   class="font-medium text-indigo-600 hover:underline">{{ t('account.view') }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>

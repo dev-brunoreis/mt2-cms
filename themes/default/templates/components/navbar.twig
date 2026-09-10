@@ -6,8 +6,12 @@
 
         <div class="flex flex-wrap items-center gap-4 text-sm">
             {% include 'components/locale-switcher.twig' %}
-            <a href="/news" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.news') }}</a>
-            <a href="/shop" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.shop') }}</a>
+            {% if has_news %}
+                <a href="/news" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.news') }}</a>
+            {% endif %}
+            {% if auth.check %}
+                <a href="/shop" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.shop') }}</a>
+            {% endif %}
             <a href="/ranking" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.ranking') }}</a>
 
             {% if auth.check %}

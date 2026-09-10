@@ -59,6 +59,7 @@
     "cash": "Cash",
     "created": "Created",
     "characters": "Characters",
+    "characters_lead": "Characters on this account.",
     "empty": "No characters on this account yet.",
     "name": "Name",
     "job": "Job",

@@ -469,7 +469,7 @@
     },
     "audit_log": {
       "title": "Audit log",
-      "lead": "Admin actions recorded by the CMS.",
+      "lead": "Admin actions recorded by the CMS. Modifications show previous and new values.",
       "id": "ID",
       "login": "Admin",
       "action": "Action",
@@ -477,6 +477,8 @@
       "target_id": "Target ID",
       "ip": "IP",
       "meta": "Details",
+      "before": "Before",
+      "after": "After",
       "created": "When",
       "count": {
         "one": "{count} entry",

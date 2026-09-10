@@ -138,7 +138,13 @@ class AdminGmsController extends AdminController
         try {
             $this->assertAccountExists((string) $input['mAccount']);
             $this->common->updateGm($gmId, $input);
-            $this->audit('gm.update', 'gm', $gmId);
+            $this->auditChange('gm.update', 'gm', $gmId, [
+                'mAccount' => $gm['mAccount'],
+                'mName' => $gm['mName'],
+                'mContactIP' => $gm['mContactIP'],
+                'mServerIP' => $gm['mServerIP'],
+                'mAuthority' => $gm['mAuthority'],
+            ], $input);
             $this->flash('success', $this->t('admin.gms.updated'));
 
             return $this->redirect('/admin/game-data/gms/' . $gmId);

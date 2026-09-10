@@ -1983,3 +1983,31 @@
   font-size: 0.875rem;
 }
 
+.admin-audit-diff-cell {
+  vertical-align: top;
+  min-width: 12rem;
+  max-width: 22rem;
+  white-space: normal;
+}
+
+.admin-audit-diff {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.admin-audit-diff-row + .admin-audit-diff-row {
+  margin-top: 0.4rem;
+}
+
+.admin-audit-diff dt {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-audit-diff dd {
+  margin: 0.1rem 0 0;
+  color: #334155;
+  word-break: break-word;
+}
+

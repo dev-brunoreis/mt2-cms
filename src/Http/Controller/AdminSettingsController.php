@@ -57,8 +57,15 @@ class AdminSettingsController extends AdminController
         }
 
         $enabled = isset($_POST['registration_enabled']);
+        $before = ['registration_enabled' => $this->settings->registrationEnabled()];
         $this->settings->setRegistrationEnabled($enabled);
-        $this->audit('settings.registration_save', 'settings', null);
+        $this->auditChange(
+            'settings.registration_save',
+            'settings',
+            null,
+            $before,
+            ['registration_enabled' => $enabled],
+        );
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect('/admin/settings/registration');
@@ -101,8 +108,15 @@ class AdminSettingsController extends AdminController
         $themes = array_values(array_filter($selected, static fn ($value): bool => is_string($value)));
 
         try {
+            $before = [
+                'themes' => $this->settings->availableThemes(),
+                'active_theme' => $this->settings->activeTheme(),
+            ];
             $this->settings->setAvailableThemes($themes, $active);
-            $this->audit('settings.themes_save', 'settings', null);
+            $this->auditChange('settings.themes_save', 'settings', null, $before, [
+                'themes' => $themes,
+                'active_theme' => $active,
+            ]);
             $this->flash('success', $this->t('admin.saved'));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -142,8 +156,11 @@ class AdminSettingsController extends AdminController
             return $this->redirect('/admin/settings/locale');
         }
 
+        $before = ['default_locale' => $this->settings->defaultLocale()];
         $this->settings->setDefaultLocale($locale);
-        $this->audit('settings.locale_save', 'settings', null);
+        $this->auditChange('settings.locale_save', 'settings', null, $before, [
+            'default_locale' => $locale,
+        ]);
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect('/admin/settings/locale');

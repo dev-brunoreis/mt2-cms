@@ -159,7 +159,13 @@ class AdminGameProtoController extends AdminController
 
         try {
             $this->protos->update($internal, $vnum, $input);
-            $this->audit($route . '.update', 'proto_' . $route, $vnum);
+            $this->auditChange(
+                $route . '.update',
+                'proto_' . $route,
+                $vnum,
+                $record,
+                array_merge($record, $input),
+            );
             $this->flash('success', $this->t($this->i18nPrefix($route) . '.updated'));
 
             return $this->redirect('/admin/' . $route . '/' . $vnum);

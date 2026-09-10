@@ -72,10 +72,17 @@ class AdminDropsController extends AdminController
         }
 
         try {
+            $before = $this->drops->etcDrops();
             $rows = $this->parseEtcInput();
             $this->drops->saveEtcDrops($rows);
             $this->mobDrops->clearCatalog();
-            $this->audit('drops.etc_save', 'drops_etc', null);
+            $this->auditChange(
+                'drops.etc_save',
+                'drops_etc',
+                null,
+                ['rows' => $before],
+                ['rows' => $rows],
+            );
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -112,9 +119,17 @@ class AdminDropsController extends AdminController
         }
 
         try {
-            $this->drops->saveCommonDrops($this->parseCommonInput());
+            $before = $this->drops->commonDrops();
+            $rows = $this->parseCommonInput();
+            $this->drops->saveCommonDrops($rows);
             $this->mobDrops->clearCatalog();
-            $this->audit('drops.common_save', 'drops_common', null);
+            $this->auditChange(
+                'drops.common_save',
+                'drops_common',
+                null,
+                ['rows' => $before],
+                ['rows' => $rows],
+            );
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -165,9 +180,17 @@ class AdminDropsController extends AdminController
         }
 
         try {
-            $this->drops->saveMobDropGroupsFor($mobVnum, $this->parseMobGroupsInput());
+            $before = $this->drops->mobDropGroupsFor($mobVnum);
+            $groups = $this->parseMobGroupsInput();
+            $this->drops->saveMobDropGroupsFor($mobVnum, $groups);
             $this->mobDrops->clearCatalog();
-            $this->audit('drops.mob_save', 'drops_mob', $mobVnum);
+            $this->auditChange(
+                'drops.mob_save',
+                'drops_mob',
+                $mobVnum,
+                ['groups' => $before],
+                ['groups' => $groups],
+            );
             $this->flash('success', $this->t('admin.drops.saved'));
         } catch (\RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));

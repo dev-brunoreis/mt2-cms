@@ -141,14 +141,27 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
         try {
             $this->validateInput($input);
+            $body = $this->sanitizer->sanitize($input['body']);
             $this->news->update((int) $id, [
                 'title' => $input['title'],
-                'body' => $this->sanitizer->sanitize($input['body']),
+                'body' => $body,
                 'cover_image' => $input['cover_image'],
                 'status' => $input['status'],
                 'comments_enabled' => $input['comments_enabled'],
             ]);
-            $this->audit('news.update', 'news', (int) $id);
+            $this->auditChange('news.update', 'news', (int) $id, [
+                'title' => $existing['title'],
+                'body' => $existing['body'],
+                'cover_image' => $existing['cover_image'],
+                'status' => $existing['status'],
+                'comments_enabled' => $existing['comments_enabled'],
+            ], [
+                'title' => $input['title'],
+                'body' => $body,
+                'cover_image' => $input['cover_image'],
+                'status' => $input['status'],
+                'comments_enabled' => $input['comments_enabled'],
+            ]);
             $this->flash('success', $this->t('admin.news.update_ok'));
 
             return $this->redirect('/admin/content/news/posts/' . (int) $id);

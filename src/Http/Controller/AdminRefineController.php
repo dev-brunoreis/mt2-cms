@@ -127,7 +127,7 @@ class AdminRefineController extends AdminController
         try {
             $this->validateVnums($input);
             $this->refine->update($recipeId, $input);
-            $this->audit('refine.update', 'refine', $recipeId);
+            $this->auditChange('refine.update', 'refine', $recipeId, $recipe, array_merge($recipe, $input));
             $this->flash('success', $this->t('admin.refine.updated'));
 
             return $this->redirect('/admin/game-data/refine/' . $recipeId);

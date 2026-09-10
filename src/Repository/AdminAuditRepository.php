@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Admin\AdminAuditMeta;
 use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
@@ -38,7 +39,8 @@ class AdminAuditRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'target_type', 'label' => 'admin.audit_log.target_type', 'sort' => 'target_type', 'type' => 'text'],
                 ['key' => 'target_id', 'label' => 'admin.audit_log.target_id', 'sort' => 'target_id', 'type' => 'number'],
                 ['key' => 'ip', 'label' => 'admin.audit_log.ip', 'sort' => 'ip', 'type' => 'text'],
-                ['key' => 'meta_summary', 'label' => 'admin.audit_log.meta', 'type' => 'text'],
+                ['key' => 'before', 'label' => 'admin.audit_log.before', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell'],
+                ['key' => 'after', 'label' => 'admin.audit_log.after', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell'],
             ])
             ->filters([
                 ['key' => 'login', 'label' => 'admin.audit_log.login', 'type' => 'text'],
@@ -101,41 +103,15 @@ class AdminAuditRepository extends Repository implements ProvidesAdminGrid
         );
 
         foreach ($rows as &$row) {
-            $row['meta_summary'] = $this->metaSummary($row['meta'] ?? null);
+            $columns = AdminAuditMeta::displayColumns($row['meta'] ?? null);
+            $row['before'] = $columns['before'];
+            $row['after'] = $columns['after'];
+            unset($row['meta']);
         }
 
         unset($row);
 
         return $rows;
-    }
-
-    private function metaSummary(mixed $meta): string
-    {
-        if ($meta === null || $meta === '') {
-            return '';
-        }
-
-        if (is_string($meta)) {
-            $decoded = json_decode($meta, true);
-
-            if (!is_array($decoded)) {
-                return strlen($meta) > 120 ? substr($meta, 0, 117) . '...' : $meta;
-            }
-
-            $meta = $decoded;
-        }
-
-        if (!is_array($meta)) {
-            return '';
-        }
-
-        $json = json_encode($meta, JSON_UNESCAPED_UNICODE);
-
-        if (!is_string($json)) {
-            return '';
-        }
-
-        return strlen($json) > 120 ? substr($json, 0, 117) . '...' : $json;
     }
 
     /**

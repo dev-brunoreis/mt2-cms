@@ -176,7 +176,11 @@ class AdminTicketsController extends AdminController
         );
         $this->tickets->setStatus((int) $ticket['id'], 'answered');
         $this->tickets->touch((int) $ticket['id']);
-        $this->audit('ticket.reply', 'ticket', (int) $ticket['id']);
+        $this->auditChange('ticket.reply', 'ticket', (int) $ticket['id'], [
+            'status' => $ticket['status'],
+        ], [
+            'status' => 'answered',
+        ]);
         $this->flash('success', $this->t('admin.tickets.replied'));
 
         return $this->redirect('/admin/content/tickets/' . (int) $id);
@@ -234,14 +238,22 @@ class AdminTicketsController extends AdminController
             return $this->redirect('/admin/content/tickets/' . $id);
         }
 
-        if ($this->tickets->findById($id) === null) {
+        $ticket = $this->tickets->findById($id);
+
+        if ($ticket === null) {
             $this->flash('error', $this->t('admin.tickets.not_found'));
 
             return $this->redirect('/admin/content/tickets');
         }
 
         $this->tickets->setStatus($id, $status);
-        $this->audit($status === 'closed' ? 'ticket.close' : 'ticket.reopen', 'ticket', $id);
+        $this->auditChange(
+            $status === 'closed' ? 'ticket.close' : 'ticket.reopen',
+            'ticket',
+            $id,
+            ['status' => $ticket['status']],
+            ['status' => $status],
+        );
         $this->flash('success', $this->t($successKey));
 
         return $this->redirect('/admin/content/tickets/' . $id);

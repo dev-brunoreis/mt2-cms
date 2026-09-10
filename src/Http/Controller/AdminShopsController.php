@@ -153,7 +153,13 @@ class AdminShopsController extends AdminController
 
         try {
             $this->shops->update($vnum, $input);
-            $this->audit('shop.update', 'shop', $vnum);
+            $this->auditChange('shop.update', 'shop', $vnum, [
+                'name' => $shop['name'],
+                'npc_vnum' => $shop['npc_vnum'],
+            ], [
+                'name' => $input['name'],
+                'npc_vnum' => $input['npc_vnum'],
+            ]);
             $this->flash('success', $this->t('admin.shops.updated'));
 
             return $this->redirect('/admin/game-data/shops/' . $vnum);
@@ -249,14 +255,20 @@ class AdminShopsController extends AdminController
                 }
 
                 $this->shops->addItem($shopVnum, $itemVnum, $count);
-                $this->audit('shop.item_add', 'shop', $shopVnum, ['item_vnum' => $itemVnum]);
+                $this->auditChange('shop.item_add', 'shop', $shopVnum, [], [
+                    'item_vnum' => $itemVnum,
+                    'count' => $count,
+                ]);
                 $this->flash('success', $this->t('admin.shops.item_added'));
             } else {
                 if (!$this->shops->removeItem($shopVnum, $itemVnum, $count)) {
                     throw new \InvalidArgumentException('admin.shops.item_not_found');
                 }
 
-                $this->audit('shop.item_remove', 'shop', $shopVnum, ['item_vnum' => $itemVnum]);
+                $this->auditChange('shop.item_remove', 'shop', $shopVnum, [
+                    'item_vnum' => $itemVnum,
+                    'count' => $count,
+                ], []);
                 $this->flash('success', $this->t('admin.shops.item_removed'));
             }
         } catch (\InvalidArgumentException | \RuntimeException $e) {

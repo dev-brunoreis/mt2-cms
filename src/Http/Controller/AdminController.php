@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminAuditMeta;
 use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridRequest;
@@ -206,6 +207,24 @@ abstract class AdminController extends Controller
         ?array $meta = null,
     ): void {
         $this->auditLog->record($action, $targetType, $targetId, $meta);
+    }
+
+    /**
+     * @param array<string, mixed> $before
+     * @param array<string, mixed> $after
+     * @param array<string, mixed> $extra
+     */
+    protected function auditChange(
+        string $action,
+        string $targetType,
+        ?int $targetId,
+        array $before,
+        array $after,
+        array $extra = [],
+    ): void {
+        $meta = array_merge(AdminAuditMeta::changed($before, $after), $extra);
+
+        $this->audit($action, $targetType, $targetId, $meta === [] ? null : $meta);
     }
 
     /**

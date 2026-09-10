@@ -163,7 +163,26 @@ class AdminAccountsController extends AdminController
                 (string) ($_POST['password'] ?? ''),
                 trim((string) ($_POST['social_id'] ?? '')),
             );
-            $this->audit('account.update', 'account', $accountId);
+            $before = [
+                'login' => $account['login'],
+                'email' => $account['email'],
+                'status' => $account['status'],
+                'cash' => $account['cash'],
+                'mileage' => $account['mileage'],
+            ];
+            $after = $input;
+
+            if (trim((string) ($_POST['password'] ?? '')) !== '') {
+                $before['password_changed'] = false;
+                $after['password_changed'] = true;
+            }
+
+            if (trim((string) ($_POST['social_id'] ?? '')) !== '') {
+                $before['social_id_changed'] = false;
+                $after['social_id_changed'] = true;
+            }
+
+            $this->auditChange('account.update', 'account', $accountId, $before, $after);
             $this->flash('success', $this->t('admin.accounts.updated'));
 
             return $this->redirect('/admin/game/accounts/' . $accountId);
@@ -315,13 +334,22 @@ class AdminAccountsController extends AdminController
         }
 
         try {
+            $account = $this->accounts->findForAdmin($id);
+            $oldStatus = (string) ($account['status'] ?? '');
+
             if ($action === 'block') {
                 $this->accounts->block($id);
             } else {
                 $this->accounts->unblock($id);
             }
 
-            $this->audit('account.' . $action, 'account', $id);
+            $this->auditChange(
+                'account.' . $action,
+                'account',
+                $id,
+                ['status' => $oldStatus],
+                ['status' => $action === 'block' ? 'BLOCK' : 'OK'],
+            );
             $this->flash('success', $this->t($successKey));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));

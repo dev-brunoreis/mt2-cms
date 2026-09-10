@@ -153,7 +153,7 @@
                                 </td>
                             {% endif %}
                             {% for column in dataColumns %}
-                                <td>
+                                <td{% if column.class is defined %} class="{{ column.class }}"{% endif %}>
                                     {% include 'components/grid-cell.twig' with {column: column, row: row, grid: grid} %}
                                 </td>
                             {% endfor %}

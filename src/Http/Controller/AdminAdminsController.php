@@ -134,6 +134,14 @@ class AdminAdminsController extends AdminController
         $password = trim((string) ($_POST['password'] ?? ''));
 
         try {
+            $existing = $this->admins->findById($adminId);
+            $before = [
+                'login' => $existing['login'] ?? '',
+                'role' => $existing['role'] ?? '',
+                'use_custom_acl' => (bool) ($existing['use_custom_acl'] ?? false),
+                'resources' => $this->acl->adminResources($adminId),
+            ];
+
             $this->admins->update(
                 $adminId,
                 $input['login'],
@@ -148,11 +156,19 @@ class AdminAdminsController extends AdminController
                 $this->acl->saveAdminResources($adminId, []);
             }
 
-            $this->audit('admin.update', 'admin', $adminId, [
+            $after = [
+                'login' => $input['login'],
                 'role' => $input['role'],
                 'use_custom_acl' => $input['use_custom_acl'],
-                'resources' => $input['use_custom_acl'] ? $input['resources'] : null,
-            ]);
+                'resources' => $input['use_custom_acl'] ? $input['resources'] : [],
+            ];
+
+            if ($password !== '') {
+                $before['password_changed'] = false;
+                $after['password_changed'] = true;
+            }
+
+            $this->auditChange('admin.update', 'admin', $adminId, $before, $after);
             $this->flash('success', $this->t('admin.admins.updated'));
 
             return $this->redirect('/admin/system/admins');

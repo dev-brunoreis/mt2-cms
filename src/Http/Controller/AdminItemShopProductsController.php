@@ -110,7 +110,17 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
         try {
             $this->assertKnownVnum((int) $input['vnum']);
             $this->products->update($productId, $input);
-            $this->audit('item_shop.product.update', 'item_shop_product', $productId);
+            $this->auditChange('item_shop.product.update', 'item_shop_product', $productId, [
+                'category_id' => $existing['category_id'],
+                'vnum' => $existing['vnum'],
+                'count' => $existing['count'],
+                'price' => $existing['price'],
+                'socket0' => $existing['socket0'],
+                'socket1' => $existing['socket1'],
+                'socket2' => $existing['socket2'],
+                'enabled' => $existing['enabled'],
+                'sort_order' => $existing['sort_order'],
+            ], $input);
             $this->flash('success', $this->t('admin.item_shop.products.updated'));
 
             return $this->redirect($this->productHubPath($existing));

@@ -122,13 +122,17 @@ class AdminNewsCommentsController extends AdminNewsBaseController
             return $this->redirect('/admin/content/news?tab=comments');
         }
 
-        if (!$this->comments->setStatus($id, $status)) {
+        $comment = $this->comments->findById($id);
+
+        if ($comment === null || !$this->comments->setStatus($id, $status)) {
             $this->flash('error', $this->t('admin.news.comment_update_failed'));
         } else {
-            $this->audit(
+            $this->auditChange(
                 $status === 'approved' ? 'news.comment_approve' : 'news.comment_reject',
                 'news_comment',
                 $id,
+                ['status' => $comment['status']],
+                ['status' => $status],
             );
             $this->flash(
                 'success',

@@ -32,9 +32,17 @@ class AdminNewsSettingsController extends AdminNewsBaseController
             return $this->redirect(AdminPaths::contentNews('settings'));
         }
 
-        $this->settings->setNewsCommentsEnabled(isset($_POST['news_comments_enabled']));
-        $this->settings->setNewsCommentsRequireApproval(isset($_POST['news_comments_require_approval']));
-        $this->audit('news.settings_save', 'news_settings', null);
+        $before = [
+            'news_comments_enabled' => $this->settings->newsCommentsEnabled(),
+            'news_comments_require_approval' => $this->settings->newsCommentsRequireApproval(),
+        ];
+        $after = [
+            'news_comments_enabled' => isset($_POST['news_comments_enabled']),
+            'news_comments_require_approval' => isset($_POST['news_comments_require_approval']),
+        ];
+        $this->settings->setNewsCommentsEnabled($after['news_comments_enabled']);
+        $this->settings->setNewsCommentsRequireApproval($after['news_comments_require_approval']);
+        $this->auditChange('news.settings_save', 'news_settings', null, $before, $after);
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect(AdminPaths::contentNews('settings'));

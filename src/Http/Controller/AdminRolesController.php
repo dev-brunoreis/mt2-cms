@@ -148,11 +148,16 @@ class AdminRolesController extends AdminController
         $input = $this->formInput();
 
         try {
+            $existing = $this->roles->findBySlug($slug);
+            $before = [
+                'label' => $existing['label'] ?? '',
+                'resources' => $this->acl->roleResources($slug),
+            ];
             $this->roles->update($slug, $input['label'], $input['resources']);
-            $this->audit('role.update', 'admin_role', null, [
-                'slug' => $slug,
+            $this->auditChange('role.update', 'admin_role', null, $before, [
+                'label' => $input['label'],
                 'resources' => $input['resources'],
-            ]);
+            ], ['slug' => $slug]);
             $this->flash('success', $this->t('admin.roles.updated'));
 
             return $this->redirect('/admin/system/roles');

@@ -1,0 +1,13 @@
+{% set pairs = attribute(row, column.key)|default([]) %}
+{% if pairs is empty %}
+    <span class="text-slate-400">—</span>
+{% else %}
+    <dl class="admin-audit-diff">
+        {% for pair in pairs %}
+            <div class="admin-audit-diff-row">
+                <dt>{{ pair.key }}</dt>
+                <dd>{{ pair.value }}</dd>
+            </div>
+        {% endfor %}
+    </dl>
+{% endif %}

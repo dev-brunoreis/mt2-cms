@@ -120,7 +120,16 @@ class AdminGuildsController extends AdminController
 
         try {
             $this->guilds->updateAdmin($guildId, $input);
-            $this->audit('guild.update', 'guild', $guildId);
+            $this->auditChange('guild.update', 'guild', $guildId, [
+                'name' => $guild['name'],
+                'level' => $guild['level'],
+                'exp' => $guild['exp'],
+                'gold' => $guild['gold'],
+                'ladder_point' => $guild['ladder_point'],
+                'win' => $guild['win'],
+                'draw' => $guild['draw'],
+                'loss' => $guild['loss'],
+            ], $input);
             $this->flash('success', $this->t('admin.guilds.updated'));
 
             return $this->redirect('/admin/game/guilds/' . $guildId);

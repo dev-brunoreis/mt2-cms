@@ -87,7 +87,13 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
         try {
             $this->categories->update($categoryId, $input);
-            $this->audit('item_shop.category.update', 'item_shop_category', $categoryId);
+            $this->auditChange('item_shop.category.update', 'item_shop_category', $categoryId, [
+                'parent_id' => $existing['parent_id'],
+                'name' => $existing['name'],
+                'slug' => $existing['slug'],
+                'sort_order' => $existing['sort_order'],
+                'enabled' => $existing['enabled'],
+            ], $input);
             $this->flash('success', $this->t('admin.item_shop.categories.updated'));
 
             return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'dados'));
@@ -147,8 +153,15 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         $position = (int) ($_POST['position'] ?? 0);
 
         try {
+            $existing = $this->categories->findById($id);
             $this->categories->move($id, $parentId, $position);
-            $this->audit('item_shop.category.move', 'item_shop_category', $id);
+            $this->auditChange('item_shop.category.move', 'item_shop_category', $id, [
+                'parent_id' => $existing['parent_id'] ?? null,
+                'sort_order' => $existing['sort_order'] ?? null,
+            ], [
+                'parent_id' => $parentId,
+                'sort_order' => $position,
+            ]);
 
             return Response::json(['ok' => true]);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
@@ -325,10 +338,25 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         }
 
         try {
+            $assigned = [];
+
+            foreach ($this->products->listByCategoryId($categoryId) as $product) {
+                $assigned[] = [
+                    'id' => (int) ($product['id'] ?? 0),
+                    'vnum' => (int) ($product['vnum'] ?? 0),
+                    'price' => (int) ($product['price'] ?? 0),
+                    'count' => (int) ($product['count'] ?? 1),
+                ];
+            }
+
             $this->products->syncCategoryProducts($categoryId, $shownIds, $checked);
-            $this->audit('item_shop.category.products_sync', 'item_shop_category', $categoryId, [
-                'count' => count($checked),
-            ]);
+            $this->auditChange(
+                'item_shop.category.products_sync',
+                'item_shop_category',
+                $categoryId,
+                ['products' => $assigned],
+                ['products' => $checked],
+            );
             $this->flash('success', $this->t('admin.item_shop.categories.products_saved'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -366,7 +394,13 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
                 (int) ($_POST['price'] ?? 0),
                 (int) ($_POST['count'] ?? 1),
             );
-            $this->audit('item_shop.product.update', 'item_shop_product', $pid);
+            $this->auditChange('item_shop.product.update', 'item_shop_product', $pid, [
+                'price' => $product['price'],
+                'count' => $product['count'],
+            ], [
+                'price' => (int) ($_POST['price'] ?? 0),
+                'count' => (int) ($_POST['count'] ?? 1),
+            ]);
             $this->flash('success', $this->t('admin.item_shop.products.updated'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));

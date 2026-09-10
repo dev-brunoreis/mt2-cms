@@ -64,6 +64,17 @@ Mass actions are whitelisted via `AdminController::runMassActions()` + `isAllowe
 
 Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/settings/security` and `/admin/account/security`.
 
+### 9. ~~Production runtime gaps~~ — done
+
+- Global exception handler (generic 500, logged server-side)
+- Idle session timeout (`SessionGuard`: admin 30 min, public 2 h)
+- PHP hardening ini in Docker image (`display_errors=Off`)
+- Nginx denies PHP under `/uploads/`
+- Compose site bound to loopback (`127.0.0.1:8000`)
+- `APP_KEY` + encrypted admin TOTP secrets (`AppCrypto`)
+- 2FA required by default on new installs
+- Player self-service password change (`/account/password`)
+
 ---
 
 ## Organization, files, naming
@@ -204,7 +215,7 @@ Do these as separate changes. Do not mix a rename pass with a security change.
 2. **Split `Application.php`** (routes + DI factories) before the next large section.
 3. **Split fat controllers** (item shop, news) when those screens are edited anyway.
 
-Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path. See [deploy.md](deploy.md).
+Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path, exception handler, idle sessions, `APP_KEY`/encrypted TOTP, 2FA defaults, player password change. See [deploy.md](deploy.md).
 
 Later / opportunistic: `CommonRepository` → `GmRepository`, `public/js` split, i18n file split, proto index, PHPUnit, nested grids on character/guild.
 

@@ -15,6 +15,7 @@ use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Support\AppCrypto;
 use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -158,6 +159,7 @@ class SetupController extends Controller
                 'DB_PASSWORD' => $setup['db_password'],
                 'THEME' => $setup['theme'],
                 'LOCALE' => 'en',
+                'APP_KEY' => AppCrypto::generateKey(),
                 'CMS_DB_HOST' => 'mysql',
                 'CMS_DB_PORT' => $setup['db_port'],
                 'CMS_DB_USER' => $setup['db_user'],
@@ -180,14 +182,14 @@ class SetupController extends Controller
 
             $schema = new CmsSchema($cmsDb);
             $schema->ensure();
-            $schema->seedDefaults([
+            $schema->seedDefaults(array_merge([
                 'registration_enabled' => '1',
                 'available_themes' => json_encode([$setup['theme']], JSON_THROW_ON_ERROR),
                 'active_theme' => $setup['theme'],
                 'default_locale' => 'en',
                 'news_comments_enabled' => '1',
                 'news_comments_require_approval' => '0',
-            ]);
+            ], CmsSchema::defaultSecuritySettings()));
 
             $admins = new AdminRepository($cmsDb);
             $admins->create($login, $password);

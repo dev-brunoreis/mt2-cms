@@ -55,7 +55,9 @@ Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are stripped befo
 | GET/POST | `/login` | Login (CSRF, rate limited) |
 | POST | `/logout` | Logout (CSRF) |
 | POST | `/locale` | Switch locale cookie (CSRF) |
-| GET | `/account` | My account + characters (auth required) |
+| GET | `/account` | My account dashboard (auth required) |
+| GET/POST | `/account/password` | Change game password (CSRF, rate limited) |
+| GET | `/account/characters` | Character list |
 | GET | `/ranking` | Paged ranking (`?q=&page=`) |
 | GET | `/player/{name}` | Public player profile |
 
@@ -87,7 +89,7 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 
 ## Security
 
-HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`) and regenerate on login. Login/register are rate limited (file-backed, fail-closed). Passwords use Metin2-compatible `*SHA1(SHA1)` hashing (game client requirement).
+HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`), idle timeouts (admin 30 min, public 2 h), and regenerate on login. Login/register and password change are rate limited (file-backed, fail-closed). Player passwords use Metin2-compatible `*SHA1(SHA1)` hashing; admins use `password_hash` with TOTP 2FA (encrypted at rest via `APP_KEY`). Unhandled exceptions return a generic 500 (no stack traces to clients).
 
 See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production.
 
@@ -131,6 +133,8 @@ Copy `.env-example` to `.env`. Variables read by the app:
 | `THEME` | `default` | Active theme folder under `themes/` |
 | `LOCALE` | `en` | Default locale when no cookie is set |
 | `GAME_DIR` | `game/` | Game data root (`config.json`, client/db/server dumps) |
+| `APP_INSTALLED` | `false` | `true` after `/setup` |
+| `APP_KEY` | *(required when installed)* | 32-byte hex; `/setup` or `php bin/migrate.php` generates it |
 | `APP_TRUST_PROXY` | `0` | Set `1` behind TLS reverse proxy (secure session cookies) |
 
 For registration/login against `account.account`, use:
@@ -161,14 +165,20 @@ Passwords are stored in MySQL `PASSWORD()` style (`*` + SHA1(SHA1(password, bina
 
 Duplicate logins raise `Login already exists`. Blocked accounts (`status = BLOCK`) cannot log in.
 
+Logged-in players can change their password at `/account/password` (requires current password, CSRF, rate limited).
+
+## Admin panel
+
+After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when **Settings → Security → Require 2FA** is on (default for new installs). Configure captcha and 2FA policy under **Settings → Security**.
+
 ## Local dumps
 
 `docker/mysql/backup/` ships sample Mt2 data, including accounts `admin` and `test`. Treat them as local fixtures, not production credentials.
 
 ## Current status
 
-- Working: Docker stack, PDO layer, repositories, front controller, themes, auth/account, ranking/player pages, i18n (`en`, `pt-BR`), locale cookie, security headers, session hardening, auth rate limit.
-- Not built yet: CMS MySQL usage, admin panels, password change.
+- Working: Docker stack, game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/item shop, themes, public auth/account (including password change), ranking/player pages, i18n, security headers, session hardening, rate limits, migrations off hot path.
+- See [docs/improvements.md](docs/improvements.md) for remaining organizational refactors (not blockers for production).
 
 ## License
 

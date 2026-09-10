@@ -11,6 +11,7 @@ use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\SessionConfig;
+use Mt2Cms\Auth\SessionGuard;
 use Mt2Cms\Http\Controller\SetupController;
 use Mt2Cms\Http\AdminRoutes;
 use Mt2Cms\Http\PublicRoutes;
@@ -66,6 +67,7 @@ use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\MigrationRunner;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\AdminAclTwigExtension;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -130,6 +132,9 @@ class Application
             session_start();
         }
 
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        SessionGuard::enforceIdleTimeout(SessionConfig::forRequestUri($uri));
+
         $this->installed = $this->isInstalled();
         $this->locales = new Locales(BASE_DIR . '/lang');
         $this->themeCatalog = new ThemeCatalog(BASE_DIR . '/themes');
@@ -146,33 +151,42 @@ class Application
 
     public function run(): void
     {
-        if (!$this->installed) {
-            $this->runSetupOnly();
+        try {
+            if (!$this->installed) {
+                $this->runSetupOnly();
 
-            return;
+                return;
+            }
+
+            $this->dispatch(function (RouteCollector $r): void {
+                PublicRoutes::register($r);
+                AdminRoutes::register($r);
+            }, true);
+        } catch (\Throwable $e) {
+            Log::error('app', 'Unhandled exception', $e);
+            Response::html('Internal Server Error', 500)->send();
         }
-
-        $this->dispatch(function (RouteCollector $r): void {
-            PublicRoutes::register($r);
-            AdminRoutes::register($r);
-        }, true);
     }
 
     private function runSetupOnly(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $uri = $this->normalizeUri();
+        try {
+            $uri = $this->normalizeUri();
 
-        if ($uri !== '/setup') {
-            Response::redirect('/setup')->send();
+            if ($uri !== '/setup') {
+                Response::redirect('/setup')->send();
 
-            return;
+                return;
+            }
+
+            $this->dispatch(function (RouteCollector $r): void {
+                $r->addRoute('GET', '/setup', [SetupController::class, 'show']);
+                $r->addRoute('POST', '/setup', [SetupController::class, 'submit']);
+            }, false);
+        } catch (\Throwable $e) {
+            Log::error('app', 'Unhandled exception during setup', $e);
+            Response::html('Internal Server Error', 500)->send();
         }
-
-        $this->dispatch(function (RouteCollector $r): void {
-            $r->addRoute('GET', '/setup', [SetupController::class, 'show']);
-            $r->addRoute('POST', '/setup', [SetupController::class, 'submit']);
-        }, false);
     }
 
     /**
@@ -230,6 +244,7 @@ class Application
 
     private function bootstrapInstalled(): void
     {
+        $this->assertAppKey();
         $this->cmsDb = Database::forCms();
         $this->assertSchemaCurrent();
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
@@ -442,6 +457,19 @@ class Application
 
         Response::html(
             'Service temporarily unavailable. Database schema is out of date. Run: php bin/migrate.php',
+            503,
+        )->send();
+        exit;
+    }
+
+    private function assertAppKey(): void
+    {
+        if (\Mt2Cms\Support\AppCrypto::hasValidKey()) {
+            return;
+        }
+
+        Response::html(
+            'Service temporarily unavailable. APP_KEY is missing. Run: php bin/migrate.php',
             503,
         )->send();
         exit;

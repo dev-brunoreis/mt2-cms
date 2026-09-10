@@ -88,6 +88,7 @@ private function resolveController(string $class): object
                 $this->csrf,
                 $this->translator,
                 $this->players,
+                $this->accounts,
             ),
             ItemShopController::class => new ItemShopController(
                 $this->theme,

@@ -15,6 +15,8 @@ class EnvWriter
         'THEME',
         'LOCALE',
         'APP_INSTALLED',
+        'APP_KEY',
+        'APP_TRUST_PROXY',
         'CMS_DB_HOST',
         'CMS_DB_PORT',
         'CMS_DB_USER',
@@ -27,12 +29,31 @@ class EnvWriter
      */
     public function write(array $values, string $path): void
     {
-        $dir = dirname($path);
+        $this->persist($this->filterValues($values), $path);
+    }
 
-        if (!is_dir($dir) || !is_writable($dir)) {
-            throw new \RuntimeException('setup.env_not_writable');
+    /**
+     * Merge keys into an existing .env without removing other entries.
+     *
+     * @param array<string, string> $values
+     */
+    public function upsert(array $values, string $path): void
+    {
+        $merged = $this->parseExisting($path);
+
+        foreach ($this->filterValues($values) as $key => $value) {
+            $merged[$key] = $value;
         }
 
+        $this->persist($merged, $path);
+    }
+
+    /**
+     * @param array<string, string> $values
+     * @return array<string, string>
+     */
+    private function filterValues(array $values): array
+    {
         $filtered = [];
 
         foreach ($values as $key => $value) {
@@ -51,9 +72,63 @@ class EnvWriter
             throw new \InvalidArgumentException('setup.empty_env');
         }
 
+        return $filtered;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function parseExisting(string $path): array
+    {
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $parsed = [];
+        $lines = file($path, FILE_IGNORE_NEW_LINES);
+
+        if ($lines === false) {
+            return [];
+        }
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            if ($line === '' || str_starts_with($line, '#')) {
+                continue;
+            }
+
+            if (!str_contains($line, '=')) {
+                continue;
+            }
+
+            [$key, $value] = explode('=', $line, 2);
+            $key = trim($key);
+
+            if ($key === '' || !in_array($key, self::ALLOWED_KEYS, true)) {
+                continue;
+            }
+
+            $parsed[$key] = $this->unescapeValue(trim($value));
+        }
+
+        return $parsed;
+    }
+
+    /**
+     * @param array<string, string> $values
+     */
+    private function persist(array $values, string $path): void
+    {
+        $dir = dirname($path);
+
+        if (!is_dir($dir) || !is_writable($dir)) {
+            throw new \RuntimeException('setup.env_not_writable');
+        }
+
         $lines = [];
 
-        foreach ($filtered as $key => $value) {
+        foreach ($values as $key => $value) {
             $lines[] = $key . '=' . $this->escapeValue($value);
         }
 
@@ -72,9 +147,26 @@ class EnvWriter
         $this->applyPermissions($path);
     }
 
+    private function unescapeValue(string $value): string
+    {
+        if ($value === '""' || $value === "''") {
+            return '';
+        }
+
+        if (
+            (str_starts_with($value, '"') && str_ends_with($value, '"'))
+            || (str_starts_with($value, "'") && str_ends_with($value, "'"))
+        ) {
+            $inner = substr($value, 1, -1);
+
+            return str_replace(['\\"', '\\\\'], ['"', '\\'], $inner);
+        }
+
+        return $value;
+    }
+
     private function applyPermissions(string $path): void
     {
-        // Keep the file readable by php-fpm (www-data) on Docker volume mounts.
         @chmod($path, 0640);
     }
 

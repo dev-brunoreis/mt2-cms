@@ -22,6 +22,18 @@ class CmsSchema
     }
 
     /**
+     * @return array<string, string>
+     */
+    public static function defaultSecuritySettings(): array
+    {
+        return [
+            'captcha_public' => '1',
+            'captcha_admin' => '1',
+            'admin_2fa_required' => '1',
+        ];
+    }
+
+    /**
      * @param array<string, string> $defaults
      */
     public function seedDefaults(array $defaults): void

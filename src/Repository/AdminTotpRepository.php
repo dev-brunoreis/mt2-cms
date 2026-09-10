@@ -40,12 +40,34 @@ class AdminTotpRepository extends Repository
             return null;
         }
 
-        $secret = $this->db()->fetchColumn(
+        $stored = $this->db()->fetchColumn(
             'SELECT totp_secret FROM admins WHERE id = ? LIMIT 1',
             [$adminId],
         );
 
-        return is_string($secret) && $secret !== '' ? $secret : null;
+        if (!is_string($stored) || $stored === '') {
+            return null;
+        }
+
+        if (\Mt2Cms\Support\AppCrypto::isEncrypted($stored)) {
+            try {
+                return \Mt2Cms\Support\AppCrypto::decrypt($stored);
+            } catch (\RuntimeException) {
+                return null;
+            }
+        }
+
+        try {
+            $encrypted = \Mt2Cms\Support\AppCrypto::encrypt($stored);
+            $this->db()->execute(
+                'UPDATE admins SET totp_secret = ? WHERE id = ?',
+                [$encrypted, $adminId],
+            );
+        } catch (\RuntimeException) {
+            return null;
+        }
+
+        return $stored;
     }
 
     /**
@@ -58,12 +80,13 @@ class AdminTotpRepository extends Repository
         }
 
         $codes = Totp::generateRecoveryCodes();
+        $storedSecret = \Mt2Cms\Support\AppCrypto::encrypt($secret);
         $this->db()->beginTransaction();
 
         try {
             $this->db()->execute(
                 'UPDATE admins SET totp_secret = ?, totp_enabled = 1 WHERE id = ?',
-                [$secret, $adminId],
+                [$storedSecret, $adminId],
             );
             $this->db()->execute('DELETE FROM admin_totp_recovery_codes WHERE admin_id = ?', [$adminId]);
 

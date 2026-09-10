@@ -5,6 +5,8 @@ ARG PGID=1000
 
 RUN docker-php-ext-install pdo_mysql
 
+COPY docker/php/zz-hardening.ini /usr/local/etc/php/conf.d/zz-hardening.ini
+
 # Workers run as www-data. Match the bind-mount owner so /setup can write .env.
 RUN deluser www-data \
     && (delgroup www-data || true) \

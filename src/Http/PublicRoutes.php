@@ -31,6 +31,8 @@ final class PublicRoutes
         $r->addRoute('POST', '/locale', [LocaleController::class, 'update']);
         $r->addRoute('GET', '/account', [AccountController::class, 'index']);
         $r->addRoute('GET', '/account/characters', [AccountController::class, 'characters']);
+        $r->addRoute('GET', '/account/password', [AccountController::class, 'showPassword']);
+        $r->addRoute('POST', '/account/password', [AccountController::class, 'updatePassword']);
         $r->addRoute('GET', '/account/tickets', [TicketController::class, 'index']);
         $r->addRoute('GET', '/account/tickets/new', [TicketController::class, 'create']);
         $r->addRoute('POST', '/account/tickets', [TicketController::class, 'store']);

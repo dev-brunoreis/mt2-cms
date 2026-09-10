@@ -53,6 +53,8 @@ class AdminAuth
 
     public function setPendingTwoFactor(int $adminId, string $login): void
     {
+        session_regenerate_id(true);
+
         $_SESSION[self::SESSION_PENDING] = [
             'id' => $adminId,
             'login' => $login,
@@ -165,6 +167,7 @@ class AdminAuth
 
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
+            session_start();
         }
     }
 }

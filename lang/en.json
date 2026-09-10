@@ -70,7 +70,20 @@
     "view": "View",
     "sidebar": "Account",
     "dashboard": "Dashboard",
-    "tickets": "Support tickets"
+    "tickets": "Support tickets",
+    "password": "Change password",
+    "password_title": "Change password",
+    "password_lead": "Update your game login password. You must enter your current password.",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm new password",
+    "password_rules": "5–16 characters (Metin2 client limit).",
+    "password_submit": "Update password",
+    "password_changed": "Password updated successfully.",
+    "password_mismatch": "New passwords do not match.",
+    "password_unchanged": "Choose a different password than your current one.",
+    "wrong_password": "Current password is incorrect.",
+    "password_failed": "Could not update password. Please try again."
   },
   "shop": {
     "title": "Item Shop",

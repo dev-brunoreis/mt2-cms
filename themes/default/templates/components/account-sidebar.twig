@@ -17,6 +17,11 @@
        {% if current_path starts with '/account/tickets' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
         {{ t('account.tickets') }}
     </a>
+    <a href="/account/password"
+       class="block rounded-lg px-3 py-2 text-sm transition
+       {% if current_path starts with '/account/password' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+        {{ t('account.password') }}
+    </a>
     <form method="post" action="/logout" class="pt-2">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <button type="submit"

@@ -219,6 +219,42 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
         return $account;
     }
 
+    public function changePassword(int $id, string $current, string $new): void
+    {
+        $this->assertId($id);
+        $new = $this->assertPassword($new);
+
+        if ($current === '') {
+            throw new \InvalidArgumentException('account.wrong_password');
+        }
+
+        $row = $this->db()->fetch(
+            'SELECT password FROM `account` WHERE id = ?',
+            [$id],
+        );
+
+        if ($row === null) {
+            throw new \RuntimeException('error.account_not_found');
+        }
+
+        $hash = (string) ($row['password'] ?? '');
+
+        if ($hash === '' || !hash_equals($hash, $this->hashPassword($current))) {
+            throw new \InvalidArgumentException('account.wrong_password');
+        }
+
+        $newHash = $this->hashPassword($new);
+
+        if (hash_equals($hash, $newHash)) {
+            throw new \InvalidArgumentException('account.password_unchanged');
+        }
+
+        $this->db()->execute(
+            'UPDATE `account` SET password = ? WHERE id = ?',
+            [$newHash, $id],
+        );
+    }
+
     public function create(string $login, string $email, string $password, string $socialId): array
     {
         $login = $this->assertLogin($login);

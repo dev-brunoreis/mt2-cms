@@ -47,4 +47,21 @@ final class EnvWriterTest extends TestCase
         self::assertSame(0640, fileperms($path) & 0777);
         self::assertStringContainsString('DB_PASSWORD=secret123', (string) file_get_contents($path));
     }
+
+    public function testUpsertMergesWithoutRemovingExistingKeys(): void
+    {
+        $path = $this->tempDir . '/.env';
+        $writer = new EnvWriter();
+        $writer->write([
+            'DB_HOST' => 'game',
+            'DB_PASSWORD' => 'secret123',
+        ], $path);
+
+        $writer->upsert(['APP_KEY' => str_repeat('a', 64)], $path);
+        $content = (string) file_get_contents($path);
+
+        self::assertStringContainsString('DB_HOST=game', $content);
+        self::assertStringContainsString('DB_PASSWORD=secret123', $content);
+        self::assertStringContainsString('APP_KEY=' . str_repeat('a', 64), $content);
+    }
 }

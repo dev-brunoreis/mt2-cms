@@ -75,7 +75,7 @@ class EnvWriter
     private function applyPermissions(string $path): void
     {
         // Keep the file readable by php-fpm (www-data) on Docker volume mounts.
-        @chmod($path, 0644);
+        @chmod($path, 0640);
     }
 
     private function escapeValue(string $value): string

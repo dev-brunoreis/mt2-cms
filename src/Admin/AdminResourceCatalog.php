@@ -57,6 +57,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.registration', 'registration', ['view', 'edit']),
                 self::flatModule('admin.nav.themes', 'themes', ['view', 'edit']),
                 self::flatModule('admin.nav.locale', 'locale', ['view', 'edit']),
+                self::flatModule('admin.nav.security', 'security', ['view', 'edit']),
             ]),
         ];
     }
@@ -224,6 +225,10 @@ final class AdminResourceCatalog
             return 'locale';
         }
 
+        if (str_starts_with($resourceId, 'settings/security/')) {
+            return 'security';
+        }
+
         foreach (self::navHiddenSectionIds() as $sectionId) {
             if (str_starts_with($resourceId, 'game-data/' . $sectionId . '/')) {
                 return $sectionId;
@@ -248,6 +253,7 @@ final class AdminResourceCatalog
             'registration' => 'settings/registration',
             'themes' => 'settings/themes',
             'locale' => 'settings/locale',
+            'security' => 'settings/security',
             'shops', 'refine', 'drops', 'items', 'mobs', 'gms' => 'game-data/' . $sectionId,
             default => null,
         };

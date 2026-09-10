@@ -6,6 +6,7 @@ namespace Mt2Cms\Http;
 
 use FastRoute\RouteCollector;
 use Mt2Cms\Http\Controller\AccountController;
+use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
@@ -21,6 +22,7 @@ final class PublicRoutes
     public static function register(RouteCollector $r): void
     {
         $r->addRoute('GET', '/', [HomeController::class, 'index']);
+        $r->addRoute('GET', '/captcha.svg', [CaptchaController::class, 'publicSvg']);
         $r->addRoute('GET', '/login', [AuthController::class, 'showLogin']);
         $r->addRoute('POST', '/login', [AuthController::class, 'login']);
         $r->addRoute('GET', '/register', [AuthController::class, 'showRegister']);

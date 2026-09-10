@@ -1,0 +1,69 @@
+{% if twoFactorRequired and not totpEnabled %}
+    <div class="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        {{ t('admin.2fa.required_banner') }}
+    </div>
+{% endif %}
+
+{% if recoveryCodes %}
+    <div class="admin-panel mb-6 p-6">
+        <h2 class="text-lg font-semibold text-slate-900">{{ t('admin.2fa.recovery_title') }}</h2>
+        <p class="mt-2 text-sm text-slate-600">{{ t('admin.2fa.recovery_lead') }}</p>
+        <ul class="mt-4 grid gap-2 font-mono text-sm sm:grid-cols-2">
+            {% for code in recoveryCodes %}
+                <li class="rounded border border-slate-200 bg-slate-50 px-3 py-2">{{ code }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% if totpEnabled %}
+    <div class="admin-panel p-6">
+        <p class="text-sm text-emerald-700">{{ t('admin.2fa.enabled_status') }}</p>
+    </div>
+{% elseif enrollSecret %}
+    <div class="admin-panel p-6">
+        <h2 class="text-lg font-semibold text-slate-900">{{ t('admin.2fa.confirm_title') }}</h2>
+        <p class="mt-2 text-sm text-slate-600">{{ t('admin.2fa.confirm_lead') }}</p>
+
+        <div class="mt-4 rounded border border-slate-200 bg-slate-50 p-4">
+            {% if qrDataUri %}
+                <p class="text-xs uppercase tracking-wide text-slate-500">{{ t('admin.2fa.qr_label') }}</p>
+                <div class="mt-2 flex justify-center rounded border border-slate-200 bg-white p-4">
+                    <img src="{{ qrDataUri }}" width="200" height="200" alt="{{ t('admin.2fa.qr_alt') }}">
+                </div>
+                <p class="mt-2 text-center text-xs text-slate-500">{{ t('admin.2fa.qr_help') }}</p>
+            {% endif %}
+
+            <details class="mt-4">
+                <summary class="cursor-pointer text-xs font-medium uppercase tracking-wide text-slate-500">
+                    {{ t('admin.2fa.manual_entry') }}
+                </summary>
+                <p class="mt-3 text-xs uppercase tracking-wide text-slate-500">{{ t('admin.2fa.secret_label') }}</p>
+                <p class="mt-1 break-all font-mono text-sm text-slate-900">{{ enrollSecret }}</p>
+                {% if provisioningUri %}
+                    <p class="mt-4 text-xs uppercase tracking-wide text-slate-500">{{ t('admin.2fa.uri_label') }}</p>
+                    <p class="mt-1 break-all font-mono text-xs text-slate-700">{{ provisioningUri }}</p>
+                {% endif %}
+            </details>
+        </div>
+
+        <form method="post" action="/admin/account/security/confirm" class="mt-6 max-w-sm">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <label class="admin-field">
+                <span>{{ t('admin.2fa.code_label') }}</span>
+                <input type="text" name="totp_code" inputmode="numeric" autocomplete="one-time-code"
+                       maxlength="6" pattern="[0-9]{6}" required class="admin-input">
+            </label>
+            <button type="submit" class="admin-btn mt-4">{{ t('admin.2fa.confirm_submit') }}</button>
+        </form>
+    </div>
+{% else %}
+    <div class="admin-panel p-6">
+        <h2 class="text-lg font-semibold text-slate-900">{{ t('admin.2fa.enroll_title') }}</h2>
+        <p class="mt-2 text-sm text-slate-600">{{ t('admin.2fa.enroll_lead') }}</p>
+        <form method="post" action="/admin/account/security/enroll" class="mt-6">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-btn">{{ t('admin.2fa.start_enroll') }}</button>
+        </form>
+    </div>
+{% endif %}

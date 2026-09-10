@@ -93,7 +93,9 @@ See `.env-example` for the full list.
 
 ## Out of scope
 
-- Captcha, 2FA, WAF
+- WAF
 - Replacing Metin2-compatible player password hashes (`*SHA1(SHA1)`)
+
+Captcha and admin TOTP 2FA are built in — configure under **Settings → Security** after deploy.
 
 See [security.md](security.md) for coding rules that must stay intact on every change.

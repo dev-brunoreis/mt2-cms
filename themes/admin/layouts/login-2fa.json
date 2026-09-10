@@ -1,0 +1,7 @@
+{
+  "id": "login-2fa",
+  "template": "layouts/auth.twig",
+  "slots": {
+    "main": [{ "id": "content", "template": "pages/login-2fa.twig" }]
+  }
+}

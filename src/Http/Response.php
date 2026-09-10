@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http;
 
+use Mt2Cms\Auth\SessionConfig;
+
 class Response
 {
     /** @var array<string, string> */
@@ -117,9 +119,7 @@ class Response
             'SameSite=Lax',
         ];
 
-        $https = $_SERVER['HTTPS'] ?? '';
-
-        if ($https !== '' && $https !== 'off') {
+        if (SessionConfig::isSecureRequest()) {
             $parts[] = 'Secure';
         }
 

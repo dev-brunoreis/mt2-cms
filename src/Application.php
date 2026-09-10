@@ -49,6 +49,7 @@ use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\GroupTextWriter;
 use Mt2Cms\Repository\AclRepository;
 use Mt2Cms\Repository\AdminRoleRepository;
+use Mt2Cms\Repository\AdminTotpRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\DropFileService;
@@ -118,6 +119,7 @@ class Application
     private AdminAuditService $adminAudit;
     private AclService $acl;
     private AdminRoleRepository $adminRoles;
+    private AdminTotpRepository $adminTotp;
 
     public function __construct()
     {
@@ -232,6 +234,7 @@ class Application
         $this->assertSchemaCurrent();
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
         $this->adminRoles = new AdminRoleRepository($this->cmsDb);
+        $this->adminTotp = new AdminTotpRepository($this->cmsDb);
         $this->acl = new AclService(new AclRepository($this->cmsDb), $this->adminRoles);
 
         $this->settingsRepo = new SettingsRepository($this->cmsDb);
@@ -314,6 +317,7 @@ class Application
             new ItemDescCatalog($this->gameProfile->path('itemdesc')),
         );
         $this->attachAdminNavCounts();
+        \Mt2Cms\Admin\AdminRuntime::bind($this->settings);
     }
 
     private function createThemeEngine(string $activeTheme, bool $registrationEnabled, bool $isAdmin): ThemeEngine

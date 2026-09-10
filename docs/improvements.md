@@ -50,17 +50,19 @@ Tailwind built to `public/css/app.css`; TinyMCE vendored under `public/vendor/ti
 
 Migrations via `php bin/migrate.php` and `/setup` only. Hot path checks schema version and returns 503 if behind.
 
-### 7. Grid SQL and mass actions (defense in depth)
+### 7. ~~Grid SQL and mass actions (defense in depth)~~ — done
 
-`GridSql::orderBy` concatenates the expression from `sortMap()`. Maps are hardcoded today — that is fine. Rule: never put request data into the map; only `quoteIdentifier` results or literal SQL in code.
+`GridSql::orderBy` still concatenates expressions from hardcoded `sortMap()` only — keep that rule on new grids.
 
-Mass actions read `mass_action` from POST and `match` in the controller without checking the spec’s action list. Whitelist against `GridSpec::$massActions` (or a helper on `AdminController`).
+Mass actions are whitelisted via `AdminController::runMassActions()` + `isAllowedMassAction()` against `GridSpec::$massActions`.
 
 ### 8. Intentionally out of scope (same as security.md)
 
 - HSTS (Compose serves HTTP on `:8000`)
-- Captcha / 2FA / WAF
+- WAF
 - Replacing the game-compatible password hash
+
+Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/settings/security` and `/admin/account/security`.
 
 ---
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Auth\Auth;
+use Mt2Cms\Auth\Captcha;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
 use Mt2Cms\Http\Response;
@@ -16,6 +17,7 @@ use Mt2Cms\Theme\ThemeEngine;
 class AuthController extends Controller
 {
     private RateLimiter $rateLimiter;
+    private Captcha $captcha;
 
     public function __construct(
         ThemeEngine $theme,
@@ -28,6 +30,7 @@ class AuthController extends Controller
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
         $this->rateLimiter = $rateLimiter ?? new RateLimiter();
+        $this->captcha = new Captcha('public');
     }
 
     public function showLogin(): Response
@@ -47,6 +50,19 @@ class AuthController extends Controller
 
         if (!$this->assertCsrf()) {
             return $this->authForm('login', error: $this->t('auth.invalid_csrf'), status: 400);
+        }
+
+        if ($this->settings->captchaPublicEnabled()) {
+            if (!$this->captcha->verify($_POST['captcha'] ?? null)) {
+                $this->rateLimiter->hit($this->authBucket('captcha-login'));
+
+                return $this->authForm(
+                    'login',
+                    username: trim((string) ($_POST['username'] ?? '')),
+                    error: $this->t('auth.invalid_captcha'),
+                    status: 422,
+                );
+            }
         }
 
         $bucket = $this->authBucket('login');
@@ -112,6 +128,21 @@ class AuthController extends Controller
                 error: $this->t('auth.invalid_csrf'),
                 status: 400,
             );
+        }
+
+        if ($this->settings->captchaPublicEnabled()) {
+            if (!$this->captcha->verify($_POST['captcha'] ?? null)) {
+                $this->rateLimiter->hit($this->authBucket('captcha-register'));
+
+                return $this->authForm(
+                    'register',
+                    username: $username,
+                    email: $email,
+                    socialId: $socialId,
+                    error: $this->t('auth.invalid_captcha'),
+                    status: 422,
+                );
+            }
         }
 
         $bucket = $this->authBucket('register');
@@ -186,6 +217,7 @@ class AuthController extends Controller
             'socialId' => $socialId,
             'error' => $error,
             'registrationBlocked' => $registrationBlocked,
+            'captchaEnabled' => $this->settings->captchaPublicEnabled(),
         ], $status);
     }
 }

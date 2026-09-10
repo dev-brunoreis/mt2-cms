@@ -14,6 +14,7 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Repository\AdminRoleRepository;
+use Mt2Cms\Repository\AdminTotpRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
@@ -31,6 +32,7 @@ class AdminAdminsController extends AdminController
         AdminAuditService $auditLog,
         private AdminRepository $admins,
         private AdminRoleRepository $roles,
+        private AdminTotpRepository $totp,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -234,6 +236,34 @@ class AdminAdminsController extends AdminController
         }
 
         return $this->redirect('/admin/system/admins');
+    }
+
+    public function resetTwoFactor(string $id): Response
+    {
+        if ($redirect = $this->requireAdminSection('admins')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/system/admins/' . $id);
+        }
+
+        $adminId = (int) $id;
+        $admin = $this->admins->findById($adminId);
+
+        if ($admin === null) {
+            $this->flash('error', $this->t('admin.admins.not_found'));
+
+            return $this->redirect('/admin/system/admins');
+        }
+
+        $this->totp->disable($adminId);
+        $this->audit('admin.2fa.reset', 'admin', $adminId);
+        $this->flash('success', $this->t('admin.2fa.reset_done'));
+
+        return $this->redirect('/admin/system/admins/' . $id);
     }
 
     /**

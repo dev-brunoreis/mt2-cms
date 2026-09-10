@@ -42,6 +42,10 @@ abstract class AdminController extends Controller
             return $redirect;
         }
 
+        if ($redirect = $this->requireTwoFactorEnrollment($section)) {
+            return $redirect;
+        }
+
         if ($deny = $this->denyUnlessCanAccess($section)) {
             return $deny;
         }
@@ -84,12 +88,20 @@ abstract class AdminController extends Controller
             return $redirect;
         }
 
+        if ($redirect = $this->requireTwoFactorEnrollment($section)) {
+            return $redirect;
+        }
+
         return $this->denyUnlessCanAccess($section);
     }
 
     protected function requireAdminResource(string $resourceId): ?Response
     {
         if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if ($redirect = $this->requireTwoFactorEnrollment('')) {
             return $redirect;
         }
 
@@ -349,5 +361,26 @@ abstract class AdminController extends Controller
         }
 
         return false;
+    }
+
+    protected function requireTwoFactorEnrollment(string $section): ?Response
+    {
+        if ($section === 'account-security') {
+            return null;
+        }
+
+        if (!\Mt2Cms\Admin\AdminRuntime::settings()->adminTwoFactorRequired()) {
+            return null;
+        }
+
+        $user = $this->adminAuth->user();
+
+        if ($user !== null && (int) ($user['totp_enabled'] ?? 0) === 1) {
+            return null;
+        }
+
+        $this->flash('error', $this->t('admin.2fa.enrollment_required'));
+
+        return $this->redirect('/admin/account/security');
     }
 }

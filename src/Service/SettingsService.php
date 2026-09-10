@@ -138,4 +138,52 @@ class SettingsService
     {
         $this->settings->set('news_comments_require_approval', $required ? '1' : '0');
     }
+
+    public function captchaPublicEnabled(): bool
+    {
+        $value = $this->settings->get('captcha_public');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setCaptchaPublicEnabled(bool $enabled): void
+    {
+        $this->settings->set('captcha_public', $enabled ? '1' : '0');
+    }
+
+    public function captchaAdminEnabled(): bool
+    {
+        $value = $this->settings->get('captcha_admin');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setCaptchaAdminEnabled(bool $enabled): void
+    {
+        $this->settings->set('captcha_admin', $enabled ? '1' : '0');
+    }
+
+    public function adminTwoFactorRequired(): bool
+    {
+        $value = $this->settings->get('admin_2fa_required');
+
+        if ($value === null) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function setAdminTwoFactorRequired(bool $required): void
+    {
+        $this->settings->set('admin_2fa_required', $required ? '1' : '0');
+    }
 }

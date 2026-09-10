@@ -77,6 +77,18 @@ document.getElementById('admin-role')?.addEventListener('change', (event) => {
 });
 </script>
 
+{% if isEdit and admin.totp_enabled|default(false) %}
+    <div class="mt-4 admin-panel p-4">
+        <form method="post" action="/admin/system/admins/{{ admin.id }}/reset-2fa"
+              data-confirm="{{ t('admin.2fa.reset_confirm') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action cursor-pointer">
+                {{ t('admin.2fa.reset_button') }}
+            </button>
+        </form>
+    </div>
+{% endif %}
+
 {% if isEdit and admin.role|default('') != 'super' %}
     <div class="mt-4">
         <form method="post" action="/admin/system/admins/{{ admin.id }}/delete"

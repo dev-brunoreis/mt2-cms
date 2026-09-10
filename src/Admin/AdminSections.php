@@ -163,6 +163,11 @@ class AdminSections
                         'path' => AdminPaths::settingsLocale(),
                         'label' => 'admin.nav.locale',
                     ],
+                    [
+                        'id' => 'security',
+                        'path' => AdminPaths::settingsSecurity(),
+                        'label' => 'admin.nav.security',
+                    ],
                 ],
             ],
         ];

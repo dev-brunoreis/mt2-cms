@@ -165,4 +165,50 @@ class AdminSettingsController extends AdminController
 
         return $this->redirect('/admin/settings/locale');
     }
+
+    public function security(): Response
+    {
+        return $this->adminView('security', 'pages/security.twig', [
+            'title' => $this->t('admin.security.title'),
+            'pageLead' => $this->t('admin.security.lead'),
+            'formId' => 'admin-security-form',
+            'captchaPublicEnabled' => $this->settings->captchaPublicEnabled(),
+            'captchaAdminEnabled' => $this->settings->captchaAdminEnabled(),
+            'adminTwoFactorRequired' => $this->settings->adminTwoFactorRequired(),
+        ]);
+    }
+
+    public function saveSecurity(): Response
+    {
+        if ($redirect = $this->requireAdminResource('settings/security/edit')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/settings/security');
+        }
+
+        $before = [
+            'captcha_public' => $this->settings->captchaPublicEnabled(),
+            'captcha_admin' => $this->settings->captchaAdminEnabled(),
+            'admin_2fa_required' => $this->settings->adminTwoFactorRequired(),
+        ];
+        $captchaPublic = isset($_POST['captcha_public']);
+        $captchaAdmin = isset($_POST['captcha_admin']);
+        $twoFactorRequired = isset($_POST['admin_2fa_required']);
+
+        $this->settings->setCaptchaPublicEnabled($captchaPublic);
+        $this->settings->setCaptchaAdminEnabled($captchaAdmin);
+        $this->settings->setAdminTwoFactorRequired($twoFactorRequired);
+        $this->auditChange('settings.security_save', 'settings', null, $before, [
+            'captcha_public' => $captchaPublic,
+            'captcha_admin' => $captchaAdmin,
+            'admin_2fa_required' => $twoFactorRequired,
+        ]);
+        $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect('/admin/settings/security');
+    }
 }

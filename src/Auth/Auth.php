@@ -68,5 +68,9 @@ class Auth
     public function logout(): void
     {
         unset($_SESSION[self::SESSION_ID], $_SESSION[self::SESSION_LOGIN]);
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
     }
 }

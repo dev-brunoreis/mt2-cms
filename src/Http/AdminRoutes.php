@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Mt2Cms\Http;
 
 use FastRoute\RouteCollector;
+use Mt2Cms\Http\Controller\AdminAccountSecurityController;
 use Mt2Cms\Http\Controller\AdminAccountsController;
 use Mt2Cms\Http\Controller\AdminAdminsController;
 use Mt2Cms\Http\Controller\AdminAuditLogController;
 use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\AdminAwardsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
 use Mt2Cms\Http\Controller\AdminDashboardController;
@@ -35,9 +37,15 @@ final class AdminRoutes
 {
     public static function register(RouteCollector $r): void
     {
+        $r->addRoute('GET', '/admin/captcha.svg', [CaptchaController::class, 'adminSvg']);
         $r->addRoute('GET', '/admin/login', [AdminAuthController::class, 'showLogin']);
         $r->addRoute('POST', '/admin/login', [AdminAuthController::class, 'login']);
+        $r->addRoute('GET', '/admin/login/2fa', [AdminAuthController::class, 'showTwoFactor']);
+        $r->addRoute('POST', '/admin/login/2fa', [AdminAuthController::class, 'verifyTwoFactor']);
         $r->addRoute('POST', '/admin/logout', [AdminAuthController::class, 'logout']);
+        $r->addRoute('GET', '/admin/account/security', [AdminAccountSecurityController::class, 'show']);
+        $r->addRoute('POST', '/admin/account/security/enroll', [AdminAccountSecurityController::class, 'startEnroll']);
+        $r->addRoute('POST', '/admin/account/security/confirm', [AdminAccountSecurityController::class, 'confirmEnroll']);
         $r->addRoute('GET', '/admin', [AdminDashboardController::class, 'index']);
 
         // Settings
@@ -47,6 +55,8 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/settings/themes', [AdminSettingsController::class, 'saveThemes']);
         $r->addRoute('GET', '/admin/settings/locale', [AdminSettingsController::class, 'locale']);
         $r->addRoute('POST', '/admin/settings/locale', [AdminSettingsController::class, 'saveLocale']);
+        $r->addRoute('GET', '/admin/settings/security', [AdminSettingsController::class, 'security']);
+        $r->addRoute('POST', '/admin/settings/security', [AdminSettingsController::class, 'saveSecurity']);
 
         // System
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);
@@ -55,6 +65,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/system/admins/mass', [AdminAdminsController::class, 'mass']);
         $r->addRoute('GET', '/admin/system/admins/{id:\d+}', [AdminAdminsController::class, 'edit']);
         $r->addRoute('POST', '/admin/system/admins/{id:\d+}', [AdminAdminsController::class, 'update']);
+        $r->addRoute('POST', '/admin/system/admins/{id:\d+}/reset-2fa', [AdminAdminsController::class, 'resetTwoFactor']);
         $r->addRoute('POST', '/admin/system/admins/{id:\d+}/delete', [AdminAdminsController::class, 'destroy']);
         $r->addRoute('GET', '/admin/system/roles', [AdminRolesController::class, 'index']);
         $r->addRoute('POST', '/admin/system/roles/mass', [AdminRolesController::class, 'mass']);

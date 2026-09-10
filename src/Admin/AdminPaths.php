@@ -183,6 +183,16 @@ final class AdminPaths
         return '/admin/settings/locale';
     }
 
+    public static function settingsSecurity(): string
+    {
+        return '/admin/settings/security';
+    }
+
+    public static function accountSecurity(): string
+    {
+        return '/admin/account/security';
+    }
+
     public static function sectionPath(string $sectionId): ?string
     {
         return match ($sectionId) {
@@ -207,6 +217,7 @@ final class AdminPaths
             'registration' => self::settingsRegistration(),
             'themes' => self::settingsThemes(),
             'locale' => self::settingsLocale(),
+            'security' => self::settingsSecurity(),
             default => null,
         };
     }

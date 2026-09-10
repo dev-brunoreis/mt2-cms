@@ -110,7 +110,7 @@
 
                                     {% if auth.check %}
                                         <form method="post" action="/shop/buy"
-                                              onsubmit="return confirm({{ t('shop.confirm_buy', {name: product.item_name, price: product.price})|json_encode|raw }});">
+                                              onsubmit="return confirm('{{ t('shop.confirm_buy', {name: product.item_name, price: product.price})|e('js') }}');">
                                             <input type="hidden" name="_csrf" value="{{ csrf }}">
                                             <input type="hidden" name="product_id" value="{{ product.id }}">
                                             <input type="hidden" name="idempotency_key" value="{{ idempotencyKeys[product.id]|default('') }}">

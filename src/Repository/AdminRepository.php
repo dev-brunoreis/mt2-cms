@@ -28,7 +28,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
     /** @return list<string> */
     protected function hiddenColumns(): array
     {
-        return ['password'];
+        return ['password', 'totp_secret'];
     }
 
     public function gridDefinition(): GridDefinition
@@ -96,15 +96,18 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
     public function findById(int $id): ?array
     {
         return $this->reveal($this->db()->fetch(
-            'SELECT id, login, role, use_custom_acl, created_at FROM admins WHERE id = ? LIMIT 1',
+            'SELECT id, login, role, use_custom_acl, totp_enabled, created_at FROM admins WHERE id = ? LIMIT 1',
             [$id],
         ));
     }
 
+    /**
+     * @return array{id: int, login: string, totp_enabled: bool}|null
+     */
     public function authenticate(string $login, string $password): ?array
     {
         $row = $this->db()->fetch(
-            'SELECT id, login, password FROM admins WHERE login = ? LIMIT 1',
+            'SELECT id, login, password, totp_enabled FROM admins WHERE login = ? LIMIT 1',
             [trim($login)],
         );
 
@@ -119,6 +122,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
         return [
             'id' => (int) $row['id'],
             'login' => (string) $row['login'],
+            'totp_enabled' => (int) ($row['totp_enabled'] ?? 0) === 1,
         ];
     }
 

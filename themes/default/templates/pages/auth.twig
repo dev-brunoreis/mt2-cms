@@ -24,6 +24,17 @@
                     <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
                 {% endif %}
 
+                {% if captchaEnabled|default(false) %}
+                    <div class="flex flex-col gap-2">
+                        <label for="captcha" class="text-sm font-medium text-slate-700">{{ t('auth.captcha') }}</label>
+                        <div class="flex items-center gap-3">
+                            <img src="/captcha.svg" alt="" width="160" height="48" class="rounded border border-slate-200">
+                            <input id="captcha" type="text" name="captcha" required autocomplete="off" maxlength="5"
+                                   class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 uppercase tracking-widest text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                        </div>
+                    </div>
+                {% endif %}
+
                 <button type="submit"
                         class="mt-2 cursor-pointer rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-500">
                     {{ t('auth.submit_login') }}
@@ -74,6 +85,17 @@
 
                 {% if error %}
                     <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
+                {% endif %}
+
+                {% if captchaEnabled|default(false) %}
+                    <div class="flex flex-col gap-2">
+                        <label for="captcha" class="text-sm font-medium text-slate-700">{{ t('auth.captcha') }}</label>
+                        <div class="flex items-center gap-3">
+                            <img src="/captcha.svg" alt="" width="160" height="48" class="rounded border border-slate-200">
+                            <input id="captcha" type="text" name="captcha" required autocomplete="off" maxlength="5"
+                                   class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 uppercase tracking-widest text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                        </div>
+                    </div>
                 {% endif %}
 
                 <button type="submit"

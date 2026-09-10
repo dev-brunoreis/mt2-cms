@@ -6,6 +6,7 @@ namespace Mt2Cms\Http;
 
 use Mt2Cms\Http\Controller\AccountController;
 use Mt2Cms\Http\Controller\AdminAccountsController;
+use Mt2Cms\Http\Controller\AdminAccountSecurityController;
 use Mt2Cms\Http\Controller\AdminAdminsController;
 use Mt2Cms\Http\Controller\AdminAuditLogController;
 use Mt2Cms\Http\Controller\AdminAuthController;
@@ -31,6 +32,7 @@ use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AdminShopsController;
 use Mt2Cms\Http\Controller\AdminTicketsController;
 use Mt2Cms\Http\Controller\AuthController;
+use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\ItemShopController;
@@ -125,6 +127,12 @@ private function resolveController(string $class): object
                 $this->translator,
                 $this->locales,
             ),
+            CaptchaController::class => new CaptchaController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+            ),
             SetupController::class => new SetupController(
                 $this->theme,
                 $this->auth,
@@ -141,6 +149,20 @@ private function resolveController(string $class): object
                 $this->adminAuth,
                 $this->adminTheme,
                 $this->acl,
+                $this->settings,
+                $this->adminTotp,
+            ),
+            AdminAccountSecurityController::class => new AdminAccountSecurityController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->adminTotp,
+                $this->settings,
             ),
             AdminDashboardController::class => new AdminDashboardController(
                 $this->theme,
@@ -434,6 +456,7 @@ private function resolveController(string $class): object
                 $this->adminAudit,
                 new \Mt2Cms\Repository\AdminRepository($this->cmsDb, $this->adminRoles),
                 $this->adminRoles,
+                $this->adminTotp,
             ),
             AdminRolesController::class => new AdminRolesController(
                 $this->theme,

@@ -351,6 +351,18 @@
       "news_comments": "News comments",
       "news_settings": "News",
       "tickets": "Tickets",
+      "pending_count": {
+        "one": "{count} pending",
+        "other": "{count} pending"
+      },
+      "pending_comments": {
+        "one": "{count} comment pending approval",
+        "other": "{count} comments pending approval"
+      },
+      "unanswered_tickets": {
+        "one": "{count} unanswered ticket",
+        "other": "{count} unanswered tickets"
+      },
       "items": "Items",
       "mobs": "Mobs",
       "shops": "Shops",

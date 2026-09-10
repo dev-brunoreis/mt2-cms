@@ -36,6 +36,14 @@ class TicketRepository extends Repository
         );
     }
 
+    public function countOpen(): int
+    {
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM tickets WHERE status = ?',
+            ['open'],
+        );
+    }
+
     public function countForAdmin(?string $query = null, ?string $status = null): int
     {
         [$where, $params] = $this->adminFilter($query, $status);

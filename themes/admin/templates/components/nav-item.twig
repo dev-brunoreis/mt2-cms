@@ -1,0 +1,26 @@
+{% set isActive = activeSection is defined and activeSection == item.id %}
+{% set counts = admin_nav_counts|default({}) %}
+{% set badgeCount = counts[item.id]|default(0) %}
+{% set badgeLabels = {
+    'news-comments': 'admin.nav.pending_comments',
+    'tickets': 'admin.nav.unanswered_tickets'
+} %}
+<li>
+    <a href="{{ item.path }}"
+       class="admin-nav-link flex items-center gap-3 rounded-md px-3 {{ pad|default('py-2.5') }} text-[13px] font-medium
+       {% if isActive %}
+           is-active text-white
+       {% else %}
+           text-slate-300
+       {% endif %}">
+        {% include 'components/nav-icon.twig' with { sectionId: item.id } only %}
+        <span class="min-w-0 flex-1 truncate">{{ t(item.label) }}</span>
+        {% if badgeCount > 0 %}
+            <span class="admin-nav-badge"
+                  title="{{ t(badgeLabels[item.id]|default('admin.nav.pending_count'), {count: badgeCount}) }}"
+                  aria-label="{{ t(badgeLabels[item.id]|default('admin.nav.pending_count'), {count: badgeCount}) }}">
+                {{ badgeCount > 99 ? '99+' : badgeCount }}
+            </span>
+        {% endif %}
+    </a>
+</li>

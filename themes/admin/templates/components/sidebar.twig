@@ -11,19 +11,7 @@
                 </summary>
                 <ul class="space-y-0.5">
                     {% for item in group.children %}
-                        {% set isActive = activeSection is defined and activeSection == item.id %}
-                        <li>
-                            <a href="{{ item.path }}"
-                               class="admin-nav-link flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium
-                               {% if isActive %}
-                                   is-active text-white
-                               {% else %}
-                                   text-slate-300
-                               {% endif %}">
-                                {% include 'components/nav-icon.twig' with { sectionId: item.id } only %}
-                                <span>{{ t(item.label) }}</span>
-                            </a>
-                        </li>
+                        {% include 'components/nav-item.twig' with { item: item, pad: 'py-2' } %}
                     {% endfor %}
                 </ul>
             </details>
@@ -35,19 +23,7 @@
 
                 <ul class="space-y-0.5">
                     {% for item in group.children %}
-                        {% set isActive = activeSection is defined and activeSection == item.id %}
-                        <li>
-                            <a href="{{ item.path }}"
-                               class="admin-nav-link flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] font-medium
-                               {% if isActive %}
-                                   is-active text-white
-                               {% else %}
-                                   text-slate-300
-                               {% endif %}">
-                                {% include 'components/nav-icon.twig' with { sectionId: item.id } only %}
-                                <span>{{ t(item.label) }}</span>
-                            </a>
-                        </li>
+                        {% include 'components/nav-item.twig' with { item: item, pad: 'py-2.5' } %}
                     {% endfor %}
                 </ul>
             </div>

@@ -400,6 +400,7 @@ class Application
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+        $this->attachAdminNavCounts();
     }
 
     private function createThemeEngine(string $activeTheme, bool $registrationEnabled, bool $isAdmin): ThemeEngine
@@ -421,6 +422,20 @@ class Application
         $engine->setGlobals($globals);
 
         return $engine;
+    }
+
+    private function attachAdminNavCounts(): void
+    {
+        if (!$this->adminAuth->check()) {
+            return;
+        }
+
+        $this->adminTheme->setGlobals([
+            'admin_nav_counts' => [
+                'news-comments' => $this->newsComments->countPending(),
+                'tickets' => $this->tickets->countOpen(),
+            ],
+        ]);
     }
 
     /**

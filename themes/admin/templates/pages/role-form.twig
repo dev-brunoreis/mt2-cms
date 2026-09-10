@@ -43,27 +43,16 @@
     </fieldset>
 
     <fieldset class="admin-fieldset mt-6">
-        <legend>{{ t('admin.roles.sections') }}</legend>
-        <p class="mb-4 text-sm text-slate-500">{{ t('admin.roles.sections_help') }}</p>
-        {% for group in sectionGroups %}
-            {% set visibleChildren = group.children|filter(c => c.id in assignableSections) %}
-            {% if visibleChildren|length > 0 %}
-                <div class="mb-4">
-                    <h3 class="mb-2 text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
-                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {% for child in visibleChildren %}
-                            <label class="flex items-center gap-2 text-sm text-slate-700">
-                                <input type="checkbox" name="sections[]" value="{{ child.id }}"
-                                       {% if child.id in selectedSections %}checked{% endif %}>
-                                {{ t(child.label) }}
-                            </label>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-        {% endfor %}
+        <legend>{{ t('admin.roles.resources') }}</legend>
+        <p class="mb-4 text-sm text-slate-500">{{ t('admin.roles.resources_help') }}</p>
+        {% include 'components/resource-tree.twig' with {
+            resourceTree: resourceTree,
+            selectedResources: selectedResources|default([])
+        } %}
     </fieldset>
 </form>
+
+<script src="/js/admin-resource-tree.js" defer></script>
 
 {% if isEdit and adminCount|default(0) == 0 %}
     <div class="mt-4">

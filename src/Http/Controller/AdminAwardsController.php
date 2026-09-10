@@ -68,7 +68,7 @@ class AdminAwardsController extends AdminController
             ],
             'award',
             'admin.awards.mass_done',
-        'awards',
+            'game/awards/mass',
         );
     }
 
@@ -79,7 +79,7 @@ class AdminAwardsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('awards')) {
+        if ($redirect = $this->requireAdminResource('game/awards/create')) {
             return $redirect;
         }
 
@@ -105,7 +105,7 @@ class AdminAwardsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('awards')) {
+        if ($redirect = $this->requireAdminResource('game/awards/delete')) {
             return $redirect;
         }
 

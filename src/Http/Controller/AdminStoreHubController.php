@@ -12,13 +12,23 @@ class AdminStoreHubController extends AdminItemShopBaseController
 {
     private const TABS = ['categories', 'orders'];
 
+    /** @var array<string, string> */
+    private const TAB_VIEW_RESOURCES = [
+        'categories' => 'store/categories/view',
+        'orders' => 'store/orders/view',
+    ];
+
     public function index(): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdmin()) {
             return $redirect;
         }
 
-        $tab = $this->requestedTab(self::TABS, 'categories');
+        $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'categories');
+
+        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
+            return $deny;
+        }
 
         if ($this->wantsTabPartial()) {
             return $this->renderTabPartial($tab);
@@ -46,6 +56,10 @@ class AdminStoreHubController extends AdminItemShopBaseController
     {
         if (!in_array($tab, self::TABS, true)) {
             return new Response('', 404);
+        }
+
+        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
+            return $deny;
         }
 
         $payload = $this->partialPayload($tab);

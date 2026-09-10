@@ -10,11 +10,13 @@
                 <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t(group.label) }}</p>
                 <div class="admin-tabs-nav admin-tabs-nav-wrap" role="tablist" aria-label="{{ t(group.label) }}">
                     {% for tab in group.tabs %}
-                        {% include 'components/tab.twig' with {
-                            id: tab.id,
-                            label: t(tab.label),
-                            active: activeTab == tab.id
-                        } %}
+                        {% if acl_allowed('logs/' ~ tab.id ~ '/view') %}
+                            {% include 'components/tab.twig' with {
+                                id: tab.id,
+                                label: t(tab.label),
+                                active: activeTab == tab.id
+                            } %}
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

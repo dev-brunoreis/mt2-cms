@@ -34,7 +34,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             ],
             'item_shop_product',
             'admin.item_shop.products.mass_done',
-            'store',
+            'store/products/mass',
         );
     }
 
@@ -45,7 +45,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsStore(): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/create')) {
             return $redirect;
         }
 
@@ -86,7 +86,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsUpdate(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/edit')) {
             return $redirect;
         }
 
@@ -123,7 +123,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsDestroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/delete')) {
             return $redirect;
         }
 

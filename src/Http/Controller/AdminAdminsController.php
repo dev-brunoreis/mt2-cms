@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Admin\AdminPermissions;
-use Mt2Cms\Admin\AdminSectionCatalog;
+use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -85,13 +85,13 @@ class AdminAdminsController extends AdminController
 
             if ($input['use_custom_acl']) {
                 $this->admins->update($id, $input['login'], $input['role'], true);
-                $this->acl->saveAdminSections($id, $input['sections']);
+                $this->acl->saveAdminResources($id, $input['resources']);
             }
 
             $this->audit('admin.create', 'admin', $id, [
                 'role' => $input['role'],
                 'use_custom_acl' => $input['use_custom_acl'],
-                'sections' => $input['use_custom_acl'] ? $input['sections'] : null,
+                'resources' => $input['use_custom_acl'] ? $input['resources'] : null,
             ]);
             $this->flash('success', $this->t('admin.admins.created'));
 
@@ -113,7 +113,7 @@ class AdminAdminsController extends AdminController
 
         return $this->formView([
             'admin' => $admin,
-            'sections' => $this->acl->adminSections((int) $admin['id']),
+            'resources' => $this->acl->adminResources((int) $admin['id']),
         ]);
     }
 
@@ -143,15 +143,15 @@ class AdminAdminsController extends AdminController
             );
 
             if ($input['use_custom_acl']) {
-                $this->acl->saveAdminSections($adminId, $input['sections']);
+                $this->acl->saveAdminResources($adminId, $input['resources']);
             } else {
-                $this->acl->saveAdminSections($adminId, []);
+                $this->acl->saveAdminResources($adminId, []);
             }
 
             $this->audit('admin.update', 'admin', $adminId, [
                 'role' => $input['role'],
                 'use_custom_acl' => $input['use_custom_acl'],
-                'sections' => $input['use_custom_acl'] ? $input['sections'] : null,
+                'resources' => $input['use_custom_acl'] ? $input['resources'] : null,
             ]);
             $this->flash('success', $this->t('admin.admins.updated'));
 
@@ -161,7 +161,7 @@ class AdminAdminsController extends AdminController
 
             return $this->formView([
                 'admin' => $admin ?? ['id' => $adminId],
-                'sections' => $input['sections'],
+                'resources' => $input['resources'],
             ] + $input, $this->t($e->getMessage()), 422);
         }
     }
@@ -218,16 +218,15 @@ class AdminAdminsController extends AdminController
                 'role' => $data['role'] ?? $defaultRole,
                 'use_custom_acl' => $data['use_custom_acl'] ?? false,
             ],
-            'selectedSections' => $data['sections'] ?? [],
-            'sectionGroups' => AdminSectionCatalog::grouped(),
-            'assignableSections' => $this->acl->assignableSections(),
+            'selectedResources' => $data['resources'] ?? [],
+            'resourceTree' => AdminResourceCatalog::tree(),
             'roleOptions' => $roleOptions,
             'error' => $error,
         ], $status);
     }
 
     /**
-     * @return array{login: string, role: string, use_custom_acl: bool, sections: list<string>}
+     * @return array{login: string, role: string, use_custom_acl: bool, resources: list<string>}
      */
     private function formInput(): array
     {
@@ -237,13 +236,13 @@ class AdminAdminsController extends AdminController
             throw new \InvalidArgumentException('admin.admins.cannot_assign_super');
         }
 
-        $sections = [];
+        $resources = [];
 
-        foreach ((array) ($_POST['sections'] ?? []) as $sectionId) {
-            $sectionId = (string) $sectionId;
+        foreach ((array) ($_POST['resources'] ?? []) as $resourceId) {
+            $resourceId = (string) $resourceId;
 
-            if ($sectionId !== '') {
-                $sections[] = $sectionId;
+            if ($resourceId !== '') {
+                $resources[] = $resourceId;
             }
         }
 
@@ -251,7 +250,7 @@ class AdminAdminsController extends AdminController
             'login' => trim((string) ($_POST['login'] ?? '')),
             'role' => $role,
             'use_custom_acl' => (string) ($_POST['use_custom_acl'] ?? '') === '1',
-            'sections' => $sections,
+            'resources' => $resources,
         ];
     }
 }

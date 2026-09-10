@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Repository;
 
 use Mt2Cms\Admin\AdminPermissions;
+use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\AdminSectionCatalog;
 use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
@@ -33,14 +34,14 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
                 'slug' => 'r.slug',
                 'label' => 'r.label',
                 'admin_count' => 'admin_count',
-                'section_count' => 'section_count',
+                'section_count' => 'resource_count',
                 'created_at' => 'r.created_at',
             ])
             ->columns([
                 ['key' => 'label', 'label' => 'admin.roles.label', 'sort' => 'label', 'type' => 'link', 'href' => '/admin/system/roles/{id}'],
                 ['key' => 'slug', 'label' => 'admin.roles.slug', 'sort' => 'slug', 'type' => 'muted'],
                 ['key' => 'admin_count', 'label' => 'admin.roles.admin_count', 'sort' => 'admin_count', 'type' => 'number'],
-                ['key' => 'section_count', 'label' => 'admin.roles.section_count', 'sort' => 'section_count', 'type' => 'number'],
+                ['key' => 'section_count', 'label' => 'admin.roles.resource_count', 'sort' => 'section_count', 'type' => 'number'],
                 ['key' => 'created_at', 'label' => 'admin.roles.created_at', 'sort' => 'created_at', 'type' => 'date'],
             ]);
     }
@@ -157,9 +158,9 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
-     * @param list<string> $sections
+     * @param list<string> $resources
      */
-    public function create(string $label, ?string $slug, array $sections): string
+    public function create(string $label, ?string $slug, array $resources): string
     {
         $label = trim($label);
 
@@ -180,7 +181,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
                 'INSERT INTO admin_roles (slug, label) VALUES (?, ?)',
                 [$slug, $label],
             );
-            (new AclRepository($db))->replaceRoleSections($slug, $this->sanitizeSections($sections));
+            (new AclRepository($db))->replaceRoleResources($slug, $this->sanitizeResources($resources));
             $db->commit();
         } catch (\Throwable $e) {
             $db->rollBack();
@@ -216,9 +217,9 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
-     * @param list<string> $sections
+     * @param list<string> $resources
      */
-    public function update(string $slug, string $label, array $sections): void
+    public function update(string $slug, string $label, array $resources): void
     {
         $slug = RoleSlug::assertValid($slug);
         $label = trim($label);
@@ -236,7 +237,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
             [$label, $slug],
         );
 
-        (new AclRepository($this->db()))->replaceRoleSections($slug, $this->sanitizeSections($sections));
+        (new AclRepository($this->db()))->replaceRoleResources($slug, $this->sanitizeResources($resources));
     }
 
     public function delete(string $slug): bool
@@ -251,7 +252,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
             throw new \RuntimeException('admin.roles.in_use');
         }
 
-        $this->db()->execute('DELETE FROM acl_role_sections WHERE role = ?', [$slug]);
+        $this->db()->execute('DELETE FROM acl_role_resources WHERE role = ?', [$slug]);
 
         return $this->db()->execute('DELETE FROM admin_roles WHERE slug = ?', [$slug]) > 0;
     }
@@ -279,7 +280,15 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
                 'INSERT INTO admin_roles (slug, label) VALUES (?, ?)',
                 [$row['slug'], $row['label']],
             );
-            $acl->seedRoleSections($row['slug'], $row['sections']);
+            $resources = [];
+
+            foreach ($row['sections'] as $sectionId) {
+                foreach (AdminResourceCatalog::resourcesForLegacySection($sectionId) as $resourceId) {
+                    $resources[] = $resourceId;
+                }
+            }
+
+            $acl->seedRoleResources($row['slug'], array_values(array_unique($resources)));
         }
 
         $this->markDefaultsSeeded();
@@ -325,7 +334,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
         $rows = $this->db()->fetchAll(
             'SELECT r.slug, r.label, r.created_at,
                     (SELECT COUNT(*) FROM admins a WHERE a.role = r.slug) AS admin_count,
-                    (SELECT COUNT(*) FROM acl_role_sections s WHERE s.role = r.slug) AS section_count
+                    (SELECT COUNT(*) FROM acl_role_resources s WHERE s.role = r.slug) AS section_count
              FROM admin_roles r' . $where . $order . '
              LIMIT ? OFFSET ?',
             $params,
@@ -356,17 +365,17 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
-     * @param list<string> $sections
+     * @param list<string> $resources
      * @return list<string>
      */
-    private function sanitizeSections(array $sections): array
+    private function sanitizeResources(array $resources): array
     {
-        $allowed = array_flip(AdminSectionCatalog::assignableIds());
+        $allowed = array_flip(AdminResourceCatalog::assignableIds());
         $clean = [];
 
-        foreach ($sections as $sectionId) {
-            if (isset($allowed[$sectionId])) {
-                $clean[] = $sectionId;
+        foreach ($resources as $resourceId) {
+            if (isset($allowed[$resourceId])) {
+                $clean[] = $resourceId;
             }
         }
 

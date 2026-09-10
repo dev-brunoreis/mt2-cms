@@ -36,11 +36,21 @@ class AdminLogsController extends AdminController
 
     public function index(): Response
     {
-        if ($redirect = $this->requireAdminSection('logs')) {
+        if ($redirect = $this->requireAdmin()) {
             return $redirect;
         }
 
-        $tab = $this->requestedTab(LogCatalog::tabIds(), LogCatalog::CONNECTIONS_ID);
+        $tabResources = [];
+
+        foreach (LogCatalog::tabIds() as $tabId) {
+            $tabResources[$tabId] = $this->tabViewResource($tabId);
+        }
+
+        $tab = $this->resolveResourceTab(LogCatalog::tabIds(), $tabResources, LogCatalog::CONNECTIONS_ID);
+
+        if ($deny = $this->requireAdminResourceView($this->tabViewResource($tab))) {
+            return $deny;
+        }
 
         if ($this->wantsTabPartial()) {
             return $this->renderTabPartial($tab);
@@ -80,6 +90,10 @@ class AdminLogsController extends AdminController
 
     private function renderTabPartial(string $tab): Response
     {
+        if ($deny = $this->requireAdminResourceView($this->tabViewResource($tab))) {
+            return $deny;
+        }
+
         if ($tab === LogCatalog::CONNECTIONS_ID) {
             return $this->adminFragment('pages/logs-connections-partial.twig', $this->connectionsPartialData());
         }
@@ -91,6 +105,11 @@ class AdminLogsController extends AdminController
         }
 
         return $this->adminFragment('pages/logs-partial.twig', $this->logPartialData($tab, $log));
+    }
+
+    private function tabViewResource(string $tabId): string
+    {
+        return 'logs/' . $tabId . '/view';
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridRequest;
 use Mt2Cms\Admin\Grid\GridSpec;
@@ -46,7 +47,7 @@ abstract class AdminController extends Controller
 
         return $this->renderAdmin('panel', array_merge([
             'activeSection' => $section,
-            'activeGroup' => \Mt2Cms\Admin\AdminSections::groupForSection($section),
+            'activeGroup' => AdminSections::groupForSection($section),
             'contentTemplate' => $contentTemplate,
             'adminUser' => $this->adminAuth->user(),
         ], $data), $status);
@@ -85,6 +86,32 @@ abstract class AdminController extends Controller
         return $this->denyUnlessCanAccess($section);
     }
 
+    protected function requireAdminResource(string $resourceId): ?Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        return $this->denyUnlessAllowed($resourceId);
+    }
+
+    protected function requireAdminResourceView(string $resourceId): ?Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if ($this->acl->isAllowed($this->adminAuth->user(), $resourceId)) {
+            return null;
+        }
+
+        if ($this->wantsTabPartial()) {
+            return new Response('', 403);
+        }
+
+        return $this->denyUnlessAllowed($resourceId);
+    }
+
     protected function denyUnlessAdmin(): ?Response
     {
         if ($this->adminAuth->check()) {
@@ -106,6 +133,30 @@ abstract class AdminController extends Controller
         $tab = (string) ($_GET['tab'] ?? '');
 
         return in_array($tab, $allowed, true) ? $tab : $default;
+    }
+
+    /**
+     * @param list<string> $tabs
+     * @param array<string, string> $tabResources tab id => view resource id
+     */
+    protected function resolveResourceTab(array $tabs, array $tabResources, string $default): string
+    {
+        $requested = $this->requestedTab($tabs, $default);
+        $admin = $this->adminAuth->user();
+
+        if ($this->acl->isAllowed($admin, $tabResources[$requested] ?? '')) {
+            return $requested;
+        }
+
+        foreach ($tabs as $tab) {
+            $resource = $tabResources[$tab] ?? '';
+
+            if ($resource !== '' && $this->acl->isAllowed($admin, $resource)) {
+                return $tab;
+            }
+        }
+
+        return $default;
     }
 
     protected function wantsTabPartial(): bool
@@ -166,9 +217,9 @@ abstract class AdminController extends Controller
         array $handlers,
         string $targetType,
         string $successKey,
-        string $section,
+        string $massResource,
     ): Response {
-        if ($redirectResponse = $this->requireAdminSection($section)) {
+        if ($redirectResponse = $this->requireAdminResource($massResource)) {
             return $redirectResponse;
         }
 
@@ -236,9 +287,26 @@ abstract class AdminController extends Controller
         $this->flash('error', $this->t('admin.access_denied'));
 
         $landing = $this->adminLandingPath();
-        $deniedPath = \Mt2Cms\Admin\AdminSections::sectionPath($section);
+        $deniedPath = AdminSections::sectionPath($section);
 
         if ($landing === '/admin/login' || ($deniedPath !== null && $landing === $deniedPath)) {
+            return $this->denyWithoutAnySection();
+        }
+
+        return $this->redirect($landing);
+    }
+
+    protected function denyUnlessAllowed(string $resourceId): ?Response
+    {
+        if ($this->acl->isAllowed($this->adminAuth->user(), $resourceId)) {
+            return null;
+        }
+
+        $this->flash('error', $this->t('admin.access_denied'));
+
+        $landing = $this->adminLandingPath();
+
+        if ($landing === '/admin/login') {
             return $this->denyWithoutAnySection();
         }
 

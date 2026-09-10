@@ -72,7 +72,7 @@ class AdminTicketsController extends AdminController
             ],
             'ticket',
             'admin.tickets.mass_done',
-        'tickets',
+            'content/tickets/mass',
         );
     }
 
@@ -129,7 +129,7 @@ class AdminTicketsController extends AdminController
 
     public function reply(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('tickets')) {
+        if ($redirect = $this->requireAdminResource('content/tickets/reply')) {
             return $redirect;
         }
 
@@ -222,7 +222,9 @@ class AdminTicketsController extends AdminController
 
     private function setStatus(int $id, string $status, string $successKey): Response
     {
-        if ($redirect = $this->requireAdminSection('tickets')) {
+        $resource = $status === 'closed' ? 'content/tickets/close' : 'content/tickets/reopen';
+
+        if ($redirect = $this->requireAdminResource($resource)) {
             return $redirect;
         }
 

@@ -97,7 +97,7 @@ class AdminGuildsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('guilds')) {
+        if ($redirect = $this->requireAdminResource('game/guilds/edit')) {
             return $redirect;
         }
 
@@ -140,7 +140,7 @@ class AdminGuildsController extends AdminController
 
     public function deleteComment(string $id, string $commentId): Response
     {
-        if ($redirect = $this->requireAdminSection('guilds')) {
+        if ($redirect = $this->requireAdminResource('game/guilds/delete_comment')) {
             return $redirect;
         }
 
@@ -162,7 +162,7 @@ class AdminGuildsController extends AdminController
 
     public function dissolve(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('guilds')) {
+        if ($redirect = $this->requireAdminResource('game/guilds/dissolve')) {
             return $redirect;
         }
 
@@ -223,7 +223,7 @@ class AdminGuildsController extends AdminController
 
     private function memberAction(int $guildId, string $action, string $successKey): Response
     {
-        if ($redirect = $this->requireAdminSection('guilds')) {
+        if ($redirect = $this->requireAdminResource('game/guilds/kick')) {
             return $redirect;
         }
 

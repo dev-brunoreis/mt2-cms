@@ -66,7 +66,7 @@ class AdminShopsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('shops')) {
+        if ($redirect = $this->requireAdminResource('game-data/shops/create')) {
             return $redirect;
         }
 
@@ -130,7 +130,7 @@ class AdminShopsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('shops')) {
+        if ($redirect = $this->requireAdminResource('game-data/shops/edit')) {
             return $redirect;
         }
 
@@ -164,7 +164,7 @@ class AdminShopsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('shops')) {
+        if ($redirect = $this->requireAdminResource('game-data/shops/delete')) {
             return $redirect;
         }
 
@@ -229,7 +229,7 @@ class AdminShopsController extends AdminController
 
     private function itemAction(int $shopVnum, string $action): Response
     {
-        if ($redirect = $this->requireAdminSection('shops')) {
+        if ($redirect = $this->requireAdminResource('game-data/shops/edit')) {
             return $redirect;
         }
 

@@ -33,7 +33,7 @@ In [`src/Admin/AdminSections.php`](../src/Admin/AdminSections.php), add the item
 ],
 ```
 
-If the section should appear in the role permissions matrix (`/admin/system/roles`), ensure its `id` is listed via `AdminSectionCatalog::grouped()` (derived from `AdminSections`).
+If the section should appear in the sidebar, add it to `AdminSections`. For **assignable permissions**, add the resource tree under [`AdminResourceCatalog::tree()`](../src/Admin/AdminResourceCatalog.php) (role form uses the full tree, including `navHidden` game-data modules).
 
 ## 2. Routes + controller
 
@@ -132,7 +132,24 @@ public function mass(): Response
 }
 ```
 
-5. On mutating POST handlers, call `requireAdminSection('your-section')` (not only `requireAdmin()`).
+5. On mutating POST handlers, call `requireAdminResource('area/module/action')` (view/list can keep `adminView('section-id', …)` which checks section-level access). Mass actions pass the `…/mass` resource as the last argument to `runMassActions()`.
+6. In Twig, gate buttons with `{% if acl_allowed('area/module/create') %}`.
+
+## 7. ACL resources
+
+Resource IDs follow `{area}/{module}/[{entity}/]{action}` (see `AdminResourceCatalog`). Examples:
+
+| Action | Resource |
+|--------|----------|
+| Grid / hub tab | `your-area/your-module/view` |
+| Create POST | `…/create` |
+| Edit POST | `…/edit` |
+| Delete | `…/delete` |
+| Mass grid | `…/mass` |
+
+Hub tabs: check `requireAdminResourceView('…/view')` per tab; hide tabs with `acl_allowed()` in the hub Twig. Use `resolveResourceTab()` when the default tab may be denied.
+
+Legacy `acl_*_sections` tables remain for migration rollback; runtime ACL reads `acl_role_resources` / `acl_admin_resources`.
 
 ### Twig
 

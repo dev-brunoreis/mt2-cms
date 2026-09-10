@@ -24,7 +24,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesStore(): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/categories/create')) {
             return $redirect;
         }
 
@@ -64,7 +64,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesUpdate(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/categories/edit')) {
             return $redirect;
         }
 
@@ -105,7 +105,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesDestroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/categories/delete')) {
             return $redirect;
         }
 
@@ -131,7 +131,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesMove(): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/categories/move')) {
             return $redirect;
         }
 
@@ -243,7 +243,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesAddProducts(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/create')) {
             return $redirect;
         }
 
@@ -339,7 +339,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesUpdateProduct(string $id, string $productId): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/edit')) {
             return $redirect;
         }
 
@@ -377,7 +377,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
     public function categoriesRemoveProduct(string $id, string $productId): Response
     {
-        if ($redirect = $this->requireAdminSection('store')) {
+        if ($redirect = $this->requireAdminResource('store/products/delete')) {
             return $redirect;
         }
 

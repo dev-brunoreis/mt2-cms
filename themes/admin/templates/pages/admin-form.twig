@@ -51,28 +51,25 @@
             </label>
             <div data-admin-custom-acl-panel {% if not admin.use_custom_acl|default(false) %}hidden{% endif %}>
                 <p class="mb-3 text-sm text-slate-500">{{ t('admin.admins.custom_acl_help') }}</p>
-                {% for group in sectionGroups %}
-                    {% set visibleChildren = group.children|filter(c => c.id in assignableSections) %}
-                    {% if visibleChildren|length > 0 %}
-                        <div class="mb-4">
-                            <h3 class="mb-2 text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
-                            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                {% for child in visibleChildren %}
-                                    <label class="flex items-center gap-2 text-sm text-slate-700">
-                                        <input type="checkbox" name="sections[]" value="{{ child.id }}"
-                                               {% if child.id in selectedSections %}checked{% endif %}>
-                                        {{ t(child.label) }}
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
+                {% include 'components/resource-tree.twig' with {
+                    resourceTree: resourceTree,
+                    selectedResources: selectedResources|default([])
+                } %}
             </div>
         </fieldset>
     {% endif %}
 
 </form>
+
+<script src="/js/admin-resource-tree.js" defer></script>
+<script>
+document.querySelector('[data-admin-custom-acl-toggle]')?.addEventListener('change', (event) => {
+    const panel = document.querySelector('[data-admin-custom-acl-panel]');
+    if (panel) {
+        panel.hidden = !event.target.checked;
+    }
+});
+</script>
 
 {% if isEdit and admin.role|default('') != 'super' %}
     <div class="mt-4">
@@ -85,12 +82,3 @@
         </form>
     </div>
 {% endif %}
-
-<script>
-document.querySelector('[data-admin-custom-acl-toggle]')?.addEventListener('change', (event) => {
-    const panel = document.querySelector('[data-admin-custom-acl-panel]');
-    if (panel) {
-        panel.hidden = !event.target.checked;
-    }
-});
-</script>

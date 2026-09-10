@@ -63,6 +63,7 @@ use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Theme\AdminAclTwigExtension;
 use Mt2Cms\Theme\ThemeEngine;
 
 use function FastRoute\simpleDispatcher;
@@ -333,6 +334,7 @@ class Application
         if ($isAdmin) {
             $admin = $this->adminAuth->check() ? $this->adminAuth->user() : null;
             $globals['admin_sections'] = $this->acl->filterSections($admin, AdminSections::all());
+            $engine->addExtension(new AdminAclTwigExtension($this->acl, $this->adminAuth));
         }
 
         $engine->setGlobals($globals);

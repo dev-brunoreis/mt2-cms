@@ -64,7 +64,7 @@ class AdminGmsController extends AdminController
             ],
             'gm',
             'admin.gms.mass_done',
-        'gms',
+            'game-data/gms/mass',
         );
     }
 
@@ -75,7 +75,7 @@ class AdminGmsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('gms')) {
+        if ($redirect = $this->requireAdminResource('game-data/gms/create')) {
             return $redirect;
         }
 
@@ -114,7 +114,7 @@ class AdminGmsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('gms')) {
+        if ($redirect = $this->requireAdminResource('game-data/gms/edit')) {
             return $redirect;
         }
 
@@ -149,7 +149,7 @@ class AdminGmsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('gms')) {
+        if ($redirect = $this->requireAdminResource('game-data/gms/delete')) {
             return $redirect;
         }
 
@@ -171,7 +171,7 @@ class AdminGmsController extends AdminController
 
     public function addHost(): Response
     {
-        if ($redirect = $this->requireAdminSection('gms')) {
+        if ($redirect = $this->requireAdminResource('game-data/gms/edit')) {
             return $redirect;
         }
 
@@ -194,7 +194,7 @@ class AdminGmsController extends AdminController
 
     public function deleteHost(): Response
     {
-        if ($redirect = $this->requireAdminSection('gms')) {
+        if ($redirect = $this->requireAdminResource('game-data/gms/edit')) {
             return $redirect;
         }
 

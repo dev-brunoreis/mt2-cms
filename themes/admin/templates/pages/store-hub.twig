@@ -5,8 +5,12 @@
      data-tab-loading="{{ t('admin.tabs.loading') }}"
      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
     <div class="admin-tabs-nav border-b border-slate-200 px-4 pt-4 md:px-6" role="tablist" aria-label="{{ t('admin.store.hub_title') }}">
-        {% include 'components/tab.twig' with { id: 'categories', label: t('admin.store.tab_categories'), active: activeTab == 'categories' } %}
-        {% include 'components/tab.twig' with { id: 'orders', label: t('admin.store.tab_orders'), active: activeTab == 'orders' } %}
+        {% if acl_allowed('store/categories/view') %}
+            {% include 'components/tab.twig' with { id: 'categories', label: t('admin.store.tab_categories'), active: activeTab == 'categories' } %}
+        {% endif %}
+        {% if acl_allowed('store/orders/view') %}
+            {% include 'components/tab.twig' with { id: 'orders', label: t('admin.store.tab_orders'), active: activeTab == 'orders' } %}
+        {% endif %}
     </div>
 
     {% for tab in ['categories', 'orders'] %}

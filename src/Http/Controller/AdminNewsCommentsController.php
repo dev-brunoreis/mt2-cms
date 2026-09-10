@@ -29,7 +29,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function massComments(): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/comments/mass')) {
             return $redirect;
         }
 
@@ -90,7 +90,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function deleteComment(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/comments/delete')) {
             return $redirect;
         }
 
@@ -112,7 +112,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     private function setCommentStatus(int $id, string $status): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/comments/edit')) {
             return $redirect;
         }
 

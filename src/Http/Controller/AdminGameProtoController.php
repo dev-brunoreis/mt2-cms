@@ -76,7 +76,7 @@ class AdminGameProtoController extends AdminController
             ],
             'proto_' . $route,
             $prefix . '.mass_done',
-            $route,
+            'game-data/' . $route . '/mass',
         );
     }
 
@@ -91,14 +91,14 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdminSection($route)) {
+        if ($redirect = $this->requireAdminResource('game-data/' . $route . '/create')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/' . $route . '/new');
+            return $this->redirect('/admin/game-data/' . $route . '/new');
         }
 
         $internal = $this->protos->kindFromRoute($route);
@@ -135,7 +135,7 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdminSection($route)) {
+        if ($redirect = $this->requireAdminResource('game-data/' . $route . '/edit')) {
             return $redirect;
         }
 
@@ -178,14 +178,14 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
 
-        if ($redirect = $this->requireAdminSection($route)) {
+        if ($redirect = $this->requireAdminResource('game-data/' . $route . '/delete')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/' . $route);
+            return $this->redirect('/admin/game-data/' . $route);
         }
 
         $internal = $this->protos->kindFromRoute($route);

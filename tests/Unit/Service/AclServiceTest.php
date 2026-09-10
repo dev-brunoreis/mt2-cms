@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Tests\Unit\Service;
 
 use Mt2Cms\Admin\AdminPermissions;
+use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Repository\AclRepository;
 use Mt2Cms\Repository\AdminRoleRepository;
 use Mt2Cms\Service\AclService;
@@ -21,13 +22,18 @@ final class AclServiceTest extends TestCase
             'role' => AdminPermissions::ROLE_SUPER,
             'use_custom_acl' => false,
         ], 'admins'));
+        self::assertTrue($service->isAllowed([
+            'id' => 1,
+            'role' => AdminPermissions::ROLE_SUPER,
+            'use_custom_acl' => false,
+        ], 'game/accounts/delete'));
     }
 
-    public function testSupportUsesRoleTemplate(): void
+    public function testSupportUsesRoleResourcesForSectionAccess(): void
     {
         $repo = new FakeAclRepository();
-        $repo->roleSections = [
-            'support' => ['accounts', 'tickets'],
+        $repo->roleResources = [
+            'support' => ['game/accounts/view', 'content/tickets/view'],
         ];
         $service = $this->service($repo);
 
@@ -39,49 +45,36 @@ final class AclServiceTest extends TestCase
 
         self::assertTrue($service->canAccess($admin, 'accounts'));
         self::assertFalse($service->canAccess($admin, 'news'));
-        self::assertFalse($service->canAccess($admin, 'admins'));
+        self::assertTrue($service->isAllowed($admin, 'game/accounts/view'));
+        self::assertFalse($service->isAllowed($admin, 'game/accounts/create'));
     }
 
-    public function testArbitraryRoleSlugUsesRoleTemplate(): void
+    public function testResourceInheritanceViaParentGrant(): void
     {
         $repo = new FakeAclRepository();
-        $repo->roleSections = [
-            'moderator' => ['tickets', 'news'],
+        $repo->roleResources = [
+            'editor' => ['content/news/posts'],
         ];
         $service = $this->service($repo);
 
         $admin = [
-            'id' => 4,
-            'role' => 'moderator',
+            'id' => 6,
+            'role' => 'editor',
             'use_custom_acl' => false,
         ];
 
-        self::assertTrue($service->canAccess($admin, 'tickets'));
-        self::assertTrue($service->canAccess($admin, 'news'));
-        self::assertFalse($service->canAccess($admin, 'admins'));
-    }
-
-    public function testUnknownRoleHasNoAccess(): void
-    {
-        $service = $this->service(new FakeAclRepository());
-
-        $admin = [
-            'id' => 5,
-            'role' => 'unknown-role',
-            'use_custom_acl' => false,
-        ];
-
-        self::assertFalse($service->canAccess($admin, 'accounts'));
+        self::assertTrue($service->isAllowed($admin, 'content/news/posts/delete'));
+        self::assertFalse($service->isAllowed($admin, 'content/news/comments/view'));
     }
 
     public function testCustomAdminOverridesRoleTemplate(): void
     {
         $repo = new FakeAclRepository();
-        $repo->roleSections = [
-            'content' => ['news'],
+        $repo->roleResources = [
+            'content' => ['content/news/posts/view'],
         ];
-        $repo->adminSections = [
-            3 => ['tickets'],
+        $repo->adminResources = [
+            3 => ['content/tickets/view'],
         ];
         $service = $this->service($repo);
 
@@ -95,31 +88,44 @@ final class AclServiceTest extends TestCase
         self::assertFalse($service->canAccess($admin, 'news'));
     }
 
-    public function testFirstAccessiblePathSkipsDeniedSections(): void
+    public function testFirstAccessiblePathIncludesNavHiddenGameData(): void
     {
         $repo = new FakeAclRepository();
-        $repo->roleSections = [
-            'editor' => ['news'],
+        $repo->roleResources = [
+            'proto' => ['game-data/shops/view'],
         ];
         $service = $this->service($repo);
 
         $admin = [
-            'id' => 6,
-            'role' => 'editor',
+            'id' => 7,
+            'role' => 'proto',
             'use_custom_acl' => false,
         ];
 
-        self::assertSame('/admin/content/news', $service->firstAccessiblePath($admin));
+        self::assertSame('/admin/game-data/shops', $service->firstAccessiblePath($admin));
     }
 
-    public function testSaveRoleSectionsRejectsSuperSlug(): void
+    public function testSaveRoleResourcesRejectsSuperSlug(): void
     {
         $service = $this->service(new FakeAclRepository());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('admin.roles.reserved_slug');
 
-        $service->saveRoleSections('super', ['accounts']);
+        $service->saveRoleResources('super', ['game/accounts/view']);
+    }
+
+    public function testExpandSectionsToResourcesOnSaveRoleSections(): void
+    {
+        $repo = new FakeAclRepository();
+        $service = $this->service($repo);
+
+        $service->saveRoleSections('support', ['news']);
+
+        self::assertSame(
+            AdminResourceCatalog::resourcesForLegacySection('news'),
+            $repo->lastRoleResources['support'] ?? [],
+        );
     }
 
     private function service(FakeAclRepository $acl): AclService
@@ -132,29 +138,43 @@ final class AclServiceTest extends TestCase
 final class FakeAclRepository extends AclRepository
 {
     /** @var array<string, list<string>> */
-    public array $roleSections = [];
+    public array $roleResources = [];
 
     /** @var array<int, list<string>> */
-    public array $adminSections = [];
+    public array $adminResources = [];
+
+    /** @var array<string, list<string>> */
+    public array $lastRoleResources = [];
 
     protected function database(): string
     {
         return 'cms';
     }
 
-    public function hasRoleSections(): bool
+    public function hasRoleResources(): bool
     {
-        return $this->roleSections !== [];
+        return $this->roleResources !== [];
     }
 
-    public function roleSections(string $role): array
+    public function roleResources(string $role): array
     {
-        return $this->roleSections[$role] ?? [];
+        return $this->roleResources[$role] ?? [];
     }
 
-    public function adminSections(int $adminId): array
+    public function adminResources(int $adminId): array
     {
-        return $this->adminSections[$adminId] ?? [];
+        return $this->adminResources[$adminId] ?? [];
+    }
+
+    public function replaceRoleResources(string $role, array $resources): void
+    {
+        $this->lastRoleResources[$role] = $resources;
+        $this->roleResources[$role] = $resources;
+    }
+
+    public function replaceAdminResources(int $adminId, array $resources): void
+    {
+        $this->adminResources[$adminId] = $resources;
     }
 }
 

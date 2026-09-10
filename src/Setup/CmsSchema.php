@@ -16,6 +16,7 @@ class CmsSchema
     public function ensure(): void
     {
         (new MigrationRunner($this->db))->migrate();
+        (new AclResourceMigrator($this->db))->migrateIfNeeded();
         $this->ensureItemShopCategoryParentColumn();
         $this->ensureAdminRoleColumn();
         $this->ensureAdminRoleVarcharColumn();

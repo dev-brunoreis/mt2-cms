@@ -12,13 +12,24 @@ class AdminNewsHubController extends AdminNewsBaseController
 {
     private const TABS = ['posts', 'comments', 'settings'];
 
+    /** @var array<string, string> */
+    private const TAB_VIEW_RESOURCES = [
+        'posts' => 'content/news/posts/view',
+        'comments' => 'content/news/comments/view',
+        'settings' => 'content/news/settings/view',
+    ];
+
     public function index(): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdmin()) {
             return $redirect;
         }
 
-        $tab = $this->requestedTab(self::TABS, 'posts');
+        $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'posts');
+
+        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
+            return $deny;
+        }
 
         if ($this->wantsTabPartial()) {
             return $this->renderTabPartial($tab);
@@ -48,6 +59,10 @@ class AdminNewsHubController extends AdminNewsBaseController
     {
         if (!in_array($tab, self::TABS, true)) {
             return new Response('', 404);
+        }
+
+        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
+            return $deny;
         }
 
         $payload = $this->partialPayload($tab);

@@ -41,7 +41,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             ],
             'news',
             'admin.news.mass_done',
-        'news',
+            'content/news/posts/mass',
         );
     }
 
@@ -52,7 +52,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/posts/create')) {
             return $redirect;
         }
 
@@ -115,7 +115,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/posts/edit')) {
             return $redirect;
         }
 
@@ -159,7 +159,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/posts/delete')) {
             return $redirect;
         }
 

@@ -1,0 +1,75 @@
+{#
+  Hierarchical ACL resource tree for role/admin forms.
+  Expects: resourceTree, selectedResources (list<string>), inputName (default resources[])
+#}
+{% set inputName = inputName|default('resources[]') %}
+
+<div class="admin-resource-tree space-y-3" data-admin-resource-tree>
+    {% for area in resourceTree %}
+        <details class="rounded-md border border-slate-200 bg-white" open>
+            <summary class="cursor-pointer select-none px-3 py-2 text-sm font-semibold text-slate-900">
+                {{ t(area.label) }}
+                {% if area.navHidden|default(false) %}
+                    <span class="ml-2 text-xs font-normal text-slate-500">({{ t('admin.resources.nav_hidden') }})</span>
+                {% endif %}
+            </summary>
+            <div class="border-t border-slate-100 px-3 py-2">
+                {% for module in area.children %}
+                    {% set modulePath = area.id ~ '/' ~ module.id %}
+                    <details class="mb-2 rounded border border-slate-100" open>
+                        <summary class="flex cursor-pointer select-none items-center gap-2 px-2 py-1.5 text-sm font-medium text-slate-800">
+                            <input type="checkbox"
+                                   class="admin-resource-parent"
+                                   data-resource-prefix="{{ modulePath }}"
+                                   aria-label="{{ t('admin.resources.select_all') }} {{ t(module.label) }}">
+                            {{ t(module.label) }}
+                        </summary>
+                        <div class="px-2 pb-2 pt-1">
+                            {% if module.flatActions|default(false) %}
+                                <div class="flex flex-wrap gap-x-4 gap-y-1 pl-4">
+                                    {% for action in module.children %}
+                                        {% set resourceId = modulePath ~ '/' ~ action.id %}
+                                        <label class="flex items-center gap-1.5 text-sm text-slate-700">
+                                            <input type="checkbox"
+                                                   name="{{ inputName }}"
+                                                   value="{{ resourceId }}"
+                                                   data-resource-id="{{ resourceId }}"
+                                                   {% if resourceId in selectedResources %}checked{% endif %}>
+                                            {{ t(action.label) }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {% for entity in module.children %}
+                                    {% set entityPath = modulePath ~ '/' ~ entity.id %}
+                                    <div class="mb-2 pl-2">
+                                        <p class="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            <input type="checkbox"
+                                                   class="admin-resource-parent"
+                                                   data-resource-prefix="{{ entityPath }}"
+                                                   aria-label="{{ t('admin.resources.select_all') }} {{ t(entity.label) }}">
+                                            {{ t(entity.label) }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1 pl-4">
+                                            {% for action in entity.children %}
+                                                {% set resourceId = entityPath ~ '/' ~ action.id %}
+                                                <label class="flex items-center gap-1.5 text-sm text-slate-700">
+                                                    <input type="checkbox"
+                                                           name="{{ inputName }}"
+                                                           value="{{ resourceId }}"
+                                                           data-resource-id="{{ resourceId }}"
+                                                           {% if resourceId in selectedResources %}checked{% endif %}>
+                                                    {{ t(action.label) }}
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </details>
+                {% endfor %}
+            </div>
+        </details>
+    {% endfor %}
+</div>

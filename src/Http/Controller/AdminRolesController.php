@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Admin\AdminPermissions;
-use Mt2Cms\Admin\AdminSectionCatalog;
+use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\RoleSlugExistsException;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
@@ -44,7 +44,7 @@ class AdminRolesController extends AdminController
             ],
             'admin_role',
             'admin.roles.mass_done',
-            'roles',
+            'system/roles/mass',
         );
     }
 
@@ -90,10 +90,10 @@ class AdminRolesController extends AdminController
         $input = $this->formInput();
 
         try {
-            $slug = $this->roles->create($input['label'], $input['slug'], $input['sections']);
+            $slug = $this->roles->create($input['label'], $input['slug'], $input['resources']);
             $this->audit('role.create', 'admin_role', null, [
                 'slug' => $slug,
-                'sections' => $input['sections'],
+                'resources' => $input['resources'],
             ]);
             $this->flash('success', $this->t('admin.roles.created'));
 
@@ -123,7 +123,7 @@ class AdminRolesController extends AdminController
 
         return $this->formView([
             'role' => $role,
-            'sections' => $this->acl->roleSections($slug),
+            'resources' => $this->acl->roleResources($slug),
         ]);
     }
 
@@ -148,10 +148,10 @@ class AdminRolesController extends AdminController
         $input = $this->formInput();
 
         try {
-            $this->roles->update($slug, $input['label'], $input['sections']);
+            $this->roles->update($slug, $input['label'], $input['resources']);
             $this->audit('role.update', 'admin_role', null, [
                 'slug' => $slug,
-                'sections' => $input['sections'],
+                'resources' => $input['resources'],
             ]);
             $this->flash('success', $this->t('admin.roles.updated'));
 
@@ -159,7 +159,7 @@ class AdminRolesController extends AdminController
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView([
                 'role' => ['slug' => $slug, 'label' => $input['label']],
-                'sections' => $input['sections'],
+                'resources' => $input['resources'],
             ], $this->t($e->getMessage()), 422);
         }
     }
@@ -227,26 +227,25 @@ class AdminRolesController extends AdminController
                 'label' => $data['label'] ?? '',
                 'slug' => $data['slug'] ?? '',
             ],
-            'selectedSections' => $data['sections'] ?? [],
-            'sectionGroups' => AdminSectionCatalog::grouped(),
-            'assignableSections' => $this->acl->assignableSections(),
+            'selectedResources' => $data['resources'] ?? [],
+            'resourceTree' => AdminResourceCatalog::tree(),
             'adminCount' => $isEdit ? $this->roles->countAdminsBySlug($slug) : 0,
             'error' => $error,
         ], $status);
     }
 
     /**
-     * @return array{label: string, slug: string|null, sections: list<string>}
+     * @return array{label: string, slug: string|null, resources: list<string>}
      */
     private function formInput(): array
     {
-        $sections = [];
+        $resources = [];
 
-        foreach ((array) ($_POST['sections'] ?? []) as $sectionId) {
-            $sectionId = (string) $sectionId;
+        foreach ((array) ($_POST['resources'] ?? []) as $resourceId) {
+            $resourceId = (string) $resourceId;
 
-            if ($sectionId !== '') {
-                $sections[] = $sectionId;
+            if ($resourceId !== '') {
+                $resources[] = $resourceId;
             }
         }
 
@@ -255,7 +254,7 @@ class AdminRolesController extends AdminController
         return [
             'label' => trim((string) ($_POST['label'] ?? '')),
             'slug' => $slug !== '' ? $slug : null,
-            'sections' => $sections,
+            'resources' => $resources,
         ];
     }
 }

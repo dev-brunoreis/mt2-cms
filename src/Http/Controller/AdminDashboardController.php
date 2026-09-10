@@ -33,23 +33,37 @@ class AdminDashboardController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->players->dashboardGridDefinition()->spec();
-        $query = $this->gridQuery($spec);
-        $range = $query->filter('range', '5m');
-        $minutes = PlayerRepository::rangeMinutes($range);
-        $grid = GridRunner::fetch(
-            $spec,
-            $query,
-            fn ($q) => $this->players->countActiveForGrid($q),
-            fn ($q) => $this->players->listActiveForGrid($q),
-        );
+        $user = $this->adminAuth->user();
+        $canStats = $this->acl->isAllowed($user, 'overview/dashboard/stats/view');
+        $canPlayers = $this->acl->isAllowed($user, 'overview/dashboard/players/view');
 
-        return $this->adminView('dashboard', 'pages/dashboard.twig', [
+        $data = [
             'title' => $this->t('admin.dashboard.title'),
             'pageLead' => $this->t('admin.dashboard.lead'),
-            'playerCount' => $this->players->countActiveSinceMinutes($minutes),
-            'accountCount' => $this->players->countAccountsActiveSinceMinutes($minutes),
-            'grid' => $grid,
-        ]);
+            'canStats' => $canStats,
+            'canPlayers' => $canPlayers,
+        ];
+
+        if ($canStats) {
+            $spec = $this->players->dashboardGridDefinition()->spec();
+            $query = $this->gridQuery($spec);
+            $range = $query->filter('range', '5m');
+            $minutes = PlayerRepository::rangeMinutes($range);
+            $data['playerCount'] = $this->players->countActiveSinceMinutes($minutes);
+            $data['accountCount'] = $this->players->countAccountsActiveSinceMinutes($minutes);
+        }
+
+        if ($canPlayers) {
+            $spec = $this->players->dashboardGridDefinition()->spec();
+            $query = $this->gridQuery($spec);
+            $data['grid'] = GridRunner::fetch(
+                $spec,
+                $query,
+                fn ($q) => $this->players->countActiveForGrid($q),
+                fn ($q) => $this->players->listActiveForGrid($q),
+            );
+        }
+
+        return $this->adminView('dashboard', 'pages/dashboard.twig', $data);
     }
 }

@@ -46,7 +46,7 @@ class AdminSettingsController extends AdminController
 
     public function saveRegistration(): Response
     {
-        if ($redirect = $this->requireAdminSection('registration')) {
+        if ($redirect = $this->requireAdminResource('settings/registration/edit')) {
             return $redirect;
         }
 
@@ -81,7 +81,7 @@ class AdminSettingsController extends AdminController
 
     public function saveThemes(): Response
     {
-        if ($redirect = $this->requireAdminSection('themes')) {
+        if ($redirect = $this->requireAdminResource('settings/themes/edit')) {
             return $redirect;
         }
 
@@ -124,7 +124,7 @@ class AdminSettingsController extends AdminController
 
     public function saveLocale(): Response
     {
-        if ($redirect = $this->requireAdminSection('locale')) {
+        if ($redirect = $this->requireAdminResource('settings/locale/edit')) {
             return $redirect;
         }
 

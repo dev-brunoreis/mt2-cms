@@ -61,7 +61,7 @@ class AdminDropsController extends AdminController
 
     public function saveEtc(): Response
     {
-        if ($redirect = $this->requireAdminSection('drops')) {
+        if ($redirect = $this->requireAdminResource('game-data/drops/edit')) {
             return $redirect;
         }
 
@@ -101,7 +101,7 @@ class AdminDropsController extends AdminController
 
     public function saveCommon(): Response
     {
-        if ($redirect = $this->requireAdminSection('drops')) {
+        if ($redirect = $this->requireAdminResource('game-data/drops/edit')) {
             return $redirect;
         }
 
@@ -146,7 +146,7 @@ class AdminDropsController extends AdminController
 
     public function saveMob(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('drops')) {
+        if ($redirect = $this->requireAdminResource('game-data/drops/edit')) {
             return $redirect;
         }
 

@@ -5,9 +5,15 @@
      data-tab-loading="{{ t('admin.tabs.loading') }}"
      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
     <div class="admin-tabs-nav border-b border-slate-200 px-4 pt-4 md:px-6" role="tablist" aria-label="{{ t('admin.news.hub_title') }}">
-        {% include 'components/tab.twig' with { id: 'posts', label: t('admin.news.tab_posts'), active: activeTab == 'posts' } %}
-        {% include 'components/tab.twig' with { id: 'comments', label: t('admin.news.tab_comments'), active: activeTab == 'comments' } %}
-        {% include 'components/tab.twig' with { id: 'settings', label: t('admin.news.tab_settings'), active: activeTab == 'settings' } %}
+        {% if acl_allowed('content/news/posts/view') %}
+            {% include 'components/tab.twig' with { id: 'posts', label: t('admin.news.tab_posts'), active: activeTab == 'posts' } %}
+        {% endif %}
+        {% if acl_allowed('content/news/comments/view') %}
+            {% include 'components/tab.twig' with { id: 'comments', label: t('admin.news.tab_comments'), active: activeTab == 'comments' } %}
+        {% endif %}
+        {% if acl_allowed('content/news/settings/view') %}
+            {% include 'components/tab.twig' with { id: 'settings', label: t('admin.news.tab_settings'), active: activeTab == 'settings' } %}
+        {% endif %}
     </div>
 
     {% for tab in ['posts', 'comments', 'settings'] %}

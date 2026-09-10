@@ -22,7 +22,7 @@ class AdminNewsSettingsController extends AdminNewsBaseController
 
     public function saveSettings(): Response
     {
-        if ($redirect = $this->requireAdminSection('news')) {
+        if ($redirect = $this->requireAdminResource('content/news/settings/edit')) {
             return $redirect;
         }
 

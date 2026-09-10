@@ -9,6 +9,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Support\HtmlSanitizer;
 use Twig\Environment;
+use Twig\Extension\AbstractExtension;
 use Twig\Loader\FilesystemLoader;
 
 class ThemeEngine
@@ -135,5 +136,10 @@ class ThemeEngine
         foreach ($globals as $name => $value) {
             $this->twig->addGlobal($name, $value);
         }
+    }
+
+    public function addExtension(AbstractExtension $extension): void
+    {
+        $this->twig->addExtension($extension);
     }
 }

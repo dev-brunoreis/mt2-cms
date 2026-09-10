@@ -67,7 +67,7 @@ class AdminAccountsController extends AdminController
             ],
             'account',
             'admin.accounts.mass_done',
-        'accounts',
+            'game/accounts/mass',
         );
     }
 
@@ -78,7 +78,7 @@ class AdminAccountsController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('accounts')) {
+        if ($redirect = $this->requireAdminResource('game/accounts/create')) {
             return $redirect;
         }
 
@@ -131,7 +131,7 @@ class AdminAccountsController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('accounts')) {
+        if ($redirect = $this->requireAdminResource('game/accounts/edit')) {
             return $redirect;
         }
 
@@ -188,7 +188,7 @@ class AdminAccountsController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('accounts')) {
+        if ($redirect = $this->requireAdminResource('game/accounts/delete')) {
             return $redirect;
         }
 
@@ -304,7 +304,7 @@ class AdminAccountsController extends AdminController
 
     private function mutateStatus(int $id, string $action, string $successKey): Response
     {
-        if ($redirect = $this->requireAdminSection('accounts')) {
+        if ($redirect = $this->requireAdminResource('game/accounts/block')) {
             return $redirect;
         }
 

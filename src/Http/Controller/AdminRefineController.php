@@ -64,7 +64,7 @@ class AdminRefineController extends AdminController
 
     public function store(): Response
     {
-        if ($redirect = $this->requireAdminSection('refine')) {
+        if ($redirect = $this->requireAdminResource('game-data/refine/create')) {
             return $redirect;
         }
 
@@ -103,7 +103,7 @@ class AdminRefineController extends AdminController
 
     public function update(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('refine')) {
+        if ($redirect = $this->requireAdminResource('game-data/refine/edit')) {
             return $redirect;
         }
 
@@ -138,7 +138,7 @@ class AdminRefineController extends AdminController
 
     public function destroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('refine')) {
+        if ($redirect = $this->requireAdminResource('game-data/refine/delete')) {
             return $redirect;
         }
 

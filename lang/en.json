@@ -67,7 +67,9 @@
     "payment_not_found": "Payment not found.",
     "return_pending": "Payment received. Cash will appear shortly.",
     "cancelled": "Payment cancelled.",
-    "package_unavailable": "Package unavailable."
+    "package_unavailable": "Package unavailable.",
+    "paypal_unavailable": "PayPal checkout is not available right now. Please try again later.",
+    "paypal_unavailable_short": "PayPal is not configured."
   },
   "auth": {
     "login_title": "Login",
@@ -1762,7 +1764,14 @@
       "id": "ID",
       "account": "Account",
       "details": "Ban details",
-      "details_help": "Temporary bans auto-expire on next login attempt."
+      "details_help": "Temporary bans auto-expire on next login attempt.",
+      "count": {
+        "one": "{count} ban",
+        "other": "{count} bans"
+      },
+      "matching": "matching “{query}”",
+      "search_placeholder": "Search by login or reason",
+      "empty": "No bans found."
     },
     "downloads": {
       "title": "Downloads",
@@ -1775,7 +1784,6 @@
       "mass_done": "{count} downloads updated.",
       "id": "ID",
       "title_field": "Title",
-      "title": "Title",
       "category": "Category",
       "sort": "Sort order",
       "enabled": "Published",
@@ -1796,7 +1804,14 @@
       "category_patch": "Patch",
       "category_tools": "Tools",
       "category_other": "Other",
-      "file_not_found": "File not found."
+      "file_not_found": "File not found.",
+      "count": {
+        "one": "{count} download",
+        "other": "{count} downloads"
+      },
+      "matching": "matching “{query}”",
+      "search_placeholder": "Search by title",
+      "empty": "No downloads yet."
     },
     "community": {
       "channels_title": "Community settings",
@@ -1812,6 +1827,12 @@
       "paypal_sandbox": "Sandbox",
       "paypal_live": "Live",
       "paypal_currency": "Default currency",
+      "paypal": "PayPal",
+      "paypal_help": "Used for /donate checkout. Client ID and secret can also come from PAYPAL_* in .env.",
+      "paypal_client_id": "Client ID",
+      "paypal_client_secret": "Client secret",
+      "paypal_secret_keep": "Leave blank to keep the current secret.",
+      "paypal_not_configured": "Not set. Paste credentials from developer.paypal.com, or use PAYPAL_* in .env.",
       "require_verified_email": "Require verified email",
       "require_verified_email_help": "Block login, shop, and donations until email is verified.",
       "channels": "Server channels",
@@ -1822,7 +1843,11 @@
       "channel_port": "Port",
       "channel_sort": "Sort",
       "channel_enabled": "Visible",
-      "channel_new": "Add channel"
+      "channel_new": "Add channel",
+      "channel_remove": "Remove",
+      "confirm_remove_channel": "Remove this channel from the public status page?",
+      "channel_removed": "Channel removed.",
+      "channel_not_found": "Channel not found."
     },
     "packages": {
       "title": "Cash packages",
@@ -1836,7 +1861,6 @@
       "mass_done": "{count} packages updated.",
       "id": "ID",
       "title_field": "Title",
-      "title": "Title",
       "cash": "Cash amount",
       "cash_amount": "Cash amount",
       "price": "Price",
@@ -1847,7 +1871,14 @@
       "enabled": "Enabled",
       "details": "Package details",
       "details_help": "Only enabled packages appear on /donate.",
-      "enabled_help": "Show on donate page."
+      "enabled_help": "Show on donate page.",
+      "count": {
+        "one": "{count} package",
+        "other": "{count} packages"
+      },
+      "matching": "matching “{query}”",
+      "search_placeholder": "Search by title",
+      "empty": "No packages yet."
     },
     "payments": {
       "title": "Payments",
@@ -1867,7 +1898,14 @@
       "status_pending": "Pending",
       "status_paid": "Paid",
       "status_failed": "Failed",
-      "status_refunded": "Refunded"
+      "status_refunded": "Refunded",
+      "count": {
+        "one": "{count} payment",
+        "other": "{count} payments"
+      },
+      "matching": "matching “{query}”",
+      "search_placeholder": "Search by account or provider ref",
+      "empty": "No payments yet."
     },
     "shops": {
       "title": "Shops",

@@ -82,12 +82,12 @@ class AdminDownloadsController extends AdminController
 
     public function create(): Response
     {
-        return $this->formView(null, ['title' => '', 'category' => 'client', 'description' => '', 'external_url' => '', 'sort_order' => 0, 'enabled' => true]);
+        return $this->formView(null);
     }
 
-    public function edit(int $id): Response
+    public function edit(string $id): Response
     {
-        $row = $this->downloads->findById($id);
+        $row = $this->downloads->findById((int) $id);
 
         if ($row === null) {
             $this->flash('error', $this->t('admin.downloads.not_found'));
@@ -103,9 +103,9 @@ class AdminDownloadsController extends AdminController
         return $this->save(null);
     }
 
-    public function update(int $id): Response
+    public function update(string $id): Response
     {
-        return $this->save($id);
+        return $this->save((int) $id);
     }
 
     private function save(?int $id): Response
@@ -122,9 +122,11 @@ class AdminDownloadsController extends AdminController
             return $this->redirect($id === null ? '/admin/content/downloads/new' : '/admin/content/downloads/' . $id);
         }
 
-        $data = $this->readForm();
+        $data = [];
 
         try {
+            $data = $this->readForm();
+
             if (isset($_FILES['file']) && is_array($_FILES['file']) && (int) ($_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
                 $stored = $this->uploads->store($_FILES['file']);
                 $data['stored_name'] = $stored['stored_name'];
@@ -134,7 +136,7 @@ class AdminDownloadsController extends AdminController
 
             if ($id === null) {
                 $newId = $this->downloads->create($data);
-                $this->audit('download.create', 'download', (string) $newId);
+                $this->audit('download.create', 'download', $newId);
             } else {
                 $existing = $this->downloads->findById($id);
 
@@ -152,13 +154,13 @@ class AdminDownloadsController extends AdminController
                 }
 
                 $this->downloads->update($id, $data);
-                $this->audit('download.update', 'download', (string) $id);
+                $this->audit('download.update', 'download', $id);
             }
 
             $this->flash('success', $this->t('admin.saved'));
 
             return $this->redirect('/admin/content/downloads');
-        } catch (\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($id !== null ? array_merge($this->downloads->findById($id) ?? [], $data) : $data, $this->t($e->getMessage()), 422);
         }
     }
@@ -189,9 +191,20 @@ class AdminDownloadsController extends AdminController
      */
     private function formView(?array $values, ?string $error = null, int $status = 200): Response
     {
+        $values ??= [
+            'title' => '',
+            'category' => 'client',
+            'description' => '',
+            'external_url' => '',
+            'sort_order' => 0,
+            'enabled' => true,
+        ];
+
         return $this->adminView('downloads', 'pages/download-form.twig', [
-            'title' => $values && isset($values['id']) ? $this->t('admin.downloads.edit') : $this->t('admin.downloads.create'),
+            'title' => isset($values['id']) ? $this->t('admin.downloads.edit') : $this->t('admin.downloads.create'),
             'pageLead' => $this->t('admin.downloads.form_lead'),
+            'formId' => 'admin-download-form',
+            'saveLabel' => $this->t('admin.save'),
             'download' => $values,
             'error' => $error,
         ], $status);

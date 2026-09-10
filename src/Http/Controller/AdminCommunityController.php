@@ -45,6 +45,10 @@ class AdminCommunityController extends AdminController
             'requireVerifiedEmail' => $this->settings->requireVerifiedEmail(),
             'paypalMode' => $this->settings->paypalMode(),
             'paypalCurrency' => $this->settings->paypalCurrency(),
+            'paypalClientId' => $this->settings->paypalClientId(),
+            'paypalConfigured' => $this->settings->paypalConfigured(),
+            'formId' => 'admin-community-form',
+            'saveLabel' => $this->t('admin.save'),
         ]);
     }
 
@@ -71,6 +75,8 @@ class AdminCommunityController extends AdminController
             $this->settings->setRequireVerifiedEmail(isset($_POST['require_verified_email']));
             $this->settings->setPaypalMode(trim((string) ($_POST['paypal_mode'] ?? 'sandbox')));
             $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
+            $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
+            $this->settings->setPaypalClientSecret(trim((string) ($_POST['paypal_client_secret'] ?? '')));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 
@@ -131,6 +137,36 @@ class AdminCommunityController extends AdminController
 
         $this->audit('settings.community_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect('/admin/settings/community');
+    }
+
+    public function deleteChannel(string $id): Response
+    {
+        if ($redirect = $this->requireAdminResource('settings/community/edit')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/settings/community');
+        }
+
+        $channelId = (int) $id;
+        $channel = $this->channels->findById($channelId);
+
+        if ($channel === null) {
+            $this->flash('error', $this->t('admin.community.channel_not_found'));
+
+            return $this->redirect('/admin/settings/community');
+        }
+
+        $this->channels->delete($channelId);
+        $this->audit('settings.channel_delete', 'server_channel', $channelId, [
+            'name' => (string) ($channel['name'] ?? ''),
+        ]);
+        $this->flash('success', $this->t('admin.community.channel_removed'));
 
         return $this->redirect('/admin/settings/community');
     }

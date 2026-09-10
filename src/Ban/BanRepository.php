@@ -27,7 +27,7 @@ class BanRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'account_login', 'label' => 'admin.bans.account', 'sort' => 'account_login', 'type' => 'text'],
                 ['key' => 'reason', 'label' => 'admin.bans.reason', 'type' => 'text'],
                 ['key' => 'expires_at', 'label' => 'admin.bans.expires', 'sort' => 'expires_at', 'type' => 'date'],
-                ['key' => 'created_at', 'label' => 'admin.bans.created', 'sort' => 'created_at', 'type' => 'date'],
+                ['key' => 'created_at', 'label' => 'admin.bans.created_at', 'sort' => 'created_at', 'type' => 'date'],
                 ['key' => 'lifted_at', 'label' => 'admin.bans.lifted', 'type' => 'date'],
             ])
             ->massActions('/admin/game/bans/mass', [

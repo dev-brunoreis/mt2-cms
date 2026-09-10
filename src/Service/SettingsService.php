@@ -7,6 +7,7 @@ namespace Mt2Cms\Service;
 use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Support\AppCrypto;
 
 class SettingsService
 {
@@ -224,7 +225,7 @@ class SettingsService
     public function setMailFrom(string $address, string $name): void
     {
         if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('settings.invalid_mail_from');
+            throw new \InvalidArgumentException('admin.invalid_mail_from');
         }
 
         $this->settings->set('mail_from_address', $address);
@@ -263,7 +264,7 @@ class SettingsService
         $url = rtrim(trim($url), '/');
 
         if ($url === '' || !preg_match('#^https?://#i', $url)) {
-            throw new \InvalidArgumentException('settings.invalid_site_url');
+            throw new \InvalidArgumentException('admin.invalid_site_url');
         }
 
         $this->settings->set('site_url', $url);
@@ -305,9 +306,56 @@ class SettingsService
         $currency = strtoupper(trim($currency));
 
         if (!preg_match('/^[A-Z]{3}$/', $currency)) {
-            throw new \InvalidArgumentException('settings.invalid_currency');
+            throw new \InvalidArgumentException('admin.invalid_currency');
         }
 
         $this->settings->set('paypal_currency', $currency);
+    }
+
+    public function paypalClientId(): string
+    {
+        $fromSettings = trim((string) ($this->settings->get('paypal_client_id') ?? ''));
+
+        if ($fromSettings !== '') {
+            return $fromSettings;
+        }
+
+        return trim((string) (Env::getInstance()->get('PAYPAL_CLIENT_ID') ?? ''));
+    }
+
+    public function paypalClientSecret(): string
+    {
+        $stored = (string) ($this->settings->get('paypal_client_secret') ?? '');
+
+        if ($stored !== '') {
+            try {
+                return AppCrypto::isEncrypted($stored) ? AppCrypto::decrypt($stored) : $stored;
+            } catch (\Throwable) {
+                return '';
+            }
+        }
+
+        return trim((string) (Env::getInstance()->get('PAYPAL_CLIENT_SECRET') ?? ''));
+    }
+
+    public function paypalConfigured(): bool
+    {
+        return $this->paypalClientId() !== '' && $this->paypalClientSecret() !== '';
+    }
+
+    public function setPaypalClientId(string $clientId): void
+    {
+        $this->settings->set('paypal_client_id', trim($clientId));
+    }
+
+    public function setPaypalClientSecret(string $secret): void
+    {
+        $secret = trim($secret);
+
+        if ($secret === '') {
+            return;
+        }
+
+        $this->settings->set('paypal_client_secret', AppCrypto::encrypt($secret));
     }
 }

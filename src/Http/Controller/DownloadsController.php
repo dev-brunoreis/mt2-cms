@@ -33,9 +33,9 @@ class DownloadsController extends Controller
         ]);
     }
 
-    public function file(int $id): Response
+    public function file(string $id): Response
     {
-        $row = $this->downloads->findById($id);
+        $row = $this->downloads->findById((int) $id);
 
         if ($row === null || !(int) ($row['enabled'] ?? 0)) {
             return Response::notFound($this->t('downloads.not_found'));

@@ -24,7 +24,7 @@ class CashPackageRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.packages.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'title', 'label' => 'admin.packages.title', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/store/packages/{id}'],
+                ['key' => 'title', 'label' => 'admin.packages.title_field', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/store/packages/{id}'],
                 ['key' => 'cash_amount', 'label' => 'admin.packages.cash', 'sort' => 'cash_amount', 'type' => 'number'],
                 ['key' => 'price_cents', 'label' => 'admin.packages.price', 'sort' => 'price_cents', 'type' => 'number'],
                 ['key' => 'currency', 'label' => 'admin.packages.currency', 'type' => 'text'],

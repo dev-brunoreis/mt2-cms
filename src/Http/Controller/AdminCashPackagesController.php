@@ -69,9 +69,9 @@ class AdminCashPackagesController extends AdminController
         return $this->formView(null);
     }
 
-    public function edit(int $id): Response
+    public function edit(string $id): Response
     {
-        $row = $this->packages->findById($id);
+        $row = $this->packages->findById((int) $id);
 
         if ($row === null) {
             $this->flash('error', $this->t('admin.packages.not_found'));
@@ -87,9 +87,9 @@ class AdminCashPackagesController extends AdminController
         return $this->save(null);
     }
 
-    public function update(int $id): Response
+    public function update(string $id): Response
     {
-        return $this->save($id);
+        return $this->save((int) $id);
     }
 
     private function save(?int $id): Response
@@ -121,10 +121,10 @@ class AdminCashPackagesController extends AdminController
 
         if ($id === null) {
             $newId = $this->packages->create($data);
-            $this->audit('package.create', 'package', (string) $newId);
+            $this->audit('package.create', 'package', $newId);
         } else {
             $this->packages->update($id, $data);
-            $this->audit('package.update', 'package', (string) $id);
+            $this->audit('package.update', 'package', $id);
         }
 
         $this->flash('success', $this->t('admin.saved'));
@@ -137,9 +137,20 @@ class AdminCashPackagesController extends AdminController
      */
     private function formView(?array $values, ?string $error = null, int $status = 200): Response
     {
+        $values ??= [
+            'title' => '',
+            'cash_amount' => '',
+            'price_cents' => '',
+            'currency' => $this->settings->paypalCurrency(),
+            'sort_order' => 0,
+            'enabled' => true,
+        ];
+
         return $this->adminView('packages', 'pages/package-form.twig', [
-            'title' => $values && isset($values['id']) ? $this->t('admin.packages.edit') : $this->t('admin.packages.create'),
+            'title' => isset($values['id']) ? $this->t('admin.packages.edit') : $this->t('admin.packages.create'),
             'pageLead' => $this->t('admin.packages.form_lead'),
+            'formId' => 'admin-package-form',
+            'saveLabel' => $this->t('admin.save'),
             'package' => $values,
             'error' => $error,
             'defaultCurrency' => $this->settings->paypalCurrency(),

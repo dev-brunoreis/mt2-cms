@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Payment;
 
-use Mt2Cms\Model\Env;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Support\Log;
 
@@ -125,8 +124,8 @@ final class PayPalGateway implements PaymentGateway
 
     private function accessToken(): string
     {
-        $clientId = trim((string) (Env::getInstance()->get('PAYPAL_CLIENT_ID') ?? ''));
-        $secret = trim((string) (Env::getInstance()->get('PAYPAL_CLIENT_SECRET') ?? ''));
+        $clientId = $this->settings->paypalClientId();
+        $secret = $this->settings->paypalClientSecret();
 
         if ($clientId === '' || $secret === '') {
             throw new \RuntimeException('payments.paypal_not_configured');

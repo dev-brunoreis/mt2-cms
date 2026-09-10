@@ -69,7 +69,7 @@ class AdminBansController extends AdminController
                     }
 
                     $this->banService->lift($id, (int) $ban['account_id']);
-                    $this->audit('ban.lift', 'ban', (string) $id);
+                    $this->audit('ban.lift', 'ban', $id);
 
                     return true;
                 },
@@ -85,6 +85,8 @@ class AdminBansController extends AdminController
         return $this->adminView('bans', 'pages/ban-form.twig', [
             'title' => $this->t('admin.bans.create'),
             'pageLead' => $this->t('admin.bans.create_lead'),
+            'formId' => 'admin-ban-form',
+            'saveLabel' => $this->t('admin.save'),
             'error' => null,
             'values' => ['login' => '', 'reason' => '', 'expires_at' => ''],
         ]);
@@ -112,6 +114,8 @@ class AdminBansController extends AdminController
             return $this->adminView('bans', 'pages/ban-form.twig', [
                 'title' => $this->t('admin.bans.create'),
                 'pageLead' => $this->t('admin.bans.create_lead'),
+                'formId' => 'admin-ban-form',
+                'saveLabel' => $this->t('admin.save'),
                 'error' => $this->t('admin.bans.account_not_found'),
                 'values' => ['login' => $login, 'reason' => $reason, 'expires_at' => $expiresRaw],
             ], 422);
@@ -120,7 +124,7 @@ class AdminBansController extends AdminController
         $admin = $this->adminAuth->user();
         $adminId = is_array($admin) ? (int) ($admin['id'] ?? 0) : null;
         $this->banService->apply((int) $account['id'], $login, $reason, $expiresAt, $adminId ?: null);
-        $this->audit('ban.create', 'account', (string) $account['id'], null, ['login' => $login]);
+        $this->audit('ban.create', 'account', (int) $account['id'], ['login' => $login]);
         $this->flash('success', $this->t('admin.bans.created'));
 
         return $this->redirect('/admin/game/bans');

@@ -64,6 +64,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/settings/security', [AdminSettingsController::class, 'saveSecurity']);
         $r->addRoute('GET', '/admin/settings/community', [AdminCommunityController::class, 'channels']);
         $r->addRoute('POST', '/admin/settings/community', [AdminCommunityController::class, 'saveChannels']);
+        $r->addRoute('POST', '/admin/settings/community/channels/{id:\d+}/delete', [AdminCommunityController::class, 'deleteChannel']);
 
         // System
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);

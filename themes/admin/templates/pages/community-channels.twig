@@ -28,18 +28,6 @@
                        value="{{ onlineWindowMinutes|default(15) }}" class="admin-input">
                 <span class="admin-field-help">{{ t('admin.community.online_window_help') }}</span>
             </div>
-            <div class="admin-field">
-                <label for="paypal-mode">{{ t('admin.community.paypal_mode') }}</label>
-                <select id="paypal-mode" name="paypal_mode" class="admin-input">
-                    <option value="sandbox" {% if paypalMode|default('sandbox') == 'sandbox' %}selected{% endif %}>{{ t('admin.community.paypal_sandbox') }}</option>
-                    <option value="live" {% if paypalMode|default('') == 'live' %}selected{% endif %}>{{ t('admin.community.paypal_live') }}</option>
-                </select>
-            </div>
-            <div class="admin-field">
-                <label for="paypal-currency">{{ t('admin.community.paypal_currency') }}</label>
-                <input id="paypal-currency" type="text" name="paypal_currency" maxlength="3"
-                       value="{{ paypalCurrency|default('USD') }}" class="admin-input uppercase">
-            </div>
             <div class="admin-field sm:col-span-2">
                 <label class="admin-toggle-row cursor-pointer">
                     <input type="checkbox" name="require_verified_email" value="1"
@@ -55,6 +43,43 @@
 
     <fieldset class="admin-fieldset">
         <legend>
+            {{ t('admin.community.paypal') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.paypal_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="paypal-mode">{{ t('admin.community.paypal_mode') }}</label>
+                <select id="paypal-mode" name="paypal_mode" class="admin-input">
+                    <option value="sandbox" {% if paypalMode|default('sandbox') == 'sandbox' %}selected{% endif %}>{{ t('admin.community.paypal_sandbox') }}</option>
+                    <option value="live" {% if paypalMode|default('') == 'live' %}selected{% endif %}>{{ t('admin.community.paypal_live') }}</option>
+                </select>
+            </div>
+            <div class="admin-field">
+                <label for="paypal-currency">{{ t('admin.community.paypal_currency') }}</label>
+                <input id="paypal-currency" type="text" name="paypal_currency" maxlength="3"
+                       value="{{ paypalCurrency|default('USD') }}" class="admin-input uppercase">
+            </div>
+            <div class="admin-field">
+                <label for="paypal-client-id">{{ t('admin.community.paypal_client_id') }}</label>
+                <input id="paypal-client-id" type="text" name="paypal_client_id" autocomplete="off"
+                       value="{{ paypalClientId|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="paypal-client-secret">{{ t('admin.community.paypal_client_secret') }}</label>
+                <input id="paypal-client-secret" type="password" name="paypal_client_secret" autocomplete="new-password"
+                       value="" class="admin-input">
+                {% if paypalConfigured|default(false) %}
+                    <span class="admin-field-help">{{ t('admin.community.paypal_secret_keep') }}</span>
+                {% else %}
+                    <span class="admin-field-help">{{ t('admin.community.paypal_not_configured') }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
             {{ t('admin.community.channels') }}
             <span class="admin-fieldset-help">{{ t('admin.community.channels_help') }}</span>
         </legend>
@@ -63,6 +88,12 @@
             {% for channel in channels %}
                 <div class="rounded-md border border-slate-200 p-4">
                     <input type="hidden" name="channel_id[]" value="{{ channel.id }}">
+                    <div class="mb-3 flex justify-end">
+                        <button type="submit" form="admin-channel-delete-{{ channel.id }}"
+                                class="admin-link-action admin-link-danger cursor-pointer text-sm">
+                            {{ t('admin.community.channel_remove') }}
+                        </button>
+                    </div>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div class="admin-field">
                             <label>{{ t('admin.community.channel_name') }}</label>
@@ -136,3 +167,11 @@
         </button>
     </div>
 </form>
+
+{% for channel in channels %}
+    <form id="admin-channel-delete-{{ channel.id }}" method="post"
+          action="/admin/settings/community/channels/{{ channel.id }}/delete"
+          data-confirm="{{ t('admin.community.confirm_remove_channel') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+    </form>
+{% endfor %}

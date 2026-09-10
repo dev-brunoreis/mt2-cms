@@ -50,7 +50,7 @@ class AdminPaymentsController extends AdminController
         ]);
     }
 
-    public function recredit(int $id): Response
+    public function recredit(string $id): Response
     {
         if ($redirect = $this->requireAdminResource('store/payments/edit')) {
             return $redirect;
@@ -62,7 +62,8 @@ class AdminPaymentsController extends AdminController
             return $this->redirect('/admin/store/payments');
         }
 
-        $payment = $this->payments->findById($id);
+        $paymentId = (int) $id;
+        $payment = $this->payments->findById($paymentId);
 
         if ($payment === null) {
             $this->flash('error', $this->t('admin.payments.not_found'));
@@ -80,7 +81,7 @@ class AdminPaymentsController extends AdminController
         $ref = (string) ($payment['provider_ref'] ?? '');
 
         if ($this->credits->markPaidAndCredit($provider, $ref)) {
-            $this->audit('payment.recredit', 'payment', (string) $id);
+            $this->audit('payment.recredit', 'payment', $paymentId);
             $this->flash('success', $this->t('admin.payments.recredited'));
         } else {
             $this->flash('error', $this->t('admin.payments.recredit_failed'));

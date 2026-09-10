@@ -23,7 +23,7 @@ class DownloadRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.downloads.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'title', 'label' => 'admin.downloads.title', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/content/downloads/{id}'],
+                ['key' => 'title', 'label' => 'admin.downloads.title_field', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/content/downloads/{id}'],
                 ['key' => 'category', 'label' => 'admin.downloads.category', 'sort' => 'category', 'type' => 'text'],
                 ['key' => 'sort_order', 'label' => 'admin.downloads.sort', 'sort' => 'sort_order', 'type' => 'number'],
                 ['key' => 'enabled', 'label' => 'admin.downloads.enabled', 'type' => 'badge', 'badgeMap' => [

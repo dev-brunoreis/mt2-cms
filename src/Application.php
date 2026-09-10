@@ -450,7 +450,45 @@ class Application
         [$class, $method] = $handler;
         $controller = $this->resolveController($class);
 
-        return $controller->{$method}(...array_values($vars));
+        return $controller->{$method}(...$this->routeArguments($controller, $method, $vars));
+    }
+
+    /**
+     * FastRoute always yields string captures; coerce to the action parameter types.
+     *
+     * @param array<string, string> $vars
+     * @return list<mixed>
+     */
+    private function routeArguments(object $controller, string $method, array $vars): array
+    {
+        $args = [];
+
+        foreach ((new \ReflectionMethod($controller, $method))->getParameters() as $param) {
+            $name = $param->getName();
+
+            if (!array_key_exists($name, $vars)) {
+                break;
+            }
+
+            $args[] = $this->castRouteArgument($param, $vars[$name]);
+        }
+
+        return $args;
+    }
+
+    private function castRouteArgument(\ReflectionParameter $param, string $value): mixed
+    {
+        $type = $param->getType();
+
+        if (!$type instanceof \ReflectionNamedType || !$type->isBuiltin()) {
+            return $value;
+        }
+
+        return match ($type->getName()) {
+            'int' => (int) $value,
+            'float' => (float) $value,
+            default => $value,
+        };
     }
 
     private function isInstalled(): bool

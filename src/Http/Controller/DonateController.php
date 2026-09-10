@@ -49,6 +49,7 @@ class DonateController extends Controller
             'title' => $this->t('donate.title'),
             'packages' => $this->packages->listEnabled(),
             'currency' => $this->settings->paypalCurrency(),
+            'paypalConfigured' => $this->settings->paypalConfigured(),
         ]);
     }
 
@@ -64,6 +65,12 @@ class DonateController extends Controller
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/donate');
+        }
+
+        if (!$this->settings->paypalConfigured()) {
+            $this->flash('error', $this->t('donate.paypal_unavailable'));
 
             return $this->redirect('/donate');
         }

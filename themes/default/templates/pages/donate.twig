@@ -4,6 +4,12 @@
         <p class="mt-1 text-slate-500">{{ t('donate.lead') }}</p>
     </div>
 
+    {% if not paypalConfigured|default(false) %}
+        <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {{ t('donate.paypal_unavailable') }}
+        </p>
+    {% endif %}
+
     {% if packages is empty %}
         <p class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
             {{ t('donate.empty') }}
@@ -25,14 +31,18 @@
                         </p>
                     </div>
                     <div class="border-t border-slate-100 p-5">
-                        <form method="post" action="/donate/buy">
-                            <input type="hidden" name="_csrf" value="{{ csrf }}">
-                            <input type="hidden" name="package_id" value="{{ package.id }}">
-                            <button type="submit"
-                                    class="w-full cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                                {{ t('donate.buy') }}
-                            </button>
-                        </form>
+                        {% if paypalConfigured|default(false) %}
+                            <form method="post" action="/donate/buy">
+                                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                <input type="hidden" name="package_id" value="{{ package.id }}">
+                                <button type="submit"
+                                        class="w-full cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                                    {{ t('donate.buy') }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <p class="text-center text-sm text-slate-500">{{ t('donate.paypal_unavailable_short') }}</p>
+                        {% endif %}
                     </div>
                 </article>
             {% endfor %}

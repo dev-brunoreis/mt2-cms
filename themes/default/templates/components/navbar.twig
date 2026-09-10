@@ -15,9 +15,9 @@
             <a href="/ranking" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.ranking') }}</a>
             <a href="/status" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.status') }}</a>
             <a href="/downloads" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.downloads') }}</a>
+            <a href="/donate" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.donate') }}</a>
 
             {% if auth.check %}
-                <a href="/donate" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.donate') }}</a>
                 <a href="/account" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.account') }}</a>
                 <form method="post" action="/logout" class="inline">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">

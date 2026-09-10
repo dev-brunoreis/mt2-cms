@@ -291,9 +291,27 @@
   color: #047857;
 }
 
+.admin-badge-warn {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-badge-muted {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .admin-badge-danger {
   background: #fef2f2;
   color: #b91c1c;
+}
+
+.admin-table tbody tr.is-waiting {
+  background: #fff7ed;
+}
+
+.admin-table tbody tr.is-waiting:hover {
+  background: #ffedd5;
 }
 
 .admin-row-actions {

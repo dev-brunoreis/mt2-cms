@@ -31,26 +31,37 @@
                         <th>{{ t('admin.tickets.subject') }}</th>
                         <th>{{ t('admin.tickets.account') }}</th>
                         <th>{{ t('admin.tickets.status') }}</th>
+                        <th>{{ t('admin.tickets.last_message') }}</th>
                         <th>{{ t('admin.tickets.updated') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ticket in tickets %}
-                        <tr>
+                        {% set waiting = ticket.status != 'closed' and ticket.last_author_type == 'user' %}
+                        <tr {% if waiting %}class="is-waiting"{% endif %}>
                             <td class="text-slate-400">#{{ ticket.id }}</td>
                             <td>
-                                <a href="/admin/tickets/{{ ticket.id }}" class="font-medium text-indigo-600 hover:underline">
+                                <a href="/admin/tickets/{{ ticket.id }}"
+                                   class="{% if waiting %}font-semibold{% else %}font-medium{% endif %} text-indigo-600 hover:underline">
                                     {{ ticket.subject }}
                                 </a>
                             </td>
                             <td class="text-slate-600">{{ ticket.account_login }}</td>
                             <td>
                                 <span class="admin-badge
-                                    {% if ticket.status == 'open' %}admin-badge-ok
+                                    {% if ticket.status == 'open' %}admin-badge-warn
                                     {% elseif ticket.status == 'answered' %}admin-badge-ok
-                                    {% else %}admin-badge-danger{% endif %}">
+                                    {% else %}admin-badge-muted{% endif %}">
                                     {{ t('admin.tickets.status_' ~ ticket.status) }}
                                 </span>
+                            </td>
+                            <td>
+                                {% if ticket.last_author_type %}
+                                    <span class="admin-badge {% if ticket.last_author_type == 'user' %}admin-badge-warn{% else %}admin-badge-ok{% endif %}">
+                                        {{ t('admin.tickets.author_' ~ ticket.last_author_type) }}
+                                    </span>
+                                    <span class="ml-1 text-slate-500">{{ ticket.last_author_login }}</span>
+                                {% endif %}
                             </td>
                             <td class="text-slate-600">{{ ticket.updated_at|game_date }}</td>
                         </tr>

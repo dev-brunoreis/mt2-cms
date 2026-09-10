@@ -11,9 +11,9 @@
                 </p>
                 <p class="mt-2">
                     <span class="admin-badge
-                        {% if ticket.status == 'open' %}admin-badge-ok
+                        {% if ticket.status == 'open' %}admin-badge-warn
                         {% elseif ticket.status == 'answered' %}admin-badge-ok
-                        {% else %}admin-badge-danger{% endif %}">
+                        {% else %}admin-badge-muted{% endif %}">
                         {{ t('admin.tickets.status_' ~ ticket.status) }}
                     </span>
                 </p>

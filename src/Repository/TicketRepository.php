@@ -49,7 +49,7 @@ class TicketRepository extends Repository
         [$where, $params] = $this->adminFilter($query, $status);
 
         return (int) $this->db()->fetchColumn(
-            "SELECT COUNT(*) FROM tickets WHERE {$where}",
+            "SELECT COUNT(*) FROM tickets t WHERE {$where}",
             $params,
         );
     }
@@ -65,17 +65,26 @@ class TicketRepository extends Repository
         $params[] = $offset;
 
         return $this->db()->fetchAll(
-            "SELECT id, account_id, account_login, subject, status, created_at, updated_at
-             FROM tickets
+            "SELECT t.id, t.account_id, t.account_login, t.subject, t.status, t.created_at, t.updated_at,
+                    lm.author_type AS last_author_type,
+                    lm.author_login AS last_author_login
+             FROM tickets t
+             LEFT JOIN ticket_messages lm ON lm.id = (
+                SELECT m.id
+                FROM ticket_messages m
+                WHERE m.ticket_id = t.id
+                ORDER BY m.id DESC
+                LIMIT 1
+             )
              WHERE {$where}
              ORDER BY
-                CASE status
+                CASE t.status
                     WHEN 'open' THEN 0
                     WHEN 'answered' THEN 1
                     ELSE 2
                 END,
-                updated_at DESC,
-                id DESC
+                t.updated_at DESC,
+                t.id DESC
              LIMIT ? OFFSET ?",
             $params,
         );
@@ -248,12 +257,12 @@ class TicketRepository extends Repository
         $params = [];
 
         if ($status !== null && $status !== '') {
-            $where[] = 'status = ?';
+            $where[] = 't.status = ?';
             $params[] = $status;
         }
 
         if ($query !== null && $query !== '') {
-            $where[] = '(subject LIKE ? OR account_login LIKE ?)';
+            $where[] = '(t.subject LIKE ? OR t.account_login LIKE ?)';
             $params[] = '%' . $query . '%';
             $params[] = '%' . $query . '%';
         }

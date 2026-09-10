@@ -65,7 +65,7 @@
                                         <span class="text-slate-400">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-slate-600">{{ character.job|job_name }}</td>
+                                <td class="text-slate-600">{{ character.job|job_name(character.skill_group) }}</td>
                                 <td class="text-slate-600">{{ character.level }}</td>
                                 <td class="text-slate-600">{{ character.last_play|game_date }}</td>
                                 <td>

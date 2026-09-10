@@ -46,7 +46,7 @@
                                     <span>{{ player.name }}</span>
                                 </a>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">{{ player.job|job_name }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ player.job|job_name(player.skill_group) }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ player.level }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ player.exp }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ player.playtime|playtime }}</td>

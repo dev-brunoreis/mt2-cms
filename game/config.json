@@ -18,14 +18,15 @@
         "group": "group.txt",
         "group_group": "group_group.txt"
     },
-    "faces": [
-        "warrior_m.tga",
-        "assassin_m.tga",
-        "sura_m.tga",
-        "shaman_m.tga",
-        "warrior_w.tga",
-        "assassin_w.tga",
-        "sura_w.tga",
-        "shaman_w.tga"
-    ]
+    "faces": {
+        "0": "warrior_m.tga",
+        "1": "assassin_w.tga",
+        "2": "sura_m.tga",
+        "3": "shaman_w.tga",
+        "4": "warrior_w.tga",
+        "5": "assassin_m.tga",
+        "6": "sura_w.tga",
+        "7": "shaman_m.tga",
+        "8": "wolfman_m.tga"
+    }
 }

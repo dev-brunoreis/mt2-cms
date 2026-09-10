@@ -98,7 +98,7 @@
                                     <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_general') }}</span>
                                 {% endif %}
                             </td>
-                            <td class="text-slate-600">{{ member.job|job_name }}</td>
+                            <td class="text-slate-600">{{ member.job|job_name(member.skill_group) }}</td>
                             <td class="text-slate-600">{{ member.level }}</td>
                             <td class="text-slate-600">{{ member.grade_name|default(member.grade) }}</td>
                             <td class="text-slate-600">{{ member.offer }}</td>

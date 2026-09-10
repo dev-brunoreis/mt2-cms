@@ -42,7 +42,23 @@ Maps logical names to files under `game/`:
 | `paths.icon_root` | `client/icon` | TGA icons (`item/`, `face/`) |
 | `paths.drops` | `server` | Directory for drop txt files |
 | `drops.*` | see default | Filename for each drop parser |
-| `faces` | job index → `.tga` | Character face icons |
+| `faces` | race id → `.tga` | Character face icons (`player.job` is the Metin2 race, not the class) |
+
+`player.job` follows official `MAIN_RACE_*` order. Ninja and shaman default to **female**; the male faces are races 5 and 7:
+
+| Race | Class | Sex | Typical TGA |
+|------|-------|-----|-------------|
+| 0 | Warrior | Male | `warrior_m.tga` |
+| 1 | Ninja | Female | `assassin_w.tga` |
+| 2 | Sura | Male | `sura_m.tga` |
+| 3 | Shaman | Female | `shaman_w.tga` |
+| 4 | Warrior | Female | `warrior_w.tga` |
+| 5 | Ninja | Male | `assassin_m.tga` |
+| 6 | Sura | Female | `sura_w.tga` |
+| 7 | Shaman | Male | `shaman_m.tga` |
+| 8 | Lycan | Male | `wolfman_m.tga` |
+
+Skill path (Arahan / Partizan, Blade-Fight / Archery, …) comes from `player.skill_group`, not from the face file.
 
 Example: use Portuguese name files without renaming on disk:
 

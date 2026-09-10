@@ -343,7 +343,7 @@ class GuildRepository extends Repository
         $rows = $this->revealAll(
             $this->db()->fetchAll(
                 'SELECT gm.pid, gm.grade, gm.is_general, gm.offer,
-                        p.name, p.level, p.job,
+                        p.name, p.level, p.job, p.skill_group,
                         ' . $gradeJoin['select'] . '
                  FROM `guild_member` gm
                  LEFT JOIN `player` p ON p.id = gm.pid
@@ -360,6 +360,7 @@ class GuildRepository extends Repository
                 'name' => $row['name'] !== null ? (string) $row['name'] : null,
                 'level' => (int) ($row['level'] ?? 0),
                 'job' => (int) ($row['job'] ?? 0),
+                'skill_group' => (int) ($row['skill_group'] ?? 0),
                 'grade' => (int) ($row['grade'] ?? 0),
                 'grade_name' => $row['grade_name'] !== null ? trim((string) $row['grade_name']) : null,
                 'is_general' => (int) ($row['is_general'] ?? 0) === 1,

@@ -171,7 +171,18 @@ class GameIconService
 
     private function cachePath(string $kind, int $id): string
     {
-        return $this->cacheRoot . '/' . $kind . '/' . $id . '.png';
+        $suffix = '';
+
+        if ($kind === self::KIND_FACE) {
+            $name = $this->profile->faceFilename($id) ?? '';
+            $stem = pathinfo($name, PATHINFO_FILENAME);
+
+            if (is_string($stem) && preg_match('/^[A-Za-z0-9_-]+$/', $stem) === 1) {
+                $suffix = '-' . $stem;
+            }
+        }
+
+        return $this->cacheRoot . '/' . $kind . '/' . $id . $suffix . '.png';
     }
 
     private function writeCache(string $path, string $png): void

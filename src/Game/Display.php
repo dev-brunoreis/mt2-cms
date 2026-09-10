@@ -13,12 +13,50 @@ class Display
     ) {
     }
 
-    public function job(mixed $job): string
+    /**
+     * Race id from `player.job`. Pass skill_group to append Arahan / Partizan / etc.
+     */
+    public function job(mixed $job, mixed $skillGroup = null): string
     {
-        $key = 'job.' . (int) $job;
+        $race = (int) $job;
+        $classKey = 'job.' . Jobs::localeJobKey($race);
+        $className = $this->translator->has($classKey)
+            ? $this->translator->get($classKey)
+            : $this->translator->get('job.unknown');
+
+        $sex = Jobs::sex($race);
+        $sexName = $sex !== null && $this->translator->has('sex.' . $sex)
+            ? $this->translator->get('sex.' . $sex)
+            : '';
+
+        $label = $sexName !== ''
+            ? $this->translator->get('job.with_sex', ['sex' => $sexName, 'job' => $className])
+            : $className;
+
+        $skill = $this->skill($race, $skillGroup);
+
+        if ($skill === '') {
+            return $label;
+        }
+
+        return $this->translator->get('job.with_skill', [
+            'job' => $label,
+            'skill' => $skill,
+        ]);
+    }
+
+    public function skill(mixed $job, mixed $skillGroup): string
+    {
+        $group = (int) $skillGroup;
+
+        if ($group < 1) {
+            return '';
+        }
+
+        $key = 'job.skill.' . Jobs::localeJobKey((int) $job) . '.' . $group;
 
         if (!$this->translator->has($key)) {
-            return $this->translator->get('job.unknown');
+            return '';
         }
 
         return $this->translator->get($key);

@@ -23,6 +23,10 @@
                     <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.job|job_name }}</dd>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.skill') }}</dt>
+                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.job|skill_name(player.skill_group)|default('—') }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.level') }}</dt>
                     <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.level }}</dd>
                 </div>

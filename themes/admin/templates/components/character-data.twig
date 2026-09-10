@@ -33,6 +33,10 @@
             <dd>{{ character.job|job_name }}</dd>
         </div>
         <div class="admin-stat">
+            <dt>{{ t('admin.characters.skill') }}</dt>
+            <dd>{{ character.job|skill_name(character.skill_group)|default('—') }}</dd>
+        </div>
+        <div class="admin-stat">
             <dt>{{ t('admin.characters.level') }}</dt>
             <dd>{{ character.level }}</dd>
         </div>

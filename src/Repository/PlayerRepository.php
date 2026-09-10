@@ -6,7 +6,9 @@ namespace Mt2Cms\Repository;
 
 class PlayerRepository extends Repository
 {
-    private const PUBLIC_COLUMNS = 'id, name, job, level, exp, playtime, last_play, map_index';
+    private const PUBLIC_COLUMNS = 'id, name, job, skill_group, level, exp, playtime, last_play, map_index';
+    private const DETAIL_COLUMNS = 'id, account_id, name, job, skill_group, level, exp, gold, playtime, map_index, last_play';
+    private const ADMIN_COLUMNS = 'p.id, p.account_id, p.name, p.job, p.skill_group, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play';
 
     protected function database(): string
     {
@@ -17,7 +19,7 @@ class PlayerRepository extends Repository
     {
         return $this->reveal(
             $this->db()->fetch(
-                'SELECT id, account_id, name, job, level, exp, gold, playtime, map_index, last_play
+                'SELECT ' . self::DETAIL_COLUMNS . '
                  FROM `player` WHERE id = ?',
                 [$id],
             ),
@@ -28,7 +30,7 @@ class PlayerRepository extends Repository
     {
         return $this->reveal(
             $this->db()->fetch(
-                'SELECT id, account_id, name, job, level, exp, gold, playtime, map_index, last_play
+                'SELECT ' . self::DETAIL_COLUMNS . '
                  FROM `player` WHERE name = ?',
                 [$name],
             ),
@@ -52,7 +54,7 @@ class PlayerRepository extends Repository
     {
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT id, account_id, name, job, level, exp, gold, playtime, map_index, last_play
+                'SELECT ' . self::DETAIL_COLUMNS . '
                  FROM `player` WHERE account_id = ?',
                 [$accountId],
             ),
@@ -171,7 +173,7 @@ class PlayerRepository extends Repository
 
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                'SELECT ' . self::ADMIN_COLUMNS . ',
                         a.login AS account_login
                  FROM `player` p
                  LEFT JOIN `account`.`account` a ON a.id = p.account_id
@@ -210,7 +212,7 @@ class PlayerRepository extends Repository
 
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                'SELECT ' . self::ADMIN_COLUMNS . ',
                         a.login AS account_login
                  FROM `player` p
                  LEFT JOIN `account`.`account` a ON a.id = p.account_id' . $where . '
@@ -225,7 +227,7 @@ class PlayerRepository extends Repository
     {
         return $this->reveal(
             $this->db()->fetch(
-                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play,
+                'SELECT ' . self::ADMIN_COLUMNS . ',
                         a.login AS account_login
                  FROM `player` p
                  LEFT JOIN `account`.`account` a ON a.id = p.account_id

@@ -86,6 +86,7 @@
     "not_found_body": "This character does not exist.",
     "back_to_ranking": "Back to ranking",
     "job": "Job",
+    "skill": "Skill",
     "level": "Level",
     "experience": "Experience",
     "playtime": "Playtime",
@@ -106,7 +107,34 @@
     "6": "Sura",
     "7": "Shaman",
     "8": "Lycan",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "with_sex": "{sex} {job}",
+    "with_skill": "{job} · {skill}",
+    "skill": {
+      "0": {
+        "1": "Arahan",
+        "2": "Partizan"
+      },
+      "1": {
+        "1": "Blade-Fight",
+        "2": "Archery"
+      },
+      "2": {
+        "1": "Weaponary",
+        "2": "Black Magic"
+      },
+      "3": {
+        "1": "Dragon",
+        "2": "Healing"
+      },
+      "8": {
+        "1": "Instinct"
+      }
+    }
+  },
+  "sex": {
+    "male": "Male",
+    "female": "Female"
   },
   "empire": {
     "1": "Red Empire",
@@ -457,6 +485,7 @@
       "name": "Name",
       "account": "Account",
       "job": "Job",
+      "skill": "Skill",
       "level": "Level",
       "exp": "Exp",
       "gold": "Yang",

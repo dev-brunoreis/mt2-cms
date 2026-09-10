@@ -26,7 +26,7 @@
                                     <span>{{ player.name }}</span>
                                 </a>
                             </td>
-                            <td class="text-slate-600">{{ player.job|job_name }}</td>
+                            <td class="text-slate-600">{{ player.job|job_name(player.skill_group) }}</td>
                             <td class="text-slate-600">{{ player.level }}</td>
                             <td class="text-slate-600">{{ player.playtime|playtime }}</td>
                         </tr>

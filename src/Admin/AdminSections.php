@@ -49,37 +49,37 @@ class AdminSections
                     ],
                 ],
             ],
-            [
-                'id' => 'content',
-                'label' => 'admin.nav.content',
-                'children' => [
-                    [
-                        'id' => 'items',
-                        'path' => '/admin/items',
-                        'label' => 'admin.nav.items',
-                    ],
-                    [
-                        'id' => 'mobs',
-                        'path' => '/admin/mobs',
-                        'label' => 'admin.nav.mobs',
-                    ],
-                    [
-                        'id' => 'shops',
-                        'path' => '/admin/shops',
-                        'label' => 'admin.nav.shops',
-                    ],
-                    [
-                        'id' => 'refine',
-                        'path' => '/admin/refine',
-                        'label' => 'admin.nav.refine',
-                    ],
-                    [
-                        'id' => 'drops',
-                        'path' => '/admin/drops',
-                        'label' => 'admin.nav.drops',
-                    ],
-                ],
-            ],
+            // [
+            //     'id' => 'content',
+            //     'label' => 'admin.nav.content',
+            //     'children' => [
+            //         [
+            //             'id' => 'items',
+            //             'path' => '/admin/items',
+            //             'label' => 'admin.nav.items',
+            //         ],
+            //         [
+            //             'id' => 'mobs',
+            //             'path' => '/admin/mobs',
+            //             'label' => 'admin.nav.mobs',
+            //         ],
+            //         [
+            //             'id' => 'shops',
+            //             'path' => '/admin/shops',
+            //             'label' => 'admin.nav.shops',
+            //         ],
+            //         [
+            //             'id' => 'refine',
+            //             'path' => '/admin/refine',
+            //             'label' => 'admin.nav.refine',
+            //         ],
+            //         [
+            //             'id' => 'drops',
+            //             'path' => '/admin/drops',
+            //             'label' => 'admin.nav.drops',
+            //         ],
+            //     ],
+            // ],
             [
                 'id' => 'logs',
                 'label' => 'admin.nav.logs.group',

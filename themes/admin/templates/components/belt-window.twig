@@ -1,0 +1,17 @@
+{% if grid.pages is not empty %}
+    {% set beltPage = grid.pages[0] %}
+    <div class="admin-game-belt" title="{{ t('admin.characters.window_BELT_INVENTORY') }}">
+        <div class="admin-game-belt-handle" aria-hidden="true"></div>
+        <div class="admin-game-belt-board">
+            <div class="admin-inv-grid admin-game-grid"
+                 style="--inv-cols: {{ grid.columns }}; --inv-rows: {{ grid.rows }};">
+                {% for cell in beltPage.cells %}
+                    <div class="admin-inv-cell"
+                         style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
+                        {% include 'components/inventory-slot.twig' with { item: cell.item } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}

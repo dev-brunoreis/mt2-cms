@@ -1,0 +1,17 @@
+{#
+  Client-style window chrome via embed.
+  Child templates override the "body" block.
+  Required: title
+  Optional: modifier
+#}
+<div class="admin-game-window{% if modifier|default('') %} {{ modifier }}{% endif %}">
+    <div class="admin-game-window-chrome">
+        <div class="admin-game-window-titlebar">
+            <span class="admin-game-window-title">{{ title }}</span>
+            <span class="admin-game-window-close" aria-hidden="true">×</span>
+        </div>
+        <div class="admin-game-window-body">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+</div>

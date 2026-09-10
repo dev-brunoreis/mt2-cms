@@ -1,0 +1,65 @@
+{% embed 'components/game-window.twig' with {
+    title: t('admin.characters.window_INVENTORY'),
+    modifier: 'admin-game-window-inventory',
+    layout: layout,
+    gold: gold|default(0)
+} %}
+    {% block body %}
+        <div class="admin-game-inv">
+            <div class="admin-inv-paperdoll admin-inv-paperdoll-equip"
+                 style="--board-w: {{ layout.equipment.width }}; --board-h: {{ layout.equipment.height }};">
+                <div class="admin-inv-paperdoll-silhouette" aria-hidden="true">
+                    {% include 'components/inventory-silhouette.twig' %}
+                </div>
+                {% for slot in layout.equipment.slots %}
+                    <div class="admin-inv-cell admin-inv-cell-abs"
+                         style="--slot-x: {{ slot.x }}; --slot-y: {{ slot.y }}; --slot-w: {{ slot.w }}; --slot-h: {{ slot.h }};"
+                         title="{{ t('admin.characters.slot_' ~ slot.key) }}">
+                        {% include 'components/inventory-slot.twig' with { item: slot.item } %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if layout.inventory.pages is not empty %}
+                <div class="admin-inv-pages admin-game-inv-pages" data-admin-tabs data-default-tab="inv-inventory-0">
+                    {% if layout.inventory.pages|length > 1 %}
+                        <div class="admin-tabs-nav admin-inv-page-nav admin-game-page-nav" role="tablist"
+                             aria-label="{{ t('admin.characters.window_INVENTORY') }}">
+                            {% for page in layout.inventory.pages %}
+                                {% include 'components/tab.twig' with {
+                                    id: 'inv-inventory-' ~ page.id,
+                                    label: page.label,
+                                    active: loop.first
+                                } %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for page in layout.inventory.pages %}
+                        <div id="admin-tab-panel-inv-inventory-{{ page.id }}"
+                             class="admin-inv-page"
+                             role="tabpanel"
+                             data-tab-panel="inv-inventory-{{ page.id }}"
+                             aria-labelledby="admin-tab-inv-inventory-{{ page.id }}"
+                             {% if not loop.first %}hidden{% endif %}>
+                            <div class="admin-inv-grid admin-game-grid"
+                                 style="--inv-cols: {{ layout.inventory.columns }}; --inv-rows: {{ layout.inventory.rows }};">
+                                {% for cell in page.cells %}
+                                    <div class="admin-inv-cell"
+                                         style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
+                                        {% include 'components/inventory-slot.twig' with { item: cell.item } %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="admin-game-yang" title="{{ t('admin.characters.yang') }}">
+                <span class="admin-game-yang-icon" aria-hidden="true"></span>
+                <span class="admin-game-yang-value">{{ (gold|default(0))|number_format(0, ',', '.') }} {{ t('admin.characters.yang') }}</span>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}

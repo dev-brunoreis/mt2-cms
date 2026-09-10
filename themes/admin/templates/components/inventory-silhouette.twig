@@ -1,0 +1,29 @@
+{# Soft filled silhouette — closer to client glow, not a stick figure. #}
+<svg class="admin-inv-silhouette-svg" viewBox="0 0 90 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+        <filter id="sil-blur" x="-20%" y="-10%" width="140%" height="120%">
+            <feGaussianBlur stdDeviation="0.6"/>
+        </filter>
+    </defs>
+    <g fill="currentColor" opacity="0.9" filter="url(#sil-blur)">
+        <ellipse cx="45" cy="16" rx="11" ry="12"/>
+        <path d="M45 28
+                 C 58 28, 68 36, 70 52
+                 L 74 88
+                 C 76 104, 72 118, 64 128
+                 L 60 148
+                 C 58 154, 52 156, 45 156
+                 C 38 156, 32 154, 30 148
+                 L 26 128
+                 C 18 118, 14 104, 16 88
+                 L 20 52
+                 C 22 36, 32 28, 45 28 Z"/>
+        <path d="M22 54 C 10 58, 4 78, 8 102 L 14 102 C 12 80, 16 62, 24 58 Z"/>
+        <path d="M68 54 C 80 58, 86 78, 82 102 L 76 102 C 78 80, 74 62, 66 58 Z"/>
+    </g>
+    <g fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55">
+        <ellipse cx="45" cy="16" rx="11" ry="12"/>
+        <path d="M24 58 C 14 64, 10 82, 12 100"/>
+        <path d="M66 58 C 76 64, 80 82, 78 100"/>
+    </g>
+</svg>

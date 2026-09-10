@@ -1,39 +1,86 @@
 {% if grid.pages is not empty %}
-    <div class="admin-inv-board">
-        <h3 class="admin-inv-title">{{ title }}</h3>
-        {% if subtitle|default('') %}
-            <p class="admin-inv-meta">{{ subtitle }}</p>
-        {% endif %}
-        <div class="admin-inv-pages" data-admin-tabs data-default-tab="{{ prefix }}-0">
-            {% if grid.pages|length > 1 %}
-                <div class="admin-tabs-nav admin-inv-page-nav" role="tablist" aria-label="{{ title }}">
+    {% if chrome|default(false) %}
+        {% embed 'components/game-window.twig' with {
+            title: title,
+            modifier: 'admin-game-window-grid',
+            grid: grid,
+            prefix: prefix,
+            subtitle: subtitle|default('')
+        } %}
+            {% block body %}
+                {% if subtitle|default('') %}
+                    <p class="admin-game-window-meta">{{ subtitle }}</p>
+                {% endif %}
+                <div class="admin-inv-pages" data-admin-tabs data-default-tab="{{ prefix }}-0">
+                    {% if grid.pages|length > 1 %}
+                        <div class="admin-tabs-nav admin-inv-page-nav admin-game-page-nav" role="tablist" aria-label="{{ title }}">
+                            {% for page in grid.pages %}
+                                {% include 'components/tab.twig' with {
+                                    id: prefix ~ '-' ~ page.id,
+                                    label: page.label,
+                                    active: loop.first
+                                } %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
                     {% for page in grid.pages %}
-                        {% include 'components/tab.twig' with {
-                            id: prefix ~ '-' ~ page.id,
-                            label: page.label,
-                            active: loop.first
-                        } %}
+                        <div id="admin-tab-panel-{{ prefix }}-{{ page.id }}"
+                             class="admin-inv-page"
+                             role="tabpanel"
+                             data-tab-panel="{{ prefix }}-{{ page.id }}"
+                             aria-labelledby="admin-tab-{{ prefix }}-{{ page.id }}"
+                             {% if not loop.first %}hidden{% endif %}>
+                            <div class="admin-inv-grid admin-game-grid" style="--inv-cols: {{ grid.columns }}; --inv-rows: {{ grid.rows }};">
+                                {% for cell in page.cells %}
+                                    <div class="admin-inv-cell"
+                                         style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
+                                        {% include 'components/inventory-slot.twig' with { item: cell.item } %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
+            {% endblock %}
+        {% endembed %}
+    {% else %}
+        <div class="admin-inv-board">
+            <h3 class="admin-inv-title">{{ title }}</h3>
+            {% if subtitle|default('') %}
+                <p class="admin-inv-meta">{{ subtitle }}</p>
             {% endif %}
-
-            {% for page in grid.pages %}
-                <div id="admin-tab-panel-{{ prefix }}-{{ page.id }}"
-                     class="admin-inv-page"
-                     role="tabpanel"
-                     data-tab-panel="{{ prefix }}-{{ page.id }}"
-                     aria-labelledby="admin-tab-{{ prefix }}-{{ page.id }}"
-                     {% if not loop.first %}hidden{% endif %}>
-                    <div class="admin-inv-grid" style="--inv-cols: {{ grid.columns }}; --inv-rows: {{ grid.rows }};">
-                        {% for cell in page.cells %}
-                            <div class="admin-inv-cell"
-                                 style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
-                                {% include 'components/inventory-slot.twig' with { item: cell.item } %}
-                            </div>
+            <div class="admin-inv-pages" data-admin-tabs data-default-tab="{{ prefix }}-0">
+                {% if grid.pages|length > 1 %}
+                    <div class="admin-tabs-nav admin-inv-page-nav" role="tablist" aria-label="{{ title }}">
+                        {% for page in grid.pages %}
+                            {% include 'components/tab.twig' with {
+                                id: prefix ~ '-' ~ page.id,
+                                label: page.label,
+                                active: loop.first
+                            } %}
                         {% endfor %}
                     </div>
-                </div>
-            {% endfor %}
+                {% endif %}
+
+                {% for page in grid.pages %}
+                    <div id="admin-tab-panel-{{ prefix }}-{{ page.id }}"
+                         class="admin-inv-page"
+                         role="tabpanel"
+                         data-tab-panel="{{ prefix }}-{{ page.id }}"
+                         aria-labelledby="admin-tab-{{ prefix }}-{{ page.id }}"
+                         {% if not loop.first %}hidden{% endif %}>
+                        <div class="admin-inv-grid" style="--inv-cols: {{ grid.columns }}; --inv-rows: {{ grid.rows }};">
+                            {% for cell in page.cells %}
+                                <div class="admin-inv-cell"
+                                     style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
+                                    {% include 'components/inventory-slot.twig' with { item: cell.item } %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endif %}

@@ -1,0 +1,120 @@
+{% set ds = layout.dragonSoul %}
+{% embed 'components/game-window.twig' with {
+    title: t('admin.characters.window_DRAGON_SOUL_INVENTORY'),
+    modifier: 'admin-game-window-ds',
+    ds: ds
+} %}
+    {% block body %}
+        <div class="admin-game-ds" data-admin-tabs data-default-tab="inv-ds-deck-0">
+            <div class="admin-game-ds-equip-wrap">
+                {% for deck in ds.decks %}
+                    <div id="admin-tab-panel-inv-ds-deck-{{ deck.id }}"
+                         class="admin-game-ds-equip"
+                         role="tabpanel"
+                         data-tab-panel="inv-ds-deck-{{ deck.id }}"
+                         aria-labelledby="admin-tab-inv-ds-deck-{{ deck.id }}"
+                         {% if not loop.first %}hidden{% endif %}>
+                        <div class="admin-inv-paperdoll admin-inv-paperdoll-ds"
+                             style="--board-w: {{ deck.width }}; --board-h: {{ deck.height }};">
+                            <div class="admin-game-ds-circle" aria-hidden="true">
+                                {% include 'components/dragonsoul-disc.twig' %}
+                            </div>
+                            {% for slot in deck.slots %}
+                                <div class="admin-inv-cell admin-inv-cell-abs admin-game-ds-slot admin-game-ds-slot-{{ loop.index0 }}"
+                                     style="--slot-x: {{ slot.x }}; --slot-y: {{ slot.y }}; --slot-w: {{ slot.w }}; --slot-h: {{ slot.h }};"
+                                     title="{{ t('admin.characters.slot_' ~ slot.key) }}">
+                                    {% include 'components/inventory-slot.twig' with { item: slot.item } %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="admin-tabs-nav admin-game-ds-deck-nav" role="tablist"
+                     aria-label="{{ t('admin.characters.ds_decks') }}">
+                    {% for deck in ds.decks %}
+                        <button type="button"
+                                role="tab"
+                                id="admin-tab-inv-ds-deck-{{ deck.id }}"
+                                class="admin-tab admin-game-ds-deck-btn admin-game-ds-deck-{{ deck.key }}{% if loop.first %} is-active{% endif %}"
+                                data-tab="inv-ds-deck-{{ deck.id }}"
+                                aria-controls="admin-tab-panel-inv-ds-deck-{{ deck.id }}"
+                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                tabindex="{{ loop.first ? '0' : '-1' }}"
+                                title="{{ t('admin.characters.ds_deck_' ~ deck.key) }}">
+                            <span class="admin-game-ds-deck-glyph" aria-hidden="true">{{ t('admin.characters.ds_deck_glyph_' ~ deck.key) }}</span>
+                            <span class="sr-only">{{ t('admin.characters.ds_deck_' ~ deck.key) }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="admin-game-ds-bag" data-admin-tabs data-default-tab="inv-ds-kind-0">
+                <div class="admin-tabs-nav admin-game-ds-kind-nav" role="tablist"
+                     aria-label="{{ t('admin.characters.ds_kinds') }}">
+                    {% for kind in ds.kinds %}
+                        <button type="button"
+                                role="tab"
+                                id="admin-tab-inv-ds-kind-{{ kind.id }}"
+                                class="admin-tab admin-game-ds-kind-tab admin-game-ds-kind-{{ kind.key }}{% if loop.first %} is-active{% endif %}"
+                                data-tab="inv-ds-kind-{{ kind.id }}"
+                                aria-controls="admin-tab-panel-inv-ds-kind-{{ kind.id }}"
+                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                tabindex="{{ loop.first ? '0' : '-1' }}"
+                                title="{{ t('admin.characters.ds_kind_' ~ kind.key) }}">
+                            <span class="admin-game-ds-kind-gem" aria-hidden="true"></span>
+                            <span class="sr-only">{{ t('admin.characters.ds_kind_' ~ kind.key) }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+
+                {% for kind in ds.kinds %}
+                    <div id="admin-tab-panel-inv-ds-kind-{{ kind.id }}"
+                         class="admin-game-ds-kind-panel"
+                         role="tabpanel"
+                         data-tab-panel="inv-ds-kind-{{ kind.id }}"
+                         aria-labelledby="admin-tab-inv-ds-kind-{{ kind.id }}"
+                         {% if not loop.first %}hidden{% endif %}>
+                        <p class="admin-game-ds-kind-title">{{ t('admin.characters.ds_kind_' ~ kind.key) }}</p>
+
+                        <div class="admin-game-ds-grades" data-admin-tabs data-default-tab="inv-ds-kind-{{ kind.id }}-grade-0">
+                            <div class="admin-tabs-nav admin-game-ds-grade-nav" role="tablist"
+                                 aria-label="{{ t('admin.characters.ds_grades') }}">
+                                {% for grade in kind.grades %}
+                                    {% include 'components/tab.twig' with {
+                                        id: 'inv-ds-kind-' ~ kind.id ~ '-grade-' ~ grade.id,
+                                        label: t('admin.characters.ds_grade_' ~ grade.key),
+                                        active: loop.first
+                                    } %}
+                                {% endfor %}
+                            </div>
+
+                            {% for grade in kind.grades %}
+                                <div id="admin-tab-panel-inv-ds-kind-{{ kind.id }}-grade-{{ grade.id }}"
+                                     class="admin-inv-page"
+                                     role="tabpanel"
+                                     data-tab-panel="inv-ds-kind-{{ kind.id }}-grade-{{ grade.id }}"
+                                     aria-labelledby="admin-tab-inv-ds-kind-{{ kind.id }}-grade-{{ grade.id }}"
+                                     {% if not loop.first %}hidden{% endif %}>
+                                    <div class="admin-inv-grid admin-game-grid"
+                                         style="--inv-cols: {{ ds.columns }}; --inv-rows: {{ ds.rows }};">
+                                        {% for cell in grade.cells %}
+                                            <div class="admin-inv-cell"
+                                                 style="grid-column: {{ cell.col }}; grid-row: {{ cell.row }} / span {{ cell.span }};">
+                                                {% include 'components/inventory-slot.twig' with { item: cell.item } %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="admin-game-ds-footer">
+                <span class="admin-game-ds-activate" aria-hidden="true">{{ t('admin.characters.ds_activate') }}</span>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}

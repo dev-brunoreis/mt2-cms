@@ -1,59 +1,56 @@
 <div class="admin-inv-visual">
-    <div class="admin-inv-row">
-        <div class="admin-inv-col admin-inv-col-main">
-            {% include 'components/inventory-paperdoll.twig' with {
-                title: t('admin.characters.window_EQUIPMENT'),
-                board: layout.equipment
-            } %}
-            {% if layout.costume.has_item %}
-                {% include 'components/inventory-paperdoll.twig' with {
-                    title: t('admin.characters.slot_costume'),
-                    board: layout.costume
-                } %}
-            {% endif %}
-            {% if layout.extra is not empty %}
-                <div class="admin-inv-board">
-                    <h3 class="admin-inv-title">{{ t('admin.characters.slot_extra') }}</h3>
-                    <div class="admin-inv-extra">
-                        {% for item in layout.extra %}
-                            <div class="admin-inv-cell" style="width: var(--inv-cell); height: calc(var(--inv-cell) * {{ item.size }});">
-                                {% include 'components/inventory-slot.twig' %}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-            {% include 'components/inventory-grid.twig' with {
-                title: t('admin.characters.window_BELT_INVENTORY'),
-                grid: layout.belt,
-                prefix: 'inv-belt'
-            } %}
-            {% include 'components/inventory-grid.twig' with {
-                title: t('admin.characters.window_INVENTORY'),
-                grid: layout.inventory,
-                prefix: 'inv-inventory'
-            } %}
+    <div class="admin-inv-stage">
+        <div class="admin-inv-stage-ds">
+            {% include 'components/dragonsoul-window.twig' with { layout: layout } %}
         </div>
 
-        <div class="admin-inv-col admin-inv-col-side">
-            {% include 'components/inventory-grid.twig' with {
-                title: t('admin.characters.window_DRAGON_SOUL_INVENTORY'),
-                grid: layout.dragonSoul,
-                prefix: 'inv-ds'
-            } %}
-            {% if safeboxLayout %}
-                {% include 'components/inventory-grid.twig' with {
-                    title: t('admin.characters.window_SAFEBOX'),
-                    subtitle: safebox.has_row ? t('admin.characters.safebox_gold') ~ ': ' ~ safebox.gold : '',
-                    grid: safeboxLayout.safebox,
-                    prefix: 'inv-safebox'
+        <div class="admin-inv-stage-mid">
+            {% include 'components/costume-window.twig' with { board: layout.costume } %}
+
+            {% if layout.extra is not empty %}
+                {% embed 'components/game-window.twig' with {
+                    title: t('admin.characters.slot_extra'),
+                    modifier: 'admin-game-window-extra',
+                    items: layout.extra
                 } %}
-                {% include 'components/inventory-grid.twig' with {
-                    title: t('admin.characters.window_MALL'),
-                    grid: safeboxLayout.mall,
-                    prefix: 'inv-mall'
-                } %}
+                    {% block body %}
+                        <div class="admin-inv-extra">
+                            {% for item in items %}
+                                <div class="admin-inv-cell"
+                                     style="width: var(--inv-cell); height: calc(var(--inv-cell) * {{ item.size }});">
+                                    {% include 'components/inventory-slot.twig' %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endblock %}
+                {% endembed %}
             {% endif %}
         </div>
+
+        <div class="admin-inv-stage-inv">
+            {% include 'components/belt-window.twig' with { grid: layout.belt } %}
+            {% include 'components/inventory-window.twig' with {
+                layout: layout,
+                gold: character.gold|default(0)
+            } %}
+        </div>
     </div>
+
+    {% if safeboxLayout %}
+        <div class="admin-inv-stage-account">
+            {% include 'components/inventory-grid.twig' with {
+                title: t('admin.characters.window_SAFEBOX'),
+                subtitle: safebox.has_row ? t('admin.characters.safebox_gold') ~ ': ' ~ (safebox.gold|number_format(0, ',', '.')) : '',
+                grid: safeboxLayout.safebox,
+                prefix: 'inv-safebox',
+                chrome: true
+            } %}
+            {% include 'components/inventory-grid.twig' with {
+                title: t('admin.characters.window_MALL'),
+                grid: safeboxLayout.mall,
+                prefix: 'inv-mall',
+                chrome: true
+            } %}
+        </div>
+    {% endif %}
 </div>

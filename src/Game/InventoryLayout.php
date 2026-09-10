@@ -12,6 +12,12 @@ class InventoryLayout
     public const BELT_ROWS = 4;
     public const DS_COLUMNS = 8;
     public const DS_ROWS = 4;
+    public const DS_PAGE_SIZE = 32;
+    public const DS_KIND_COUNT = 6;
+    public const DS_GRADE_COUNT = 5;
+    public const DS_SLOT_COUNT = 6;
+    public const DS_DECK_COUNT = 2;
+    public const WEAR_MAX_NUM = 32;
 
     /** Paperdoll size matching client EquipmentSlot (150×182). */
     public const EQUIPMENT_WIDTH = 150;
@@ -19,6 +25,11 @@ class InventoryLayout
 
     public const COSTUME_WIDTH = 127;
     public const COSTUME_HEIGHT = 145;
+
+    /** Dragon Soul equipment board from dragonsoulwindow.py. */
+    public const DS_EQUIP_WIDTH = 287;
+    /** Cropped to the circle + deck buttons (client y≈230). */
+    public const DS_EQUIP_HEIGHT = 255;
 
     /**
      * Slot positions from Eternexus `inventorywindow.py` / `equipmentdialog.py`.
@@ -47,8 +58,47 @@ class InventoryLayout
      * @var array<int, array{x: int, y: int, w: int, h: int, key: string}>
      */
     public const COSTUME_SLOTS = [
-        19 => ['x' => 47, 'y' => 45, 'w' => 32, 'h' => 64, 'key' => 'costume_body'],
-        20 => ['x' => 47, 'y' => 8, 'w' => 32, 'h' => 32, 'key' => 'costume_hair'],
+        19 => ['x' => 61, 'y' => 45, 'w' => 32, 'h' => 64, 'key' => 'costume_body'],
+        20 => ['x' => 61, 'y' => 8, 'w' => 32, 'h' => 32, 'key' => 'costume_hair'],
+    ];
+
+    /**
+     * Equipped dragon soul slot offsets within one deck (dragonsoulwindow.py).
+     *
+     * @var list<array{x: int, y: int, w: int, h: int, key: string}>
+     */
+    public const DS_EQUIP_SLOTS = [
+        ['x' => 128, 'y' => 53, 'w' => 32, 'h' => 32, 'key' => 'ds_slot1'],
+        ['x' => 59, 'y' => 93, 'w' => 32, 'h' => 32, 'key' => 'ds_slot2'],
+        ['x' => 59, 'y' => 179, 'w' => 32, 'h' => 32, 'key' => 'ds_slot3'],
+        ['x' => 128, 'y' => 219, 'w' => 32, 'h' => 32, 'key' => 'ds_slot4'],
+        ['x' => 194, 'y' => 179, 'w' => 32, 'h' => 32, 'key' => 'ds_slot5'],
+        ['x' => 194, 'y' => 93, 'w' => 32, 'h' => 32, 'key' => 'ds_slot6'],
+    ];
+
+    /** @var list<string> */
+    public const DS_KIND_KEYS = [
+        'diamond',
+        'ruby',
+        'jade',
+        'sapphire',
+        'garnet',
+        'onyx',
+    ];
+
+    /** @var list<string> */
+    public const DS_GRADE_KEYS = [
+        'rough',
+        'cut',
+        'rare',
+        'antique',
+        'legendary',
+    ];
+
+    /** @var list<string> */
+    public const DS_DECK_KEYS = [
+        'heaven',
+        'earth',
     ];
 
     /** @var list<string> */
@@ -62,21 +112,31 @@ class InventoryLayout
      *   extra: list<array<string, mixed>>,
      *   inventory: array{columns: int, rows: int, pages: list<array<string, mixed>>},
      *   belt: array{columns: int, rows: int, pages: list<array<string, mixed>>},
-     *   dragonSoul: array{columns: int, rows: int, pages: list<array<string, mixed>>}
+     *   dragonSoul: array{
+     *     columns: int,
+     *     rows: int,
+     *     decks: list<array{id: string, key: string, width: int, height: int, slots: list<array<string, mixed>>, has_item: bool}>,
+     *     kinds: list<array{id: string, key: string, grades: list<array{id: string, key: string, cells: list<array<string, mixed>>}>}>
+     *   }
      * }
      */
     public static function forCharacter(array $grouped): array
     {
         $equipment = $grouped['EQUIPMENT'] ?? [];
-        $placed = array_merge(array_keys(self::EQUIPMENT_SLOTS), array_keys(self::COSTUME_SLOTS));
+        $dsEquipPos = self::dragonSoulEquipPositions();
+        $placed = array_merge(
+            array_keys(self::EQUIPMENT_SLOTS),
+            array_keys(self::COSTUME_SLOTS),
+            $dsEquipPos,
+        );
 
         return [
             'equipment' => self::paperdoll(self::EQUIPMENT_SLOTS, $equipment, self::EQUIPMENT_WIDTH, self::EQUIPMENT_HEIGHT),
             'costume' => self::paperdoll(self::COSTUME_SLOTS, $equipment, self::COSTUME_WIDTH, self::COSTUME_HEIGHT),
             'extra' => self::unplaced($equipment, $placed),
             'inventory' => self::pagedGrid($grouped['INVENTORY'] ?? [], self::INVENTORY_COLUMNS, self::INVENTORY_ROWS, 2),
-            'belt' => self::pagedGrid($grouped['BELT_INVENTORY'] ?? [], self::BELT_COLUMNS, self::BELT_ROWS, 0),
-            'dragonSoul' => self::pagedGrid($grouped['DRAGON_SOUL_INVENTORY'] ?? [], self::DS_COLUMNS, self::DS_ROWS, 0),
+            'belt' => self::pagedGrid($grouped['BELT_INVENTORY'] ?? [], self::BELT_COLUMNS, self::BELT_ROWS, 1),
+            'dragonSoul' => self::dragonSoulLayout($equipment, $grouped['DRAGON_SOUL_INVENTORY'] ?? []),
         ];
     }
 
@@ -92,6 +152,101 @@ class InventoryLayout
         return [
             'safebox' => self::pagedGrid($grouped['SAFEBOX'] ?? [], self::INVENTORY_COLUMNS, self::INVENTORY_ROWS, max(0, $safeboxPages)),
             'mall' => self::pagedGrid($grouped['MALL'] ?? [], self::INVENTORY_COLUMNS, self::INVENTORY_ROWS, 0),
+        ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private static function dragonSoulEquipPositions(): array
+    {
+        $positions = [];
+
+        for ($deck = 0; $deck < self::DS_DECK_COUNT; $deck++) {
+            for ($slot = 0; $slot < self::DS_SLOT_COUNT; $slot++) {
+                $positions[] = self::WEAR_MAX_NUM + ($deck * self::DS_SLOT_COUNT) + $slot;
+            }
+        }
+
+        return $positions;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $equipment
+     * @param list<array<string, mixed>> $dsItems
+     * @return array{
+     *   columns: int,
+     *   rows: int,
+     *   decks: list<array{id: string, key: string, width: int, height: int, slots: list<array<string, mixed>>, has_item: bool}>,
+     *   kinds: list<array{id: string, key: string, grades: list<array{id: string, key: string, cells: list<array<string, mixed>>}>}>
+     * }
+     */
+    private static function dragonSoulLayout(array $equipment, array $dsItems): array
+    {
+        $byPos = self::indexByPos($equipment);
+        $decks = [];
+
+        for ($deck = 0; $deck < self::DS_DECK_COUNT; $deck++) {
+            $slots = [];
+            $hasItem = false;
+
+            foreach (self::DS_EQUIP_SLOTS as $index => $slot) {
+                $pos = self::WEAR_MAX_NUM + ($deck * self::DS_SLOT_COUNT) + $index;
+                $item = $byPos[$pos] ?? null;
+
+                if ($item !== null) {
+                    $hasItem = true;
+                }
+
+                $slots[] = [
+                    'pos' => $pos,
+                    'x' => $slot['x'],
+                    'y' => $slot['y'],
+                    'w' => $slot['w'],
+                    'h' => $slot['h'],
+                    'key' => $slot['key'],
+                    'item' => $item,
+                ];
+            }
+
+            $decks[] = [
+                'id' => (string) $deck,
+                'key' => self::DS_DECK_KEYS[$deck],
+                'width' => self::DS_EQUIP_WIDTH,
+                'height' => self::DS_EQUIP_HEIGHT,
+                'slots' => $slots,
+                'has_item' => $hasItem,
+            ];
+        }
+
+        $dsByPos = self::indexByPos($dsItems);
+        $kinds = [];
+
+        for ($kind = 0; $kind < self::DS_KIND_COUNT; $kind++) {
+            $grades = [];
+
+            for ($grade = 0; $grade < self::DS_GRADE_COUNT; $grade++) {
+                $base = ($kind * self::DS_GRADE_COUNT * self::DS_PAGE_SIZE)
+                    + ($grade * self::DS_PAGE_SIZE);
+                $grades[] = [
+                    'id' => (string) $grade,
+                    'key' => self::DS_GRADE_KEYS[$grade],
+                    'cells' => self::gridCells($dsByPos, $base, self::DS_COLUMNS, self::DS_ROWS),
+                ];
+            }
+
+            $kinds[] = [
+                'id' => (string) $kind,
+                'key' => self::DS_KIND_KEYS[$kind],
+                'grades' => $grades,
+            ];
+        }
+
+        return [
+            'columns' => self::DS_COLUMNS,
+            'rows' => self::DS_ROWS,
+            'decks' => $decks,
+            'kinds' => $kinds,
         ];
     }
 
@@ -172,36 +327,10 @@ class InventoryLayout
         $out = [];
 
         for ($page = 0; $page < $pages; $page++) {
-            $occupied = [];
-            $cells = [];
-
-            for ($i = 0; $i < $pageSize; $i++) {
-                if (isset($occupied[$i])) {
-                    continue;
-                }
-
-                $pos = $page * $pageSize + $i;
-                $item = $byPos[$pos] ?? null;
-                $row = intdiv($i, $columns);
-                $span = $item !== null ? min(self::cellSize($item, $rows), $rows - $row) : 1;
-
-                for ($step = 1; $step < $span; $step++) {
-                    $occupied[$i + ($step * $columns)] = true;
-                }
-
-                $cells[] = [
-                    'pos' => $pos,
-                    'col' => ($i % $columns) + 1,
-                    'row' => $row + 1,
-                    'span' => $span,
-                    'item' => $item,
-                ];
-            }
-
             $out[] = [
                 'id' => (string) $page,
                 'label' => self::pageLabel($page),
-                'cells' => $cells,
+                'cells' => self::gridCells($byPos, $page * $pageSize, $columns, $rows),
             ];
         }
 
@@ -210,6 +339,42 @@ class InventoryLayout
             'rows' => $rows,
             'pages' => $out,
         ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $byPos
+     * @return list<array<string, mixed>>
+     */
+    private static function gridCells(array $byPos, int $basePos, int $columns, int $rows): array
+    {
+        $pageSize = $columns * $rows;
+        $occupied = [];
+        $cells = [];
+
+        for ($i = 0; $i < $pageSize; $i++) {
+            if (isset($occupied[$i])) {
+                continue;
+            }
+
+            $pos = $basePos + $i;
+            $item = $byPos[$pos] ?? null;
+            $row = intdiv($i, $columns);
+            $span = $item !== null ? min(self::cellSize($item, $rows), $rows - $row) : 1;
+
+            for ($step = 1; $step < $span; $step++) {
+                $occupied[$i + ($step * $columns)] = true;
+            }
+
+            $cells[] = [
+                'pos' => $pos,
+                'col' => ($i % $columns) + 1,
+                'row' => $row + 1,
+                'span' => $span,
+                'item' => $item,
+            ];
+        }
+
+        return $cells;
     }
 
     /**

@@ -273,7 +273,10 @@ class ItemAwardRepository extends Repository
      */
     private function filterClause(?string $query, ?string $status): array
     {
-        $clauses = [];
+        $clauses = [
+            // Item-shop purchases use why = shop:{orderId}[:ok]; those belong under Shop orders.
+            "(a.why IS NULL OR a.why NOT LIKE 'shop:%')",
+        ];
         $params = [];
 
         if ($status === 'pending') {
@@ -292,10 +295,6 @@ class ItemAwardRepository extends Repository
                 $like = '%' . $query . '%';
                 array_push($params, $like, $like);
             }
-        }
-
-        if ($clauses === []) {
-            return ['', []];
         }
 
         return [' WHERE ' . implode(' AND ', $clauses), $params];

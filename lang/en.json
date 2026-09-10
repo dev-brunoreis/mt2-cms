@@ -1338,7 +1338,7 @@
     },
     "awards": {
       "title": "Item awards",
-      "lead": "Queue items for the item mall or account safebox (item_award).",
+      "lead": "Manual item awards for the mall or safebox. Item shop purchases appear under Shop orders.",
       "create_title": "Send item",
       "create_lead": "Creates a pending award row. The player collects it in-game.",
       "create": "Send item",

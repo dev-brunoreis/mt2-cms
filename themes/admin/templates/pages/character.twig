@@ -20,25 +20,25 @@
     {% include 'components/tab-panel.twig' with {
         id: 'logs',
         visible: activeTab == 'logs',
-        src: '/admin/characters/' ~ character.id ~ '?tab=logs&partial=1',
+        src: '/admin/game/characters/' ~ character.id ~ '?tab=logs&partial=1',
         template: 'components/character-logs.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
         id: 'items',
         visible: activeTab == 'items',
-        src: '/admin/characters/' ~ character.id ~ '?tab=items&partial=1',
+        src: '/admin/game/characters/' ~ character.id ~ '?tab=items&partial=1',
         template: 'components/character-items.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
         id: 'guild',
         visible: activeTab == 'guild',
-        src: '/admin/characters/' ~ character.id ~ '?tab=guild&partial=1',
+        src: '/admin/game/characters/' ~ character.id ~ '?tab=guild&partial=1',
         template: 'components/character-guild.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
         id: 'marriage',
         visible: activeTab == 'marriage',
-        src: '/admin/characters/' ~ character.id ~ '?tab=marriage&partial=1',
+        src: '/admin/game/characters/' ~ character.id ~ '?tab=marriage&partial=1',
         template: 'components/character-marriage.twig'
     } %}
 </div>

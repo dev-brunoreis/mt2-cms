@@ -3,7 +3,7 @@
 {% endif %}
 
 <form id="admin-shop-form" method="post"
-      action="{% if isEdit %}/admin/shops/{{ shop.vnum }}{% else %}/admin/shops{% endif %}"
+      action="{% if isEdit %}/admin/game-data/shops/{{ shop.vnum }}{% else %}/admin/game-data/shops{% endif %}"
       class="admin-panel admin-tabs overflow-hidden"
       data-admin-tabs data-default-tab="dados"
       data-tab-loading="{{ t('admin.tabs.loading') }}"
@@ -45,7 +45,7 @@
         {% include 'components/tab-panel.twig' with {
             id: 'items',
             visible: activeTab|default('dados') == 'items',
-            src: '/admin/shops/' ~ shop.vnum ~ '?tab=items&partial=1',
+            src: '/admin/game-data/shops/' ~ shop.vnum ~ '?tab=items&partial=1',
             template: 'components/shop-items.twig'
         } %}
     {% endif %}
@@ -53,7 +53,7 @@
 
 {% if isEdit %}
     <div class="mt-4 flex justify-end">
-        <form method="post" action="/admin/shops/{{ shop.vnum }}/delete" data-confirm="{{ t('admin.shops.confirm_delete') }}">
+        <form method="post" action="/admin/game-data/shops/{{ shop.vnum }}/delete" data-confirm="{{ t('admin.shops.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
                 {{ t('admin.shops.delete') }}

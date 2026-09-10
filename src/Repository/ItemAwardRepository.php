@@ -13,7 +13,7 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/awards', 'admin.awards')
+        return GridDefinition::create('/admin/game/awards', 'admin.awards')
             ->orderBy([
                 'id' => 'a.id',
                 'login' => 'a.login',
@@ -40,7 +40,7 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
                     'taken' => 'admin.awards.status_taken',
                 ]],
             ])
-            ->massActions('/admin/awards/mass', [
+            ->massActions('/admin/game/awards/mass', [
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.awards.confirm_mass_delete'],
             ]);
     }

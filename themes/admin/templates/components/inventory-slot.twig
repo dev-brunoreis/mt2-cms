@@ -1,7 +1,7 @@
 {% if item %}
     {% set icon_src = item_icon(item.vnum) %}
     <div class="admin-inv-item{% if not icon_src %} is-missing-icon{% endif %}">
-        <a href="/admin/items/{{ item.vnum }}"
+        <a href="/admin/game-data/items/{{ item.vnum }}"
            class="admin-inv-item-link">
             {% if icon_src %}
                 {% include 'components/item-icon.twig' with { vnum: item.vnum, size: 'slot' } %}

@@ -22,11 +22,11 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
 
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/roles', 'admin.roles')
+        return GridDefinition::create('/admin/system/roles', 'admin.roles')
             ->defaultSort('label', 'asc')
             ->idField('slug')
             ->massIdType('string')
-            ->massActions('/admin/roles/mass', [
+            ->massActions('/admin/system/roles/mass', [
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.roles.confirm_mass_delete'],
             ])
             ->orderBy([
@@ -37,7 +37,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
                 'created_at' => 'r.created_at',
             ])
             ->columns([
-                ['key' => 'label', 'label' => 'admin.roles.label', 'sort' => 'label', 'type' => 'link', 'href' => '/admin/roles/{id}'],
+                ['key' => 'label', 'label' => 'admin.roles.label', 'sort' => 'label', 'type' => 'link', 'href' => '/admin/system/roles/{id}'],
                 ['key' => 'slug', 'label' => 'admin.roles.slug', 'sort' => 'slug', 'type' => 'muted'],
                 ['key' => 'admin_count', 'label' => 'admin.roles.admin_count', 'sort' => 'admin_count', 'type' => 'number'],
                 ['key' => 'section_count', 'label' => 'admin.roles.section_count', 'sort' => 'section_count', 'type' => 'number'],

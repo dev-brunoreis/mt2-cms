@@ -52,7 +52,7 @@ class AdminAwardsController extends AdminController
         return $this->adminView('awards', 'pages/awards.twig', [
             'title' => $this->t('admin.awards.title'),
             'pageLead' => $this->t('admin.awards.lead'),
-            'headerHref' => '/admin/awards/new',
+            'headerHref' => '/admin/game/awards/new',
             'headerActionLabel' => $this->t('admin.awards.create'),
             'grid' => $grid,
         ]);
@@ -62,7 +62,7 @@ class AdminAwardsController extends AdminController
     {
         return $this->runMassActions(
             $this->awards->gridDefinition()->spec(),
-            '/admin/awards',
+            '/admin/game/awards',
             [
                 'delete' => fn (int $id): bool => $this->awards->deletePending($id),
             ],
@@ -86,7 +86,7 @@ class AdminAwardsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/awards/new');
+            return $this->redirect('/admin/game/awards/new');
         }
 
         $input = $this->formInput();
@@ -97,7 +97,7 @@ class AdminAwardsController extends AdminController
             $this->audit('award.create', 'award', null);
             $this->flash('success', $this->t('admin.awards.created'));
 
-            return $this->redirect('/admin/awards');
+            return $this->redirect('/admin/game/awards');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -112,7 +112,7 @@ class AdminAwardsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/awards');
+            return $this->redirect('/admin/game/awards');
         }
 
         if (!$this->awards->deletePending((int) $id)) {
@@ -122,7 +122,7 @@ class AdminAwardsController extends AdminController
             $this->flash('success', $this->t('admin.awards.deleted'));
         }
 
-        return $this->redirect('/admin/awards');
+        return $this->redirect('/admin/game/awards');
     }
 
     /**

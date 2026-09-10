@@ -21,7 +21,7 @@
                     {% for player in characters %}
                         <tr>
                             <td>
-                                <a href="/admin/characters/{{ player.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
+                                <a href="/admin/game/characters/{{ player.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
                                     {% include 'components/face-icon.twig' with { job: player.job } %}
                                     <span>{{ player.name }}</span>
                                 </a>

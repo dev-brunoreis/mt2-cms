@@ -22,7 +22,7 @@
                 <dt>{{ t('admin.characters.marriage_partner') }}</dt>
                 <dd>
                     {% if marriage.partner_id %}
-                        <a href="/admin/characters/{{ marriage.partner_id }}" class="text-indigo-600 hover:underline">
+                        <a href="/admin/game/characters/{{ marriage.partner_id }}" class="text-indigo-600 hover:underline">
                             {{ marriage.partner_name|default(marriage.partner_id) }}
                         </a>
                     {% else %}

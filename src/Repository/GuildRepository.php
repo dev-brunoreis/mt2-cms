@@ -13,7 +13,7 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/guilds', 'admin.guilds')
+        return GridDefinition::create('/admin/game/guilds', 'admin.guilds')
             ->orderBy([
                 'id' => 'g.id',
                 'name' => 'g.name',
@@ -22,7 +22,7 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.guilds.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.guilds.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/guilds/{id}'],
+                ['key' => 'name', 'label' => 'admin.guilds.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game/guilds/{id}'],
                 ['key' => 'level', 'label' => 'admin.guilds.level', 'sort' => 'level', 'type' => 'number'],
                 ['key' => 'member_count', 'label' => 'admin.guilds.members', 'sort' => 'member_count', 'type' => 'number'],
                 ['key' => 'master', 'label' => 'admin.guilds.master', 'type' => 'text'],

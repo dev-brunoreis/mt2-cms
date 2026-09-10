@@ -2,9 +2,9 @@
     <p class="font-medium text-slate-900">{{ t('admin.roles.super_callout_title') }}</p>
     <p class="mt-1">{{ t('admin.roles.super_callout_body') }}</p>
     <p class="mt-2">
-        <a href="/admin/roles/super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.super_view') }}</a>
+        <a href="/admin/system/roles/super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.super_view') }}</a>
         ·
-        <a href="/admin/admins?filter[role]=super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.view_admins') }}</a>
+        <a href="/admin/system/admins?filter[role]=super" class="font-medium text-indigo-600 hover:underline">{{ t('admin.roles.view_admins') }}</a>
         {% if superAdminCount > 0 %}
             ({{ superAdminCount }})
         {% endif %}

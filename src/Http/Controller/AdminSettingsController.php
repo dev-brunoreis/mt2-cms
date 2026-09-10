@@ -53,7 +53,7 @@ class AdminSettingsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/registration');
+            return $this->redirect('/admin/settings/registration');
         }
 
         $enabled = isset($_POST['registration_enabled']);
@@ -61,7 +61,7 @@ class AdminSettingsController extends AdminController
         $this->audit('settings.registration_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
 
-        return $this->redirect('/admin/registration');
+        return $this->redirect('/admin/settings/registration');
     }
 
     public function themes(): Response
@@ -88,7 +88,7 @@ class AdminSettingsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/themes');
+            return $this->redirect('/admin/settings/themes');
         }
 
         $selected = $_POST['themes'] ?? [];
@@ -108,7 +108,7 @@ class AdminSettingsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/themes');
+        return $this->redirect('/admin/settings/themes');
     }
 
     public function locale(): Response
@@ -131,7 +131,7 @@ class AdminSettingsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/locale');
+            return $this->redirect('/admin/settings/locale');
         }
 
         $locale = trim((string) ($_POST['default_locale'] ?? ''));
@@ -139,13 +139,13 @@ class AdminSettingsController extends AdminController
         if (!$this->locales->isSupported($locale)) {
             $this->flash('error', $this->t('admin.invalid_locale'));
 
-            return $this->redirect('/admin/locale');
+            return $this->redirect('/admin/settings/locale');
         }
 
         $this->settings->setDefaultLocale($locale);
         $this->audit('settings.locale_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
 
-        return $this->redirect('/admin/locale');
+        return $this->redirect('/admin/settings/locale');
     }
 }

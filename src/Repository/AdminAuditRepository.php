@@ -18,7 +18,7 @@ class AdminAuditRepository extends Repository implements ProvidesAdminGrid
 
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/audit-log', 'admin.audit_log')
+        return GridDefinition::create('/admin/system/audit-log', 'admin.audit_log')
             ->defaultSort('created_at', 'desc')
             ->searchable(false)
             ->orderBy([

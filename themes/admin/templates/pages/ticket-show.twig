@@ -2,7 +2,7 @@
     <div class="admin-panel p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <a href="/admin/tickets" class="text-sm text-indigo-600 hover:underline">{{ t('admin.tickets.back') }}</a>
+                <a href="/admin/content/tickets" class="text-sm text-indigo-600 hover:underline">{{ t('admin.tickets.back') }}</a>
                 <p class="mt-3 text-sm text-slate-500">
                     {{ t('admin.tickets.account') }}:
                     <span class="font-medium text-slate-800">{{ ticket.account_login }}</span>
@@ -20,14 +20,14 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 {% if ticket.status == 'closed' %}
-                    <form method="post" action="/admin/tickets/{{ ticket.id }}/reopen">
+                    <form method="post" action="/admin/content/tickets/{{ ticket.id }}/reopen">
                         <input type="hidden" name="_csrf" value="{{ csrf }}">
                         <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
                             {{ t('admin.tickets.reopen') }}
                         </button>
                     </form>
                 {% else %}
-                    <form method="post" action="/admin/tickets/{{ ticket.id }}/close"
+                    <form method="post" action="/admin/content/tickets/{{ ticket.id }}/close"
                           data-confirm="{{ t('admin.tickets.confirm_close') }}">
                         <input type="hidden" name="_csrf" value="{{ csrf }}">
                         <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
@@ -70,7 +70,7 @@
     </div>
 
     {% if ticket.status != 'closed' %}
-        <form id="admin-ticket-reply-form" method="post" action="/admin/tickets/{{ ticket.id }}/reply" class="admin-panel p-6 space-y-3">
+        <form id="admin-ticket-reply-form" method="post" action="/admin/content/tickets/{{ ticket.id }}/reply" class="admin-panel p-6 space-y-3">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <div class="admin-field">
                 <label for="ticket-reply">{{ t('admin.tickets.reply') }}</label>

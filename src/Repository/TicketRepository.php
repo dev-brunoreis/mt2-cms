@@ -13,7 +13,7 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/tickets', 'admin.tickets')
+        return GridDefinition::create('/admin/content/tickets', 'admin.tickets')
             ->defaultSort('updated_at')
             ->orderBy([
                 'id' => 't.id',
@@ -24,7 +24,7 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.tickets.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'subject', 'label' => 'admin.tickets.subject', 'sort' => 'subject', 'type' => 'link', 'href' => '/admin/tickets/{id}'],
+                ['key' => 'subject', 'label' => 'admin.tickets.subject', 'sort' => 'subject', 'type' => 'link', 'href' => '/admin/content/tickets/{id}'],
                 ['key' => 'account_login', 'label' => 'admin.tickets.account', 'sort' => 'account_login', 'type' => 'text'],
                 ['key' => 'status', 'label' => 'admin.tickets.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
                     'open' => ['class' => 'admin-badge-warn', 'label' => 'admin.tickets.status_open'],
@@ -40,7 +40,7 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
                     'closed' => 'admin.tickets.status_closed',
                 ]],
             ])
-            ->massActions('/admin/tickets/mass', [
+            ->massActions('/admin/content/tickets/mass', [
                 ['id' => 'close', 'label' => 'admin.grid.close', 'confirm' => 'admin.tickets.confirm_mass_close'],
             ]);
     }

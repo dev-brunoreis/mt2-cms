@@ -1,0 +1,43 @@
+{% set activeTab = activeTab|default('connections') %}
+<div class="admin-panel admin-tabs overflow-hidden"
+     data-admin-tabs
+     data-default-tab="{{ activeTab }}"
+     data-tab-loading="{{ t('admin.tabs.loading') }}"
+     data-tab-load-error="{{ t('admin.tabs.load_error') }}">
+    <div class="admin-logs-tab-groups border-b border-slate-200 px-4 pt-4 md:px-6">
+        {% for group in logGroups %}
+            <div class="admin-logs-tab-group mb-3">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t(group.label) }}</p>
+                <div class="admin-tabs-nav admin-tabs-nav-wrap" role="tablist" aria-label="{{ t(group.label) }}">
+                    {% for tab in group.tabs %}
+                        {% include 'components/tab.twig' with {
+                            id: tab.id,
+                            label: t(tab.label),
+                            active: activeTab == tab.id
+                        } %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% for group in logGroups %}
+        {% for tab in group.tabs %}
+            {% if activeTab == tab.id %}
+                <div id="admin-tab-panel-{{ tab.id }}"
+                     class="admin-tabs-panel"
+                     role="tabpanel"
+                     data-tab-panel="{{ tab.id }}"
+                     aria-labelledby="admin-tab-{{ tab.id }}">
+                    {% include initialPartial.template with initialPartial.data %}
+                </div>
+            {% else %}
+                {% include 'components/tab-panel.twig' with {
+                    id: tab.id,
+                    visible: false,
+                    src: logsBaseUrl ~ '?tab=' ~ tab.id ~ '&partial=1'
+                } %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</div>

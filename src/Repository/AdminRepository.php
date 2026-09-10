@@ -33,7 +33,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
 
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/admins', 'admin.admins')
+        return GridDefinition::create('/admin/system/admins', 'admin.admins')
             ->defaultSort('login', 'asc')
             ->orderBy([
                 'id' => 'id',
@@ -43,7 +43,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.admins.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'login', 'label' => 'admin.admins.login', 'sort' => 'login', 'type' => 'link', 'href' => '/admin/admins/{id}'],
+                ['key' => 'login', 'label' => 'admin.admins.login', 'sort' => 'login', 'type' => 'link', 'href' => '/admin/system/admins/{id}'],
                 ['key' => 'role_label', 'label' => 'admin.admins.role', 'sort' => 'role', 'type' => 'text'],
                 ['key' => 'use_custom_acl', 'label' => 'admin.admins.custom_acl', 'type' => 'bool'],
                 ['key' => 'created_at', 'label' => 'admin.admins.created_at', 'sort' => 'created_at', 'type' => 'date'],

@@ -23,7 +23,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         return $this->adminView('news', 'pages/news.twig', [
             'title' => $this->t('admin.news.title'),
             'pageLead' => $this->t('admin.news.lead'),
-            'headerHref' => '/admin/news/new',
+            'headerHref' => '/admin/content/news/posts/new',
             'headerActionLabel' => $this->t('admin.news.create'),
             'grid' => $grid,
         ]);
@@ -33,7 +33,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
     {
         return $this->runMassActions(
             $this->news->gridDefinition()->spec(),
-            '/admin/news',
+            '/admin/content/news?tab=posts',
             [
                 'publish' => fn (int $id): bool => $this->setNewsStatus($id, 'published'),
                 'draft' => fn (int $id): bool => $this->setNewsStatus($id, 'draft'),
@@ -59,7 +59,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news/new');
+            return $this->redirect('/admin/content/news/posts/new');
         }
 
         $input = $this->formInput();
@@ -84,7 +84,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             $this->audit('news.create', 'news', $newsId);
             $this->flash('success', $this->t('admin.news.created'));
 
-            return $this->redirect('/admin/news');
+            return $this->redirect('/admin/content/news?tab=posts');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -97,7 +97,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if ($post === null) {
             $this->flash('error', $this->t('admin.news.not_found'));
 
-            return $this->redirect('/admin/news');
+            return $this->redirect('/admin/content/news?tab=posts');
         }
 
         return $this->formView([
@@ -122,7 +122,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news/' . (int) $id);
+            return $this->redirect('/admin/content/news/posts/' . (int) $id);
         }
 
         $existing = $this->news->findById((int) $id);
@@ -130,7 +130,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if ($existing === null) {
             $this->flash('error', $this->t('admin.news.not_found'));
 
-            return $this->redirect('/admin/news');
+            return $this->redirect('/admin/content/news?tab=posts');
         }
 
         $input = $this->formInput();
@@ -151,7 +151,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             $this->audit('news.update', 'news', (int) $id);
             $this->flash('success', $this->t('admin.news.update_ok'));
 
-            return $this->redirect('/admin/news/' . (int) $id);
+            return $this->redirect('/admin/content/news/posts/' . (int) $id);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -166,7 +166,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news');
+            return $this->redirect('/admin/content/news?tab=posts');
         }
 
         if (!$this->news->delete((int) $id)) {
@@ -176,7 +176,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             $this->flash('success', $this->t('admin.news.deleted'));
         }
 
-        return $this->redirect('/admin/news');
+        return $this->redirect('/admin/content/news?tab=posts');
     }
 
     public function upload(): Response

@@ -1,7 +1,7 @@
 <section class="admin-fieldset">
     <h2 class="admin-fieldset-title">{{ t('admin.shops.tab_items') }}</h2>
 
-    <form method="post" action="/admin/shops/{{ shop.vnum }}/items" class="mb-6 flex flex-wrap gap-2">
+    <form method="post" action="/admin/game-data/shops/{{ shop.vnum }}/items" class="mb-6 flex flex-wrap gap-2">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <input type="number" name="item_vnum" min="1" placeholder="{{ t('admin.shops.item_vnum') }}"
                class="admin-input admin-input-compact" required>
@@ -29,12 +29,12 @@
                     {% for item in shop.items %}
                         <tr>
                             <td class="text-slate-600">
-                                <a href="/admin/items/{{ item.item_vnum }}" class="text-indigo-600 hover:underline">{{ item.item_vnum }}</a>
+                                <a href="/admin/game-data/items/{{ item.item_vnum }}" class="text-indigo-600 hover:underline">{{ item.item_vnum }}</a>
                             </td>
                             <td>{% include 'components/item-icon.twig' with { vnum: item.item_vnum } %}</td>
                             <td class="text-slate-600">{{ item.count }}</td>
                             <td>
-                                <form method="post" action="/admin/shops/{{ shop.vnum }}/items/delete"
+                                <form method="post" action="/admin/game-data/shops/{{ shop.vnum }}/items/delete"
                                       data-confirm="{{ t('admin.shops.confirm_remove_item') }}">
                                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                                     <input type="hidden" name="item_vnum" value="{{ item.item_vnum }}">

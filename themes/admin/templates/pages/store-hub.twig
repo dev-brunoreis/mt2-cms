@@ -1,0 +1,30 @@
+{% set activeTab = activeTab|default('products') %}
+<div class="admin-panel admin-tabs overflow-hidden"
+     data-admin-tabs
+     data-default-tab="{{ activeTab }}"
+     data-tab-loading="{{ t('admin.tabs.loading') }}"
+     data-tab-load-error="{{ t('admin.tabs.load_error') }}">
+    <div class="admin-tabs-nav border-b border-slate-200 px-4 pt-4 md:px-6" role="tablist" aria-label="{{ t('admin.store.hub_title') }}">
+        {% include 'components/tab.twig' with { id: 'products', label: t('admin.store.tab_products'), active: activeTab == 'products' } %}
+        {% include 'components/tab.twig' with { id: 'categories', label: t('admin.store.tab_categories'), active: activeTab == 'categories' } %}
+        {% include 'components/tab.twig' with { id: 'orders', label: t('admin.store.tab_orders'), active: activeTab == 'orders' } %}
+    </div>
+
+    {% for tab in ['products', 'categories', 'orders'] %}
+        {% if activeTab == tab %}
+            <div id="admin-tab-panel-{{ tab }}"
+                 class="admin-tabs-panel"
+                 role="tabpanel"
+                 data-tab-panel="{{ tab }}"
+                 aria-labelledby="admin-tab-{{ tab }}">
+                {% include initialPartial.template with initialPartial.data %}
+            </div>
+        {% else %}
+            {% include 'components/tab-panel.twig' with {
+                id: tab,
+                visible: false,
+                src: storeBaseUrl ~ '?tab=' ~ tab ~ '&partial=1'
+            } %}
+        {% endif %}
+    {% endfor %}
+</div>

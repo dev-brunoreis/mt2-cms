@@ -13,7 +13,7 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/shops', 'admin.shops')
+        return GridDefinition::create('/admin/game-data/shops', 'admin.shops')
             ->idField('vnum')
             ->orderBy([
                 'vnum' => 's.vnum',
@@ -22,7 +22,7 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'vnum', 'label' => 'admin.shops.vnum', 'sort' => 'vnum', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.shops.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/shops/{vnum}'],
+                ['key' => 'name', 'label' => 'admin.shops.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game-data/shops/{vnum}'],
                 ['key' => 'npc_vnum', 'label' => 'admin.shops.npc', 'sort' => 'npc_vnum', 'type' => 'number'],
                 ['key' => 'item_count', 'label' => 'admin.shops.items', 'type' => 'number'],
             ]);

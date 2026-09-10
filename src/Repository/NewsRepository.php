@@ -13,7 +13,7 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/news', 'admin.news')
+        return GridDefinition::create('/admin/content/news?tab=posts', 'admin.news')
             ->orderBy([
                 'id' => 'id',
                 'title' => 'title',
@@ -23,7 +23,7 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.news.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'title', 'label' => 'admin.news.post_title', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/news/{id}'],
+                ['key' => 'title', 'label' => 'admin.news.post_title', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/content/news/posts/{id}'],
                 ['key' => 'author_login', 'label' => 'admin.news.author', 'sort' => 'author_login', 'type' => 'text'],
                 ['key' => 'status', 'label' => 'admin.news.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
                     'published' => ['class' => 'admin-badge-ok', 'label' => 'admin.news.status_published'],
@@ -37,7 +37,7 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
                     'published' => 'admin.news.status_published',
                 ]],
             ])
-            ->massActions('/admin/news/mass', [
+            ->massActions('/admin/content/news/posts/mass', [
                 ['id' => 'publish', 'label' => 'admin.grid.publish', 'confirm' => 'admin.news.confirm_mass_publish'],
                 ['id' => 'draft', 'label' => 'admin.grid.draft', 'confirm' => 'admin.news.confirm_mass_draft'],
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.news.confirm_mass_delete'],

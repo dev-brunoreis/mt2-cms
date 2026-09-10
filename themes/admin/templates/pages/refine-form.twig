@@ -3,7 +3,7 @@
 {% endif %}
 
 <form id="admin-refine-form" method="post"
-      action="{% if isEdit %}/admin/refine/{{ recipe.id }}{% else %}/admin/refine{% endif %}"
+      action="{% if isEdit %}/admin/game-data/refine/{{ recipe.id }}{% else %}/admin/game-data/refine{% endif %}"
       class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -50,7 +50,7 @@
 
 {% if isEdit %}
     <div class="mt-4 flex justify-end">
-        <form method="post" action="/admin/refine/{{ recipe.id }}/delete" data-confirm="{{ t('admin.refine.confirm_delete') }}">
+        <form method="post" action="/admin/game-data/refine/{{ recipe.id }}/delete" data-confirm="{{ t('admin.refine.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
                 {{ t('admin.refine.delete') }}

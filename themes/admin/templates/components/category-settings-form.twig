@@ -1,5 +1,5 @@
 <form id="admin-item-shop-category-form" method="post"
-      action="{% if isEdit %}/admin/item-shop/categories/{{ category.id }}{% else %}/admin/item-shop/categories{% endif %}"
+      action="{% if isEdit %}/admin/store/categories/{{ category.id }}{% else %}/admin/store/categories{% endif %}"
       class="{% if not isEdit %}admin-panel p-6{% else %}p-6{% endif %}">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -55,11 +55,11 @@
 
 {% if isEdit and category.id is defined %}
     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
-        <a href="/admin/item-shop/categories/new?parent_id={{ category.id }}"
+        <a href="/admin/store/categories/new?parent_id={{ category.id }}"
            class="admin-btn-secondary rounded-md px-4 py-2 text-sm font-medium">
             {{ t('admin.item_shop.categories.add_child') }}
         </a>
-        <form method="post" action="/admin/item-shop/categories/{{ category.id }}/delete"
+        <form method="post" action="/admin/store/categories/{{ category.id }}/delete"
               data-confirm="{{ t('admin.item_shop.categories.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">

@@ -53,7 +53,7 @@ class AdminShopsController extends AdminController
         return $this->adminView('shops', 'pages/shops.twig', [
             'title' => $this->t('admin.shops.title'),
             'pageLead' => $this->t('admin.shops.lead'),
-            'headerHref' => '/admin/shops/new',
+            'headerHref' => '/admin/game-data/shops/new',
             'headerActionLabel' => $this->t('admin.shops.create'),
             'grid' => $grid,
         ]);
@@ -73,7 +73,7 @@ class AdminShopsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/shops/new');
+            return $this->redirect('/admin/game-data/shops/new');
         }
 
         $input = $this->formInput();
@@ -83,7 +83,7 @@ class AdminShopsController extends AdminController
             $this->audit('shop.create', 'shop', (int) $shop['vnum']);
             $this->flash('success', $this->t('admin.shops.created'));
 
-            return $this->redirect('/admin/shops/' . $shop['vnum']);
+            return $this->redirect('/admin/game-data/shops/' . $shop['vnum']);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422, false);
         }
@@ -100,7 +100,7 @@ class AdminShopsController extends AdminController
         if ($shop === null) {
             $this->flash('error', $this->t('admin.shops.not_found'));
 
-            return $this->redirect('/admin/shops');
+            return $this->redirect('/admin/game-data/shops');
         }
 
         $tab = $this->requestedTab(['dados', 'items'], 'dados');
@@ -140,13 +140,13 @@ class AdminShopsController extends AdminController
         if ($shop === null) {
             $this->flash('error', $this->t('admin.shops.not_found'));
 
-            return $this->redirect('/admin/shops');
+            return $this->redirect('/admin/game-data/shops');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/shops/' . $vnum);
+            return $this->redirect('/admin/game-data/shops/' . $vnum);
         }
 
         $input = $this->formInput();
@@ -156,7 +156,7 @@ class AdminShopsController extends AdminController
             $this->audit('shop.update', 'shop', $vnum);
             $this->flash('success', $this->t('admin.shops.updated'));
 
-            return $this->redirect('/admin/shops/' . $vnum);
+            return $this->redirect('/admin/game-data/shops/' . $vnum);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(array_merge($shop, $input), $this->t($e->getMessage()), 422, true);
         }
@@ -171,7 +171,7 @@ class AdminShopsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/shops');
+            return $this->redirect('/admin/game-data/shops');
         }
 
         if (!$this->shops->delete((int) $id)) {
@@ -181,7 +181,7 @@ class AdminShopsController extends AdminController
             $this->flash('success', $this->t('admin.shops.deleted'));
         }
 
-        return $this->redirect('/admin/shops');
+        return $this->redirect('/admin/game-data/shops');
     }
 
     public function addItem(string $id): Response
@@ -236,7 +236,7 @@ class AdminShopsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/shops/' . $shopVnum . '?tab=items');
+            return $this->redirect('/admin/game-data/shops/' . $shopVnum . '?tab=items');
         }
 
         $itemVnum = (int) ($_POST['item_vnum'] ?? 0);
@@ -263,6 +263,6 @@ class AdminShopsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/shops/' . $shopVnum . '?tab=items');
+        return $this->redirect('/admin/game-data/shops/' . $shopVnum . '?tab=items');
     }
 }

@@ -51,7 +51,7 @@ class AdminAdminsController extends AdminController
         return $this->adminView('admins', 'pages/admins.twig', [
             'title' => $this->t('admin.admins.title'),
             'pageLead' => $this->t('admin.admins.lead'),
-            'headerHref' => '/admin/admins/new',
+            'headerHref' => '/admin/system/admins/new',
             'headerActionLabel' => $this->t('admin.admins.create'),
             'grid' => $grid,
         ]);
@@ -71,7 +71,7 @@ class AdminAdminsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/admins/new');
+            return $this->redirect('/admin/system/admins/new');
         }
 
         $input = $this->formInput();
@@ -95,7 +95,7 @@ class AdminAdminsController extends AdminController
             ]);
             $this->flash('success', $this->t('admin.admins.created'));
 
-            return $this->redirect('/admin/admins');
+            return $this->redirect('/admin/system/admins');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -126,7 +126,7 @@ class AdminAdminsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/admins/' . $id);
+            return $this->redirect('/admin/system/admins/' . $id);
         }
 
         $input = $this->formInput();
@@ -155,7 +155,7 @@ class AdminAdminsController extends AdminController
             ]);
             $this->flash('success', $this->t('admin.admins.updated'));
 
-            return $this->redirect('/admin/admins');
+            return $this->redirect('/admin/system/admins');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $admin = $this->admins->findById($adminId);
 
@@ -175,7 +175,7 @@ class AdminAdminsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/admins');
+            return $this->redirect('/admin/system/admins');
         }
 
         $adminId = (int) $id;
@@ -183,7 +183,7 @@ class AdminAdminsController extends AdminController
         if ($adminId === (int) ($this->adminAuth->id() ?? 0)) {
             $this->flash('error', $this->t('admin.admins.cannot_delete_self'));
 
-            return $this->redirect('/admin/admins');
+            return $this->redirect('/admin/system/admins');
         }
 
         try {
@@ -195,7 +195,7 @@ class AdminAdminsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/admins');
+        return $this->redirect('/admin/system/admins');
     }
 
     /**

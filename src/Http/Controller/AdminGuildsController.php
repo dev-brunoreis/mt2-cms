@@ -68,7 +68,7 @@ class AdminGuildsController extends AdminController
         if ($guild === null) {
             $this->flash('error', $this->t('admin.guilds.not_found'));
 
-            return $this->redirect('/admin/guilds');
+            return $this->redirect('/admin/game/guilds');
         }
 
         $tab = $this->requestedTab(['dados', 'membros', 'comentarios', 'wars'], 'dados');
@@ -107,13 +107,13 @@ class AdminGuildsController extends AdminController
         if ($guild === null) {
             $this->flash('error', $this->t('admin.guilds.not_found'));
 
-            return $this->redirect('/admin/guilds');
+            return $this->redirect('/admin/game/guilds');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/guilds/' . $guildId);
+            return $this->redirect('/admin/game/guilds/' . $guildId);
         }
 
         $input = $this->formInput();
@@ -123,7 +123,7 @@ class AdminGuildsController extends AdminController
             $this->audit('guild.update', 'guild', $guildId);
             $this->flash('success', $this->t('admin.guilds.updated'));
 
-            return $this->redirect('/admin/guilds/' . $guildId);
+            return $this->redirect('/admin/game/guilds/' . $guildId);
         } catch (\InvalidArgumentException $e) {
             return $this->formView(
                 array_merge($guild, $input),
@@ -147,7 +147,7 @@ class AdminGuildsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/guilds/' . (int) $id . '?tab=comentarios');
+            return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comentarios');
         }
 
         if (!$this->guilds->deleteComment((int) $id, (int) $commentId)) {
@@ -157,7 +157,7 @@ class AdminGuildsController extends AdminController
             $this->flash('success', $this->t('admin.guilds.comment_deleted'));
         }
 
-        return $this->redirect('/admin/guilds/' . (int) $id . '?tab=comentarios');
+        return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comentarios');
     }
 
     public function dissolve(string $id): Response
@@ -169,7 +169,7 @@ class AdminGuildsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/guilds/' . (int) $id);
+            return $this->redirect('/admin/game/guilds/' . (int) $id);
         }
 
         if (!$this->guilds->dissolve((int) $id)) {
@@ -179,7 +179,7 @@ class AdminGuildsController extends AdminController
             $this->flash('success', $this->t('admin.guilds.dissolved'));
         }
 
-        return $this->redirect('/admin/guilds');
+        return $this->redirect('/admin/game/guilds');
     }
 
     /**
@@ -230,7 +230,7 @@ class AdminGuildsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/guilds/' . $guildId . '?tab=membros');
+            return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=membros');
         }
 
         $playerId = (int) ($_POST['player_id'] ?? 0);
@@ -248,6 +248,6 @@ class AdminGuildsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/guilds/' . $guildId . '?tab=membros');
+        return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=membros');
     }
 }

@@ -13,7 +13,7 @@ class NewsCommentRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/news/comments', 'admin.news')
+        return GridDefinition::create('/admin/content/news?tab=comments', 'admin.news')
             ->searchable(false)
             ->defaultSort('created_at')
             ->orderBy([
@@ -28,7 +28,7 @@ class NewsCommentRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'body', 'label' => 'admin.news.comment_body', 'type' => 'text'],
                 ['key' => 'created_at', 'label' => 'admin.news.comment_date', 'sort' => 'created_at', 'type' => 'date'],
             ])
-            ->massActions('/admin/news/comments/mass', [
+            ->massActions('/admin/content/news/comments/mass', [
                 ['id' => 'approve', 'label' => 'admin.grid.approve'],
                 ['id' => 'reject', 'label' => 'admin.grid.reject'],
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.news.confirm_mass_delete_comments'],

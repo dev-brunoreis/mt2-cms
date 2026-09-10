@@ -14,7 +14,7 @@
                 <dt>{{ t('admin.characters.items_vnum') }}</dt>
                 <dd>
                     {% if item.vnum %}
-                        <a href="/admin/items/{{ item.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                        <a href="/admin/game-data/items/{{ item.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
                             {% include 'components/item-icon.twig' with { vnum: item.vnum } %}
                             <span>{{ item.vnum }}</span>
                         </a>
@@ -43,11 +43,11 @@
                 <dt>{{ t('admin.owned_items.owner') }}</dt>
                 <dd>
                     {% if ownerKind == 'account' and item.owner_id %}
-                        <a href="/admin/accounts/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
+                        <a href="/admin/game/accounts/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
                             {{ owner.login|default(item.owner_id) }}
                         </a>
                     {% elseif ownerKind == 'character' and item.owner_id %}
-                        <a href="/admin/characters/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
+                        <a href="/admin/game/characters/{{ item.owner_id }}" class="text-indigo-600 hover:underline">
                             {{ owner.name|default(item.owner_id) }}
                         </a>
                     {% else %}

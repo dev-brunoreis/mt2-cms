@@ -27,7 +27,7 @@
                             <td class="text-slate-600">
                                 {% if war.guild1 == guild.id %}
                                     {% if war.guild2 %}
-                                        <a href="/admin/guilds/{{ war.guild2 }}" class="text-indigo-600 hover:underline">
+                                        <a href="/admin/game/guilds/{{ war.guild2 }}" class="text-indigo-600 hover:underline">
                                             {{ war.guild2_name|default(war.guild2) }}
                                         </a>
                                     {% else %}
@@ -35,7 +35,7 @@
                                     {% endif %}
                                 {% else %}
                                     {% if war.guild1 %}
-                                        <a href="/admin/guilds/{{ war.guild1 }}" class="text-indigo-600 hover:underline">
+                                        <a href="/admin/game/guilds/{{ war.guild1 }}" class="text-indigo-600 hover:underline">
                                             {{ war.guild1_name|default(war.guild1) }}
                                         </a>
                                     {% else %}

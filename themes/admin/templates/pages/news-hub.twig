@@ -1,0 +1,30 @@
+{% set activeTab = activeTab|default('posts') %}
+<div class="admin-panel admin-tabs overflow-hidden"
+     data-admin-tabs
+     data-default-tab="{{ activeTab }}"
+     data-tab-loading="{{ t('admin.tabs.loading') }}"
+     data-tab-load-error="{{ t('admin.tabs.load_error') }}">
+    <div class="admin-tabs-nav border-b border-slate-200 px-4 pt-4 md:px-6" role="tablist" aria-label="{{ t('admin.news.hub_title') }}">
+        {% include 'components/tab.twig' with { id: 'posts', label: t('admin.news.tab_posts'), active: activeTab == 'posts' } %}
+        {% include 'components/tab.twig' with { id: 'comments', label: t('admin.news.tab_comments'), active: activeTab == 'comments' } %}
+        {% include 'components/tab.twig' with { id: 'settings', label: t('admin.news.tab_settings'), active: activeTab == 'settings' } %}
+    </div>
+
+    {% for tab in ['posts', 'comments', 'settings'] %}
+        {% if activeTab == tab %}
+            <div id="admin-tab-panel-{{ tab }}"
+                 class="admin-tabs-panel"
+                 role="tabpanel"
+                 data-tab-panel="{{ tab }}"
+                 aria-labelledby="admin-tab-{{ tab }}">
+                {% include initialPartial.template with initialPartial.data %}
+            </div>
+        {% else %}
+            {% include 'components/tab-panel.twig' with {
+                id: tab,
+                visible: false,
+                src: newsBaseUrl ~ '?tab=' ~ tab ~ '&partial=1'
+            } %}
+        {% endif %}
+    {% endfor %}
+</div>

@@ -77,7 +77,7 @@ class AdminCharactersController extends AdminController
         if ($character === null) {
             $this->flash('error', $this->t('admin.characters.not_found'));
 
-            return $this->redirect('/admin/characters');
+            return $this->redirect('/admin/game/characters');
         }
 
         $playerId = (int) $character['id'];
@@ -145,7 +145,7 @@ class AdminCharactersController extends AdminController
         if ($itemId < 1) {
             $this->flash('error', $this->t('admin.owned_items.not_found'));
 
-            return $this->redirect('/admin/characters');
+            return $this->redirect('/admin/game/characters');
         }
 
         $tab = $this->requestedTab(['dados', 'logs'], 'dados');
@@ -159,7 +159,7 @@ class AdminCharactersController extends AdminController
         if ($item === null && $itemLogs === []) {
             $this->flash('error', $this->t('admin.owned_items.not_found'));
 
-            return $this->redirect('/admin/characters');
+            return $this->redirect('/admin/game/characters');
         }
 
         $owner = null;

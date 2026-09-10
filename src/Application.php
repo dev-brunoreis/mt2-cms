@@ -348,7 +348,7 @@ class Application
 
         $this->adminTheme->setGlobals([
             'admin_nav_counts' => [
-                'news-comments' => $this->newsComments->countPending(),
+                'news' => $this->newsComments->countPending(),
                 'tickets' => $this->tickets->countOpen(),
             ],
         ]);

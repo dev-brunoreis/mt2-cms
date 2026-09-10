@@ -51,7 +51,7 @@ class AdminRefineController extends AdminController
         return $this->adminView('refine', 'pages/refine-list.twig', [
             'title' => $this->t('admin.refine.title'),
             'pageLead' => $this->t('admin.refine.lead'),
-            'headerHref' => '/admin/refine/new',
+            'headerHref' => '/admin/game-data/refine/new',
             'headerActionLabel' => $this->t('admin.refine.create'),
             'grid' => $grid,
         ]);
@@ -71,7 +71,7 @@ class AdminRefineController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/refine/new');
+            return $this->redirect('/admin/game-data/refine/new');
         }
 
         $input = $this->formInput();
@@ -82,7 +82,7 @@ class AdminRefineController extends AdminController
             $this->audit('refine.create', 'refine', (int) $recipe['id']);
             $this->flash('success', $this->t('admin.refine.created'));
 
-            return $this->redirect('/admin/refine/' . $recipe['id']);
+            return $this->redirect('/admin/game-data/refine/' . $recipe['id']);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(array_merge($this->emptyRecipe(), $input), $this->t($e->getMessage()), 422);
         }
@@ -95,7 +95,7 @@ class AdminRefineController extends AdminController
         if ($recipe === null) {
             $this->flash('error', $this->t('admin.refine.not_found'));
 
-            return $this->redirect('/admin/refine');
+            return $this->redirect('/admin/game-data/refine');
         }
 
         return $this->formView($recipe);
@@ -113,13 +113,13 @@ class AdminRefineController extends AdminController
         if ($recipe === null) {
             $this->flash('error', $this->t('admin.refine.not_found'));
 
-            return $this->redirect('/admin/refine');
+            return $this->redirect('/admin/game-data/refine');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/refine/' . $recipeId);
+            return $this->redirect('/admin/game-data/refine/' . $recipeId);
         }
 
         $input = $this->formInput();
@@ -130,7 +130,7 @@ class AdminRefineController extends AdminController
             $this->audit('refine.update', 'refine', $recipeId);
             $this->flash('success', $this->t('admin.refine.updated'));
 
-            return $this->redirect('/admin/refine/' . $recipeId);
+            return $this->redirect('/admin/game-data/refine/' . $recipeId);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(array_merge($recipe, $input), $this->t($e->getMessage()), 422);
         }
@@ -145,7 +145,7 @@ class AdminRefineController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/refine');
+            return $this->redirect('/admin/game-data/refine');
         }
 
         if (!$this->refine->delete((int) $id)) {
@@ -155,7 +155,7 @@ class AdminRefineController extends AdminController
             $this->flash('success', $this->t('admin.refine.deleted'));
         }
 
-        return $this->redirect('/admin/refine');
+        return $this->redirect('/admin/game-data/refine');
     }
 
     /**

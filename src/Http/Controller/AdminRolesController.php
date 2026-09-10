@@ -36,14 +36,14 @@ class AdminRolesController extends AdminController
 
     public function legacyRedirect(): Response
     {
-        return $this->redirect('/admin/roles');
+        return $this->redirect('/admin/system/roles');
     }
 
     public function mass(): Response
     {
         return $this->runMassActions(
             $this->roles->gridDefinition()->spec(),
-            '/admin/roles',
+            '/admin/system/roles',
             [
                 'delete' => fn (string $slug): bool => $this->roles->delete($slug),
             ],
@@ -68,7 +68,7 @@ class AdminRolesController extends AdminController
         return $this->adminView('roles', 'pages/roles.twig', [
             'title' => $this->t('admin.roles.title'),
             'pageLead' => $this->t('admin.roles.lead'),
-            'headerHref' => '/admin/roles/new',
+            'headerHref' => '/admin/system/roles/new',
             'headerActionLabel' => $this->t('admin.roles.create'),
             'grid' => $grid,
             'superAdminCount' => $this->roles->countSuperAdmins(),
@@ -89,7 +89,7 @@ class AdminRolesController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/roles/new');
+            return $this->redirect('/admin/system/roles/new');
         }
 
         $input = $this->formInput();
@@ -102,7 +102,7 @@ class AdminRolesController extends AdminController
             ]);
             $this->flash('success', $this->t('admin.roles.created'));
 
-            return $this->redirect('/admin/roles');
+            return $this->redirect('/admin/system/roles');
         } catch (RoleSlugExistsException $e) {
             $input['slug'] = '';
 
@@ -137,7 +137,7 @@ class AdminRolesController extends AdminController
         if (AdminPermissions::isSuper($slug)) {
             $this->flash('error', $this->t('admin.roles.super_readonly'));
 
-            return $this->redirect('/admin/roles/super');
+            return $this->redirect('/admin/system/roles/super');
         }
 
         if ($redirect = $this->requireAdminSection('roles')) {
@@ -147,7 +147,7 @@ class AdminRolesController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/roles/' . rawurlencode($slug));
+            return $this->redirect('/admin/system/roles/' . rawurlencode($slug));
         }
 
         $input = $this->formInput();
@@ -160,7 +160,7 @@ class AdminRolesController extends AdminController
             ]);
             $this->flash('success', $this->t('admin.roles.updated'));
 
-            return $this->redirect('/admin/roles');
+            return $this->redirect('/admin/system/roles');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView([
                 'role' => ['slug' => $slug, 'label' => $input['label']],
@@ -174,7 +174,7 @@ class AdminRolesController extends AdminController
         if (AdminPermissions::isSuper($slug)) {
             $this->flash('error', $this->t('admin.roles.super_readonly'));
 
-            return $this->redirect('/admin/roles');
+            return $this->redirect('/admin/system/roles');
         }
 
         if ($redirect = $this->requireAdminSection('roles')) {
@@ -184,7 +184,7 @@ class AdminRolesController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/roles');
+            return $this->redirect('/admin/system/roles');
         }
 
         try {
@@ -202,7 +202,7 @@ class AdminRolesController extends AdminController
             );
         }
 
-        return $this->redirect('/admin/roles');
+        return $this->redirect('/admin/system/roles');
     }
 
     private function systemRoleView(): Response

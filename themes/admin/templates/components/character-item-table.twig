@@ -17,14 +17,14 @@
                     <tr>
                         <td class="text-slate-400">
                             {% if item.id %}
-                                <a href="/admin/owned-items/{{ item.id }}" class="text-indigo-600 hover:underline">{{ item.id }}</a>
+                                <a href="/admin/game/owned-items/{{ item.id }}" class="text-indigo-600 hover:underline">{{ item.id }}</a>
                             {% else %}
                                 —
                             {% endif %}
                         </td>
                         <td class="text-slate-600">
                             {% if item.vnum %}
-                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                                <a href="/admin/game-data/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
                             {% else %}
                                 —
                             {% endif %}

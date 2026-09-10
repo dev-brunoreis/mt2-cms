@@ -511,6 +511,7 @@
       "store": "Store",
       "design": "Design",
       "configuration": "Configuration",
+      "settings": "Settings",
       "site": "Site",
       "appearance": "Appearance",
       "localization": "Localization",
@@ -584,7 +585,17 @@
       }
     },
     "logs": {
+      "title": "Logs",
       "lead": "Browse game server logs. Filter by text or date range.",
+      "groups": {
+        "connections": "Connections",
+        "security": "Security",
+        "economy": "Economy",
+        "progression": "Progression",
+        "commands": "Commands",
+        "sessions": "Sessions",
+        "other": "Other"
+      },
       "count": {
         "one": "{count} row",
         "other": "{count} rows"
@@ -1705,8 +1716,20 @@
       "lead": "Default language for visitors without a saved preference.",
       "default": "Default locale"
     },
+    "store": {
+      "hub_title": "Item shop",
+      "hub_lead": "Manage mall products, categories, and orders.",
+      "tab_products": "Products",
+      "tab_categories": "Categories",
+      "tab_orders": "Orders"
+    },
     "news": {
       "title": "News",
+      "hub_title": "News",
+      "hub_lead": "Posts, comment moderation, and news settings.",
+      "tab_posts": "Posts",
+      "tab_comments": "Comments",
+      "tab_settings": "Settings",
       "lead": "Create and publish site news posts.",
       "create": "New post",
       "create_title": "Create post",

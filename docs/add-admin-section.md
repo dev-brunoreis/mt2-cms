@@ -2,25 +2,42 @@
 
 Admin UI lives in **`themes/admin`** (white panel, Magento-style page header).
 
+## URL layout
+
+Admin routes use area prefixes:
+
+| Area | Prefix | Examples |
+|------|--------|----------|
+| Overview | `/admin` | Dashboard |
+| Game | `/admin/game/` | accounts, characters, guilds, awards |
+| Content | `/admin/content/` | news (hub), tickets |
+| Store | `/admin/store/` | products, categories, orders (hub at `/admin/store`) |
+| Game data | `/admin/game-data/` | shops, refine, drops, items, mobs, gms |
+| Logs | `/admin/logs` | Hub with `?tab={logId}` |
+| System | `/admin/system/` | admins, roles, audit-log |
+| Settings | `/admin/settings/` | registration, themes, locale |
+
+Use [`AdminPaths.php`](../src/Admin/AdminPaths.php) for canonical paths (and `admin_path()` in Twig). Legacy URLs redirect via [`AdminLegacyRoutes.php`](../src/Http/AdminLegacyRoutes.php).
+
+Hub pages (news, store, logs) use `[data-admin-tabs]` with lazy `?partial=1` fragments — see §5.
+
 ## 1. Register menu + submenu
 
-In `src/Admin/AdminSections.php`, add the item under the right group `children` array (**Game**, **Logs**, or **Configuration**). Game log tables belong in the **Logs** group via `LogCatalog`.
+In [`src/Admin/AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`.
 
 ```php
 [
     'id' => 'your-section',
-    'path' => '/admin/your-section',
+    'path' => AdminPaths::gameDataShops(), // example
     'label' => 'admin.nav.your_section',
 ],
 ```
 
-The sidebar auto-expands **Configuration** when that section is active.
-
-If the section should appear in the role permissions matrix (`/admin/roles`), ensure its `id` is listed in `AdminSectionCatalog::grouped()` (usually via `AdminSections` or the **Game data** group for shops/proto/drops).
+If the section should appear in the role permissions matrix (`/admin/system/roles`), ensure its `id` is listed via `AdminSectionCatalog::grouped()` (derived from `AdminSections`).
 
 ## 2. Routes + controller
 
-Extend `AdminController`, register routes in `src/Http/AdminRoutes.php`, and wire the controller in `src/Http/ControllerMap.php`.
+Extend `AdminController`, register routes in [`src/Http/AdminRoutes.php`](../src/Http/AdminRoutes.php), and wire the controller in [`src/Http/ControllerMap.php`](../src/Http/ControllerMap.php).
 
 Pass page header data in `adminView()`:
 
@@ -66,6 +83,8 @@ Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<fo
 
 Read-only panels that are expensive to build (inventory, logs, drops) can stay empty until opened: set `data-tab-src="/admin/…?tab=items&partial=1"` and only query that data when `tab` matches. The script fetches the fragment on first click. Keep editable form fields in the DOM so Save still posts every tab.
 
+Hub examples: [`AdminLogsController`](../src/Http/Controller/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/AdminStoreHubController.php).
+
 ## 6. List pages (admin grid)
 
 Use the shared Magento-style grid for index/list pages — do not copy table markup.
@@ -89,20 +108,20 @@ $grid = GridRunner::fetch(
 return $this->adminView('your-section', 'pages/your-section.twig', [
     'title' => $this->t('admin.your_section.title'),
     'pageLead' => $this->t('admin.your_section.lead'),
-    'headerHref' => '/admin/your-section/new', // optional
+    'headerHref' => AdminPaths::yourSectionNew(),
     'headerActionLabel' => $this->t('admin.your_section.create'),
     'grid' => $grid,
 ]);
 ```
 
-4. For mass actions: set `massActionPath` on the spec, register `POST /admin/your-section/mass`, and delegate to `runMassActions()` on `AdminController` — it handles CSRF, ID/action parsing, per-row handlers, audit logging, and the success flash. Example:
+4. For mass actions: set `massActionPath` on the spec, register `POST /admin/…/mass`, and delegate to `runMassActions()` on `AdminController` — it handles CSRF, ID/action parsing, per-row handlers, audit logging, and the success flash. Example:
 
 ```php
 public function mass(): Response
 {
     return $this->runMassActions(
         $this->repo->gridDefinition()->spec(),
-        '/admin/your-section',
+        AdminPaths::yourSection(),
         [
             'delete' => fn (int $id): bool => $this->repo->delete($id),
         ],
@@ -121,24 +140,4 @@ public function mass(): Response
 {% include 'components/grid.twig' with {grid: grid} %}
 ```
 
-### i18n
-
-- Shared labels: `admin.grid.*` (search, filter, pagination, mass submit).
-- Section-specific: `admin.your_section.count`, `.empty`, `.search_placeholder`, mass confirm keys.
-
-### Cell types
-
-`text`, `muted`, `number`, `date`, `link`, `icon_link`, `badge`, `actions`, `template` (custom Twig partial). Special columns (log cells, guild master) use `type: template`.
-
-### Actions: mass **or** row column — not both
-
-Use **one** action model per grid:
-
-- **Mass actions** (default for list CRUD): checkboxes + mass-action bar. Edit via a **link** column (name/title → detail). Wire `->massActions(...)`, `POST …/mass`, `runMassActions()`, and i18n `confirm_mass_*` / `mass_done`.
-- **Actions column** (`type: actions`): per-row links only when the grid has **no** mass actions.
-
-Never combine `massActions()` with an `actions` column.
-
-Non-selectable rows set `'can_mass' => false`. String row keys: `->idField('slug')->massIdType('string')`.
-
-Do **not** build list `<table>` markup by hand — use `components/grid.twig` only.
+See [`.cursor/rules/admin-grid.mdc`](../.cursor/rules/admin-grid.mdc) for mass actions vs row actions.

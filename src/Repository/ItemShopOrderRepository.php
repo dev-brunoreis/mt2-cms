@@ -13,7 +13,7 @@ class ItemShopOrderRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/item-shop/orders', 'admin.item_shop.orders')
+        return GridDefinition::create('/admin/store/orders', 'admin.item_shop.orders')
             ->defaultSort('created_at')
             ->orderBy([
                 'id' => 'id',

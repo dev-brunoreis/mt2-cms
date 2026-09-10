@@ -7,7 +7,7 @@
 {% if isEdit and adminCount|default(0) > 0 %}
     <div class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         {{ t('admin.roles.in_use_hint', {count: adminCount}) }}
-        <a href="/admin/admins?filter[role]={{ role.slug|url_encode }}" class="font-medium text-indigo-700 hover:underline">
+        <a href="/admin/system/admins?filter[role]={{ role.slug|url_encode }}" class="font-medium text-indigo-700 hover:underline">
             {{ t('admin.roles.view_admins') }}
         </a>
     </div>
@@ -15,7 +15,7 @@
 
 <form id="admin-role-form"
       method="post"
-      action="{% if isEdit %}/admin/roles/{{ role.slug }}{% else %}/admin/roles{% endif %}"
+      action="{% if isEdit %}/admin/system/roles/{{ role.slug }}{% else %}/admin/system/roles{% endif %}"
       class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -67,7 +67,7 @@
 
 {% if isEdit and adminCount|default(0) == 0 %}
     <div class="mt-4">
-        <form method="post" action="/admin/roles/{{ role.slug }}/delete"
+        <form method="post" action="/admin/system/roles/{{ role.slug }}/delete"
               data-confirm="{{ t('admin.roles.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">

@@ -109,7 +109,7 @@ final class AclServiceTest extends TestCase
             'use_custom_acl' => false,
         ];
 
-        self::assertSame('/admin/news', $service->firstAccessiblePath($admin));
+        self::assertSame('/admin/content/news', $service->firstAccessiblePath($admin));
     }
 
     public function testSaveRoleSectionsRejectsSuperSlug(): void

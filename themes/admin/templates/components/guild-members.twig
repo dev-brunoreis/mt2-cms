@@ -21,7 +21,7 @@
                         <tr>
                             <td>
                                 {% if member.id %}
-                                    <a href="/admin/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
+                                    <a href="/admin/game/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
                                         {{ member.name|default(member.id) }}
                                     </a>
                                 {% else %}
@@ -40,7 +40,7 @@
                             <td class="text-slate-600">{{ member.offer }}</td>
                             <td>
                                 {% if member.id != guild.master_id %}
-                                    <form method="post" action="/admin/guilds/{{ guild.id }}/kick"
+                                    <form method="post" action="/admin/game/guilds/{{ guild.id }}/kick"
                                           data-confirm="{{ t('admin.guilds.confirm_kick', {name: member.name|default(member.id)}) }}">
                                         <input type="hidden" name="_csrf" value="{{ csrf }}">
                                         <input type="hidden" name="player_id" value="{{ member.id }}">

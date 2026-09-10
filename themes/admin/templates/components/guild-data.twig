@@ -16,7 +16,7 @@
             <label>{{ t('admin.guilds.master') }}</label>
             <p class="admin-input-readonly">
                 {% if guild.master_id %}
-                    <a href="/admin/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
+                    <a href="/admin/game/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
                         {{ guild.master_name|default(guild.master_id) }}
                     </a>
                 {% else %}

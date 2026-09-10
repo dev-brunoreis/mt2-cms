@@ -19,11 +19,14 @@ use Mt2Cms\Http\Controller\AdminGuildsController;
 use Mt2Cms\Http\Controller\AdminItemShopCategoriesController;
 use Mt2Cms\Http\Controller\AdminItemShopOrdersController;
 use Mt2Cms\Http\Controller\AdminItemShopProductsController;
+use Mt2Cms\Http\Controller\AdminLegacyRedirectController;
 use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminNewsCommentsController;
+use Mt2Cms\Http\Controller\AdminNewsHubController;
 use Mt2Cms\Http\Controller\AdminRolesController;
 use Mt2Cms\Http\Controller\AdminNewsPostsController;
 use Mt2Cms\Http\Controller\AdminNewsSettingsController;
+use Mt2Cms\Http\Controller\AdminStoreHubController;
 use Mt2Cms\Http\Controller\AdminRefineController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AdminShopsController;
@@ -253,6 +256,40 @@ private function resolveController(string $class): object
                 $this->accounts,
                 $this->players,
                 $this->gameProto,
+            ),
+            AdminLegacyRedirectController::class => new AdminLegacyRedirectController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+            ),
+            AdminNewsHubController::class => new AdminNewsHubController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->news,
+                $this->newsComments,
+                $this->settings,
+                $this->htmlSanitizer,
+                $this->newsUploads,
+            ),
+            AdminStoreHubController::class => new AdminStoreHubController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->acl,
+                $this->adminAudit,
+                $this->itemShopProducts,
+                $this->itemShopCategories,
+                $this->itemShopOrders,
             ),
             AdminNewsPostsController::class => new AdminNewsPostsController(
                 $this->theme,

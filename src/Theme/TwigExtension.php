@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Theme;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridUrl;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
@@ -66,6 +67,13 @@ class TwigExtension extends AbstractExtension
             }),
             new TwigFunction('grid_sort_url', function (array $grid, string $column): string {
                 return GridUrl::sortFromGrid($grid, $column);
+            }),
+            new TwigFunction('admin_path', static function (string $method, mixed ...$args): string {
+                if (!method_exists(AdminPaths::class, $method)) {
+                    throw new \InvalidArgumentException('Unknown admin path: ' . $method);
+                }
+
+                return AdminPaths::{$method}(...$args);
             }),
         ];
     }

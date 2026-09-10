@@ -8,11 +8,11 @@
         <div class="admin-category-tree-toolbar">
             <p class="admin-category-tree-title">{{ t('admin.item_shop.categories.tree_title') }}</p>
             <div class="flex flex-wrap gap-2">
-                <a href="/admin/item-shop/categories/new" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
+                <a href="/admin/store/categories/new" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
                     {{ t('admin.item_shop.categories.add_root') }}
                 </a>
                 {% if selectedCategory %}
-                    <a href="/admin/item-shop/categories/new?parent_id={{ selectedCategory.id }}"
+                    <a href="/admin/store/categories/new?parent_id={{ selectedCategory.id }}"
                        class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
                         {{ t('admin.item_shop.categories.add_child') }}
                     </a>
@@ -71,7 +71,7 @@
             <div class="admin-panel flex min-h-[16rem] items-center justify-center p-8 text-center">
                 <div>
                     <p class="text-sm text-slate-500">{{ t('admin.item_shop.categories.select_hint') }}</p>
-                    <a href="/admin/item-shop/categories/new"
+                    <a href="/admin/store/categories/new"
                        class="mt-4 inline-flex admin-btn-primary rounded-md px-4 py-2 text-sm font-semibold text-white">
                         {{ t('admin.item_shop.categories.add_root') }}
                     </a>

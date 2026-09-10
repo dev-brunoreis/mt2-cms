@@ -20,7 +20,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
             fn ($q) => $this->comments->listForGrid($q),
         );
 
-        return $this->adminView('news-comments', 'pages/news-comments.twig', [
+        return $this->adminView('news', 'pages/news-comments.twig', [
             'title' => $this->t('admin.news.comments_title'),
             'pageLead' => $this->t('admin.news.comments_lead'),
             'grid' => $grid,
@@ -29,14 +29,14 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function massComments(): Response
     {
-        if ($redirect = $this->requireAdminSection('news-comments')) {
+        if ($redirect = $this->requireAdminSection('news')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news/comments');
+            return $this->redirect('/admin/content/news?tab=comments');
         }
 
         $spec = $this->comments->gridDefinition()->spec();
@@ -75,7 +75,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
         $this->flash('success', $this->t('admin.news.mass_comments_done', ['count' => $count]));
 
-        return $this->redirect('/admin/news/comments');
+        return $this->redirect('/admin/content/news?tab=comments');
     }
 
     public function approveComment(string $id): Response
@@ -90,14 +90,14 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function deleteComment(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('news-comments')) {
+        if ($redirect = $this->requireAdminSection('news')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news/comments');
+            return $this->redirect('/admin/content/news?tab=comments');
         }
 
         if (!$this->comments->delete((int) $id)) {
@@ -107,19 +107,19 @@ class AdminNewsCommentsController extends AdminNewsBaseController
             $this->flash('success', $this->t('admin.news.comment_deleted'));
         }
 
-        return $this->redirect('/admin/news/comments');
+        return $this->redirect('/admin/content/news?tab=comments');
     }
 
     private function setCommentStatus(int $id, string $status): Response
     {
-        if ($redirect = $this->requireAdminSection('news-comments')) {
+        if ($redirect = $this->requireAdminSection('news')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/news/comments');
+            return $this->redirect('/admin/content/news?tab=comments');
         }
 
         if (!$this->comments->setStatus($id, $status)) {
@@ -138,6 +138,6 @@ class AdminNewsCommentsController extends AdminNewsBaseController
             );
         }
 
-        return $this->redirect('/admin/news/comments');
+        return $this->redirect('/admin/content/news?tab=comments');
     }
 }

@@ -20,10 +20,10 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             fn ($q) => $this->enrichProducts($this->products->listForGrid($q)),
         );
 
-        return $this->adminView('item-shop', 'pages/item-shop-products.twig', [
+        return $this->adminView('store', 'pages/item-shop-products.twig', [
             'title' => $this->t('admin.item_shop.products.title'),
             'pageLead' => $this->t('admin.item_shop.products.lead'),
-            'headerHref' => '/admin/item-shop/new',
+            'headerHref' => '/admin/store/products/new',
             'headerActionLabel' => $this->t('admin.item_shop.products.create'),
             'grid' => $grid,
         ]);
@@ -33,7 +33,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
     {
         return $this->runMassActions(
             $this->productsGridSpec(),
-            '/admin/item-shop',
+            '/admin/store/products',
             [
                 'enable' => function (int $id): bool {
                     $product = $this->products->findById($id);
@@ -49,7 +49,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             ],
             'item_shop_product',
             'admin.item_shop.products.mass_done',
-        'item-shop',
+        'store',
         );
     }
 
@@ -60,14 +60,14 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsStore(): Response
     {
-        if ($redirect = $this->requireAdminSection('item-shop')) {
+        if ($redirect = $this->requireAdminSection('store')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/item-shop/new');
+            return $this->redirect('/admin/store/products/new');
         }
 
         $input = $this->productInput();
@@ -78,7 +78,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             $this->audit('item_shop.product.create', 'item_shop_product', (int) $product['id']);
             $this->flash('success', $this->t('admin.item_shop.products.created'));
 
-            return $this->redirect('/admin/item-shop/' . $product['id']);
+            return $this->redirect('/admin/store/products/' . $product['id']);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->productFormView($input, $this->t($e->getMessage()), 422);
         }
@@ -91,7 +91,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
         if ($product === null) {
             $this->flash('error', $this->t('admin.item_shop.products.not_found'));
 
-            return $this->redirect('/admin/item-shop');
+            return $this->redirect('/admin/store/products');
         }
 
         return $this->productFormView($product, null, 200, true);
@@ -99,7 +99,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsUpdate(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('item-shop')) {
+        if ($redirect = $this->requireAdminSection('store')) {
             return $redirect;
         }
 
@@ -109,13 +109,13 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
         if ($existing === null) {
             $this->flash('error', $this->t('admin.item_shop.products.not_found'));
 
-            return $this->redirect('/admin/item-shop');
+            return $this->redirect('/admin/store/products');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/item-shop/' . $productId);
+            return $this->redirect('/admin/store/products/' . $productId);
         }
 
         $input = $this->productInput();
@@ -126,7 +126,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             $this->audit('item_shop.product.update', 'item_shop_product', $productId);
             $this->flash('success', $this->t('admin.item_shop.products.updated'));
 
-            return $this->redirect('/admin/item-shop/' . $productId);
+            return $this->redirect('/admin/store/products/' . $productId);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->productFormView(array_merge($existing, $input), $this->t($e->getMessage()), 422, true);
         }
@@ -134,14 +134,14 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
 
     public function productsDestroy(string $id): Response
     {
-        if ($redirect = $this->requireAdminSection('item-shop')) {
+        if ($redirect = $this->requireAdminSection('store')) {
             return $redirect;
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/item-shop');
+            return $this->redirect('/admin/store/products');
         }
 
         if (!$this->products->delete((int) $id)) {
@@ -151,7 +151,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
             $this->flash('success', $this->t('admin.item_shop.products.deleted'));
         }
 
-        return $this->redirect('/admin/item-shop');
+        return $this->redirect('/admin/store/products');
     }
 
     /**
@@ -166,7 +166,7 @@ class AdminItemShopProductsController extends AdminItemShopBaseController
         $vnum = (int) ($product['vnum'] ?? 0);
         $itemName = $vnum > 0 ? $this->itemName($vnum) : '';
 
-        return $this->adminView('item-shop', 'pages/item-shop-product-form.twig', [
+        return $this->adminView('store', 'pages/item-shop-product-form.twig', [
             'title' => $this->t($isEdit ? 'admin.item_shop.products.edit_title' : 'admin.item_shop.products.create_title'),
             'pageLead' => $this->t($isEdit ? 'admin.item_shop.products.edit_lead' : 'admin.item_shop.products.create_lead'),
             'formId' => 'admin-item-shop-product-form',

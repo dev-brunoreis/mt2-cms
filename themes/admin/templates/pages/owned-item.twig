@@ -17,7 +17,7 @@
     {% include 'components/tab-panel.twig' with {
         id: 'logs',
         visible: activeTab == 'logs',
-        src: '/admin/owned-items/' ~ itemId ~ '?tab=logs&partial=1',
+        src: '/admin/game/owned-items/' ~ itemId ~ '?tab=logs&partial=1',
         template: 'components/owned-item-logs.twig'
     } %}
 </div>

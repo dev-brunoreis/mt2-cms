@@ -28,7 +28,7 @@
 
 {% elseif type == 'link' %}
     {% if row.is_system|default(false) %}
-        {% set href = '/admin/roles/' ~ rowId|url_encode %}
+        {% set href = '/admin/system/roles/' ~ rowId|url_encode %}
     {% else %}
         {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode}) %}
     {% endif %}

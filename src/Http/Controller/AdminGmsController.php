@@ -47,7 +47,7 @@ class AdminGmsController extends AdminController
         return $this->adminView('gms', 'pages/gms.twig', [
             'title' => $this->t('admin.gms.title'),
             'pageLead' => $this->t('admin.gms.lead'),
-            'headerHref' => '/admin/gms/new',
+            'headerHref' => '/admin/game-data/gms/new',
             'headerActionLabel' => $this->t('admin.gms.create'),
             'grid' => $grid,
             'hosts' => $this->common->gmHosts(),
@@ -58,7 +58,7 @@ class AdminGmsController extends AdminController
     {
         return $this->runMassActions(
             $this->common->gridDefinition()->spec(),
-            '/admin/gms',
+            '/admin/game-data/gms',
             [
                 'delete' => fn (int $id): bool => $this->common->deleteGm($id),
             ],
@@ -82,7 +82,7 @@ class AdminGmsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/gms/new');
+            return $this->redirect('/admin/game-data/gms/new');
         }
 
         $input = $this->formInput();
@@ -93,7 +93,7 @@ class AdminGmsController extends AdminController
             $this->audit('gm.create', 'gm', (int) $gm['mID']);
             $this->flash('success', $this->t('admin.gms.created'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -106,7 +106,7 @@ class AdminGmsController extends AdminController
         if ($gm === null) {
             $this->flash('error', $this->t('admin.gms.not_found'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         }
 
         return $this->formView($gm);
@@ -124,13 +124,13 @@ class AdminGmsController extends AdminController
         if ($gm === null) {
             $this->flash('error', $this->t('admin.gms.not_found'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/gms/' . $gmId);
+            return $this->redirect('/admin/game-data/gms/' . $gmId);
         }
 
         $input = $this->formInput();
@@ -141,7 +141,7 @@ class AdminGmsController extends AdminController
             $this->audit('gm.update', 'gm', $gmId);
             $this->flash('success', $this->t('admin.gms.updated'));
 
-            return $this->redirect('/admin/gms/' . $gmId);
+            return $this->redirect('/admin/game-data/gms/' . $gmId);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(array_merge($gm, $input), $this->t($e->getMessage()), 422);
         }
@@ -156,7 +156,7 @@ class AdminGmsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         }
 
         if (!$this->common->deleteGm((int) $id)) {
@@ -166,7 +166,7 @@ class AdminGmsController extends AdminController
             $this->flash('success', $this->t('admin.gms.deleted'));
         }
 
-        return $this->redirect('/admin/gms');
+        return $this->redirect('/admin/game-data/gms');
     }
 
     public function addHost(): Response
@@ -178,7 +178,7 @@ class AdminGmsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         }
 
         try {
@@ -189,7 +189,7 @@ class AdminGmsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/gms');
+        return $this->redirect('/admin/game-data/gms');
     }
 
     public function deleteHost(): Response
@@ -201,7 +201,7 @@ class AdminGmsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/gms');
+            return $this->redirect('/admin/game-data/gms');
         }
 
         if (!$this->common->deleteGmHost(trim((string) ($_POST['mIP'] ?? '')))) {
@@ -211,7 +211,7 @@ class AdminGmsController extends AdminController
             $this->flash('success', $this->t('admin.gms.host_deleted'));
         }
 
-        return $this->redirect('/admin/gms');
+        return $this->redirect('/admin/game-data/gms');
     }
 
     /**

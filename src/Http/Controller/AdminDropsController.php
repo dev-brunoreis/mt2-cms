@@ -68,7 +68,7 @@ class AdminDropsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/drops/etc');
+            return $this->redirect('/admin/game-data/drops/etc');
         }
 
         try {
@@ -81,7 +81,7 @@ class AdminDropsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/drops/etc');
+        return $this->redirect('/admin/game-data/drops/etc');
     }
 
     public function common(): Response
@@ -108,7 +108,7 @@ class AdminDropsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/drops/common');
+            return $this->redirect('/admin/game-data/drops/common');
         }
 
         try {
@@ -120,7 +120,7 @@ class AdminDropsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/drops/common');
+        return $this->redirect('/admin/game-data/drops/common');
     }
 
     public function mob(string $id): Response
@@ -131,7 +131,7 @@ class AdminDropsController extends AdminController
         if ($mob === null) {
             $this->flash('error', $this->t('admin.drops.mob_not_found'));
 
-            return $this->redirect('/admin/drops');
+            return $this->redirect('/admin/game-data/drops');
         }
 
         return $this->adminView('drops', 'pages/drops-mob.twig', [
@@ -155,13 +155,13 @@ class AdminDropsController extends AdminController
         if ($this->protos->find(ProtoSchemas::KIND_MOB, $mobVnum) === null) {
             $this->flash('error', $this->t('admin.drops.mob_not_found'));
 
-            return $this->redirect('/admin/drops');
+            return $this->redirect('/admin/game-data/drops');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/drops/mob/' . $mobVnum);
+            return $this->redirect('/admin/game-data/drops/mob/' . $mobVnum);
         }
 
         try {
@@ -173,7 +173,7 @@ class AdminDropsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/drops/mob/' . $mobVnum);
+        return $this->redirect('/admin/game-data/drops/mob/' . $mobVnum);
     }
 
     /**

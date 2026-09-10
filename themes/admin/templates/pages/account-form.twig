@@ -6,7 +6,7 @@
 
 <form id="admin-account-form"
       method="post"
-      action="{% if isEdit %}/admin/accounts/{{ account.id }}{% else %}/admin/accounts{% endif %}"
+      action="{% if isEdit %}/admin/game/accounts/{{ account.id }}{% else %}/admin/game/accounts{% endif %}"
       class="admin-panel{% if isEdit %} admin-tabs overflow-hidden{% else %} p-6{% endif %}"
       {% if isEdit %}data-admin-tabs data-default-tab="dados" data-tab-loading="{{ t('admin.tabs.loading') }}" data-tab-load-error="{{ t('admin.tabs.load_error') }}"{% endif %}>
     <input type="hidden" name="_csrf" value="{{ csrf }}">
@@ -108,7 +108,7 @@
 
         {% if isEdit %}
             <div class="mt-4 px-6 pb-6">
-                <a href="/admin/awards/new?login={{ account.login|url_encode }}"
+                <a href="/admin/game/awards/new?login={{ account.login|url_encode }}"
                    class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium">
                     {{ t('admin.awards.send_item') }}
                 </a>
@@ -120,7 +120,7 @@
         {% include 'components/tab-panel.twig' with {
             id: 'activity',
             visible: activeTab|default('dados') == 'activity',
-            src: '/admin/accounts/' ~ account.id ~ '?tab=activity&partial=1',
+            src: '/admin/game/accounts/' ~ account.id ~ '?tab=activity&partial=1',
             template: 'components/account-activity.twig'
         } %}
     {% endif %}
@@ -133,14 +133,14 @@
 
         <div class="mt-4 flex flex-wrap gap-2">
             {% if account.status == 'BLOCK' %}
-                <form method="post" action="/admin/accounts/{{ account.id }}/unblock">
+                <form method="post" action="/admin/game/accounts/{{ account.id }}/unblock">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                     <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-4 py-2 text-sm font-medium">
                         {{ t('admin.accounts.unblock') }}
                     </button>
                 </form>
             {% else %}
-                <form method="post" action="/admin/accounts/{{ account.id }}/block">
+                <form method="post" action="/admin/game/accounts/{{ account.id }}/block">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                     <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-4 py-2 text-sm font-medium">
                         {{ t('admin.accounts.block') }}
@@ -148,7 +148,7 @@
                 </form>
             {% endif %}
 
-            <form method="post" action="/admin/accounts/{{ account.id }}/delete"
+            <form method="post" action="/admin/game/accounts/{{ account.id }}/delete"
                   data-confirm="{{ t('admin.accounts.confirm_delete') }}">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
                 <button type="submit" class="admin-btn-danger cursor-pointer rounded-md px-4 py-2 text-sm font-semibold text-white">

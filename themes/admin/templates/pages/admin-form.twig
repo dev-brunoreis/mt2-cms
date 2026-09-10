@@ -6,7 +6,7 @@
 
 <form id="admin-admin-form"
       method="post"
-      action="{% if isEdit %}/admin/admins/{{ admin.id }}{% else %}/admin/admins{% endif %}"
+      action="{% if isEdit %}/admin/system/admins/{{ admin.id }}{% else %}/admin/system/admins{% endif %}"
       class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -76,7 +76,7 @@
 
 {% if isEdit and admin.role|default('') != 'super' %}
     <div class="mt-4">
-        <form method="post" action="/admin/admins/{{ admin.id }}/delete"
+        <form method="post" action="/admin/system/admins/{{ admin.id }}/delete"
               data-confirm="{{ t('admin.admins.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">

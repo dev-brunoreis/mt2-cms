@@ -20,7 +20,7 @@
             <dt>{{ t('admin.characters.account') }}</dt>
             <dd>
                 {% if character.account_id %}
-                    <a href="/admin/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
+                    <a href="/admin/game/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
                         {{ character.account_login|default(character.account_id) }}
                     </a>
                 {% else %}
@@ -63,7 +63,7 @@
     </dl>
 
     <div class="mt-4">
-        <a href="/admin/awards/new?login={{ character.account_login|url_encode }}&pid={{ character.id }}"
+        <a href="/admin/game/awards/new?login={{ character.account_login|url_encode }}&pid={{ character.id }}"
            class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium">
             {{ t('admin.awards.send_item') }}
         </a>

@@ -13,15 +13,6 @@ final class AdminSectionCatalog
         'audit-log',
     ];
 
-    /** @var list<string> */
-    private const GAME_SECTIONS = [
-        'shops',
-        'refine',
-        'drops',
-        'items',
-        'mobs',
-    ];
-
     /**
      * @return list<string>
      */
@@ -54,13 +45,7 @@ final class AdminSectionCatalog
      */
     public static function logSectionIds(): array
     {
-        $ids = ['log-' . LogCatalog::CONNECTIONS_ID];
-
-        foreach (LogCatalog::all() as $log) {
-            $ids[] = 'log-' . (string) $log['id'];
-        }
-
-        return $ids;
+        return ['logs'];
     }
 
     /**
@@ -76,8 +61,8 @@ final class AdminSectionCatalog
                 'guilds',
                 'awards',
                 'tickets',
+                'logs',
             ],
-            self::logSectionIds(),
         )));
     }
 
@@ -89,11 +74,7 @@ final class AdminSectionCatalog
         return [
             'dashboard',
             'news',
-            'news-comments',
-            'news-settings',
-            'item-shop',
-            'item-shop-categories',
-            'item-shop-orders',
+            'store',
             'tickets',
             'registration',
             'themes',
@@ -125,23 +106,35 @@ final class AdminSectionCatalog
             ];
         }
 
-        $groups[] = [
-            'id' => 'game-data',
-            'label' => 'admin.nav.game_data',
-            'children' => [
-                ['id' => 'shops', 'label' => 'admin.nav.shops'],
-                ['id' => 'refine', 'label' => 'admin.nav.refine'],
-                ['id' => 'drops', 'label' => 'admin.nav.drops'],
-                ['id' => 'items', 'label' => 'admin.nav.proto_items'],
-                ['id' => 'mobs', 'label' => 'admin.nav.proto_mobs'],
-            ],
-        ];
-
         return $groups;
     }
 
     public static function isSuperOnly(string $sectionId): bool
     {
         return in_array($sectionId, self::SUPER_ONLY, true);
+    }
+
+    /**
+     * Legacy section IDs collapsed during IA migration.
+     *
+     * @return list<string>
+     */
+    public static function obsoleteSectionIds(): array
+    {
+        $ids = [];
+
+        foreach (LogCatalog::all() as $log) {
+            $ids[] = 'log-' . $log['id'];
+        }
+
+        $ids[] = 'log-' . LogCatalog::CONNECTIONS_ID;
+
+        return array_merge($ids, [
+            'news-comments',
+            'news-settings',
+            'store',
+            'item-shop-categories',
+            'item-shop-orders',
+        ]);
     }
 }

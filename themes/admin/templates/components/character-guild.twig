@@ -11,7 +11,7 @@
             <div class="admin-stat">
                 <dt>{{ t('admin.characters.guild_name') }}</dt>
                 <dd>
-                    <a href="/admin/guilds/{{ guild.id }}" class="text-indigo-600 hover:underline">
+                    <a href="/admin/game/guilds/{{ guild.id }}" class="text-indigo-600 hover:underline">
                         {{ guild.name }}
                     </a>
                 </dd>
@@ -33,7 +33,7 @@
                 <dt>{{ t('admin.characters.guild_master') }}</dt>
                 <dd>
                     {% if guild.master_id %}
-                        <a href="/admin/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
+                        <a href="/admin/game/characters/{{ guild.master_id }}" class="text-indigo-600 hover:underline">
                             {{ guild.master_name|default(guild.master_id) }}
                         </a>
                     {% else %}
@@ -88,7 +88,7 @@
                         <tr>
                             <td>
                                 {% if member.id %}
-                                    <a href="/admin/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
+                                    <a href="/admin/game/characters/{{ member.id }}" class="font-medium text-indigo-600 hover:underline">
                                         {{ member.name|default(member.id) }}
                                     </a>
                                 {% else %}

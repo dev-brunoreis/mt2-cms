@@ -3,7 +3,7 @@
 {% endif %}
 
 <form id="admin-gm-form" method="post"
-      action="{% if isEdit %}/admin/gms/{{ gm.mID }}{% else %}/admin/gms{% endif %}"
+      action="{% if isEdit %}/admin/game-data/gms/{{ gm.mID }}{% else %}/admin/game-data/gms{% endif %}"
       class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 

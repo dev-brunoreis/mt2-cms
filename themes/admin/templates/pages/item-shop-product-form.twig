@@ -3,7 +3,7 @@
 {% endif %}
 
 <form id="admin-item-shop-product-form" method="post"
-      action="{% if isEdit %}/admin/item-shop/{{ product.id }}{% else %}/admin/item-shop{% endif %}"
+      action="{% if isEdit %}/admin/store/products/{{ product.id }}{% else %}/admin/store/products{% endif %}"
       class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -76,7 +76,7 @@
 
 {% if isEdit %}
     <div class="mt-4 flex justify-end">
-        <form method="post" action="/admin/item-shop/{{ product.id }}/delete"
+        <form method="post" action="/admin/store/products/{{ product.id }}/delete"
               data-confirm="{{ t('admin.item_shop.products.confirm_delete') }}">
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">

@@ -49,7 +49,7 @@ class AdminAccountsController extends AdminController
         return $this->adminView('accounts', 'pages/accounts.twig', [
             'title' => $this->t('admin.accounts.title'),
             'pageLead' => $this->t('admin.accounts.lead'),
-            'headerHref' => '/admin/accounts/new',
+            'headerHref' => '/admin/game/accounts/new',
             'headerActionLabel' => $this->t('admin.accounts.create'),
             'grid' => $grid,
         ]);
@@ -59,7 +59,7 @@ class AdminAccountsController extends AdminController
     {
         return $this->runMassActions(
             $this->accounts->gridDefinition()->spec(),
-            '/admin/accounts',
+            '/admin/game/accounts',
             [
                 'block' => fn (int $id): bool => $this->accounts->block($id),
                 'unblock' => fn (int $id): bool => $this->accounts->unblock($id),
@@ -85,7 +85,7 @@ class AdminAccountsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/accounts/new');
+            return $this->redirect('/admin/game/accounts/new');
         }
 
         $input = $this->formInput();
@@ -110,7 +110,7 @@ class AdminAccountsController extends AdminController
             $this->audit('account.create', 'account', (int) $account['id']);
             $this->flash('success', $this->t('admin.accounts.created'));
 
-            return $this->redirect('/admin/accounts');
+            return $this->redirect('/admin/game/accounts');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
         }
@@ -123,7 +123,7 @@ class AdminAccountsController extends AdminController
         if ($account === null) {
             $this->flash('error', $this->t('admin.accounts.not_found'));
 
-            return $this->redirect('/admin/accounts');
+            return $this->redirect('/admin/game/accounts');
         }
 
         return $this->formView($account);
@@ -141,13 +141,13 @@ class AdminAccountsController extends AdminController
         if ($account === null) {
             $this->flash('error', $this->t('admin.accounts.not_found'));
 
-            return $this->redirect('/admin/accounts');
+            return $this->redirect('/admin/game/accounts');
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/accounts/' . $accountId);
+            return $this->redirect('/admin/game/accounts/' . $accountId);
         }
 
         $input = $this->formInput();
@@ -166,7 +166,7 @@ class AdminAccountsController extends AdminController
             $this->audit('account.update', 'account', $accountId);
             $this->flash('success', $this->t('admin.accounts.updated'));
 
-            return $this->redirect('/admin/accounts/' . $accountId);
+            return $this->redirect('/admin/game/accounts/' . $accountId);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(
                 array_merge($account, $input),
@@ -195,7 +195,7 @@ class AdminAccountsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/accounts');
+            return $this->redirect('/admin/game/accounts');
         }
 
         try {
@@ -209,7 +209,7 @@ class AdminAccountsController extends AdminController
             $this->flash('error', $this->t('admin.accounts.not_found'));
         }
 
-        return $this->redirect('/admin/accounts');
+        return $this->redirect('/admin/game/accounts');
     }
 
     /**
@@ -311,7 +311,7 @@ class AdminAccountsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/accounts');
+            return $this->redirect('/admin/game/accounts');
         }
 
         try {
@@ -327,6 +327,6 @@ class AdminAccountsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/accounts');
+        return $this->redirect('/admin/game/accounts');
     }
 }

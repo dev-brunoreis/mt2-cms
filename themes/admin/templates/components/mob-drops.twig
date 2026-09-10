@@ -3,7 +3,7 @@
         {{ t('admin.mobs.drops_title') }}
         <span class="admin-fieldset-help">{{ t('admin.mobs.drops_help') }}</span>
         {% if record.vnum is defined %}
-            <a href="/admin/drops/mob/{{ record.vnum }}" class="ml-2 text-sm font-medium text-indigo-600 hover:underline">
+            <a href="/admin/game-data/drops/mob/{{ record.vnum }}" class="ml-2 text-sm font-medium text-indigo-600 hover:underline">
                 {{ t('admin.drops.edit_mob_drops') }}
             </a>
         {% endif %}
@@ -46,7 +46,7 @@
                                     <tr>
                                         <td class="text-slate-600">
                                             {% if item.vnum %}
-                                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                                                <a href="/admin/game-data/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
                                             {% else %}
                                                 —
                                             {% endif %}
@@ -82,7 +82,7 @@
     {% if mobDrops.etc_drop %}
         <p class="mb-4 text-sm text-slate-600">
             {{ t('admin.mobs.etc_drop', {chance: mobDrops.etc_drop.chance}) }}
-            <a href="/admin/items/{{ mobDrops.etc_drop.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+            <a href="/admin/game-data/items/{{ mobDrops.etc_drop.vnum }}" class="admin-game-icon-row text-indigo-600 hover:underline">
                 {% include 'components/item-icon.twig' with { vnum: mobDrops.etc_drop.vnum } %}
                 <span>{{ mobDrops.etc_drop.name|default(mobDrops.etc_drop.vnum) }}</span>
             </a>
@@ -107,7 +107,7 @@
                     {% for item in mobDrops.common_drops %}
                         <tr>
                             <td class="text-slate-600">
-                                <a href="/admin/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
+                                <a href="/admin/game-data/items/{{ item.vnum }}" class="text-indigo-600 hover:underline">{{ item.vnum }}</a>
                             </td>
                             <td>
                                 <div class="admin-game-icon-row">
@@ -160,7 +160,7 @@
                             </td>
                             <td class="text-slate-600">
                                 {% for member in group.members %}
-                                    <a href="/admin/mobs/{{ member.vnum }}" class="text-indigo-600 hover:underline">
+                                    <a href="/admin/game-data/mobs/{{ member.vnum }}" class="text-indigo-600 hover:underline">
                                         {{ member.name|default(member.vnum) }}
                                     </a>{% if not loop.last %}, {% endif %}
                                 {% endfor %}

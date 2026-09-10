@@ -26,7 +26,7 @@
                             <td class="text-slate-600">{{ comment.content|default('—') }}</td>
                             <td class="text-slate-600">{{ comment.time|game_date }}</td>
                             <td>
-                                <form method="post" action="/admin/guilds/{{ guild.id }}/comment/{{ comment.id }}/delete"
+                                <form method="post" action="/admin/game/guilds/{{ guild.id }}/comment/{{ comment.id }}/delete"
                                       data-confirm="{{ t('admin.guilds.confirm_delete_comment') }}">
                                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                                     <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">

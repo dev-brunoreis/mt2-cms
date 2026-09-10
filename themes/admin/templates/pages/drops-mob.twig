@@ -1,9 +1,9 @@
-<form id="admin-drops-mob-form" method="post" action="/admin/drops/mob/{{ mob.vnum }}" class="admin-panel p-6">
+<form id="admin-drops-mob-form" method="post" action="/admin/game-data/drops/mob/{{ mob.vnum }}" class="admin-panel p-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <p class="mb-4 text-sm text-slate-500">
         {{ t('admin.drops.mob_editing', {vnum: mob.vnum, name: mob.locale_name|default(mob.name|default(''))}) }}
-        · <a href="/admin/mobs/{{ mob.vnum }}" class="text-indigo-600 hover:underline">{{ t('admin.drops.view_mob') }}</a>
+        · <a href="/admin/game-data/mobs/{{ mob.vnum }}" class="text-indigo-600 hover:underline">{{ t('admin.drops.view_mob') }}</a>
     </p>
     <p class="mb-6 text-sm text-slate-500">{{ t('admin.drops.reload_help') }}</p>
 

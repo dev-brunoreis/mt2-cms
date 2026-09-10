@@ -20,7 +20,7 @@ class AdminItemShopOrdersController extends AdminItemShopBaseController
             fn ($q) => $this->enrichOrders($this->orders->listForGrid($q)),
         );
 
-        return $this->adminView('item-shop-orders', 'pages/item-shop-orders.twig', [
+        return $this->adminView('store', 'pages/item-shop-orders.twig', [
             'title' => $this->t('admin.item_shop.orders.title'),
             'pageLead' => $this->t('admin.item_shop.orders.lead'),
             'grid' => $grid,

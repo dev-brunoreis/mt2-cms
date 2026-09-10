@@ -71,14 +71,14 @@ final class GridRequestTest extends TestCase
         $_POST = ['ids' => ['content', 'bad slug', '1']];
 
         $intSpec = new GridSpec(
-            action: '/admin/admins',
+            action: '/admin/system/admins',
             i18nPrefix: 'admin.admins',
             columns: [],
         );
         self::assertSame([1], GridRequest::massIdsForSpec($intSpec));
 
         $slugSpec = new GridSpec(
-            action: '/admin/roles',
+            action: '/admin/system/roles',
             i18nPrefix: 'admin.roles',
             columns: [],
             idField: 'slug',

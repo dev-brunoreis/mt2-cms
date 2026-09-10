@@ -8,7 +8,7 @@
 
 <form id="admin-guild-form"
       method="post"
-      action="/admin/guilds/{{ guild.id }}"
+      action="/admin/game/guilds/{{ guild.id }}"
       class="admin-panel admin-tabs overflow-hidden"
       data-admin-tabs
       data-default-tab="dados"
@@ -31,25 +31,25 @@
     {% include 'components/tab-panel.twig' with {
         id: 'membros',
         visible: activeTab == 'membros',
-        src: '/admin/guilds/' ~ guild.id ~ '?tab=membros&partial=1',
+        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=membros&partial=1',
         template: 'components/guild-members.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
         id: 'comentarios',
         visible: activeTab == 'comentarios',
-        src: '/admin/guilds/' ~ guild.id ~ '?tab=comentarios&partial=1',
+        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=comentarios&partial=1',
         template: 'components/guild-comments.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
         id: 'wars',
         visible: activeTab == 'wars',
-        src: '/admin/guilds/' ~ guild.id ~ '?tab=wars&partial=1',
+        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=wars&partial=1',
         template: 'components/guild-wars.twig'
     } %}
 </form>
 
 <div class="mt-4 flex justify-end">
-    <form method="post" action="/admin/guilds/{{ guild.id }}/dissolve"
+    <form method="post" action="/admin/game/guilds/{{ guild.id }}/dissolve"
           data-confirm="{{ t('admin.guilds.confirm_dissolve') }}">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">

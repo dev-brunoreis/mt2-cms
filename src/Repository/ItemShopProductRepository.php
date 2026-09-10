@@ -13,7 +13,7 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/item-shop', 'admin.item_shop.products')
+        return GridDefinition::create('/admin/store/products', 'admin.item_shop.products')
             ->orderBy([
                 'id' => 'p.id',
                 'vnum' => 'p.vnum',
@@ -23,7 +23,7 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
                 'enabled' => 'p.enabled',
             ])
             ->columns([
-                ['key' => 'id', 'label' => 'admin.item_shop.products.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/item-shop/{id}'],
+                ['key' => 'id', 'label' => 'admin.item_shop.products.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/store/products/{id}'],
                 ['key' => 'vnum', 'label' => 'admin.item_shop.products.vnum', 'sort' => 'vnum', 'type' => 'number'],
                 ['key' => 'item_name', 'label' => 'admin.item_shop.products.item', 'type' => 'text'],
                 ['key' => 'category_name', 'label' => 'admin.item_shop.products.category', 'sort' => 'category_name', 'type' => 'text'],
@@ -37,7 +37,7 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
             ->filters([
                 ['key' => 'category_id', 'label' => 'admin.item_shop.products.category', 'type' => 'select', 'options' => []],
             ])
-            ->massActions('/admin/item-shop/mass', [
+            ->massActions('/admin/store/products/mass', [
                 ['id' => 'enable', 'label' => 'admin.grid.enable'],
                 ['id' => 'disable', 'label' => 'admin.grid.disable'],
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.item_shop.products.confirm_mass_delete'],

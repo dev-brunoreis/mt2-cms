@@ -2,7 +2,7 @@
 {% set counts = admin_nav_counts|default({}) %}
 {% set badgeCount = counts[item.id]|default(0) %}
 {% set badgeLabels = {
-    'news-comments': 'admin.nav.pending_comments',
+    'news': 'admin.nav.pending_comments',
     'tickets': 'admin.nav.unanswered_tickets'
 } %}
 <li>

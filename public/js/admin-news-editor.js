@@ -22,7 +22,7 @@
       data.append('_csrf', csrf)
       data.append('file', blobInfo.blob(), blobInfo.filename())
 
-      fetch('/admin/news/upload', {
+      fetch('/admin/content/news/posts/upload', {
         method: 'POST',
         body: data,
         credentials: 'same-origin',
@@ -65,7 +65,7 @@
     data.append('_csrf', csrf)
     data.append('file', file)
 
-    fetch('/admin/news/upload', {
+    fetch('/admin/content/news/posts/upload', {
       method: 'POST',
       body: data,
       credentials: 'same-origin',

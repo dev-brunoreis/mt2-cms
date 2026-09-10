@@ -13,7 +13,7 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/accounts', 'admin.accounts')
+        return GridDefinition::create('/admin/game/accounts', 'admin.accounts')
             ->orderBy([
                 'id' => 'id',
                 'login' => 'login',
@@ -25,7 +25,7 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.accounts.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'login', 'label' => 'admin.accounts.login', 'sort' => 'login', 'type' => 'link', 'href' => '/admin/accounts/{id}'],
+                ['key' => 'login', 'label' => 'admin.accounts.login', 'sort' => 'login', 'type' => 'link', 'href' => '/admin/game/accounts/{id}'],
                 ['key' => 'email', 'label' => 'admin.accounts.email', 'sort' => 'email', 'type' => 'text'],
                 ['key' => 'status', 'label' => 'admin.accounts.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
                     'OK' => ['class' => 'admin-badge-ok', 'label' => 'admin.accounts.status_ok'],
@@ -43,7 +43,7 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
                     'BLOCK' => 'admin.accounts.status_block',
                 ]],
             ])
-            ->massActions('/admin/accounts/mass', [
+            ->massActions('/admin/game/accounts/mass', [
                 ['id' => 'block', 'label' => 'admin.grid.block', 'confirm' => 'admin.accounts.confirm_mass_block'],
                 ['id' => 'unblock', 'label' => 'admin.grid.unblock', 'confirm' => 'admin.accounts.confirm_mass_unblock'],
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.accounts.confirm_mass_delete'],

@@ -1,0 +1,7 @@
+{% if missingTable %}
+    <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">
+        {{ t('admin.logs.missing_table') }}
+    </p>
+{% else %}
+    {% include 'components/grid.twig' with {grid: grid} %}
+{% endif %}

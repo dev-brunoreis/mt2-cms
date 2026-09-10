@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Admin\LogCatalog;
@@ -33,24 +34,81 @@ class AdminLogsController extends AdminController
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
-    public function show(string $table): Response
+    public function index(): Response
     {
-        if ($redirect = $this->requireAdminSection('log-' . $table)) {
+        if ($redirect = $this->requireAdminSection('logs')) {
             return $redirect;
         }
 
-        if ($table === LogCatalog::CONNECTIONS_ID) {
-            return $this->connections();
+        $tab = $this->requestedTab(LogCatalog::tabIds(), LogCatalog::CONNECTIONS_ID);
+
+        if ($this->wantsTabPartial()) {
+            return $this->renderTabPartial($tab);
         }
 
-        $log = LogCatalog::get($table);
+        if ($tab === LogCatalog::CONNECTIONS_ID) {
+            $initialPartial = [
+                'template' => 'pages/logs-connections-partial.twig',
+                'data' => $this->connectionsPartialData(),
+            ];
+        } else {
+            $log = LogCatalog::get($tab);
+
+            if ($log === null) {
+                $tab = LogCatalog::CONNECTIONS_ID;
+                $initialPartial = [
+                    'template' => 'pages/logs-connections-partial.twig',
+                    'data' => $this->connectionsPartialData(),
+                ];
+            } else {
+                $initialPartial = [
+                    'template' => 'pages/logs-partial.twig',
+                    'data' => $this->logPartialData($tab, $log),
+                ];
+            }
+        }
+
+        return $this->adminView('logs', 'pages/logs-hub.twig', [
+            'title' => $this->t('admin.logs.title'),
+            'pageLead' => $this->t('admin.logs.lead'),
+            'activeTab' => $tab,
+            'logGroups' => LogCatalog::groupedTabs(),
+            'logsBaseUrl' => AdminPaths::logs(),
+            'initialPartial' => $initialPartial,
+        ]);
+    }
+
+    private function renderTabPartial(string $tab): Response
+    {
+        if ($tab === LogCatalog::CONNECTIONS_ID) {
+            return $this->adminFragment('pages/logs-connections-partial.twig', $this->connectionsPartialData());
+        }
+
+        $log = LogCatalog::get($tab);
 
         if ($log === null) {
-            $this->flash('error', $this->t('admin.logs.unknown'));
-
-            return $this->redirect('/admin/logs/' . LogCatalog::CONNECTIONS_ID);
+            return new Response('', 404);
         }
 
+        return $this->adminFragment('pages/logs-partial.twig', $this->logPartialData($tab, $log));
+    }
+
+    /**
+     * @param array{
+     *   id: string,
+     *   table: string,
+     *   label: string,
+     *   group: string,
+     *   columns: list<string>,
+     *   search: list<string>,
+     *   dateColumn: string|null,
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
+     * } $log
+     * @return array<string, mixed>
+     */
+    private function logPartialData(string $table, array $log): array
+    {
         $missingTable = !$this->logs->tableExists($log['table']);
         $spec = $this->logGridSpec($table, $log);
         $query = $this->gridQuery($spec);
@@ -61,15 +119,16 @@ class AdminLogsController extends AdminController
             fn ($q) => $missingTable ? [] : $this->logs->listForGrid($table, $q),
         );
 
-        return $this->adminView('log-' . $table, 'pages/logs.twig', [
-            'title' => $this->t($log['label']),
-            'pageLead' => $this->t('admin.logs.lead'),
+        return [
             'missingTable' => $missingTable,
             'grid' => $grid,
-        ]);
+        ];
     }
 
-    private function connections(): Response
+    /**
+     * @return array<string, mixed>
+     */
+    private function connectionsPartialData(): array
     {
         $missingTable = !$this->logs->tableExists('loginlog2');
         $spec = $this->connectionsGridSpec();
@@ -81,12 +140,10 @@ class AdminLogsController extends AdminController
             fn ($q) => $missingTable ? [] : $this->logs->listConnectionsForGrid($q),
         );
 
-        return $this->adminView('log-' . LogCatalog::CONNECTIONS_ID, 'pages/account-ips.twig', [
-            'title' => $this->t('admin.logs.connections_title'),
-            'pageLead' => $this->t('admin.logs.connections_lead'),
+        return [
             'missingTable' => $missingTable,
             'grid' => $grid,
-        ]);
+        ];
     }
 
     /**
@@ -94,6 +151,7 @@ class AdminLogsController extends AdminController
      *   id: string,
      *   table: string,
      *   label: string,
+     *   group: string,
      *   columns: list<string>,
      *   search: list<string>,
      *   dateColumn: string|null,
@@ -127,7 +185,7 @@ class AdminLogsController extends AdminController
         }
 
         return new GridSpec(
-            action: '/admin/logs/' . $table,
+            action: AdminPaths::logs($table),
             i18nPrefix: 'admin.logs',
             columns: $columns,
             filters: $filters,
@@ -140,7 +198,7 @@ class AdminLogsController extends AdminController
     private function connectionsGridSpec(): GridSpec
     {
         return new GridSpec(
-            action: '/admin/logs/' . LogCatalog::CONNECTIONS_ID,
+            action: AdminPaths::logs(LogCatalog::CONNECTIONS_ID),
             i18nPrefix: 'admin.logs',
             columns: [
                 ['key' => 'ip', 'label' => 'admin.logs.columns.ip', 'type' => 'text'],

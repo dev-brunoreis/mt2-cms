@@ -18,7 +18,7 @@ class AdminSections
                 'children' => [
                     [
                         'id' => 'dashboard',
-                        'path' => '/admin',
+                        'path' => AdminPaths::DASHBOARD,
                         'label' => 'admin.nav.dashboard',
                     ],
                 ],
@@ -29,22 +29,22 @@ class AdminSections
                 'children' => [
                     [
                         'id' => 'accounts',
-                        'path' => '/admin/accounts',
+                        'path' => AdminPaths::gameAccounts(),
                         'label' => 'admin.nav.accounts',
                     ],
                     [
                         'id' => 'characters',
-                        'path' => '/admin/characters',
+                        'path' => AdminPaths::gameCharacters(),
                         'label' => 'admin.nav.characters',
                     ],
                     [
                         'id' => 'guilds',
-                        'path' => '/admin/guilds',
+                        'path' => AdminPaths::gameGuilds(),
                         'label' => 'admin.nav.guilds',
                     ],
                     [
                         'id' => 'awards',
-                        'path' => '/admin/awards',
+                        'path' => AdminPaths::gameAwards(),
                         'label' => 'admin.nav.awards',
                     ],
                 ],
@@ -55,41 +55,73 @@ class AdminSections
                 'children' => [
                     [
                         'id' => 'news',
-                        'path' => '/admin/news',
+                        'path' => AdminPaths::contentNews(),
                         'label' => 'admin.nav.news',
                     ],
                     [
-                        'id' => 'news-comments',
-                        'path' => '/admin/news/comments',
-                        'label' => 'admin.nav.news_comments',
-                    ],
-                    [
                         'id' => 'tickets',
-                        'path' => '/admin/tickets',
+                        'path' => AdminPaths::contentTickets(),
                         'label' => 'admin.nav.tickets',
                     ],
+                ],
+            ],
+            [
+                'id' => 'store',
+                'label' => 'admin.nav.store',
+                'children' => [
                     [
-                        'id' => 'item-shop',
-                        'path' => '/admin/item-shop',
+                        'id' => 'store',
+                        'path' => AdminPaths::store(),
                         'label' => 'admin.nav.item_shop',
                     ],
+                ],
+            ],
+            [
+                'id' => 'game-data',
+                'label' => 'admin.nav.game_data',
+                'children' => [
                     [
-                        'id' => 'item-shop-categories',
-                        'path' => '/admin/item-shop/categories',
-                        'label' => 'admin.nav.item_shop_categories',
+                        'id' => 'shops',
+                        'path' => AdminPaths::gameDataShops(),
+                        'label' => 'admin.nav.shops',
                     ],
                     [
-                        'id' => 'item-shop-orders',
-                        'path' => '/admin/item-shop/orders',
-                        'label' => 'admin.nav.item_shop_orders',
+                        'id' => 'refine',
+                        'path' => AdminPaths::gameDataRefine(),
+                        'label' => 'admin.nav.refine',
+                    ],
+                    [
+                        'id' => 'drops',
+                        'path' => AdminPaths::gameDataDrops(),
+                        'label' => 'admin.nav.drops',
+                    ],
+                    [
+                        'id' => 'items',
+                        'path' => AdminPaths::gameDataItems(),
+                        'label' => 'admin.nav.proto_items',
+                    ],
+                    [
+                        'id' => 'mobs',
+                        'path' => AdminPaths::gameDataMobs(),
+                        'label' => 'admin.nav.proto_mobs',
+                    ],
+                    [
+                        'id' => 'gms',
+                        'path' => AdminPaths::gameDataGms(),
+                        'label' => 'admin.nav.gms',
                     ],
                 ],
             ],
             [
                 'id' => 'logs',
                 'label' => 'admin.nav.logs.group',
-                'collapsible' => true,
-                'children' => LogCatalog::navItems(),
+                'children' => [
+                    [
+                        'id' => 'logs',
+                        'path' => AdminPaths::logs(),
+                        'label' => 'admin.nav.logs.group',
+                    ],
+                ],
             ],
             [
                 'id' => 'system',
@@ -97,49 +129,39 @@ class AdminSections
                 'children' => [
                     [
                         'id' => 'admins',
-                        'path' => '/admin/admins',
+                        'path' => AdminPaths::systemAdmins(),
                         'label' => 'admin.nav.admins',
                     ],
                     [
                         'id' => 'roles',
-                        'path' => '/admin/roles',
+                        'path' => AdminPaths::systemRoles(),
                         'label' => 'admin.nav.roles',
                     ],
                     [
                         'id' => 'audit-log',
-                        'path' => '/admin/audit-log',
+                        'path' => AdminPaths::systemAuditLog(),
                         'label' => 'admin.nav.audit_log',
                     ],
                 ],
             ],
             [
-                'id' => 'configuration',
-                'label' => 'admin.nav.configuration',
+                'id' => 'settings',
+                'label' => 'admin.nav.settings',
                 'children' => [
                     [
                         'id' => 'registration',
-                        'path' => '/admin/registration',
+                        'path' => AdminPaths::settingsRegistration(),
                         'label' => 'admin.nav.registration',
                     ],
                     [
-                        'id' => 'news-settings',
-                        'path' => '/admin/news/settings',
-                        'label' => 'admin.nav.news_settings',
-                    ],
-                    [
                         'id' => 'themes',
-                        'path' => '/admin/themes',
+                        'path' => AdminPaths::settingsThemes(),
                         'label' => 'admin.nav.themes',
                     ],
                     [
                         'id' => 'locale',
-                        'path' => '/admin/locale',
+                        'path' => AdminPaths::settingsLocale(),
                         'label' => 'admin.nav.locale',
-                    ],
-                    [
-                        'id' => 'gms',
-                        'path' => '/admin/gms',
-                        'label' => 'admin.nav.gms',
                     ],
                 ],
             ],
@@ -156,7 +178,7 @@ class AdminSections
             }
         }
 
-        return '/admin/registration';
+        return AdminPaths::settingsRegistration();
     }
 
     /**
@@ -172,31 +194,12 @@ class AdminSections
             }
         }
 
-        foreach (['shops', 'refine', 'drops', 'items', 'mobs'] as $sectionId) {
-            $ids[] = $sectionId;
-        }
-
         return $ids;
     }
 
     public static function sectionPath(string $sectionId): ?string
     {
-        foreach (self::all() as $group) {
-            foreach ($group['children'] as $child) {
-                if (($child['id'] ?? '') === $sectionId) {
-                    return (string) ($child['path'] ?? '');
-                }
-            }
-        }
-
-        return match ($sectionId) {
-            'shops' => '/admin/shops',
-            'refine' => '/admin/refine',
-            'drops' => '/admin/drops',
-            'items' => '/admin/items',
-            'mobs' => '/admin/mobs',
-            default => null,
-        };
+        return AdminPaths::sectionPath($sectionId);
     }
 
     public static function groupForSection(string $sectionId): ?string

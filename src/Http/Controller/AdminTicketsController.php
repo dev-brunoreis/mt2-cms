@@ -60,7 +60,7 @@ class AdminTicketsController extends AdminController
     {
         return $this->runMassActions(
             $this->tickets->gridDefinition()->spec(),
-            '/admin/tickets',
+            '/admin/content/tickets',
             [
                 'close' => function (int $id): bool {
                     if ($this->tickets->findById($id) === null) {
@@ -83,7 +83,7 @@ class AdminTicketsController extends AdminController
         if ($ticket === null) {
             $this->flash('error', $this->t('admin.tickets.not_found'));
 
-            return $this->redirect('/admin/tickets');
+            return $this->redirect('/admin/content/tickets');
         }
 
         return $this->adminView('tickets', 'pages/ticket-show.twig', [
@@ -92,7 +92,7 @@ class AdminTicketsController extends AdminController
             'ticket' => $ticket,
             'messages' => $this->tickets->messages((int) $ticket['id']),
             'attachmentsByMessage' => $this->tickets->attachmentsGroupedByMessage((int) $ticket['id']),
-            'attachmentBase' => '/admin/tickets/' . (int) $ticket['id'] . '/attachments/',
+            'attachmentBase' => '/admin/content/tickets/' . (int) $ticket['id'] . '/attachments/',
         ]);
     }
 
@@ -136,7 +136,7 @@ class AdminTicketsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/tickets/' . (int) $id);
+            return $this->redirect('/admin/content/tickets/' . (int) $id);
         }
 
         $ticket = $this->tickets->findById((int) $id);
@@ -144,13 +144,13 @@ class AdminTicketsController extends AdminController
         if ($ticket === null) {
             $this->flash('error', $this->t('admin.tickets.not_found'));
 
-            return $this->redirect('/admin/tickets');
+            return $this->redirect('/admin/content/tickets');
         }
 
         if ((string) $ticket['status'] === 'closed') {
             $this->flash('error', $this->t('admin.tickets.closed'));
 
-            return $this->redirect('/admin/tickets/' . (int) $id);
+            return $this->redirect('/admin/content/tickets/' . (int) $id);
         }
 
         $body = $this->sanitizer->sanitize((string) ($_POST['body'] ?? ''), false);
@@ -158,7 +158,7 @@ class AdminTicketsController extends AdminController
         if (!$this->isValidHtmlBody($body)) {
             $this->flash('error', $this->t('admin.tickets.invalid_reply'));
 
-            return $this->redirect('/admin/tickets/' . (int) $id);
+            return $this->redirect('/admin/content/tickets/' . (int) $id);
         }
 
         $admin = $this->adminAuth->user();
@@ -179,7 +179,7 @@ class AdminTicketsController extends AdminController
         $this->audit('ticket.reply', 'ticket', (int) $ticket['id']);
         $this->flash('success', $this->t('admin.tickets.replied'));
 
-        return $this->redirect('/admin/tickets/' . (int) $id);
+        return $this->redirect('/admin/content/tickets/' . (int) $id);
     }
 
     public function close(string $id): Response
@@ -229,19 +229,19 @@ class AdminTicketsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/tickets/' . $id);
+            return $this->redirect('/admin/content/tickets/' . $id);
         }
 
         if ($this->tickets->findById($id) === null) {
             $this->flash('error', $this->t('admin.tickets.not_found'));
 
-            return $this->redirect('/admin/tickets');
+            return $this->redirect('/admin/content/tickets');
         }
 
         $this->tickets->setStatus($id, $status);
         $this->audit($status === 'closed' ? 'ticket.close' : 'ticket.reopen', 'ticket', $id);
         $this->flash('success', $this->t($successKey));
 
-        return $this->redirect('/admin/tickets/' . $id);
+        return $this->redirect('/admin/content/tickets/' . $id);
     }
 }

@@ -5,7 +5,7 @@
         {% for socket in item.sockets %}
             <li>
                 {% if socket.kind == 'item' %}
-                    <a href="/admin/items/{{ socket.value }}" class="admin-game-icon-row text-indigo-600 hover:underline">
+                    <a href="/admin/game-data/items/{{ socket.value }}" class="admin-game-icon-row text-indigo-600 hover:underline">
                         {% include 'components/item-icon.twig' with { vnum: socket.value, size: 'sm', placeholder: true } %}
                         <span class="admin-item-socket-text">
                             <span>{{ socket.name|default(socket.value) }}</span>

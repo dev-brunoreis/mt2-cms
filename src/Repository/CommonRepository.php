@@ -13,7 +13,7 @@ class CommonRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {
-        return GridDefinition::create('/admin/gms', 'admin.gms')
+        return GridDefinition::create('/admin/game-data/gms', 'admin.gms')
             ->idField('mID')
             ->orderBy([
                 'mID' => 'mID',
@@ -23,11 +23,11 @@ class CommonRepository extends Repository implements ProvidesAdminGrid
             ])
             ->columns([
                 ['key' => 'mID', 'label' => 'admin.gms.id', 'sort' => 'mID', 'type' => 'muted'],
-                ['key' => 'mAccount', 'label' => 'admin.gms.account', 'sort' => 'mAccount', 'type' => 'link', 'href' => '/admin/gms/{mID}'],
+                ['key' => 'mAccount', 'label' => 'admin.gms.account', 'sort' => 'mAccount', 'type' => 'link', 'href' => '/admin/game-data/gms/{mID}'],
                 ['key' => 'mName', 'label' => 'admin.gms.name', 'sort' => 'mName', 'type' => 'text'],
                 ['key' => 'mAuthority', 'label' => 'admin.gms.authority', 'sort' => 'mAuthority', 'type' => 'text'],
             ])
-            ->massActions('/admin/gms/mass', [
+            ->massActions('/admin/game-data/gms/mass', [
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.gms.confirm_mass_delete'],
             ]);
     }

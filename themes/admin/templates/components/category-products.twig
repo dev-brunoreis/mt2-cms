@@ -33,7 +33,7 @@
                                 </td>
                                 <td colspan="2">
                                     <form method="post"
-                                          action="/admin/item-shop/categories/{{ category.id }}/products/{{ product.id }}"
+                                          action="/admin/store/categories/{{ category.id }}/products/{{ product.id }}"
                                           class="flex flex-wrap items-end gap-2">
                                         <input type="hidden" name="_csrf" value="{{ csrf }}">
                                         <div class="admin-field mb-0">
@@ -53,7 +53,7 @@
                                 </td>
                                 <td>
                                     <form method="post"
-                                          action="/admin/item-shop/categories/{{ category.id }}/products/{{ product.id }}/delete"
+                                          action="/admin/store/categories/{{ category.id }}/products/{{ product.id }}/delete"
                                           data-confirm="{{ t('admin.item_shop.products.confirm_delete') }}">
                                         <input type="hidden" name="_csrf" value="{{ csrf }}">
                                         <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">

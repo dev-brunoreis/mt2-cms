@@ -8,11 +8,11 @@
         <div class="admin-category-tree-toolbar">
             <p class="admin-category-tree-title">{{ t('admin.item_shop.categories.tree_title') }}</p>
             <div class="flex flex-wrap gap-2">
-                <a href="/admin/store/categories/new" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
+                <a href="{{ admin_path('storeCategoryNew') }}" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
                     {{ t('admin.item_shop.categories.add_root') }}
                 </a>
                 {% if selectedCategory %}
-                    <a href="/admin/store/categories/new?parent_id={{ selectedCategory.id }}"
+                    <a href="{{ admin_path('storeCategoryNew', selectedCategory.id) }}"
                        class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">
                         {{ t('admin.item_shop.categories.add_child') }}
                     </a>
@@ -46,21 +46,21 @@
         {% if showForm and category %}
             {% if isEdit %}
                 <div class="admin-panel admin-tabs overflow-hidden"
-                     data-admin-tabs data-default-tab="{{ activeTab|default('dados') }}"
+                     data-admin-tabs data-default-tab="{{ categoryTab|default('dados') }}"
                      data-tab-loading="{{ t('admin.tabs.loading') }}"
                      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
                     <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
-                        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.item_shop.categories.tab_settings'), active: activeTab|default('dados') == 'dados' } %}
-                        {% include 'components/tab.twig' with { id: 'products', label: t('admin.item_shop.categories.tab_products'), active: activeTab|default('dados') == 'products' } %}
+                        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.item_shop.categories.tab_settings'), active: categoryTab|default('dados') == 'dados' } %}
+                        {% include 'components/tab.twig' with { id: 'products', label: t('admin.item_shop.categories.tab_products'), active: categoryTab|default('dados') == 'products' } %}
                     </div>
 
                     <div id="admin-tab-panel-dados" class="admin-tabs-panel" role="tabpanel" data-tab-panel="dados"
-                         {% if activeTab|default('dados') != 'dados' %}hidden{% endif %}>
+                         {% if categoryTab|default('dados') != 'dados' %}hidden{% endif %}>
                         {% include 'components/category-settings-form.twig' %}
                     </div>
 
                     <div id="admin-tab-panel-products" class="admin-tabs-panel" role="tabpanel" data-tab-panel="products"
-                         {% if activeTab|default('dados') != 'products' %}hidden{% endif %}>
+                         {% if categoryTab|default('dados') != 'products' %}hidden{% endif %}>
                         {% include 'components/category-products.twig' %}
                     </div>
                 </div>
@@ -71,7 +71,7 @@
             <div class="admin-panel flex min-h-[16rem] items-center justify-center p-8 text-center">
                 <div>
                     <p class="text-sm text-slate-500">{{ t('admin.item_shop.categories.select_hint') }}</p>
-                    <a href="/admin/store/categories/new"
+                    <a href="{{ admin_path('storeCategoryNew') }}"
                        class="mt-4 inline-flex admin-btn-primary rounded-md px-4 py-2 text-sm font-semibold text-white">
                         {{ t('admin.item_shop.categories.add_root') }}
                     </a>

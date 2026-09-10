@@ -23,7 +23,7 @@
             <span class="admin-category-tree-toggle-spacer" aria-hidden="true"></span>
         {% endif %}
 
-        <a href="/admin/store/categories/{{ node.id }}?tab=products" class="admin-category-tree-link">
+        <a href="{{ admin_path('storeCategoryEdit', node.id) }}" class="admin-category-tree-link">
             <span class="admin-category-tree-name">{{ node.name }}</span>
             {% if node.product_count > 0 %}
                 <span class="admin-category-tree-count">{{ node.product_count }}</span>

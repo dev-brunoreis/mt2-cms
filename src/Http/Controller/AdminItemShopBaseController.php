@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Game\Proto\ProtoSchemas;
+use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ItemShopCategoryRepository;
 use Mt2Cms\Repository\ItemShopOrderRepository;
@@ -113,5 +115,128 @@ abstract class AdminItemShopBaseController extends AdminController
         unset($row);
 
         return $rows;
+    }
+
+    /**
+     * @param array<string, mixed> $partial
+     * @param array<string, mixed> $header
+     */
+    protected function storeHubView(string $tab, array $partial, array $header = [], int $status = 200): Response
+    {
+        return $this->adminView('store', 'pages/store-hub.twig', array_merge([
+            'title' => $this->t('admin.store.hub_title'),
+            'pageLead' => $this->t('admin.store.hub_lead'),
+            'activeTab' => $tab,
+            'storeBaseUrl' => AdminPaths::store(),
+            'initialPartial' => $partial,
+        ], $header), $status);
+    }
+
+    /**
+     * @param array<string, mixed>|null $selected
+     * @param array<string, mixed>|null $form
+     * @return array<string, mixed>
+     */
+    protected function categoryWorkspaceData(
+        ?array $selected,
+        ?array $form = null,
+        bool $isEdit = false,
+        ?string $error = null,
+        ?string $categoryTab = null,
+    ): array {
+        $isCreating = $form !== null && !$isEdit;
+        $showForm = $selected !== null || $isCreating;
+
+        if ($form === null && $selected !== null) {
+            $form = $selected;
+            $isEdit = true;
+            $showForm = true;
+        }
+
+        if ($categoryTab === null) {
+            $categoryTab = $isEdit ? $this->categoryPanel() : 'dados';
+        }
+
+        $data = [
+            'categoryTree' => $this->categories->treeForAdmin(),
+            'parentOptions' => $this->categories->listAllForSelect(),
+            'selectedCategory' => $selected,
+            'category' => $form,
+            'isEdit' => $isEdit,
+            'showForm' => $showForm,
+            'error' => $error,
+            'moveUrl' => AdminPaths::storeCategories() . '/move',
+            'categoryTab' => $categoryTab,
+            'categoryProducts' => [],
+            'itemSearchUrl' => null,
+            'addProductsUrl' => null,
+        ];
+
+        if ($isEdit && $selected !== null) {
+            $categoryId = (int) $selected['id'];
+            $data['categoryProducts'] = $this->enrichProducts($this->products->listByCategoryId($categoryId));
+            $data['itemSearchUrl'] = AdminPaths::storeCategory($categoryId) . '/item-search';
+            $data['addProductsUrl'] = AdminPaths::storeCategory($categoryId) . '/products';
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $workspace
+     * @return array<string, mixed>
+     */
+    protected function categoriesHubHeader(array $workspace): array
+    {
+        $showForm = (bool) ($workspace['showForm'] ?? false);
+        $isEdit = (bool) ($workspace['isEdit'] ?? false);
+        $categoryTab = (string) ($workspace['categoryTab'] ?? 'dados');
+
+        if ($showForm && (!$isEdit || $categoryTab === 'dados')) {
+            return [
+                'formId' => 'admin-item-shop-category-form',
+                'saveLabel' => $this->t('admin.save'),
+            ];
+        }
+
+        if (!$showForm) {
+            return [
+                'headerHref' => AdminPaths::storeCategoryNew(),
+                'headerActionLabel' => $this->t('admin.item_shop.categories.add_root'),
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function categoryPrefill(?int $parentId = null): array
+    {
+        return [
+            'parent_id' => $parentId,
+            'name' => '',
+            'slug' => '',
+            'sort_order' => 0,
+            'enabled' => 1,
+        ];
+    }
+
+    protected function categoryPanel(): string
+    {
+        $panel = (string) ($_GET['panel'] ?? '');
+
+        if (in_array($panel, ['dados', 'products'], true)) {
+            return $panel;
+        }
+
+        $tab = (string) ($_GET['tab'] ?? '');
+
+        if (in_array($tab, ['dados', 'products'], true)) {
+            return $tab;
+        }
+
+        return 'products';
     }
 }

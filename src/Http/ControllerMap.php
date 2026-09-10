@@ -280,9 +280,10 @@ private function resolveController(string $class): object
                 $this->adminTheme,
                 $this->acl,
                 $this->adminAudit,
-                $this->itemShopProducts,
                 $this->itemShopCategories,
+                $this->itemShopProducts,
                 $this->itemShopOrders,
+                $this->gameProto,
             ),
             AdminNewsPostsController::class => new AdminNewsPostsController(
                 $this->theme,

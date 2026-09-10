@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Http\Response;
 
@@ -11,14 +12,14 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 {
     public function categoriesIndex(): Response
     {
-        return $this->categoryWorkspace(null);
+        return $this->redirect(AdminPaths::store());
     }
 
     public function categoriesCreate(): Response
     {
         $parentId = (int) ($_GET['parent_id'] ?? 0);
 
-        return $this->categoryWorkspace(null, $this->categoryPrefill($parentId > 0 ? $parentId : null), false);
+        return $this->redirect(AdminPaths::storeCategoryNew($parentId > 0 ? $parentId : null));
     }
 
     public function categoriesStore(): Response
@@ -30,7 +31,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories/new');
+            return $this->redirect(AdminPaths::storeCategoryNew());
         }
 
         $input = $this->categoryInput();
@@ -40,7 +41,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->audit('item_shop.category.create', 'item_shop_category', (int) $category['id']);
             $this->flash('success', $this->t('admin.item_shop.categories.created'));
 
-            return $this->redirect('/admin/store/categories/' . $category['id']);
+            return $this->redirect(AdminPaths::storeCategoryEdit((int) $category['id']));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->categoryWorkspace(null, $input, false, $this->t($e->getMessage()), 422);
         }
@@ -53,10 +54,12 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if ($category === null) {
             $this->flash('error', $this->t('admin.item_shop.categories.not_found'));
 
-            return $this->redirect('/admin/store/categories');
+            return $this->redirect(AdminPaths::store());
         }
 
-        return $this->categoryWorkspace($category, $category, true);
+        $panel = $this->categoryPanel();
+
+        return $this->redirect(AdminPaths::storeCategoryEdit((int) $id, $panel === 'products' ? null : $panel));
     }
 
     public function categoriesUpdate(string $id): Response
@@ -71,13 +74,13 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if ($existing === null) {
             $this->flash('error', $this->t('admin.item_shop.categories.not_found'));
 
-            return $this->redirect('/admin/store/categories');
+            return $this->redirect(AdminPaths::store());
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId);
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'dados'));
         }
 
         $input = $this->categoryInput();
@@ -87,7 +90,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->audit('item_shop.category.update', 'item_shop_category', $categoryId);
             $this->flash('success', $this->t('admin.item_shop.categories.updated'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId);
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'dados'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->categoryWorkspace(
                 $existing,
@@ -95,6 +98,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
                 true,
                 $this->t($e->getMessage()),
                 422,
+                'dados',
             );
         }
     }
@@ -108,7 +112,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories');
+            return $this->redirect(AdminPaths::store());
         }
 
         try {
@@ -122,7 +126,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/store/categories');
+        return $this->redirect(AdminPaths::store());
     }
 
     public function categoriesMove(): Response
@@ -212,13 +216,13 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if ($this->categories->findById($categoryId) === null) {
             $this->flash('error', $this->t('admin.item_shop.categories.not_found'));
 
-            return $this->redirect('/admin/store/categories');
+            return $this->redirect(AdminPaths::store());
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
         }
 
         $rawItems = $_POST['items'] ?? [];
@@ -265,7 +269,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+        return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
     }
 
     public function categoriesUpdateProduct(string $id, string $productId): Response
@@ -280,7 +284,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
         }
 
         $product = $this->products->findById($pid);
@@ -288,7 +292,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if ($product === null || (int) $product['category_id'] !== $categoryId) {
             $this->flash('error', $this->t('admin.item_shop.products.not_found'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
         }
 
         try {
@@ -303,7 +307,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+        return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
     }
 
     public function categoriesRemoveProduct(string $id, string $productId): Response
@@ -318,7 +322,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+            return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
         }
 
         $product = $this->products->findById($pid);
@@ -332,7 +336,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->flash('success', $this->t('admin.item_shop.products.deleted'));
         }
 
-        return $this->redirect('/admin/store/categories/' . $categoryId . '?tab=products');
+        return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
     }
 
     /**
@@ -345,69 +349,19 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         bool $isEdit = false,
         ?string $error = null,
         int $status = 200,
+        ?string $categoryTab = null,
     ): Response {
-        if ($guard = $this->denyUnlessAdmin()) {
-            return $guard;
-        }
+        $data = $this->categoryWorkspaceData($selected, $form, $isEdit, $error, $categoryTab);
 
-        $isCreating = $form !== null && !$isEdit;
-        $showForm = $selected !== null || $isCreating;
-
-        if ($form === null && $selected !== null) {
-            $form = $selected;
-            $isEdit = true;
-            $showForm = true;
-        }
-
-        $data = [
-            'title' => $this->t('admin.item_shop.categories.title'),
-            'pageLead' => $this->t('admin.item_shop.categories.lead'),
-            'categoryTree' => $this->categories->treeForAdmin(),
-            'parentOptions' => $this->categories->listAllForSelect(),
-            'selectedCategory' => $selected,
-            'category' => $form,
-            'isEdit' => $isEdit,
-            'showForm' => $showForm,
-            'error' => $error,
-            'moveUrl' => '/admin/store/categories/move',
-            'activeTab' => $isEdit
-                ? $this->requestedTab(['dados', 'products'], 'products')
-                : 'dados',
-            'categoryProducts' => [],
-            'itemSearchUrl' => null,
-            'addProductsUrl' => null,
-        ];
-
-        if ($isEdit && $selected !== null) {
-            $categoryId = (int) $selected['id'];
-            $data['categoryProducts'] = $this->enrichProducts($this->products->listByCategoryId($categoryId));
-            $data['itemSearchUrl'] = '/admin/store/categories/' . $categoryId . '/item-search';
-            $data['addProductsUrl'] = '/admin/store/categories/' . $categoryId . '/products';
-        }
-
-        if ($showForm && (!$isEdit || ($data['activeTab'] ?? 'dados') === 'dados')) {
-            $data['formId'] = 'admin-item-shop-category-form';
-            $data['saveLabel'] = $this->t('admin.save');
-        } elseif (!$showForm) {
-            $data['headerHref'] = '/admin/store/categories/new';
-            $data['headerActionLabel'] = $this->t('admin.item_shop.categories.add_root');
-        }
-
-        return $this->adminView('store', 'pages/item-shop-categories.twig', $data, $status);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function categoryPrefill(?int $parentId = null): array
-    {
-        return [
-            'parent_id' => $parentId,
-            'name' => '',
-            'slug' => '',
-            'sort_order' => 0,
-            'enabled' => 1,
-        ];
+        return $this->storeHubView(
+            'categories',
+            [
+                'template' => 'pages/store-categories-partial.twig',
+                'data' => $data,
+            ],
+            $this->categoriesHubHeader($data),
+            $status,
+        );
     }
 
     /**

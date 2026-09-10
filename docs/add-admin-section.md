@@ -11,7 +11,7 @@ Admin routes use area prefixes:
 | Overview | `/admin` | Dashboard |
 | Game | `/admin/game/` | accounts, characters, guilds, awards |
 | Content | `/admin/content/` | news (hub), tickets |
-| Store | `/admin/store/` | products, categories, orders (hub at `/admin/store`) |
+| Store | `/admin/store/` | categories + orders (hub at `/admin/store`; products live in a category) |
 | Game data | `/admin/game-data/` | shops, refine, drops, items, mobs, gms |
 | Logs | `/admin/logs` | Hub with `?tab={logId}` |
 | System | `/admin/system/` | admins, roles, audit-log |

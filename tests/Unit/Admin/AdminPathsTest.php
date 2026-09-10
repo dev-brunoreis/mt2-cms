@@ -16,7 +16,9 @@ final class AdminPathsTest extends TestCase
         self::assertSame('/admin/logs?tab=connections', AdminPaths::logs());
         self::assertSame('/admin/logs?tab=hack_log', AdminPaths::logs('hack_log'));
         self::assertSame('/admin/content/news?tab=comments', AdminPaths::contentNews('comments'));
-        self::assertSame('/admin/store/products', AdminPaths::storeProducts());
+        self::assertSame('/admin/store?tab=categories&new=1', AdminPaths::storeCategoryNew());
+        self::assertSame('/admin/store?tab=categories&new=1&parent_id=4', AdminPaths::storeCategoryNew(4));
+        self::assertSame('/admin/store?tab=categories&id=12&panel=products', AdminPaths::storeCategoryEdit(12, 'products'));
         self::assertSame('/admin/system/roles', AdminPaths::systemRoles());
     }
 

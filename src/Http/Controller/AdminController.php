@@ -122,7 +122,9 @@ abstract class AdminController extends Controller
             return new Response('', 401);
         }
 
-        return Response::html($this->adminTheme->renderTemplate($template, $data), $status);
+        return Response::html($this->adminTheme->renderTemplate($template, array_merge([
+            'csrf' => $this->csrf->token(),
+        ], $data)), $status);
     }
 
     protected function gridQuery(GridSpec $spec): GridQuery

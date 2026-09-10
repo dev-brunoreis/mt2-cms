@@ -87,9 +87,26 @@ final class AdminPaths
         return '/admin/store/categories/' . $id;
     }
 
-    public static function storeCategoryNew(): string
+    public static function storeCategoryNew(?int $parentId = null): string
     {
-        return '/admin/store/categories/new';
+        $path = '/admin/store?tab=categories&new=1';
+
+        if ($parentId !== null && $parentId > 0) {
+            $path .= '&parent_id=' . $parentId;
+        }
+
+        return $path;
+    }
+
+    public static function storeCategoryEdit(int $id, ?string $panel = null): string
+    {
+        $path = '/admin/store?tab=categories&id=' . $id;
+
+        if ($panel !== null && $panel !== '') {
+            $path .= '&panel=' . rawurlencode($panel);
+        }
+
+        return $path;
     }
 
     public static function storeOrders(): string

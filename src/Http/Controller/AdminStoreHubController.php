@@ -6,37 +6,11 @@ namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridRunner;
-use Mt2Cms\Auth\AdminAuth;
-use Mt2Cms\Auth\Auth;
-use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
-use Mt2Cms\I18n\Translator;
-use Mt2Cms\Repository\ItemShopCategoryRepository;
-use Mt2Cms\Repository\ItemShopOrderRepository;
-use Mt2Cms\Repository\ItemShopProductRepository;
-use Mt2Cms\Service\AclService;
-use Mt2Cms\Service\AdminAuditService;
-use Mt2Cms\Theme\ThemeEngine;
 
-class AdminStoreHubController extends AdminController
+class AdminStoreHubController extends AdminItemShopBaseController
 {
-    private const TABS = ['products', 'categories', 'orders'];
-
-    public function __construct(
-        ThemeEngine $theme,
-        Auth $auth,
-        Csrf $csrf,
-        Translator $translator,
-        AdminAuth $adminAuth,
-        ThemeEngine $adminTheme,
-        AclService $acl,
-        AdminAuditService $auditLog,
-        private ItemShopProductRepository $products,
-        private ItemShopCategoryRepository $categories,
-        private ItemShopOrderRepository $orders,
-    ) {
-        parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
-    }
+    private const TABS = ['categories', 'orders'];
 
     public function index(): Response
     {
@@ -44,31 +18,28 @@ class AdminStoreHubController extends AdminController
             return $redirect;
         }
 
-        $tab = $this->requestedTab(self::TABS, 'products');
+        $tab = $this->requestedTab(self::TABS, 'categories');
 
         if ($this->wantsTabPartial()) {
             return $this->renderTabPartial($tab);
         }
 
-        $header = match ($tab) {
-            'products' => [
-                'headerHref' => AdminPaths::storeProductNew(),
-                'headerActionLabel' => $this->t('admin.item_shop.products.create'),
-            ],
-            'categories' => [
-                'headerHref' => AdminPaths::storeCategoryNew(),
-                'headerActionLabel' => $this->t('admin.item_shop.categories.create'),
-            ],
-            default => [],
-        };
+        if ($tab === 'categories') {
+            $missing = $this->missingCategoryFromRequest();
 
-        return $this->adminView('store', 'pages/store-hub.twig', array_merge([
-            'title' => $this->t('admin.store.hub_title'),
-            'pageLead' => $this->t('admin.store.hub_lead'),
-            'activeTab' => $tab,
-            'storeBaseUrl' => AdminPaths::store(),
-            'initialPartial' => $this->partialPayload($tab),
-        ], $header));
+            if ($missing !== null) {
+                $this->flash('error', $this->t('admin.item_shop.categories.not_found'));
+
+                return $this->redirect(AdminPaths::store());
+            }
+        }
+
+        $payload = $this->partialPayload($tab);
+        $header = $tab === 'categories'
+            ? $this->categoriesHubHeader($payload['data'])
+            : [];
+
+        return $this->storeHubView($tab, $payload, $header);
     }
 
     private function renderTabPartial(string $tab): Response
@@ -87,59 +58,60 @@ class AdminStoreHubController extends AdminController
      */
     private function partialPayload(string $tab): array
     {
-        return match ($tab) {
-            'categories' => [
-                'template' => 'pages/store-categories-partial.twig',
-                'data' => $this->categoriesPartialData(),
-            ],
-            'orders' => [
+        if ($tab === 'orders') {
+            return [
                 'template' => 'pages/store-orders-partial.twig',
                 'data' => ['grid' => $this->ordersGrid()],
-            ],
-            default => [
-                'template' => 'pages/store-products-partial.twig',
-                'data' => ['grid' => $this->productsGrid()],
-            ],
-        };
-    }
+            ];
+        }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function categoriesPartialData(): array
-    {
         return [
-            'categoryTree' => $this->categories->treeForAdmin(),
-            'parentOptions' => $this->categories->listAllForSelect(),
-            'selectedCategory' => null,
-            'category' => null,
-            'isEdit' => false,
-            'showForm' => false,
-            'error' => null,
-            'moveUrl' => AdminPaths::storeCategories() . '/move',
-            'activeTab' => 'dados',
-            'categoryProducts' => [],
-            'itemSearchUrl' => null,
-            'addProductsUrl' => null,
-            'headerHref' => AdminPaths::storeCategoryNew(),
-            'headerActionLabel' => $this->t('admin.item_shop.categories.add_root'),
+            'template' => 'pages/store-categories-partial.twig',
+            'data' => $this->categoriesWorkspaceFromRequest(),
         ];
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function productsGrid(): array
+    private function categoriesWorkspaceFromRequest(): array
     {
-        $spec = $this->products->gridDefinition()->spec();
-        $query = $this->gridQuery($spec);
+        if (isset($_GET['new'])) {
+            $parentId = (int) ($_GET['parent_id'] ?? 0);
 
-        return GridRunner::fetch(
-            $spec,
-            $query,
-            fn ($q) => $this->products->countForGrid($q),
-            fn ($q) => $this->products->listForGrid($q),
-        );
+            return $this->categoryWorkspaceData(
+                null,
+                $this->categoryPrefill($parentId > 0 ? $parentId : null),
+                false,
+            );
+        }
+
+        $id = (int) ($_GET['id'] ?? 0);
+
+        if ($id > 0) {
+            $category = $this->categories->findById($id);
+
+            if ($category !== null) {
+                return $this->categoryWorkspaceData($category, $category, true);
+            }
+        }
+
+        return $this->categoryWorkspaceData(null);
+    }
+
+    private function missingCategoryFromRequest(): ?int
+    {
+        if (isset($_GET['new'])) {
+            return null;
+        }
+
+        $id = (int) ($_GET['id'] ?? 0);
+
+        if ($id < 1) {
+            return null;
+        }
+
+        return $this->categories->findById($id) === null ? $id : null;
     }
 
     /**
@@ -154,7 +126,7 @@ class AdminStoreHubController extends AdminController
             $spec,
             $query,
             fn ($q) => $this->orders->countForGrid($q),
-            fn ($q) => $this->orders->listForGrid($q),
+            fn ($q) => $this->enrichOrders($this->orders->listForGrid($q)),
         );
     }
 }

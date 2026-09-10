@@ -1718,7 +1718,7 @@
     },
     "store": {
       "hub_title": "Item shop",
-      "hub_lead": "Manage mall products, categories, and orders.",
+      "hub_lead": "Manage mall categories and orders.",
       "tab_products": "Products",
       "tab_categories": "Categories",
       "tab_orders": "Orders"

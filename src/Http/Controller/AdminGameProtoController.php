@@ -238,7 +238,7 @@ class AdminGameProtoController extends AdminController
             'title' => $this->t($isEdit ? $prefix . '.edit_title' : $prefix . '.create_title'),
             'pageLead' => $this->t($isEdit ? $prefix . '.edit_lead' : $prefix . '.create_lead'),
             'formId' => 'admin-proto-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : $prefix . '.create'),
+            'saveLabel' => $this->t('admin.save'),
             'routeKind' => $route,
             'i18nPrefix' => $prefix,
             'protoKind' => $internal,

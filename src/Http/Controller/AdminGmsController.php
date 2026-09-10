@@ -197,7 +197,7 @@ class AdminGmsController extends AdminController
             'title' => $this->t($isEdit ? 'admin.gms.edit_title' : 'admin.gms.create_title'),
             'pageLead' => $this->t($isEdit ? 'admin.gms.edit_lead' : 'admin.gms.create_lead'),
             'formId' => 'admin-gm-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.gms.create'),
+            'saveLabel' => $this->t('admin.save'),
             'gm' => $gm,
             'isEdit' => $isEdit,
             'authorities' => CommonRepository::authorities(),

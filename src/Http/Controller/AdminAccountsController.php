@@ -220,7 +220,7 @@ class AdminAccountsController extends AdminController
             'title' => $this->t($isEdit ? 'admin.accounts.edit_title' : 'admin.accounts.create_title'),
             'pageLead' => $this->t($isEdit ? 'admin.accounts.edit_lead' : 'admin.accounts.create_lead'),
             'formId' => 'admin-account-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.accounts.create'),
+            'saveLabel' => $this->t('admin.save'),
             'account' => $isEdit ? $this->withPlayerIndexEmpire($account) : $account,
             'characters' => $characters,
             'connectionIps' => $connectionIps,

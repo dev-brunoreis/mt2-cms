@@ -172,7 +172,7 @@ class AdminRefineController extends AdminController
             'title' => $this->t($isEdit ? 'admin.refine.edit_title' : 'admin.refine.create_title', ['id' => (string) ($recipe['id'] ?? '')]),
             'pageLead' => $this->t($isEdit ? 'admin.refine.edit_lead' : 'admin.refine.create_lead'),
             'formId' => 'admin-refine-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.refine.create'),
+            'saveLabel' => $this->t('admin.save'),
             'recipe' => $recipe,
             'isEdit' => $isEdit,
             'error' => $error,

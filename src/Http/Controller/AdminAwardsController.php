@@ -127,7 +127,7 @@ class AdminAwardsController extends AdminController
             'title' => $this->t('admin.awards.create_title'),
             'pageLead' => $this->t('admin.awards.create_lead'),
             'formId' => 'admin-award-form',
-            'saveLabel' => $this->t('admin.awards.create'),
+            'saveLabel' => $this->t('admin.save'),
             'award' => $award,
             'error' => $error,
         ], $status);

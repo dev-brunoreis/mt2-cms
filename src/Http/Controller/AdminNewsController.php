@@ -337,9 +337,10 @@ class AdminNewsController extends AdminController
         $isEdit = isset($post['id']);
 
         return $this->adminView('news', 'pages/news-form.twig', [
-            'title' => $isEdit ? $this->t('admin.news.edit') : $this->t('admin.news.create'),
+            'title' => $isEdit ? $this->t('admin.news.edit') : $this->t('admin.news.create_title'),
             'pageLead' => $this->t('admin.news.form_lead'),
             'formId' => 'admin-news-form',
+            'saveLabel' => $this->t('admin.save'),
             'post' => $post,
             'isEdit' => $isEdit,
             'error' => $error,

@@ -561,7 +561,7 @@ class AdminItemShopController extends AdminController
 
         if ($showForm && (!$isEdit || ($data['activeTab'] ?? 'dados') === 'dados')) {
             $data['formId'] = 'admin-item-shop-category-form';
-            $data['saveLabel'] = $this->t($isEdit ? 'admin.save' : 'admin.item_shop.categories.create');
+            $data['saveLabel'] = $this->t('admin.save');
         } elseif (!$showForm) {
             $data['headerHref'] = '/admin/item-shop/categories/new';
             $data['headerActionLabel'] = $this->t('admin.item_shop.categories.add_root');
@@ -586,7 +586,7 @@ class AdminItemShopController extends AdminController
             'title' => $this->t($isEdit ? 'admin.item_shop.products.edit_title' : 'admin.item_shop.products.create_title'),
             'pageLead' => $this->t($isEdit ? 'admin.item_shop.products.edit_lead' : 'admin.item_shop.products.create_lead'),
             'formId' => 'admin-item-shop-product-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.item_shop.products.create'),
+            'saveLabel' => $this->t('admin.save'),
             'product' => $product,
             'categories' => $this->categories->listAllForSelect(),
             'itemName' => $itemName,

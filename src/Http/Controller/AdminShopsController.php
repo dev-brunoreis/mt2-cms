@@ -206,7 +206,7 @@ class AdminShopsController extends AdminController
             'title' => $this->t($isEdit ? 'admin.shops.edit_title' : 'admin.shops.create_title', ['name' => (string) ($shop['name'] ?? '')]),
             'pageLead' => $this->t($isEdit ? 'admin.shops.edit_lead' : 'admin.shops.create_lead'),
             'formId' => 'admin-shop-form',
-            'saveLabel' => $this->t($isEdit ? 'admin.save' : 'admin.shops.create'),
+            'saveLabel' => $this->t('admin.save'),
             'shop' => $shop,
             'isEdit' => $isEdit,
             'activeTab' => 'dados',

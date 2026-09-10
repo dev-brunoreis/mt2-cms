@@ -47,6 +47,8 @@
             {% if isEdit %}
                 <div class="admin-panel admin-tabs overflow-hidden"
                      data-admin-tabs data-default-tab="{{ categoryTab|default('dados') }}"
+                     data-header-form-dados="admin-item-shop-category-form"
+                     data-header-form-products="admin-category-products-form"
                      data-tab-loading="{{ t('admin.tabs.loading') }}"
                      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
                     <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">

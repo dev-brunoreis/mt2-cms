@@ -174,7 +174,6 @@ abstract class AdminItemShopBaseController extends AdminController
 
         if ($isEdit && $selected !== null) {
             $categoryId = (int) $selected['id'];
-            $data['categoryProducts'] = $this->enrichProducts($this->products->listByCategoryId($categoryId));
             $data['itemSearchUrl'] = AdminPaths::storeCategory($categoryId) . '/item-search';
             $data['addProductsUrl'] = AdminPaths::storeCategory($categoryId) . '/products';
         }
@@ -191,6 +190,13 @@ abstract class AdminItemShopBaseController extends AdminController
         $showForm = (bool) ($workspace['showForm'] ?? false);
         $isEdit = (bool) ($workspace['isEdit'] ?? false);
         $categoryTab = (string) ($workspace['categoryTab'] ?? 'dados');
+
+        if ($showForm && $isEdit && $categoryTab === 'products') {
+            return [
+                'formId' => 'admin-category-products-form',
+                'saveLabel' => $this->t('admin.save'),
+            ];
+        }
 
         if ($showForm && (!$isEdit || $categoryTab === 'dados')) {
             return [

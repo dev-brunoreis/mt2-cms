@@ -48,10 +48,24 @@ class GameProtoService
 
     /**
      * @return array{rows: list<array<string, string>>, total: int}
+     * @param list<int> $excludeVnums
      */
-    public function page(string $kind, int $page, int $perPage, ?string $query): array
+    public function page(string $kind, int $page, int $perPage, ?string $query, array $excludeVnums = []): array
     {
         $filtered = $this->filter($this->table($kind)->all(), $query);
+
+        if ($excludeVnums !== []) {
+            $exclude = [];
+
+            foreach ($excludeVnums as $vnum) {
+                $exclude[(int) $vnum] = true;
+            }
+
+            $filtered = array_values(array_filter(
+                $filtered,
+                static fn (array $row): bool => !isset($exclude[(int) ($row['vnum'] ?? 0)]),
+            ));
+        }
         $total = count($filtered);
         $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));

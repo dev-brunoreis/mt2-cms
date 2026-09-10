@@ -125,6 +125,13 @@ const initTabs = (root) => {
     if (persistUrl) {
       writeQueryTab(id, id === defaultTab)
     }
+
+    const headerForm = root.getAttribute('data-header-form-' + id)
+    const headerButton = document.querySelector('.admin-page-header button[form]')
+
+    if (headerForm && headerButton instanceof HTMLButtonElement) {
+      headerButton.setAttribute('form', headerForm)
+    }
   }
 
   const loadPanel = async (panel) => {

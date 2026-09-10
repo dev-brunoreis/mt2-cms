@@ -3,26 +3,17 @@
   if (!root) return
 
   const searchUrl = root.getAttribute('data-search-url') || ''
-  const labelPrev = root.getAttribute('data-label-prev') || 'Previous'
-  const labelNext = root.getAttribute('data-label-next') || 'Next'
-  const labelAlready = root.getAttribute('data-label-already') || 'already added'
   const searchInput = root.querySelector('[data-item-search]')
   const searchBtn = root.querySelector('[data-item-search-btn]')
   const selectAll = root.querySelector('[data-select-all]')
-  const continueBtn = root.querySelector('[data-continue-pricing]')
   const resultsEmpty = root.querySelector('[data-item-empty]')
   const resultsTable = root.querySelector('[data-item-table]')
   const tbody = root.querySelector('[data-item-tbody]')
   const pager = root.querySelector('[data-item-pager]')
-  const stepSearch = root.querySelector('[data-picker-step="search"]')
-  const stepPricing = root.querySelector('[data-picker-step="pricing"]')
-  const pricingBody = root.querySelector('[data-pricing-tbody]')
-  const bulkPrice = root.querySelector('[data-bulk-price]')
-  const applyBulk = root.querySelector('[data-apply-bulk-price]')
-  const backBtn = root.querySelector('[data-back-to-search]')
+  const labelPrev = root.getAttribute('data-label-prev') || 'Previous'
+  const labelNext = root.getAttribute('data-label-next') || 'Next'
 
   let page = 1
-  let selected = new Map()
 
   function escapeHtml(value) {
     return String(value)
@@ -35,26 +26,61 @@
   function itemIconHtml(vnum) {
     const id = Number(vnum) || 0
     if (id < 1) {
-      return '<span class="admin-game-icon admin-game-icon-lg admin-game-icon-empty" aria-hidden="true"></span>'
+      return '<span class="admin-game-icon admin-game-icon-empty" aria-hidden="true"></span>'
     }
-    return `<img src="/game/icon/item/${id}" alt="" width="72" height="72" class="admin-game-icon admin-game-icon-lg" loading="lazy" onerror="this.style.visibility='hidden'">`
+    return `<img src="/game/icon/item/${id}" alt="" width="32" height="32" class="admin-game-icon" loading="lazy" onerror="this.style.visibility='hidden'">`
   }
 
-  function updateContinue() {
-    if (continueBtn) continueBtn.disabled = selected.size === 0
+  function toggleRow(row, checked) {
+    row.classList.toggle('is-selected', checked)
+    const price = row.querySelector('[data-price-cell] input')
+    if (price instanceof HTMLInputElement) {
+      price.disabled = !checked
+      price.required = checked
+    }
   }
 
-  function syncRowChecks() {
-    if (!tbody) return
-    tbody.querySelectorAll('input[data-vnum]').forEach((input) => {
-      const vnum = Number(input.getAttribute('data-vnum'))
-      input.checked = selected.has(vnum)
-    })
-    if (selectAll) {
-      const boxes = [...tbody.querySelectorAll('input[data-vnum]:not(:disabled)')]
-      selectAll.checked = boxes.length > 0 && boxes.every((box) => box.checked)
-    }
-    updateContinue()
+  function syncSelectAll() {
+    if (!selectAll || !tbody) return
+    const boxes = [...tbody.querySelectorAll('input[data-vnum]')]
+    selectAll.checked = boxes.length > 0 && boxes.every((box) => box.checked)
+  }
+
+  function rowHtml(item, assigned) {
+    const vnum = Number(item.vnum) || 0
+    const name = escapeHtml(item.name || String(vnum))
+    const price = Number(item.price) > 0 ? Number(item.price) : 1
+    const count = Number(item.count) > 0 ? Number(item.count) : 1
+    const id = Number(item.id) || 0
+    const checked = assigned ? 'checked' : ''
+    const selectedClass = assigned ? ' is-selected' : ''
+    const priceState = assigned ? 'required' : 'disabled'
+    const idField = id > 0
+      ? `<input type="hidden" name="items[${vnum}][id]" value="${id}">`
+      : ''
+    const shownField = id > 0
+      ? `<input type="hidden" name="shown_ids[]" value="${id}">`
+      : ''
+
+    return `<tr class="${selectedClass.trim()}">
+      <td>
+        ${shownField}
+        ${idField}
+        <input type="hidden" name="items[${vnum}][count]" value="${count}">
+        <input type="checkbox" name="selected[]" value="${vnum}" data-vnum="${vnum}" ${checked}>
+      </td>
+      <td class="text-slate-500">${vnum}</td>
+      <td>
+        <div class="admin-game-icon-row">
+          ${itemIconHtml(vnum)}
+          <span>${name}</span>
+        </div>
+      </td>
+      <td data-price-cell>
+        <input type="number" name="items[${vnum}][price]" min="1" value="${price}"
+               class="admin-input admin-input-compact w-28" ${priceState}>
+      </td>
+    </tr>`
   }
 
   async function loadPage(nextPage) {
@@ -81,24 +107,16 @@
       return
     }
 
+    const assigned = Array.isArray(data.assigned) ? data.assigned : []
     const items = Array.isArray(data.items) ? data.items : []
-    tbody.innerHTML = items.map((item) => {
-      const disabled = item.in_category ? 'disabled' : ''
-      const note = item.in_category ? ` <span class="text-xs text-slate-400">(${escapeHtml(labelAlready)})</span>` : ''
-      return `<tr>
-        <td><input type="checkbox" data-vnum="${item.vnum}" data-name="${escapeHtml(item.name)}" ${disabled}></td>
-        <td class="text-slate-500">${item.vnum}</td>
-        <td>
-          <div class="admin-game-icon-row">
-            ${itemIconHtml(item.vnum)}
-            <span>${escapeHtml(item.name)}${note}</span>
-          </div>
-        </td>
-      </tr>`
-    }).join('')
+    tbody.innerHTML = [
+      ...assigned.map((item) => rowHtml(item, true)),
+      ...items.map((item) => rowHtml(item, false)),
+    ].join('')
 
-    if (resultsEmpty) resultsEmpty.hidden = items.length > 0
-    if (resultsTable) resultsTable.hidden = items.length === 0
+    const empty = assigned.length === 0 && items.length === 0
+    if (resultsEmpty) resultsEmpty.hidden = !empty
+    if (resultsTable) resultsTable.hidden = empty
 
     if (pager) {
       const totalPages = Math.max(1, Number(data.totalPages) || 1)
@@ -119,71 +137,26 @@
       }
     }
 
-    syncRowChecks()
+    syncSelectAll()
   }
 
   if (tbody) {
     tbody.addEventListener('change', (event) => {
       const input = event.target
       if (!(input instanceof HTMLInputElement) || !input.hasAttribute('data-vnum')) return
-      const vnum = Number(input.getAttribute('data-vnum'))
-      const name = input.getAttribute('data-name') || String(vnum)
-      if (input.checked) selected.set(vnum, name)
-      else selected.delete(vnum)
-      updateContinue()
-      if (selectAll) {
-        const boxes = [...tbody.querySelectorAll('input[data-vnum]:not(:disabled)')]
-        selectAll.checked = boxes.length > 0 && boxes.every((box) => box.checked)
-      }
+      const row = input.closest('tr')
+      if (row) toggleRow(row, input.checked)
+      syncSelectAll()
     })
   }
 
   if (selectAll) {
     selectAll.addEventListener('change', () => {
       if (!tbody) return
-      tbody.querySelectorAll('input[data-vnum]:not(:disabled)').forEach((input) => {
+      tbody.querySelectorAll('input[data-vnum]').forEach((input) => {
         input.checked = selectAll.checked
-        const vnum = Number(input.getAttribute('data-vnum'))
-        const name = input.getAttribute('data-name') || String(vnum)
-        if (selectAll.checked) selected.set(vnum, name)
-        else selected.delete(vnum)
-      })
-      updateContinue()
-    })
-  }
-
-  function showPricing() {
-    if (!pricingBody || !stepSearch || !stepPricing) return
-    pricingBody.innerHTML = [...selected.entries()].map(([vnum, name], index) => `
-      <tr>
-        <td class="text-slate-500">${vnum}</td>
-        <td>
-          <input type="hidden" name="items[${index}][vnum]" value="${vnum}">
-          <div class="admin-game-icon-row">
-            ${itemIconHtml(vnum)}
-            <span class="font-medium text-slate-800">${escapeHtml(name)}</span>
-          </div>
-        </td>
-        <td><input type="number" name="items[${index}][count]" min="1" max="200" value="1" class="admin-input admin-input-compact w-20"></td>
-        <td><input type="number" name="items[${index}][price]" min="1" value="${bulkPrice ? bulkPrice.value || 1 : 1}" data-price-input class="admin-input admin-input-compact w-28" required></td>
-      </tr>
-    `).join('')
-    stepSearch.hidden = true
-    stepPricing.hidden = false
-  }
-
-  if (continueBtn) continueBtn.addEventListener('click', showPricing)
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      if (stepSearch) stepSearch.hidden = false
-      if (stepPricing) stepPricing.hidden = true
-    })
-  }
-  if (applyBulk && bulkPrice && pricingBody) {
-    applyBulk.addEventListener('click', () => {
-      const value = bulkPrice.value
-      pricingBody.querySelectorAll('[data-price-input]').forEach((input) => {
-        input.value = value
+        const row = input.closest('tr')
+        if (row) toggleRow(row, selectAll.checked)
       })
     })
   }

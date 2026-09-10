@@ -242,6 +242,102 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
         return $created;
     }
 
+    /**
+     * Keep checked products, update prices, and delete shown assigned products that were unchecked.
+     *
+     * @param list<int> $shownIds
+     * @param list<array{id?: int, vnum: int, price: int, count?: int}> $checked
+     */
+    public function syncCategoryProducts(int $categoryId, array $shownIds, array $checked): void
+    {
+        if ($categoryId < 1) {
+            throw new \InvalidArgumentException('admin.item_shop.products.invalid_category');
+        }
+
+        $shown = [];
+
+        foreach ($shownIds as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $shown[$id] = true;
+            }
+        }
+
+        $keepIds = [];
+
+        foreach ($checked as $row) {
+            $id = (int) ($row['id'] ?? 0);
+
+            if ($id > 0) {
+                $keepIds[$id] = true;
+            }
+        }
+
+        $sortBase = (int) $this->db()->fetchColumn(
+            'SELECT COALESCE(MAX(sort_order), -1) + 1 FROM item_shop_products WHERE category_id = ?',
+            [$categoryId],
+        );
+
+        $this->db()->beginTransaction();
+
+        try {
+            foreach (array_keys($shown) as $id) {
+                if (isset($keepIds[$id])) {
+                    continue;
+                }
+
+                $existing = $this->findById($id);
+
+                if ($existing === null || (int) $existing['category_id'] !== $categoryId) {
+                    continue;
+                }
+
+                $this->delete($id);
+            }
+
+            $created = 0;
+
+            foreach ($checked as $row) {
+                $id = (int) ($row['id'] ?? 0);
+                $vnum = (int) ($row['vnum'] ?? 0);
+                $price = (int) ($row['price'] ?? 0);
+                $count = (int) ($row['count'] ?? 1);
+
+                if ($id > 0) {
+                    $existing = $this->findById($id);
+
+                    if ($existing === null || (int) $existing['category_id'] !== $categoryId) {
+                        continue;
+                    }
+
+                    $this->updatePriceAndCount($id, $price, $count);
+
+                    continue;
+                }
+
+                $this->create([
+                    'category_id' => $categoryId,
+                    'vnum' => $vnum,
+                    'count' => $count,
+                    'price' => $price,
+                    'socket0' => 0,
+                    'socket1' => 0,
+                    'socket2' => 0,
+                    'enabled' => 1,
+                    'sort_order' => $sortBase + $created,
+                ]);
+                $created++;
+            }
+
+            $this->db()->commit();
+        } catch (\Throwable $e) {
+            $this->db()->rollBack();
+
+            throw $e;
+        }
+    }
+
     public function updatePriceAndCount(int $id, int $price, int $count): array
     {
         $existing = $this->findById($id);

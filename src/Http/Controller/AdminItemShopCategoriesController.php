@@ -171,8 +171,44 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         $q = trim((string) ($_GET['q'] ?? ''));
         $page = max(1, (int) ($_GET['page'] ?? 1));
         $perPage = 30;
-        $result = $this->protos->page(ProtoSchemas::KIND_ITEM, $page, $perPage, $q !== '' ? $q : null);
-        $existing = array_flip($this->products->vnumsInCategory($categoryId));
+        $assignedRows = $this->enrichProducts($this->products->listByCategoryId($categoryId));
+        $assignedVnums = [];
+        $assigned = [];
+
+        foreach ($assignedRows as $product) {
+            $vnum = (int) ($product['vnum'] ?? 0);
+
+            if ($vnum < 1) {
+                continue;
+            }
+
+            $assignedVnums[] = $vnum;
+            $name = trim((string) ($product['item_name'] ?? ''));
+
+            if ($name === '') {
+                $name = (string) $vnum;
+            }
+
+            if ($q !== '' && !$this->productMatchesQuery($vnum, $name, $q)) {
+                continue;
+            }
+
+            $assigned[] = [
+                'id' => (int) $product['id'],
+                'vnum' => $vnum,
+                'name' => $name,
+                'price' => (int) ($product['price'] ?? 1),
+                'count' => (int) ($product['count'] ?? 1),
+            ];
+        }
+
+        $result = $this->protos->page(
+            ProtoSchemas::KIND_ITEM,
+            $page,
+            $perPage,
+            $q !== '' ? $q : null,
+            $assignedVnums,
+        );
 
         $items = [];
 
@@ -189,7 +225,6 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $items[] = [
                 'vnum' => $vnum,
                 'name' => $name !== '' ? $name : (string) $vnum,
-                'in_category' => isset($existing[$vnum]),
             ];
         }
 
@@ -198,6 +233,7 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
 
         return Response::json([
             'ok' => true,
+            'assigned' => $assigned,
             'items' => $items,
             'page' => $page,
             'total' => $total,
@@ -225,34 +261,63 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
         }
 
-        $rawItems = $_POST['items'] ?? [];
+        $shownRaw = $_POST['shown_ids'] ?? [];
+        $selectedRaw = $_POST['selected'] ?? [];
+        $itemsRaw = $_POST['items'] ?? [];
 
-        if (!is_array($rawItems)) {
-            $rawItems = [];
+        if (!is_array($shownRaw)) {
+            $shownRaw = [];
         }
 
-        $items = [];
+        if (!is_array($selectedRaw)) {
+            $selectedRaw = [];
+        }
 
-        foreach ($rawItems as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
+        if (!is_array($itemsRaw)) {
+            $itemsRaw = [];
+        }
 
-            $vnum = (int) ($row['vnum'] ?? 0);
-            $price = (int) ($row['price'] ?? 0);
-            $count = (int) ($row['count'] ?? 1);
+        $shownIds = [];
+
+        foreach ($shownRaw as $shownId) {
+            $shownIds[] = (int) $shownId;
+        }
+
+        $checked = [];
+
+        foreach ($selectedRaw as $vnumRaw) {
+            $vnum = (int) $vnumRaw;
 
             if ($vnum < 1) {
                 continue;
             }
 
-            try {
-                $this->assertKnownVnum($vnum);
-            } catch (\InvalidArgumentException) {
-                continue;
+            $row = $itemsRaw[(string) $vnum] ?? $itemsRaw[$vnum] ?? null;
+
+            if (!is_array($row)) {
+                $row = [];
             }
 
-            $items[] = [
+            $productId = (int) ($row['id'] ?? 0);
+            $price = (int) ($row['price'] ?? 0);
+            $count = (int) ($row['count'] ?? 1);
+
+            if ($price < 1) {
+                $this->flash('error', $this->t('admin.item_shop.products.invalid_price'));
+
+                return $this->redirect(AdminPaths::storeCategoryEdit($categoryId, 'products'));
+            }
+
+            if ($productId < 1) {
+                try {
+                    $this->assertKnownVnum($vnum);
+                } catch (\InvalidArgumentException) {
+                    continue;
+                }
+            }
+
+            $checked[] = [
+                'id' => $productId,
                 'vnum' => $vnum,
                 'price' => $price,
                 'count' => $count,
@@ -260,11 +325,11 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
         }
 
         try {
-            $created = $this->products->createManyForCategory($categoryId, $items);
-            $this->audit('item_shop.category.products_add', 'item_shop_category', $categoryId, [
-                'count' => count($created),
+            $this->products->syncCategoryProducts($categoryId, $shownIds, $checked);
+            $this->audit('item_shop.category.products_sync', 'item_shop_category', $categoryId, [
+                'count' => count($checked),
             ]);
-            $this->flash('success', $this->t('admin.item_shop.categories.products_added', ['count' => count($created)]));
+            $this->flash('success', $this->t('admin.item_shop.categories.products_saved'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             $this->flash('error', $this->t($e->getMessage()));
         }
@@ -362,6 +427,18 @@ class AdminItemShopCategoriesController extends AdminItemShopBaseController
             $this->categoriesHubHeader($data),
             $status,
         );
+    }
+
+    private function productMatchesQuery(int $vnum, string $name, string $query): bool
+    {
+        $needle = mb_strtolower(trim($query));
+
+        if ($needle === '') {
+            return true;
+        }
+
+        return str_contains((string) $vnum, $needle)
+            || str_contains(mb_strtolower($name), $needle);
     }
 
     /**

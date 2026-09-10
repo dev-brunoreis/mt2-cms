@@ -1805,6 +1805,40 @@
   color: #94a3b8;
 }
 
+.admin-category-item-results {
+  min-height: 28rem;
+  max-height: min(40rem, calc(100vh - 14rem));
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+}
+
+.admin-category-item-results .admin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+}
+
+.admin-category-item-results .admin-table th,
+.admin-category-item-results .admin-table td {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+[data-category-products] .admin-game-icon {
+  width: 32px;
+  height: 32px;
+}
+
+[data-category-products] .admin-game-icon-row {
+  gap: 0.5rem;
+}
+
+.admin-category-item-results tr:not(.is-selected) [data-price-cell] {
+  visibility: hidden;
+}
+
 /* Admin data grid (Magento-style) */
 .admin-grid-toolbar {
   display: flex;

@@ -160,49 +160,6 @@ class PlayerRepository extends Repository
     }
 
     /**
-     * @return array<int, int>
-     */
-    public function countByMap(): array
-    {
-        $rows = $this->db()->fetchAll(
-            'SELECT CASE WHEN map_index >= 10000 THEN FLOOR(map_index / 10000) ELSE map_index END AS map_id,
-                    COUNT(*) AS total
-             FROM `player`
-             GROUP BY map_id',
-        );
-        $out = [];
-
-        foreach ($rows as $row) {
-            $out[(int) $row['map_id']] = (int) $row['total'];
-        }
-
-        return $out;
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listOnMap(int $mapIndex): array
-    {
-        $mapIndex = max(0, $mapIndex);
-        $hasEmpire = $this->schemaTableExists('player_index');
-        $empireSelect = $hasEmpire ? ', pi.empire' : '';
-        $empireJoin = $hasEmpire ? ' LEFT JOIN `player_index` pi ON pi.id = p.account_id' : '';
-
-        return $this->revealAll(
-            $this->db()->fetchAll(
-                'SELECT p.id, p.account_id, p.name, p.job, p.level, p.map_index, p.x, p.y, p.last_play,
-                        a.login AS account_login' . $empireSelect . '
-                 FROM `player` p
-                 LEFT JOIN `account`.`account` a ON a.id = p.account_id' . $empireJoin . '
-                 WHERE p.map_index = ? OR FLOOR(p.map_index / 10000) = ?
-                 ORDER BY p.name ASC, p.id ASC',
-                [$mapIndex, $mapIndex],
-            ),
-        );
-    }
-
-    /**
      * @return list<array<string, mixed>>
      */
     public function listActiveSinceMinutes(int $minutes, int $page, int $perPage): array

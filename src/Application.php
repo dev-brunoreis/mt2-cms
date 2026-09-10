@@ -21,7 +21,6 @@ use Mt2Cms\Http\Controller\AdminGameProtoController;
 use Mt2Cms\Http\Controller\AdminGmsController;
 use Mt2Cms\Http\Controller\AdminGuildsController;
 use Mt2Cms\Http\Controller\AdminLogsController;
-use Mt2Cms\Http\Controller\AdminMapsController;
 use Mt2Cms\Http\Controller\AdminRefineController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AdminShopsController;
@@ -53,14 +52,12 @@ use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemIconCatalog;
 use Mt2Cms\Game\ItemStats;
-use Mt2Cms\Game\Map\MapCatalog;
 use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\GroupTextWriter;
 use Mt2Cms\Service\DropFileService;
-use Mt2Cms\Service\GameAtlasService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
@@ -97,8 +94,6 @@ class Application
     private DropFileService $dropFiles;
     private ?GameIconService $icons = null;
     private GameProfile $gameProfile;
-    private MapCatalog $mapCatalog;
-    private GameAtlasService $atlas;
     private ProtoSchemas $protoSchemas;
     private ProtoEnums $protoEnums;
     private ItemStats $itemStats;
@@ -171,8 +166,6 @@ class Application
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
-            $r->addRoute('GET', '/admin/maps', [AdminMapsController::class, 'index']);
-            $r->addRoute('GET', '/admin/maps/{id:\d+}/atlas', [AdminMapsController::class, 'atlas']);
             $r->addRoute('GET', '/admin/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
             $r->addRoute('GET', '/admin/guilds', [AdminGuildsController::class, 'index']);
             $r->addRoute('GET', '/admin/guilds/{id:\d+}', [AdminGuildsController::class, 'show']);
@@ -311,12 +304,6 @@ class Application
             $this->gameProfile,
             new ItemIconCatalog($this->gameProfile->path('item_list')),
         );
-        $this->mapCatalog = new MapCatalog($this->gameProfile);
-        $this->atlas = new GameAtlasService(
-            $this->mapCatalog,
-            BASE_DIR . '/var/cache/atlas',
-        );
-
         $activeTheme = $this->settings->activeTheme();
         $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
         $this->adminTheme = $this->createThemeEngine('admin', true, true);
@@ -512,17 +499,6 @@ class Application
                 $this->guilds,
                 $this->logs,
                 $this->accounts,
-            ),
-            AdminMapsController::class => new AdminMapsController(
-                $this->theme,
-                $this->auth,
-                $this->csrf,
-                $this->translator,
-                $this->adminAuth,
-                $this->adminTheme,
-                $this->mapCatalog,
-                $this->atlas,
-                $this->players,
             ),
             AdminGameProtoController::class => new AdminGameProtoController(
                 $this->theme,

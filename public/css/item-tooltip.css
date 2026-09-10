@@ -1,0 +1,158 @@
+/* Game-style item tooltip (shared look with admin inventory tip). */
+
+.mt2-item-tip-host {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.mt2-item-tip {
+  --tip-title: #f2e7c4;
+  --tip-title-special: #ffc800;
+  --tip-text: #c2c2c2;
+  --tip-limit: #beb47d;
+  --tip-pos: #8ab98e;
+  --tip-bonus: #b0dfb4;
+  --tip-rare: #e1fae1;
+  --tip-neg: #e57976;
+  --tip-meta: #7a7264;
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: 50;
+  box-sizing: border-box;
+  min-width: 190px;
+  max-width: 240px;
+  width: max-content;
+  padding: 14px 12px 12px;
+  color: var(--tip-text);
+  font-family: Tahoma, "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 17px;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(10, 7, 5, 0.94), rgba(10, 7, 5, 0.94)) padding-box,
+    linear-gradient(180deg, #d8c08a 0%, #6a4e28 18%, #c4a66a 50%, #5a421e 82%, #d8c08a 100%) border-box;
+  border: 3px solid transparent;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px #1a120c,
+    inset 0 0 0 1px rgba(20, 12, 6, 0.85),
+    0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.mt2-item-tip-host:hover .mt2-item-tip,
+.mt2-item-tip-host:focus-within .mt2-item-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.mt2-item-tip-title {
+  color: var(--tip-title);
+  font-weight: 400;
+}
+
+.mt2-item-tip-title.is-special {
+  color: var(--tip-title-special);
+}
+
+.mt2-item-tip-desc,
+.mt2-item-tip-line,
+.mt2-item-tip-wear,
+.mt2-item-tip-jobs {
+  display: block;
+  width: 100%;
+}
+
+.mt2-item-tip-desc {
+  color: var(--tip-text);
+  margin-top: 2px;
+}
+
+.mt2-item-tip-title + .mt2-item-tip-line,
+.mt2-item-tip-desc + .mt2-item-tip-line {
+  margin-top: 4px;
+}
+
+.mt2-item-tip-line.is-limit + .mt2-item-tip-line {
+  margin-top: 4px;
+}
+
+.mt2-item-tip-line.is-pos {
+  color: var(--tip-pos);
+}
+
+.mt2-item-tip-line.is-bonus {
+  color: var(--tip-bonus);
+}
+
+.mt2-item-tip-line.is-rare {
+  color: var(--tip-rare);
+}
+
+.mt2-item-tip-line.is-neg {
+  color: var(--tip-neg);
+}
+
+.mt2-item-tip-line.is-limit {
+  color: var(--tip-limit);
+}
+
+.mt2-item-tip-wear {
+  color: var(--tip-limit);
+  margin-top: 6px;
+}
+
+.mt2-item-tip-jobs {
+  color: var(--tip-text);
+}
+
+.mt2-item-tip-meta {
+  color: var(--tip-meta);
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.mt2-item-tip-sockets {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.mt2-item-tip-socket-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mt2-item-tip-socket-list li {
+  margin: 0;
+  padding: 0;
+}
+
+.mt2-item-tip-socket-apply {
+  display: block;
+  color: var(--tip-pos);
+}
+
+/* Prefer opening left when the card is on the right side of the grid. */
+@media (min-width: 1280px) {
+  .shop-product-card:nth-child(3n) .mt2-item-tip {
+    left: auto;
+    right: calc(100% + 8px);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1279px) {
+  .shop-product-card:nth-child(2n) .mt2-item-tip {
+    left: auto;
+    right: calc(100% + 8px);
+  }
+}

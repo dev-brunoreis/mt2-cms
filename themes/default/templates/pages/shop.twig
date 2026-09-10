@@ -82,14 +82,20 @@
                 {% else %}
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         {% for product in products %}
-                            <article class="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <div class="flex items-start gap-3 border-b border-slate-100 p-4">
+                            <article class="shop-product-card relative z-0 flex flex-col overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm hover:z-20 focus-within:z-20">
+                                <div class="flex items-start gap-3 overflow-visible border-b border-slate-100 p-4">
                                     {% set icon = item_icon(product.vnum) %}
-                                    {% if icon %}
-                                        <img src="{{ icon }}" alt="" class="h-10 w-10 shrink-0 object-contain" width="40" height="40">
-                                    {% else %}
-                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">?</div>
-                                    {% endif %}
+                                    <div class="mt2-item-tip-host" tabindex="0">
+                                        {% if icon %}
+                                            <img src="{{ icon }}" alt="" class="h-12 w-12 object-contain" width="48" height="48"
+                                                 style="image-rendering: pixelated">
+                                        {% else %}
+                                            <div class="flex h-12 w-12 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">?</div>
+                                        {% endif %}
+                                        {% if product.tooltip is defined %}
+                                            {% include 'components/item-tooltip.twig' with { tip: product.tooltip, icon_src: icon } %}
+                                        {% endif %}
+                                    </div>
                                     <div class="min-w-0 flex-1">
                                         <h2 class="truncate font-semibold text-slate-900">{{ product.item_name }}</h2>
                                         <p class="mt-0.5 text-xs text-slate-500">

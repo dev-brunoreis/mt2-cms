@@ -72,6 +72,7 @@ use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\ItemShopPurchaseService;
+use Mt2Cms\Service\ItemTooltipBuilder;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\SettingsService;
@@ -124,6 +125,7 @@ class Application
     private ItemShopProductRepository $itemShopProducts;
     private ItemShopOrderRepository $itemShopOrders;
     private ItemShopPurchaseService $itemShopPurchases;
+    private ItemTooltipBuilder $itemTooltips;
     private HtmlSanitizer $htmlSanitizer;
     private NewsUploadService $newsUploads;
     private TicketUploadService $ticketUploads;
@@ -438,6 +440,12 @@ class Application
             $this->accounts,
             $this->awards,
         );
+        $this->itemTooltips = new ItemTooltipBuilder(
+            $this->gameProto,
+            $this->itemStats,
+            $this->protoEnums,
+            new ItemDescCatalog($this->gameProfile->path('itemdesc')),
+        );
         $this->attachAdminNavCounts();
     }
 
@@ -551,7 +559,7 @@ class Application
                 $this->itemShopCategories,
                 $this->itemShopProducts,
                 $this->itemShopPurchases,
-                $this->gameProto,
+                $this->itemTooltips,
             ),
             RankingController::class => new RankingController(
                 $this->theme,

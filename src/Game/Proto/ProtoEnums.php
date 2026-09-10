@@ -239,6 +239,52 @@ class ProtoEnums
     }
 
     /**
+     * Resolve a proto enum token or numeric index to a 0-based index.
+     *
+     * @param list<string> $options
+     */
+    public function enumIndex(array $options, int|string|null $value): int
+    {
+        if ($value === null) {
+            return 0;
+        }
+
+        if (is_int($value) || (is_string($value) && preg_match('/^-?\d+$/', trim($value)) === 1)) {
+            return max(0, (int) $value);
+        }
+
+        $token = trim((string) $value);
+
+        if ($token === '') {
+            return 0;
+        }
+
+        $index = array_search($token, $options, true);
+
+        return $index === false ? 0 : (int) $index;
+    }
+
+    public function itemTypeIndex(int|string|null $value): int
+    {
+        return $this->enumIndex($this->itemTypes(), $value);
+    }
+
+    public function itemSubtypeIndex(string $itemType, int|string|null $value): int
+    {
+        return $this->enumIndex($this->subtypesForItemType($itemType), $value);
+    }
+
+    public function applyTypeIndex(int|string|null $value): int
+    {
+        return $this->enumIndex($this->profile->enumList(self::KIND_ITEM, 'apply_types'), $value);
+    }
+
+    public function limitTypeIndex(int|string|null $value): int
+    {
+        return $this->enumIndex($this->profile->enumList(self::KIND_ITEM, 'limit_types'), $value);
+    }
+
+    /**
      * Include current value in select options when unknown.
      *
      * @param list<string> $options

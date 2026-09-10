@@ -7,13 +7,12 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
-use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ItemShopCategoryRepository;
 use Mt2Cms\Repository\ItemShopProductRepository;
-use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\ItemShopPurchaseService;
+use Mt2Cms\Service\ItemTooltipBuilder;
 use Mt2Cms\Theme\ThemeEngine;
 
 class ItemShopController extends Controller
@@ -30,7 +29,7 @@ class ItemShopController extends Controller
         private ItemShopCategoryRepository $categories,
         private ItemShopProductRepository $products,
         private ItemShopPurchaseService $purchases,
-        private GameProtoService $protos,
+        private ItemTooltipBuilder $tooltips,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
         $this->rateLimiter = new RateLimiter(10, 60);
@@ -192,10 +191,13 @@ class ItemShopController extends Controller
     {
         foreach ($rows as &$row) {
             $vnum = (int) $row['vnum'];
-            $proto = $this->protos->find(ProtoSchemas::KIND_ITEM, $vnum);
-            $locale = trim((string) ($proto['locale_name'] ?? ''));
-            $name = $locale !== '' ? $locale : trim((string) ($proto['name'] ?? ''));
-            $row['item_name'] = $name !== '' ? $name : (string) $vnum;
+            $tip = $this->tooltips->forVnum($vnum, [
+                'socket0' => (int) ($row['socket0'] ?? 0),
+                'socket1' => (int) ($row['socket1'] ?? 0),
+                'socket2' => (int) ($row['socket2'] ?? 0),
+            ]);
+            $row['item_name'] = $tip['name'] !== '' ? $tip['name'] : (string) $vnum;
+            $row['tooltip'] = $tip;
         }
 
         unset($row);

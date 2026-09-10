@@ -1,0 +1,99 @@
+{% set item = tip %}
+{% set icon_src = icon_src|default(item_icon(item.vnum)) %}
+<span class="mt2-item-tip">
+    <span class="mt2-item-tip-title{% if item.special_title %} is-special{% endif %}">{{ item.name|default(item.vnum) }}</span>
+    {% if item.description %}
+        {% for line in item.description|split('|') %}
+            {% if line|trim != '' %}
+                <span class="mt2-item-tip-desc">{{ line|trim }}</span>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if item.stats is not empty %}
+        {% for stat in item.stats %}
+            <span class="mt2-item-tip-line{% if stat.key == 'level' %} is-limit{% elseif stat.value is defined and stat.value < 0 %} is-neg{% else %} is-pos{% endif %}">
+                {%- if stat.key == 'damage' and stat.min is defined -%}
+                    {{ t('admin.characters.tooltip_damage', {min: stat.min, max: stat.max}) }}
+                {%- elseif stat.key == 'damage' -%}
+                    {{ t('admin.characters.tooltip_damage_one', {value: stat.value}) }}
+                {%- elseif stat.key == 'magic_attack' and stat.min is defined -%}
+                    {{ t('admin.characters.tooltip_magic_attack', {min: stat.min, max: stat.max}) }}
+                {%- elseif stat.key == 'magic_attack' -%}
+                    {{ t('admin.characters.tooltip_magic_attack_one', {value: stat.value}) }}
+                {%- elseif stat.key == 'defence' -%}
+                    {{ t('admin.characters.tooltip_defence', {value: stat.value}) }}
+                {%- elseif stat.key == 'magic_defence' -%}
+                    {{ t('admin.characters.tooltip_magic_defence', {value: stat.value}) }}
+                {%- elseif stat.key == 'level' -%}
+                    {{ t('admin.characters.tooltip_from_level', {value: stat.value}) }}
+                {%- endif -%}
+            </span>
+        {% endfor %}
+    {% endif %}
+    {% if item.applies is not empty %}
+        {% for apply in item.applies %}
+            <span class="mt2-item-tip-line {{ apply.value > 0 ? 'is-pos' : 'is-neg' }}">{{ t('admin.proto.tokens.' ~ apply.token) }} {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}</span>
+        {% endfor %}
+    {% endif %}
+    {% if item.bonuses is not empty %}
+        {% for bonus in item.bonuses %}
+            <span class="mt2-item-tip-line {{ bonus.rare ? 'is-rare' : 'is-bonus' }}{{ bonus.value < 0 ? ' is-neg' : '' }}">{{ t('admin.proto.tokens.' ~ bonus.token) }} {{ bonus.value > 0 ? '+' : '' }}{{ bonus.value }}{% if bonus.percent %}%{% endif %}</span>
+        {% endfor %}
+    {% endif %}
+    {% if item.wearable %}
+        <span class="mt2-item-tip-wear">{{ t('admin.characters.tooltip_wearable') }}</span>
+        {% if item.wearable.jobs is not empty %}
+            <span class="mt2-item-tip-jobs">{% for job in item.wearable.jobs %}{{ t('job.' ~ job) }}{% if not loop.last %} {% endif %}{% endfor %}</span>
+        {% endif %}
+        {% if item.wearable.sex == 'male' %}
+            <span class="mt2-item-tip-jobs">{{ t('admin.characters.tooltip_for_male') }}</span>
+        {% elseif item.wearable.sex == 'female' %}
+            <span class="mt2-item-tip-jobs">{{ t('admin.characters.tooltip_for_female') }}</span>
+        {% endif %}
+    {% endif %}
+    {% if item.sockets is not empty %}
+        <span class="mt2-item-tip-sockets">
+            <ul class="mt2-item-tip-socket-list">
+                {% for socket in item.sockets %}
+                    <li>
+                        {% if socket.kind == 'item' %}
+                            <span>{{ socket.name|default(socket.value) }}</span>
+                            {% for apply in socket.applies|default([]) %}
+                                <span class="mt2-item-tip-socket-apply">
+                                    {{ t('admin.proto.tokens.' ~ apply.token) }}
+                                    {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}
+                                </span>
+                            {% endfor %}
+                        {% elseif socket.kind == 'empty' %}
+                            <span>{{ t('admin.characters.socket_empty') }}</span>
+                        {% elseif socket.kind == 'broken' %}
+                            <span>{{ t('admin.characters.socket_broken') }}</span>
+                        {% elseif socket.kind == 'remaining' %}
+                            <span>{{ t('admin.characters.socket_remaining', {time: socket.seconds|duration}) }}</span>
+                        {% elseif socket.kind == 'expires' %}
+                            <span>{{ t('admin.characters.socket_expires', {date: socket.value|unix_date}) }}</span>
+                        {% elseif socket.kind == 'accessory' %}
+                            <span>{{ t('admin.characters.socket_accessory', {filled: socket.filled, max: socket.max}) }}</span>
+                        {% elseif socket.kind == 'degrade' %}
+                            <span>{{ t('admin.characters.socket_degrade', {time: socket.seconds|duration}) }}</span>
+                        {% elseif socket.kind == 'ds_active' %}
+                            <span>{{ t('admin.characters.socket_ds_active') }}</span>
+                        {% elseif socket.kind == 'ds_inactive' %}
+                            <span>{{ t('admin.characters.socket_ds_inactive') }}</span>
+                        {% elseif socket.kind == 'charge' %}
+                            <span>{{ t('admin.characters.socket_charge', {
+                                current: socket.remaining|number_format(0),
+                                max: socket.full|number_format(0)
+                            }) }}</span>
+                        {% else %}
+                            <span>{{ socket.value }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </span>
+    {% endif %}
+    {% if not icon_src %}
+        <span class="mt2-item-tip-meta">{{ t('admin.characters.item_no_icon') }}</span>
+    {% endif %}
+</span>

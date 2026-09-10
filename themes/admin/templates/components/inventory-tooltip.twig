@@ -1,42 +1,56 @@
 <span class="admin-inv-tip">
-    <strong>{{ item.name|default(item.vnum) }}</strong>
+    <span class="admin-inv-tip-title{% if item.special_title %} is-special{% endif %}">{{ item.name|default(item.vnum) }}</span>
     {% if item.description %}
-        <span class="admin-inv-tip-desc">{{ item.description }}</span>
+        {% for line in item.description|split('|') %}
+            {% if line|trim != '' %}
+                <span class="admin-inv-tip-desc">{{ line|trim }}</span>
+            {% endif %}
+        {% endfor %}
     {% endif %}
     {% if item.stats is not empty %}
         {% for stat in item.stats %}
-            <span class="admin-inv-tip-stat">
-                {% if stat.key == 'damage' %}
-                    {{ t('admin.characters.stat_damage') }}: {{ stat.min }}–{{ stat.max }}
-                {% elseif stat.key == 'magic_attack' %}
-                    {{ t('admin.characters.stat_magic_attack') }}: {{ stat.value }}
-                {% elseif stat.key == 'defence' %}
-                    {{ t('admin.characters.stat_defence') }}: {{ stat.value }}
-                {% elseif stat.key == 'level' %}
-                    {{ t('admin.characters.stat_level') }}: {{ stat.value }}
-                {% endif %}
+            <span class="admin-inv-tip-line{% if stat.key == 'level' %} is-limit{% elseif stat.value is defined and stat.value < 0 %} is-neg{% else %} is-pos{% endif %}">
+                {%- if stat.key == 'damage' and stat.min is defined -%}
+                    {{ t('admin.characters.tooltip_damage', {min: stat.min, max: stat.max}) }}
+                {%- elseif stat.key == 'damage' -%}
+                    {{ t('admin.characters.tooltip_damage_one', {value: stat.value}) }}
+                {%- elseif stat.key == 'magic_attack' and stat.min is defined -%}
+                    {{ t('admin.characters.tooltip_magic_attack', {min: stat.min, max: stat.max}) }}
+                {%- elseif stat.key == 'magic_attack' -%}
+                    {{ t('admin.characters.tooltip_magic_attack_one', {value: stat.value}) }}
+                {%- elseif stat.key == 'defence' -%}
+                    {{ t('admin.characters.tooltip_defence', {value: stat.value}) }}
+                {%- elseif stat.key == 'magic_defence' -%}
+                    {{ t('admin.characters.tooltip_magic_defence', {value: stat.value}) }}
+                {%- elseif stat.key == 'level' -%}
+                    {{ t('admin.characters.tooltip_from_level', {value: stat.value}) }}
+                {%- endif -%}
             </span>
         {% endfor %}
     {% endif %}
     {% if item.applies is not empty %}
         {% for apply in item.applies %}
-            <span class="admin-inv-tip-stat">
-                {{ t('admin.proto.tokens.' ~ apply.token) }}:
-                {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}
-            </span>
+            <span class="admin-inv-tip-line {{ apply.value > 0 ? 'is-pos' : 'is-neg' }}">{{ t('admin.proto.tokens.' ~ apply.token) }} {{ apply.value > 0 ? '+' : '' }}{{ apply.value }}{% if apply.percent %}%{% endif %}</span>
         {% endfor %}
     {% endif %}
     {% if item.bonuses is not empty %}
-        <span class="admin-inv-tip-bonuses">
-            {% for bonus in item.bonuses %}
-                <span>{{ t('admin.proto.tokens.' ~ bonus.token) }}
-                    {{ bonus.value > 0 ? '+' : '' }}{{ bonus.value }}{% if bonus.percent %}%{% endif %}</span>
-            {% endfor %}
-        </span>
+        {% for bonus in item.bonuses %}
+            <span class="admin-inv-tip-line {{ bonus.rare ? 'is-rare' : 'is-bonus' }}{{ bonus.value < 0 ? ' is-neg' : '' }}">{{ t('admin.proto.tokens.' ~ bonus.token) }} {{ bonus.value > 0 ? '+' : '' }}{{ bonus.value }}{% if bonus.percent %}%{% endif %}</span>
+        {% endfor %}
+    {% endif %}
+    {% if item.wearable %}
+        <span class="admin-inv-tip-wear">{{ t('admin.characters.tooltip_wearable') }}</span>
+        {% if item.wearable.jobs is not empty %}
+            <span class="admin-inv-tip-jobs">{% for job in item.wearable.jobs %}{{ t('job.' ~ job) }}{% if not loop.last %} {% endif %}{% endfor %}</span>
+        {% endif %}
+        {% if item.wearable.sex == 'male' %}
+            <span class="admin-inv-tip-jobs">{{ t('admin.characters.tooltip_for_male') }}</span>
+        {% elseif item.wearable.sex == 'female' %}
+            <span class="admin-inv-tip-jobs">{{ t('admin.characters.tooltip_for_female') }}</span>
+        {% endif %}
     {% endif %}
     {% if item.sockets is not empty %}
         <span class="admin-inv-tip-sockets">
-            <span class="admin-inv-tip-sockets-label">{{ t('admin.characters.items_sockets') }}</span>
             {% include 'components/item-sockets.twig' %}
         </span>
     {% endif %}

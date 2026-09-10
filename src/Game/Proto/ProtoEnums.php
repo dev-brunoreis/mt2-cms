@@ -108,9 +108,44 @@ class ProtoEnums
 
         $fields = $this->profile->bitmaskFields($kind);
         $separator = $fields[$fieldKey]['separator'] ?? '|';
-        $parts = array_map('trim', explode($separator, $value));
+        $normalized = str_replace(',', $separator, $value);
+        $parts = array_map('trim', explode($separator, $normalized));
 
         return array_values(array_filter($parts, static fn (string $part): bool => $part !== ''));
+    }
+
+    /**
+     * Decode a proto bitmask from MySQL (int) or dump text (`ANTI_A | ANTI_B`).
+     *
+     * @return list<string>
+     */
+    public function flagsFromValue(int|string $value, string $fieldKey, string $kind = self::KIND_ITEM): array
+    {
+        if (is_int($value) || preg_match('/^-?\d+$/', trim((string) $value)) === 1) {
+            return $this->flagsFromInt((int) $value, $fieldKey, $kind);
+        }
+
+        return $this->parseBitmask((string) $value, $fieldKey, $kind);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function flagsFromInt(int $value, string $fieldKey, string $kind = self::KIND_ITEM): array
+    {
+        if ($value === 0) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach ($this->bitmaskTokens($fieldKey, $kind) as $index => $token) {
+            if (($value & (1 << $index)) !== 0) {
+                $out[] = $token;
+            }
+        }
+
+        return $out;
     }
 
     public function joinBitmask(array $tokens, string $fieldKey, string $kind = self::KIND_ITEM): string

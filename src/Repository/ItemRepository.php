@@ -218,7 +218,8 @@ class ItemRepository extends Repository
                 ['type' => (int) ($row['attrtype5'] ?? 0), 'value' => (int) ($row['attrvalue5'] ?? 0)],
                 ['type' => (int) ($row['attrtype6'] ?? 0), 'value' => (int) ($row['attrvalue6'] ?? 0)],
             ],
-        ) ?? ['stats' => [], 'applies' => [], 'bonuses' => []];
+            $row['proto_antiflag'] ?? 0,
+        ) ?? ['stats' => [], 'applies' => [], 'bonuses' => [], 'special_title' => false, 'wearable' => null];
 
         return [
             'id' => (int) $row['id'],
@@ -233,6 +234,8 @@ class ItemRepository extends Repository
             'stats' => $tooltip['stats'],
             'applies' => $tooltip['applies'],
             'bonuses' => $tooltip['bonuses'],
+            'special_title' => (bool) ($tooltip['special_title'] ?? false),
+            'wearable' => $tooltip['wearable'] ?? null,
             'sockets' => $sockets,
         ];
     }
@@ -340,7 +343,8 @@ class ItemRepository extends Repository
                     0 AS proto_apply_type1, 0 AS proto_apply_value1,
                     0 AS proto_apply_type2, 0 AS proto_apply_value2,
                     0 AS proto_limit_value,
-                    1 AS proto_size';
+                    1 AS proto_size,
+                    0 AS proto_antiflag';
         }
 
         return 'CONVERT(p.locale_name USING utf8mb4) AS proto_locale_name,
@@ -361,7 +365,8 @@ class ItemRepository extends Repository
                 p.applytype2 AS proto_apply_type2,
                 p.applyvalue2 AS proto_apply_value2,
                 p.limitvalue0 AS proto_limit_value,
-                p.size AS proto_size';
+                p.size AS proto_size,
+                p.antiflag AS proto_antiflag';
     }
 
     private function protoJoin(): string

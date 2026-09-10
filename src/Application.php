@@ -10,6 +10,7 @@ use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Auth\SessionConfig;
 use Mt2Cms\Http\Controller\SetupController;
 use Mt2Cms\Http\AdminRoutes;
 use Mt2Cms\Http\PublicRoutes;
@@ -61,6 +62,7 @@ use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
+use Mt2Cms\Setup\MigrationRunner;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Theme\AdminAclTwigExtension;
@@ -227,12 +229,7 @@ class Application
     private function bootstrapInstalled(): void
     {
         $this->cmsDb = Database::forCms();
-        $schema = new CmsSchema($this->cmsDb);
-        $schema->ensure();
-        $schema->seedDefaults([
-            'news_comments_enabled' => '1',
-            'news_comments_require_approval' => '0',
-        ]);
+        $this->assertSchemaCurrent();
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
         $this->adminRoles = new AdminRoleRepository($this->cmsDb);
         $this->acl = new AclService(new AclRepository($this->cmsDb), $this->adminRoles);
@@ -414,13 +411,35 @@ class Application
             return;
         }
 
-        $https = $_SERVER['HTTPS'] ?? '';
-        $secure = $https !== '' && $https !== 'off';
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        $config = SessionConfig::forRequestUri($uri);
 
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
-        ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_samesite', 'Lax');
-        ini_set('session.cookie_secure', $secure ? '1' : '0');
+        ini_set('session.name', $config->name);
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => $config->path,
+            'secure' => SessionConfig::isSecureRequest(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
+
+    private function assertSchemaCurrent(): void
+    {
+        $runner = new MigrationRunner($this->cmsDb);
+        $current = $runner->readCurrentVersion();
+        $latest = MigrationRunner::latestVersion();
+
+        if ($current >= $latest) {
+            return;
+        }
+
+        Response::html(
+            'Service temporarily unavailable. Database schema is out of date. Run: php bin/migrate.php',
+            503,
+        )->send();
+        exit;
     }
 }

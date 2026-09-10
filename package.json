@@ -1,0 +1,14 @@
+{
+  "name": "mt2-cms",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i resources/css/app.css -o public/css/app.css --minify",
+    "vendor:tinymce": "node scripts/vendor-tinymce.mjs",
+    "build": "npm run build:css && npm run vendor:tinymce"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13",
+    "tinymce": "^7.6.0"
+  }
+}

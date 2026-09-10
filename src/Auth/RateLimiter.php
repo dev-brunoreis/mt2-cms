@@ -6,9 +6,12 @@ namespace Mt2Cms\Auth;
 
 /**
  * File-backed IP + action rate limiter (no Redis or DB required).
+ * Fails closed when storage is unavailable.
  */
 class RateLimiter
 {
+    private bool $storageUnavailable = false;
+
     public function __construct(
         private int $maxAttempts = 10,
         private int $windowSeconds = 900,
@@ -18,14 +21,30 @@ class RateLimiter
 
     public function tooManyAttempts(string $bucket): bool
     {
+        if ($this->storageUnavailable) {
+            return true;
+        }
+
         $this->prune($bucket);
+
+        if ($this->storageUnavailable) {
+            return true;
+        }
 
         return count($this->hits($bucket)) >= $this->maxAttempts;
     }
 
     public function hit(string $bucket): void
     {
+        if ($this->storageUnavailable) {
+            return;
+        }
+
         $this->prune($bucket);
+
+        if ($this->storageUnavailable) {
+            return;
+        }
 
         $hits = $this->hits($bucket);
         $hits[] = time();
@@ -34,6 +53,10 @@ class RateLimiter
 
     public function clear(string $bucket): void
     {
+        if ($this->storageUnavailable) {
+            return;
+        }
+
         $path = $this->pathFor($bucket);
 
         if (is_file($path)) {
@@ -46,6 +69,14 @@ class RateLimiter
      */
     private function hits(string $bucket): array
     {
+        if ($this->storageUnavailable) {
+            return [];
+        }
+
+        if (!$this->ensureStorageDir()) {
+            return [];
+        }
+
         $path = $this->pathFor($bucket);
 
         if (!is_file($path)) {
@@ -55,11 +86,15 @@ class RateLimiter
         $handle = @fopen($path, 'c+');
 
         if ($handle === false) {
+            $this->markStorageUnavailable();
+
             return [];
         }
 
         try {
             if (!flock($handle, LOCK_SH)) {
+                $this->markStorageUnavailable();
+
                 return [];
             }
 
@@ -73,6 +108,8 @@ class RateLimiter
             $decoded = json_decode($raw, true);
 
             if (!is_array($decoded)) {
+                $this->markStorageUnavailable();
+
                 return [];
             }
 
@@ -87,16 +124,27 @@ class RateLimiter
      */
     private function write(string $bucket, array $hits): void
     {
-        $this->ensureStorageDir();
+        if ($this->storageUnavailable) {
+            return;
+        }
+
+        if (!$this->ensureStorageDir()) {
+            return;
+        }
+
         $path = $this->pathFor($bucket);
         $handle = @fopen($path, 'c+');
 
         if ($handle === false) {
+            $this->markStorageUnavailable();
+
             return;
         }
 
         try {
             if (!flock($handle, LOCK_EX)) {
+                $this->markStorageUnavailable();
+
                 return;
             }
 
@@ -106,7 +154,7 @@ class RateLimiter
             fflush($handle);
             flock($handle, LOCK_UN);
         } catch (\JsonException) {
-            // Ignore write failures.
+            $this->markStorageUnavailable();
         } finally {
             fclose($handle);
         }
@@ -114,11 +162,19 @@ class RateLimiter
 
     private function prune(string $bucket): void
     {
+        if ($this->storageUnavailable) {
+            return;
+        }
+
         $cutoff = time() - $this->windowSeconds;
         $hits = array_values(array_filter(
             $this->hits($bucket),
             static fn (int $at): bool => $at >= $cutoff,
         ));
+
+        if ($this->storageUnavailable) {
+            return;
+        }
 
         if ($hits === []) {
             $this->clear($bucket);
@@ -143,12 +199,31 @@ class RateLimiter
         return BASE_DIR . '/var/rate-limit';
     }
 
-    private function ensureStorageDir(): void
+    private function ensureStorageDir(): bool
     {
+        if ($this->storageUnavailable) {
+            return false;
+        }
+
         $dir = $this->dir();
 
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0750, true);
+        if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
+            $this->markStorageUnavailable();
+
+            return false;
         }
+
+        if (!is_writable($dir)) {
+            $this->markStorageUnavailable();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function markStorageUnavailable(): void
+    {
+        $this->storageUnavailable = true;
     }
 }

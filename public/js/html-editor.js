@@ -13,6 +13,8 @@
     const form = editor.closest('form')
 
     tinymce.init({
+      base_url: '/vendor/tinymce',
+      suffix: '.min',
       target: editor,
       menubar: false,
       branding: false,

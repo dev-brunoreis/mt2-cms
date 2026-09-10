@@ -45,4 +45,18 @@ final class RateLimiterTest extends TestCase
         $limiter->clear($bucket);
         self::assertFalse($limiter->tooManyAttempts($bucket));
     }
+
+    public function testFailClosedWhenStorageIsNotWritable(): void
+    {
+        $readOnlyDir = $this->dir . '/readonly';
+        mkdir($readOnlyDir, 0555, true);
+
+        $limiter = new RateLimiter(10, 60, $readOnlyDir);
+        $bucket = 'login:127.0.0.1';
+
+        self::assertTrue($limiter->tooManyAttempts($bucket));
+
+        $limiter->hit($bucket);
+        self::assertTrue($limiter->tooManyAttempts($bucket));
+    }
 }

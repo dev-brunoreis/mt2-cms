@@ -14,7 +14,7 @@ Metin2 CMS with routing, overridable themes, account area, player ranking, and i
 | Config | `vlucas/phpdotenv` |
 | Router | `nikic/fast-route` |
 | Templates | Twig + JSON layout trees |
-| UI | Tailwind CSS (CDN) via theme shell |
+| UI | Tailwind CSS (built to `public/css/app.css`) |
 
 ## Architecture
 
@@ -83,12 +83,13 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 | [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
 | [docs/game-files.md](docs/game-files.md) | Game dumps, JSON config, custom source |
 | [docs/security.md](docs/security.md) | Security rules and PR checklist |
+| [docs/deploy.md](docs/deploy.md) | Production deployment and TLS |
 
 ## Security
 
-HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP compatible with the Tailwind CDN). Sessions use hardened cookies and regenerate on login. Login/register are rate limited. Passwords use Metin2-compatible `*SHA1(SHA1)` hashing (game client requirement).
+HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`) and regenerate on login. Login/register are rate limited (file-backed, fail-closed). Passwords use Metin2-compatible `*SHA1(SHA1)` hashing (game client requirement).
 
-See [docs/security.md](docs/security.md) for the full checklist.
+See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production.
 
 ## Requirements
 
@@ -100,6 +101,7 @@ See [docs/security.md](docs/security.md) for the full checklist.
 ```bash
 docker compose up --build
 composer install
+npm ci && npm run build
 ```
 
 The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` by default (override with `PUID` / `PGID` when building) so it can write files in the project directory. Rebuild the PHP image after changing those values: `PUID=$(id -u) PGID=$(id -g) docker compose up --build`.
@@ -107,9 +109,9 @@ The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` b
 | Service | URL / port |
 | --- | --- |
 | Site (Nginx) | http://localhost:8000 |
-| Adminer | http://localhost:8080 |
-| Game MySQL 5.6 | `localhost:8001` |
-| CMS MySQL 8.0 | `localhost:8002` |
+| Adminer | http://127.0.0.1:8080 (opt-in: `docker compose --profile tools up`) |
+| Game MySQL 5.6 | `127.0.0.1:8001` (loopback only) |
+| CMS MySQL 8.0 | `127.0.0.1:8002` (loopback only) |
 
 Default MySQL root password in Compose (dev fixture): `admin123@`. Set it explicitly in `.env` — there is no hardcoded runtime fallback.
 
@@ -129,6 +131,7 @@ Copy `.env-example` to `.env`. Variables read by the app:
 | `THEME` | `default` | Active theme folder under `themes/` |
 | `LOCALE` | `en` | Default locale when no cookie is set |
 | `GAME_DIR` | `game/` | Game data root (`config.json`, client/db/server dumps) |
+| `APP_TRUST_PROXY` | `0` | Set `1` behind TLS reverse proxy (secure session cookies) |
 
 For registration/login against `account.account`, use:
 

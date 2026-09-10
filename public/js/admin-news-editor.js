@@ -9,6 +9,8 @@
   const csrf = form.querySelector('input[name="_csrf"]')?.value || ''
 
   tinymce.init({
+    base_url: '/vendor/tinymce',
+    suffix: '.min',
     target: editor,
     menubar: false,
     branding: false,

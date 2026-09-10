@@ -26,51 +26,29 @@ Game account hashes must stay Metin2-compatible (`*SHA1(SHA1)`) unless there is 
 
 ## Security
 
-### 1. Rate limiter is session-backed (easy bypass)
+### 1. ~~Rate limiter is session-backed~~ — done
 
-`src/Auth/RateLimiter.php` stores hits in `$_SESSION`. The bucket key includes the IP, but the counter lives in the session.
+File-backed limiter in `src/Auth/RateLimiter.php` (`var/rate-limit/`). Fail-closed when storage is unavailable.
 
-Used by:
+### 2. ~~Every admin is a superadmin~~ — done
 
-- `AuthController` (login / register)
-- `AdminAuthController` (admin login)
-- `TicketController`, `NewsController`, `ItemShopController`, `SetupController`
+RBAC via `AclService`, `admin_roles`, resource-based ACL. Super-only routes for admins, roles, audit log.
 
-Without a persistent cookie, each request is a new session and the limit resets. For `/admin/login` this is the weakest auth control today.
+### 3. ~~No admin audit trail~~ — done
 
-**Fix:** persist hits outside the session (file under `var/` or a CMS table) keyed by IP + action. Keep the same public API (`tooManyAttempts` / `hit` / `clear`).
+`admin_audit_log` + `AdminAuditService` on mutating admin POSTs.
 
-Also update the “Brute force” row in [security.md](security.md) — it currently says “Session + IP rate limit”, which overstates what the code does.
+### 4. ~~Player and admin share one PHP session~~ — done
 
-### 2. Every admin is a superadmin
+Separate cookies: `MT2CMS` (path `/`) and `MT2ADMIN` (path `/admin`). See `SessionConfig`.
 
-`admins` (`src/Setup/CmsSchema.php`) is only `login` + `password`. Anyone who can log into the panel can block accounts, change cash, edit proto, dissolve guilds, delete news.
+### 5. ~~CSP allows jsDelivr~~ — done
 
-**Fix (before more people use the panel):** add `role` (e.g. `super`, `support`, `content`) and gate by section/route. Menu in `AdminSections` should hide items the role cannot use.
+Tailwind built to `public/css/app.css`; TinyMCE vendored under `public/vendor/tinymce/`. CSP is `'self'` only for scripts/styles.
 
-### 3. No admin audit trail
+### 6. ~~`CmsSchema::ensure()` on every request~~ — done
 
-Block/delete account, cash/mileage edits, mass actions, proto/drop writes — nothing records who / what / when.
-
-**Fix:** CMS table `admin_audit_log` (`admin_id`, `login`, `action`, `target_type`, `target_id`, `meta` JSON, `ip`, `created_at`). Write it on destructive POSTs and mass actions. Do not log passwords, PINs, or hashes.
-
-### 4. Player and admin share one PHP session
-
-Same cookie. XSS in `themes/default` can steal the session of someone who is also logged into `/admin` (same origin).
-
-**Fix (later):** separate admin cookie / session name; keep `session_regenerate_id` on admin login (already there); tighten CSP on the admin theme independently if possible.
-
-### 5. CSP allows jsDelivr
-
-`Response::SECURITY_HEADERS` allows `cdn.jsdelivr.net` plus `'unsafe-inline'` for styles (Tailwind via CDN).
-
-**Fix (production):** vendor CSS/JS and drop the CDN from CSP. Out of scope until the admin/public assets are self-hosted.
-
-### 6. `CmsSchema::ensure()` on every request
-
-`Application::bootstrapInstalled()` runs `CREATE TABLE IF NOT EXISTS` for the whole CMS schema on each request. As tables grow this is lock noise, surprise “migrations” in production, and no way to `ALTER` safely (e.g. adding `role` on `admins`).
-
-**Fix:** versioned migrations under `src/Setup/migrations/`, applied at setup/CLI, not on the hot path. `ensure()` can remain as a bootstrap for fresh installs until migrations exist.
+Migrations via `php bin/migrate.php` and `/setup` only. Hot path checks schema version and returns 503 if behind.
 
 ### 7. Grid SQL and mass actions (defense in depth)
 
@@ -220,14 +198,13 @@ Everything is a concrete class in `resolveController()`. An event dispatcher (`A
 
 Do these as separate changes. Do not mix a rename pass with a security change.
 
-1. **Rate limit off the session** + **audit log** on admin POSTs + **mass-action whitelist** — real security, small surface.
-2. **Grid leftovers** — delete unused `*ForAdmin` / `gridView()`, fix `GridUrl` defaults, keep definitions in one pattern. Update [add-admin-section.md](add-admin-section.md).
-3. **Split `Application.php`** (routes + DI factories) before the next large section.
-4. **Simple RBAC** before more people use the panel (needs migrations from item 5, or a one-shot `ALTER` if migrations are not ready).
-5. **Versioned migrations** instead of `ensure()` on every request.
-6. **Split fat controllers** (item shop, news) when those screens are edited anyway.
+1. **Grid leftovers** — delete unused `*ForAdmin` / `gridView()`, fix `GridUrl` defaults, keep definitions in one pattern. Update [add-admin-section.md](add-admin-section.md).
+2. **Split `Application.php`** (routes + DI factories) before the next large section.
+3. **Split fat controllers** (item shop, news) when those screens are edited anyway.
 
-Later / opportunistic: admin session cookie split, vendor CDN assets, `CommonRepository` → `GmRepository`, `public/js` split, i18n file split, proto index, PHPUnit, nested grids on character/guild.
+Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path. See [deploy.md](deploy.md).
+
+Later / opportunistic: `CommonRepository` → `GmRepository`, `public/js` split, i18n file split, proto index, PHPUnit, nested grids on character/guild.
 
 ---
 

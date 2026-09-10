@@ -9,9 +9,24 @@ require BASE_DIR . '/vendor/autoload.php';
 
 Mt2Cms\Application::loadConfigs();
 
-$runner = new Mt2Cms\Setup\MigrationRunner(Mt2Cms\Model\Database::forCms());
-$before = $runner->currentVersion();
-$runner->migrate();
-$after = $runner->currentVersion();
+try {
+    $db = Mt2Cms\Model\Database::forCms();
+    $runner = new Mt2Cms\Setup\MigrationRunner($db);
+    $before = $runner->currentVersion();
+    $schema = new Mt2Cms\Setup\CmsSchema($db);
+    $schema->ensure();
+    $schema->seedDefaults([
+        'news_comments_enabled' => '1',
+        'news_comments_require_approval' => '0',
+    ]);
+    $after = $runner->currentVersion();
 
-echo 'CMS schema migrated: ' . $before . ' -> ' . $after . PHP_EOL;
+    echo 'CMS schema migrated: ' . $before . ' -> ' . $after . PHP_EOL;
+} catch (\PDOException $e) {
+    fwrite(STDERR, "CMS database connection failed.\n");
+    fwrite(STDERR, "From the host, set CMS_DB_HOST=127.0.0.1 and CMS_DB_PORT=8002 in .env.\n");
+    fwrite(STDERR, "Inside Docker, use CMS_DB_HOST=mysql (default) and run:\n");
+    fwrite(STDERR, "  docker compose exec php php bin/migrate.php\n");
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}

@@ -38,9 +38,47 @@ final class MigrationRunner
         $this->db->useDatabase('cms');
         $this->ensureVersionTable();
 
+        return $this->readCurrentVersion();
+    }
+
+    public function readCurrentVersion(): int
+    {
+        $this->db->useDatabase('cms');
+
+        if (!$this->versionTableExists()) {
+            return 0;
+        }
+
         $value = $this->db->fetchColumn('SELECT version FROM cms_schema_version WHERE id = 1');
 
         return is_numeric($value) ? (int) $value : 0;
+    }
+
+    public static function latestVersion(): int
+    {
+        $files = glob(__DIR__ . '/migrations/*.sql') ?: [];
+        $latest = 0;
+
+        foreach ($files as $file) {
+            if (preg_match('/^(\d+)_/i', basename($file), $matches)) {
+                $latest = max($latest, (int) $matches[1]);
+            }
+        }
+
+        return $latest;
+    }
+
+    private function versionTableExists(): bool
+    {
+        $row = $this->db->fetch(
+            'SELECT TABLE_NAME
+             FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+             LIMIT 1',
+            ['cms_schema_version'],
+        );
+
+        return $row !== null;
     }
 
     private function ensureVersionTable(): void

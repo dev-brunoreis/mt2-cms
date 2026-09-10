@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Security
 
-See `docs/security.md` for the full checklist.
+See `docs/security.md` and `docs/deploy.md` for the full checklist.
 
 ## Required
 

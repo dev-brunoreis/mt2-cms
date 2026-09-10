@@ -42,6 +42,7 @@ class ItemShopController extends Controller
         $categories = $this->categories->treeEnabled();
         $activeCategory = null;
         $categoryIds = null;
+        $expandedCategoryIds = [];
 
         if ($slug !== '') {
             $activeCategory = $this->categories->findEnabledBySlug($slug);
@@ -53,12 +54,14 @@ class ItemShopController extends Controller
                     'categories' => $categories,
                     'products' => [],
                     'activeCategory' => null,
+                    'expandedCategoryIds' => [],
                     'cash' => $this->currentCash(),
                     'idempotencyKeys' => [],
                 ], 404);
             }
 
-            $categoryIds = $this->categories->idWithDescendants((int) $activeCategory['id']);
+            $categoryIds = [(int) $activeCategory['id']];
+            $expandedCategoryIds = $this->categories->ancestorIds((int) $activeCategory['id']);
         }
 
         $products = $this->enrichProducts($this->products->listEnabled($categoryIds));
@@ -76,6 +79,7 @@ class ItemShopController extends Controller
             'categories' => $categories,
             'products' => $products,
             'activeCategory' => $activeCategory,
+            'expandedCategoryIds' => $expandedCategoryIds,
             'cash' => $this->currentCash(),
             'idempotencyKeys' => $idempotencyKeys,
         ]);

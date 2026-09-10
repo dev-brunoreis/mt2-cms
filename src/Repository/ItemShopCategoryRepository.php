@@ -130,6 +130,40 @@ class ItemShopCategoryRepository extends Repository
     }
 
     /**
+     * Ancestor ids from root down to (and including) the given category.
+     *
+     * @return list<int>
+     */
+    public function ancestorIds(int $id): array
+    {
+        if ($id < 1) {
+            return [];
+        }
+
+        $byId = [];
+
+        foreach ($this->listFlat() as $row) {
+            $byId[(int) $row['id']] = $row['parent_id'] !== null ? (int) $row['parent_id'] : null;
+        }
+
+        if (!isset($byId[$id])) {
+            return [];
+        }
+
+        $chain = [];
+        $current = $id;
+        $guard = 0;
+
+        while ($current !== null && isset($byId[$current]) && $guard < self::MAX_DEPTH + 1) {
+            array_unshift($chain, $current);
+            $current = $byId[$current];
+            $guard++;
+        }
+
+        return $chain;
+    }
+
+    /**
      * @param array<string, mixed> $input
      */
     public function create(array $input): array

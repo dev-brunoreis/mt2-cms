@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -16,8 +17,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminShopsController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     /** @var array<string, string> */
     private const TAB_TEMPLATES = [
         'items' => 'components/shop-items.twig',
@@ -38,26 +37,21 @@ class AdminShopsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->shops->countForAdmin($query);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->shops->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->shops->countForGrid($q),
+            fn ($q) => $this->shops->listForGrid($q),
+        );
 
         return $this->adminView('shops', 'pages/shops.twig', [
             'title' => $this->t('admin.shops.title'),
             'pageLead' => $this->t('admin.shops.lead'),
             'headerHref' => '/admin/shops/new',
             'headerActionLabel' => $this->t('admin.shops.create'),
-            'shops' => $this->shops->listForAdmin($page, self::PER_PAGE, $query),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
     }
 

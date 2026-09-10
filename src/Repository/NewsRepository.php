@@ -4,8 +4,46 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class NewsRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class NewsRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/news', 'admin.news')
+            ->orderBy([
+                'id' => 'id',
+                'title' => 'title',
+                'author_login' => 'author_login',
+                'status' => 'status',
+                'published_at' => 'published_at',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.news.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'title', 'label' => 'admin.news.post_title', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/news/{id}'],
+                ['key' => 'author_login', 'label' => 'admin.news.author', 'sort' => 'author_login', 'type' => 'text'],
+                ['key' => 'status', 'label' => 'admin.news.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
+                    'published' => ['class' => 'admin-badge-ok', 'label' => 'admin.news.status_published'],
+                    'draft' => ['class' => 'admin-badge-muted', 'label' => 'admin.news.status_draft'],
+                ]],
+                ['key' => 'published_at', 'label' => 'admin.news.published', 'sort' => 'published_at', 'type' => 'date'],
+            ])
+            ->filters([
+                ['key' => 'status', 'label' => 'admin.news.status', 'type' => 'select', 'options' => [
+                    'draft' => 'admin.news.status_draft',
+                    'published' => 'admin.news.status_published',
+                ]],
+            ])
+            ->massActions('/admin/news/mass', [
+                ['id' => 'publish', 'label' => 'admin.grid.publish', 'confirm' => 'admin.news.confirm_mass_publish'],
+                ['id' => 'draft', 'label' => 'admin.grid.draft', 'confirm' => 'admin.news.confirm_mass_draft'],
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.news.confirm_mass_delete'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'cms';
@@ -82,10 +120,21 @@ class NewsRepository extends Repository
 
     public function countForAdmin(?string $query = null, ?string $status = null): int
     {
-        [$where, $params] = $this->adminFilter($query, $status);
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'desc', $filters));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
-            "SELECT COUNT(*) FROM news WHERE {$where}",
+            'SELECT COUNT(*) FROM news' . $where,
             $params,
         );
     }
@@ -95,18 +144,30 @@ class NewsRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
     {
-        [$where, $params] = $this->adminFilter($query, $status);
-        $offset = max(0, ($page - 1) * $perPage);
-        $params[] = $perPage;
-        $params[] = $offset;
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'desc', $filters));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'updated_at DESC, id DESC');
 
         return $this->db()->fetchAll(
-            "SELECT id, title, cover_image, author_login, status, comments_enabled, views,
+            'SELECT id, title, cover_image, author_login, status, comments_enabled, views,
                     published_at, created_at, updated_at
-             FROM news
-             WHERE {$where}
-             ORDER BY updated_at DESC, id DESC
-             LIMIT ? OFFSET ?",
+             FROM news' . $where . $order . '
+             LIMIT ? OFFSET ?',
             $params,
         );
     }
@@ -221,22 +282,28 @@ class NewsRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function adminFilter(?string $query, ?string $status): array
+    private function gridWhere(GridQuery $query): array
     {
-        $where = ['1 = 1'];
+        $clauses = [];
         $params = [];
 
-        if ($status !== null && $status !== '') {
-            $where[] = 'status = ?';
+        $status = $query->filter('status');
+
+        if ($status !== '' && in_array($status, ['draft', 'published'], true)) {
+            $clauses[] = 'status = ?';
             $params[] = $status;
         }
 
-        if ($query !== null && $query !== '') {
-            $where[] = '(title LIKE ? OR author_login LIKE ?)';
-            $params[] = '%' . $query . '%';
-            $params[] = '%' . $query . '%';
+        if ($query->q !== null && $query->q !== '') {
+            $clauses[] = '(title LIKE ? OR author_login LIKE ?)';
+            $params[] = '%' . $query->q . '%';
+            $params[] = '%' . $query->q . '%';
         }
 
-        return [implode(' AND ', $where), $params];
+        if ($clauses === []) {
+            return ['', []];
+        }
+
+        return [' WHERE ' . implode(' AND ', $clauses), $params];
     }
 }

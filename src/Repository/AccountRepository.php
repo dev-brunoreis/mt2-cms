@@ -4,8 +4,52 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class AccountRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class AccountRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/accounts', 'admin.accounts')
+            ->orderBy([
+                'id' => 'id',
+                'login' => 'login',
+                'email' => 'email',
+                'status' => 'status',
+                'cash' => 'cash',
+                'mileage' => 'mileage',
+                'last_play' => 'last_play',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.accounts.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'login', 'label' => 'admin.accounts.login', 'sort' => 'login', 'type' => 'link', 'href' => '/admin/accounts/{id}'],
+                ['key' => 'email', 'label' => 'admin.accounts.email', 'sort' => 'email', 'type' => 'text'],
+                ['key' => 'status', 'label' => 'admin.accounts.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
+                    'OK' => ['class' => 'admin-badge-ok', 'label' => 'admin.accounts.status_ok'],
+                    'BLOCK' => ['class' => 'admin-badge-danger', 'label' => 'admin.accounts.status_block'],
+                ]],
+                ['key' => 'empire', 'label' => 'admin.accounts.empire', 'type' => 'empire'],
+                ['key' => 'cash', 'label' => 'admin.accounts.cash', 'sort' => 'cash', 'type' => 'number'],
+                ['key' => 'mileage', 'label' => 'admin.accounts.mileage', 'sort' => 'mileage', 'type' => 'number'],
+                ['key' => 'last_play', 'label' => 'admin.accounts.last_play', 'sort' => 'last_play', 'type' => 'date'],
+                ['key' => 'ip', 'label' => 'admin.accounts.last_ip', 'type' => 'text'],
+            ])
+            ->filters([
+                ['key' => 'status', 'label' => 'admin.accounts.status', 'type' => 'select', 'options' => [
+                    'OK' => 'admin.accounts.status_ok',
+                    'BLOCK' => 'admin.accounts.status_block',
+                ]],
+            ])
+            ->massActions('/admin/accounts/mass', [
+                ['id' => 'block', 'label' => 'admin.grid.block', 'confirm' => 'admin.accounts.confirm_mass_block'],
+                ['id' => 'unblock', 'label' => 'admin.grid.unblock', 'confirm' => 'admin.accounts.confirm_mass_unblock'],
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.accounts.confirm_mass_delete'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'account';
@@ -74,7 +118,12 @@ class AccountRepository extends Repository
 
     public function countForAdmin(?string $q = null): int
     {
-        [$where, $params] = $this->adminWhere($q);
+        return $this->countForGrid(new GridQuery($q, 1, 20, 'id', 'desc', []));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `account`' . $where,
@@ -87,19 +136,23 @@ class AccountRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $q = null): array
     {
-        $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
-        $offset = ($page - 1) * $perPage;
+        return $this->listForGrid(new GridQuery($q, $page, $perPage, 'id', 'desc', []));
+    }
 
-        [$where, $params] = $this->adminWhere($q);
-        $params[] = $perPage;
-        $params[] = $offset;
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'id DESC');
 
         return $this->revealAdminAll(
             $this->db()->fetchAll(
                 'SELECT id, login, email, status, empire, cash, mileage, create_time, last_play, ip
-                 FROM `account`' . $where . '
-                 ORDER BY id DESC
+                 FROM `account`' . $where . $order . '
                  LIMIT ? OFFSET ?',
                 $params,
             ),
@@ -299,16 +352,36 @@ class AccountRepository extends Repository
      */
     private function adminWhere(?string $q): array
     {
-        if ($q === null || $q === '') {
+        return $this->gridWhere(new GridQuery($q, 1, 20, 'id', 'desc', []));
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function gridWhere(GridQuery $query): array
+    {
+        $clauses = [];
+        $params = [];
+
+        if ($query->q !== null && $query->q !== '') {
+            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
+            $clauses[] = '(login LIKE ? OR email LIKE ?)';
+            $params[] = '%' . $escaped . '%';
+            $params[] = '%' . $escaped . '%';
+        }
+
+        $status = $query->filter('status');
+
+        if ($status !== '' && in_array($status, ['OK', 'BLOCK'], true)) {
+            $clauses[] = 'status = ?';
+            $params[] = $status;
+        }
+
+        if ($clauses === []) {
             return ['', []];
         }
 
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
-
-        return [
-            ' WHERE login LIKE ? OR email LIKE ?',
-            ['%' . $escaped . '%', '%' . $escaped . '%'],
-        ];
+        return [' WHERE ' . implode(' AND ', $clauses), $params];
     }
 
     /**

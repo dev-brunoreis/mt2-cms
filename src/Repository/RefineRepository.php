@@ -4,8 +4,30 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class RefineRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class RefineRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/refine', 'admin.refine')
+            ->orderBy([
+                'id' => 'r.id',
+                'cost' => 'r.cost',
+                'prob' => 'r.prob',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.refine.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/refine/{id}'],
+                ['key' => 'source_label', 'label' => 'admin.refine.source', 'type' => 'text'],
+                ['key' => 'result_label', 'label' => 'admin.refine.result', 'type' => 'text'],
+                ['key' => 'cost', 'label' => 'admin.refine.cost', 'sort' => 'cost', 'type' => 'number'],
+                ['key' => 'prob', 'label' => 'admin.refine.prob', 'sort' => 'prob', 'type' => 'number'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'player';
@@ -13,11 +35,19 @@ class RefineRepository extends Repository
 
     public function countForAdmin(?string $query = null, ?array $usedByRefineIds = null): int
     {
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', []), $usedByRefineIds);
+    }
+
+    /**
+     * @param list<int>|null $usedByRefineIds
+     */
+    public function countForGrid(GridQuery $query, ?array $usedByRefineIds = null): int
+    {
         if (!$this->schemaTableExists('refine_proto')) {
             return 0;
         }
 
-        [$where, $params] = $this->searchClause($query, $usedByRefineIds);
+        [$where, $params] = $this->gridWhere($query, $usedByRefineIds);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `refine_proto` r' . $where,
@@ -30,20 +60,29 @@ class RefineRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null, ?array $usedByRefineIds = null): array
     {
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', []), $usedByRefineIds);
+    }
+
+    /**
+     * @param list<int>|null $usedByRefineIds
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query, ?array $usedByRefineIds = null): array
+    {
         if (!$this->schemaTableExists('refine_proto')) {
             return [];
         }
 
-        $offset = max(0, ($page - 1) * $perPage);
-        [$where, $params] = $this->searchClause($query, $usedByRefineIds);
+        [$where, $params] = $this->gridWhere($query, $usedByRefineIds);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'r.id ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT id, vnum0, count0, vnum1, count1, vnum2, count2, vnum3, count3, vnum4, count4,
                     src_vnum, result_vnum, cost, prob
-             FROM `refine_proto` r
-             ' . $where . '
-             ORDER BY id ASC
-             LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset,
+             FROM `refine_proto` r' . $where . $order . '
+             LIMIT ? OFFSET ?',
             $params,
         );
 
@@ -185,13 +224,13 @@ class RefineRepository extends Repository
      * @param list<int>|null $usedByRefineIds
      * @return array{0: string, 1: list<mixed>}
      */
-    private function searchClause(?string $query, ?array $usedByRefineIds = null): array
+    private function gridWhere(GridQuery $query, ?array $usedByRefineIds = null): array
     {
         $conditions = [];
         $params = [];
 
-        if ($query !== null && $query !== '' && ctype_digit($query)) {
-            $like = $query . '%';
+        if ($query->q !== null && $query->q !== '' && ctype_digit($query->q)) {
+            $like = $query->q . '%';
             $conditions[] = 'CAST(r.id AS CHAR) LIKE ?';
             $params[] = $like;
 

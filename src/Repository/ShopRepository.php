@@ -4,8 +4,30 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class ShopRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class ShopRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/shops', 'admin.shops')
+            ->idField('vnum')
+            ->orderBy([
+                'vnum' => 's.vnum',
+                'name' => 's.name',
+                'npc_vnum' => 's.npc_vnum',
+            ])
+            ->columns([
+                ['key' => 'vnum', 'label' => 'admin.shops.vnum', 'sort' => 'vnum', 'type' => 'muted'],
+                ['key' => 'name', 'label' => 'admin.shops.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/shops/{vnum}'],
+                ['key' => 'npc_vnum', 'label' => 'admin.shops.npc', 'sort' => 'npc_vnum', 'type' => 'number'],
+                ['key' => 'item_count', 'label' => 'admin.shops.items', 'type' => 'number'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'player';
@@ -13,11 +35,16 @@ class ShopRepository extends Repository
 
     public function countForAdmin(?string $query = null): int
     {
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'vnum', 'asc', []));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
         if (!$this->schemaTableExists('shop')) {
             return 0;
         }
 
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `shop` s' . $where,
@@ -30,24 +57,33 @@ class ShopRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null): array
     {
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'vnum', 'asc', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
         if (!$this->schemaTableExists('shop')) {
             return [];
         }
 
-        $offset = max(0, ($page - 1) * $perPage);
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
         $itemJoin = $this->schemaTableExists('shop_item')
             ? 'LEFT JOIN (SELECT shop_vnum, COUNT(*) AS item_count FROM `shop_item` GROUP BY shop_vnum) ic ON ic.shop_vnum = s.vnum'
             : '';
         $itemSelect = $this->schemaTableExists('shop_item') ? ', COALESCE(ic.item_count, 0) AS item_count' : ', 0 AS item_count';
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 's.vnum ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT s.vnum, s.name, s.npc_vnum' . $itemSelect . '
              FROM `shop` s
              ' . $itemJoin . '
-             ' . $where . '
-             ORDER BY s.vnum ASC
-             LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset,
+             ' . $where . $order . '
+             LIMIT ? OFFSET ?',
             $params,
         );
 
@@ -234,18 +270,18 @@ class ShopRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function searchClause(?string $query): array
+    private function gridWhere(GridQuery $query): array
     {
-        if ($query === null || $query === '') {
+        if ($query->q === null || $query->q === '') {
             return ['', []];
         }
 
-        $like = '%' . $query . '%';
+        $like = '%' . $query->q . '%';
 
-        if (ctype_digit($query)) {
+        if (ctype_digit($query->q)) {
             return [
                 ' WHERE s.vnum = ? OR s.npc_vnum = ? OR s.name LIKE ?',
-                [(int) $query, (int) $query, $like],
+                [(int) $query->q, (int) $query->q, $like],
             ];
         }
 

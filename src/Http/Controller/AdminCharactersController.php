@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -19,8 +20,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminCharactersController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     /** @var array<string, string> */
     private const CHARACTER_TAB_TEMPLATES = [
         'logs' => 'components/character-logs.twig',
@@ -47,24 +46,19 @@ class AdminCharactersController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->players->countForAdmin($query);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->players->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->players->countForGrid($q),
+            fn ($q) => $this->players->listForGrid($q),
+        );
 
         return $this->adminView('characters', 'pages/characters.twig', [
             'title' => $this->t('admin.characters.title'),
             'pageLead' => $this->t('admin.characters.lead'),
-            'characters' => $this->players->listForAdmin($page, self::PER_PAGE, $query),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
     }
 

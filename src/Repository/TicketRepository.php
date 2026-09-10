@@ -4,8 +4,47 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class TicketRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class TicketRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/tickets', 'admin.tickets')
+            ->defaultSort('updated_at')
+            ->orderBy([
+                'id' => 't.id',
+                'subject' => 't.subject',
+                'account_login' => 't.account_login',
+                'status' => 't.status',
+                'updated_at' => 't.updated_at',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.tickets.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'subject', 'label' => 'admin.tickets.subject', 'sort' => 'subject', 'type' => 'link', 'href' => '/admin/tickets/{id}'],
+                ['key' => 'account_login', 'label' => 'admin.tickets.account', 'sort' => 'account_login', 'type' => 'text'],
+                ['key' => 'status', 'label' => 'admin.tickets.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
+                    'open' => ['class' => 'admin-badge-warn', 'label' => 'admin.tickets.status_open'],
+                    'answered' => ['class' => 'admin-badge-ok', 'label' => 'admin.tickets.status_answered'],
+                    'closed' => ['class' => 'admin-badge-muted', 'label' => 'admin.tickets.status_closed'],
+                ]],
+                ['key' => 'updated_at', 'label' => 'admin.tickets.updated', 'sort' => 'updated_at', 'type' => 'date'],
+            ])
+            ->filters([
+                ['key' => 'status', 'label' => 'admin.tickets.status', 'type' => 'select', 'options' => [
+                    'open' => 'admin.tickets.status_open',
+                    'answered' => 'admin.tickets.status_answered',
+                    'closed' => 'admin.tickets.status_closed',
+                ]],
+            ])
+            ->massActions('/admin/tickets/mass', [
+                ['id' => 'close', 'label' => 'admin.grid.close', 'confirm' => 'admin.tickets.confirm_mass_close'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'cms';
@@ -46,10 +85,21 @@ class TicketRepository extends Repository
 
     public function countForAdmin(?string $query = null, ?string $status = null): int
     {
-        [$where, $params] = $this->adminFilter($query, $status);
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'updated_at', 'desc', $filters));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
-            "SELECT COUNT(*) FROM tickets t WHERE {$where}",
+            'SELECT COUNT(*) FROM tickets t' . $where,
             $params,
         );
     }
@@ -59,13 +109,27 @@ class TicketRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
     {
-        [$where, $params] = $this->adminFilter($query, $status);
-        $offset = max(0, ($page - 1) * $perPage);
-        $params[] = $perPage;
-        $params[] = $offset;
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'updated_at', 'desc', $filters));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), "CASE t.status WHEN 'open' THEN 0 WHEN 'answered' THEN 1 ELSE 2 END, t.updated_at DESC, t.id DESC");
 
         return $this->db()->fetchAll(
-            "SELECT t.id, t.account_id, t.account_login, t.subject, t.status, t.created_at, t.updated_at,
+            'SELECT t.id, t.account_id, t.account_login, t.subject, t.status, t.created_at, t.updated_at,
                     lm.author_type AS last_author_type,
                     lm.author_login AS last_author_login
              FROM tickets t
@@ -75,17 +139,8 @@ class TicketRepository extends Repository
                 WHERE m.ticket_id = t.id
                 ORDER BY m.id DESC
                 LIMIT 1
-             )
-             WHERE {$where}
-             ORDER BY
-                CASE t.status
-                    WHEN 'open' THEN 0
-                    WHEN 'answered' THEN 1
-                    ELSE 2
-                END,
-                t.updated_at DESC,
-                t.id DESC
-             LIMIT ? OFFSET ?",
+             )' . $where . $order . '
+             LIMIT ? OFFSET ?',
             $params,
         );
     }
@@ -251,22 +306,28 @@ class TicketRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function adminFilter(?string $query, ?string $status): array
+    private function gridWhere(GridQuery $query): array
     {
-        $where = ['1 = 1'];
+        $clauses = [];
         $params = [];
 
-        if ($status !== null && $status !== '') {
-            $where[] = 't.status = ?';
+        $status = $query->filter('status');
+
+        if ($status !== '' && in_array($status, ['open', 'answered', 'closed'], true)) {
+            $clauses[] = 't.status = ?';
             $params[] = $status;
         }
 
-        if ($query !== null && $query !== '') {
-            $where[] = '(t.subject LIKE ? OR t.account_login LIKE ?)';
-            $params[] = '%' . $query . '%';
-            $params[] = '%' . $query . '%';
+        if ($query->q !== null && $query->q !== '') {
+            $clauses[] = '(t.subject LIKE ? OR t.account_login LIKE ?)';
+            $params[] = '%' . $query->q . '%';
+            $params[] = '%' . $query->q . '%';
         }
 
-        return [implode(' AND ', $where), $params];
+        if ($clauses === []) {
+            return ['', []];
+        }
+
+        return [' WHERE ' . implode(' AND ', $clauses), $params];
     }
 }

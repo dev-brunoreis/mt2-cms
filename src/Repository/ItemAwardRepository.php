@@ -4,8 +4,47 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class ItemAwardRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class ItemAwardRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/awards', 'admin.awards')
+            ->orderBy([
+                'id' => 'a.id',
+                'login' => 'a.login',
+                'vnum' => 'a.vnum',
+                'count' => 'a.count',
+                'status' => '(CASE WHEN a.taken_time IS NULL THEN 0 ELSE 1 END)',
+                'given_time' => 'a.given_time',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.awards.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'login', 'label' => 'admin.awards.login', 'sort' => 'login', 'type' => 'text'],
+                ['key' => 'vnum', 'label' => 'admin.awards.vnum', 'sort' => 'vnum', 'type' => 'number'],
+                ['key' => 'item_name', 'label' => 'admin.awards.item', 'type' => 'text'],
+                ['key' => 'count', 'label' => 'admin.awards.count_label', 'sort' => 'count', 'type' => 'number'],
+                ['key' => 'status', 'label' => 'admin.awards.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
+                    'pending' => ['class' => 'admin-badge-warn', 'label' => 'admin.awards.status_pending'],
+                    'taken' => ['class' => 'admin-badge-ok', 'label' => 'admin.awards.status_taken'],
+                ]],
+                ['key' => 'given_time', 'label' => 'admin.awards.given', 'sort' => 'given_time', 'type' => 'date'],
+            ])
+            ->filters([
+                ['key' => 'status', 'label' => 'admin.awards.status', 'type' => 'select', 'options' => [
+                    'pending' => 'admin.awards.status_pending',
+                    'taken' => 'admin.awards.status_taken',
+                ]],
+            ])
+            ->massActions('/admin/awards/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.awards.confirm_mass_delete'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'player';
@@ -13,11 +52,22 @@ class ItemAwardRepository extends Repository
 
     public function countForAdmin(?string $query = null, ?string $status = null): int
     {
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'given_time', 'desc', $filters));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
         if (!$this->schemaTableExists('item_award')) {
             return 0;
         }
 
-        [$where, $params] = $this->filterClause($query, $status);
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `item_award` a' . $where,
@@ -30,21 +80,35 @@ class ItemAwardRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null, ?string $status = null): array
     {
+        $filters = [];
+
+        if ($status !== null && $status !== '') {
+            $filters['status'] = $status;
+        }
+
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'given_time', 'desc', $filters));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
         if (!$this->schemaTableExists('item_award')) {
             return [];
         }
 
-        $offset = max(0, ($page - 1) * $perPage);
-        [$where, $params] = $this->filterClause($query, $status);
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'a.given_time DESC, a.id DESC');
 
         $rows = $this->revealAll(
             $this->db()->fetchAll(
                 'SELECT a.id, a.pid, a.login, a.vnum, a.count, a.given_time, a.taken_time,
                         a.item_id, a.why, a.socket0, a.socket1, a.socket2, a.mall
-                 FROM `item_award` a
-                 ' . $where . '
-                 ORDER BY a.given_time DESC, a.id DESC
-                 LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset,
+                 FROM `item_award` a' . $where . $order . '
+                 LIMIT ? OFFSET ?',
                 $params,
             ),
         );
@@ -65,6 +129,7 @@ class ItemAwardRepository extends Repository
                 'socket2' => (int) ($row['socket2'] ?? 0),
                 'mall' => (int) ($row['mall'] ?? 0) === 1,
                 'pending' => ($row['taken_time'] ?? null) === null,
+                'status' => ($row['taken_time'] ?? null) === null ? 'pending' : 'taken',
             ];
         }, $rows);
     }
@@ -271,7 +336,7 @@ class ItemAwardRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function filterClause(?string $query, ?string $status): array
+    private function gridWhere(GridQuery $query): array
     {
         $clauses = [
             // Item-shop purchases use why = shop:{orderId}[:ok]; those belong under Shop orders.
@@ -279,20 +344,22 @@ class ItemAwardRepository extends Repository
         ];
         $params = [];
 
+        $status = $query->filter('status');
+
         if ($status === 'pending') {
             $clauses[] = 'a.taken_time IS NULL';
         } elseif ($status === 'taken') {
             $clauses[] = 'a.taken_time IS NOT NULL';
         }
 
-        if ($query !== null && $query !== '') {
-            if (ctype_digit($query)) {
+        if ($query->q !== null && $query->q !== '') {
+            if (ctype_digit($query->q)) {
                 $clauses[] = '(a.id = ? OR a.pid = ? OR a.vnum = ? OR a.login LIKE ? OR a.why LIKE ?)';
-                $like = '%' . $query . '%';
-                array_push($params, (int) $query, (int) $query, (int) $query, $like, $like);
+                $like = '%' . $query->q . '%';
+                array_push($params, (int) $query->q, (int) $query->q, (int) $query->q, $like, $like);
             } else {
                 $clauses[] = '(a.login LIKE ? OR a.why LIKE ?)';
-                $like = '%' . $query . '%';
+                $like = '%' . $query->q . '%';
                 array_push($params, $like, $like);
             }
         }

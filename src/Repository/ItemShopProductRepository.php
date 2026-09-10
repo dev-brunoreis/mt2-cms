@@ -4,8 +4,46 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class ItemShopProductRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/item-shop', 'admin.item_shop.products')
+            ->orderBy([
+                'id' => 'p.id',
+                'vnum' => 'p.vnum',
+                'category_name' => 'c.name',
+                'count' => 'p.count',
+                'price' => 'p.price',
+                'enabled' => 'p.enabled',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.item_shop.products.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/item-shop/{id}'],
+                ['key' => 'vnum', 'label' => 'admin.item_shop.products.vnum', 'sort' => 'vnum', 'type' => 'number'],
+                ['key' => 'item_name', 'label' => 'admin.item_shop.products.item', 'type' => 'text'],
+                ['key' => 'category_name', 'label' => 'admin.item_shop.products.category', 'sort' => 'category_name', 'type' => 'text'],
+                ['key' => 'count', 'label' => 'admin.item_shop.products.count_label', 'sort' => 'count', 'type' => 'number'],
+                ['key' => 'price', 'label' => 'admin.item_shop.products.price', 'sort' => 'price', 'type' => 'number'],
+                ['key' => 'enabled', 'label' => 'admin.item_shop.products.enabled', 'sort' => 'enabled', 'type' => 'badge', 'badgeMap' => [
+                    '1' => ['class' => 'admin-badge-ok', 'label' => 'admin.item_shop.enabled_yes'],
+                    '0' => ['class' => 'admin-badge-muted', 'label' => 'admin.item_shop.enabled_no'],
+                ]],
+            ])
+            ->filters([
+                ['key' => 'category_id', 'label' => 'admin.item_shop.products.category', 'type' => 'select', 'options' => []],
+            ])
+            ->massActions('/admin/item-shop/mass', [
+                ['id' => 'enable', 'label' => 'admin.grid.enable'],
+                ['id' => 'disable', 'label' => 'admin.grid.disable'],
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.item_shop.products.confirm_mass_delete'],
+            ]);
+    }
+
     private const MAX_COUNT = 200;
 
     protected function database(): string
@@ -15,7 +53,18 @@ class ItemShopProductRepository extends Repository
 
     public function countForAdmin(?string $query = null, ?int $categoryId = null): int
     {
-        [$where, $params] = $this->adminWhere($query, $categoryId);
+        $filters = [];
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $filters['category_id'] = (string) $categoryId;
+        }
+
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', $filters));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*)
@@ -30,20 +79,31 @@ class ItemShopProductRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null, ?int $categoryId = null): array
     {
-        $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
-        $offset = ($page - 1) * $perPage;
-        [$where, $params] = $this->adminWhere($query, $categoryId);
-        $params[] = $perPage;
-        $params[] = $offset;
+        $filters = [];
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $filters['category_id'] = (string) $categoryId;
+        }
+
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', $filters));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'p.sort_order ASC, p.id ASC');
 
         return $this->db()->fetchAll(
             'SELECT p.id, p.category_id, p.vnum, p.count, p.price, p.socket0, p.socket1, p.socket2,
                     p.enabled, p.sort_order, p.created_at, p.updated_at,
                     c.name AS category_name, c.slug AS category_slug
              FROM item_shop_products p
-             INNER JOIN item_shop_categories c ON c.id = p.category_id' . $where . '
-             ORDER BY p.sort_order ASC, p.id ASC
+             INNER JOIN item_shop_categories c ON c.id = p.category_id' . $where . $order . '
              LIMIT ? OFFSET ?',
             $params,
         );
@@ -370,23 +430,25 @@ class ItemShopProductRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function adminWhere(?string $query, ?int $categoryId): array
+    private function gridWhere(GridQuery $query): array
     {
         $clauses = [];
         $params = [];
 
-        if ($categoryId !== null && $categoryId > 0) {
+        $categoryId = $query->filter('category_id');
+
+        if ($categoryId !== '' && ctype_digit($categoryId) && (int) $categoryId > 0) {
             $clauses[] = 'p.category_id = ?';
-            $params[] = $categoryId;
+            $params[] = (int) $categoryId;
         }
 
-        if ($query !== null && $query !== '') {
-            if (ctype_digit($query)) {
+        if ($query->q !== null && $query->q !== '') {
+            if (ctype_digit($query->q)) {
                 $clauses[] = '(p.id = ? OR p.vnum = ? OR c.name LIKE ?)';
-                $like = '%' . $query . '%';
-                array_push($params, (int) $query, (int) $query, $like);
+                $like = '%' . $query->q . '%';
+                array_push($params, (int) $query->q, (int) $query->q, $like);
             } else {
-                $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query);
+                $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
                 $clauses[] = 'c.name LIKE ?';
                 $params[] = '%' . $escaped . '%';
             }

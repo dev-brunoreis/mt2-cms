@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Proto\TabProtoTable;
@@ -59,6 +61,25 @@ class GameProtoService
             'rows' => array_slice($filtered, $offset, $perPage),
             'total' => $total,
         ];
+    }
+
+    public function countForGrid(string $kind, GridQuery $query): int
+    {
+        return count($this->filter($this->table($kind)->all(), $query->q));
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function listForGrid(string $kind, GridQuery $query): array
+    {
+        $rows = $this->sortRows(
+            $this->filter($this->table($kind)->all(), $query->q),
+            $query,
+            $this->listColumns($kind),
+        );
+
+        return array_slice($rows, $query->offset(), $query->perPage);
     }
 
     /**
@@ -181,6 +202,50 @@ class GameProtoService
         return $this->schemas->listColumns($kind);
     }
 
+    public function adminGridDefinition(string $route): GridDefinition
+    {
+        $kind = $this->kindFromRoute($route);
+        $prefix = $route === self::ROUTE_ITEMS ? 'admin.items' : 'admin.mobs';
+        $columns = [];
+
+        foreach ($this->listColumns($kind) as $column) {
+            if ($column === 'locale_name') {
+                $columns[] = [
+                    'key' => 'locale_name',
+                    'label' => $prefix . '.fields.locale_name',
+                    'sort' => 'locale_name',
+                    'type' => 'icon_link',
+                    'icon' => $route === self::ROUTE_ITEMS ? 'item' : 'face',
+                    'href' => '/admin/' . $route . '/{id}',
+                ];
+
+                continue;
+            }
+
+            $columns[] = [
+                'key' => $column,
+                'label' => $prefix . '.fields.' . $column,
+                'sort' => $column,
+                'type' => in_array($column, ['vnum', 'level', 'rank'], true) ? 'number' : 'text',
+            ];
+        }
+
+        $sortMap = [];
+
+        foreach ($this->listColumns($kind) as $column) {
+            $sortMap[$column] = $column;
+        }
+
+        return GridDefinition::create('/admin/' . $route, $prefix)
+            ->idField('vnum')
+            ->defaultSort('vnum')
+            ->orderBy($sortMap)
+            ->columns($columns)
+            ->massActions('/admin/' . $route . '/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => $prefix . '.confirm_mass_delete'],
+            ]);
+    }
+
     /**
      * @return list<array{id: string, fields: list<string>}>
      */
@@ -200,6 +265,30 @@ class GameProtoService
     private function table(string $kind): TabProtoTable
     {
         return $kind === ProtoSchemas::KIND_MOB ? $this->mobs : $this->items;
+    }
+
+    /**
+     * @param list<array<string, string>> $rows
+     * @param list<string> $sortWhitelist
+     * @return list<array<string, string>>
+     */
+    private function sortRows(array $rows, GridQuery $query, array $sortWhitelist): array
+    {
+        $sort = in_array($query->sort, $sortWhitelist, true) ? $query->sort : 'vnum';
+        $dir = $query->dir === 'asc' ? 1 : -1;
+
+        usort($rows, static function (array $a, array $b) use ($sort, $dir): int {
+            $left = $a[$sort] ?? '';
+            $right = $b[$sort] ?? '';
+
+            if (is_numeric($left) && is_numeric($right)) {
+                return ((int) $left <=> (int) $right) * $dir;
+            }
+
+            return strcasecmp((string) $left, (string) $right) * $dir;
+        });
+
+        return $rows;
     }
 
     /**

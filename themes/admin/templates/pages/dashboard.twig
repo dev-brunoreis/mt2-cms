@@ -1,14 +1,5 @@
 <div class="space-y-4">
     <div class="admin-panel p-4 md:p-6">
-        <div class="mb-4 flex flex-wrap gap-2" role="group" aria-label="{{ t('admin.dashboard.range_label') }}">
-            {% for item in ranges %}
-                <a href="/admin?range={{ item }}"
-                   class="admin-range-filter {% if range == item %}is-active{% endif %}">
-                    {{ t('admin.dashboard.range.' ~ item) }}
-                </a>
-            {% endfor %}
-        </div>
-
         <dl class="grid gap-4 sm:grid-cols-2">
             <div class="admin-stat admin-stat-highlight">
                 <dt>{{ t('admin.dashboard.players') }}</dt>
@@ -22,84 +13,6 @@
     </div>
 
     <div class="admin-panel overflow-hidden">
-        <div class="border-b border-slate-100 px-4 py-4 md:px-6">
-            <p class="text-sm text-slate-500">
-                {{ t('admin.dashboard.list_count', {count: playerCount}) }}
-            </p>
-        </div>
-
-        {% if characters is empty %}
-            <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">
-                {{ t('admin.dashboard.empty') }}
-            </p>
-        {% else %}
-            <div class="overflow-x-auto">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>{{ t('admin.characters.id') }}</th>
-                            <th>{{ t('admin.characters.name') }}</th>
-                            <th>{{ t('admin.characters.account') }}</th>
-                            <th>{{ t('admin.characters.job') }}</th>
-                            <th>{{ t('admin.characters.level') }}</th>
-                            <th>{{ t('admin.characters.last_play') }}</th>
-                            <th>{{ t('admin.characters.actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for character in characters %}
-                            <tr>
-                                <td class="text-slate-400">{{ character.id }}</td>
-                                <td>
-                                    <a href="/admin/characters/{{ character.id }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
-                                        {% include 'components/face-icon.twig' with { job: character.job } %}
-                                        <span>{{ character.name }}</span>
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if character.account_id %}
-                                        <a href="/admin/accounts/{{ character.account_id }}" class="text-indigo-600 hover:underline">
-                                            {{ character.account_login|default(character.account_id) }}
-                                        </a>
-                                    {% else %}
-                                        <span class="text-slate-400">—</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-slate-600">{{ character.job|job_name(character.skill_group) }}</td>
-                                <td class="text-slate-600">{{ character.level }}</td>
-                                <td class="text-slate-600">{{ character.last_play|game_date }}</td>
-                                <td>
-                                    <a href="/admin/characters/{{ character.id }}" class="admin-link-action">
-                                        {{ t('admin.characters.view') }}
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-
-        {% if totalPages > 1 %}
-            <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
-                {% if page > 1 %}
-                    <a href="/admin?range={{ range }}&page={{ page - 1 }}"
-                       class="admin-btn-secondary rounded-md px-3 py-1.5">
-                        {{ t('admin.characters.previous') }}
-                    </a>
-                {% endif %}
-
-                <span class="px-2 text-slate-500">
-                    {{ t('admin.characters.page_of', {page: page, total: totalPages}) }}
-                </span>
-
-                {% if page < totalPages %}
-                    <a href="/admin?range={{ range }}&page={{ page + 1 }}"
-                       class="admin-btn-secondary rounded-md px-3 py-1.5">
-                        {{ t('admin.characters.next') }}
-                    </a>
-                {% endif %}
-            </nav>
-        {% endif %}
+        {% include 'components/grid.twig' with {grid: grid} %}
     </div>
 </div>

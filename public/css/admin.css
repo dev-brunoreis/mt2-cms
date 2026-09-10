@@ -1805,3 +1805,147 @@
   color: #94a3b8;
 }
 
+/* Admin data grid (Magento-style) */
+.admin-grid-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 0.875rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-grid-toolbar {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.admin-grid-toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-grid-count {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.admin-grid-search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-grid-limit select {
+  min-width: 4.5rem;
+}
+
+.admin-grid-filters {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 0.75rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-grid-filters {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.admin-grid-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.admin-grid-filter-field {
+  min-width: 10rem;
+}
+
+.admin-grid-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.125rem;
+}
+
+.admin-grid-mass-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 0.625rem 1rem;
+  background: #fafbfc;
+}
+
+@media (min-width: 768px) {
+  .admin-grid-mass-bar {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.admin-grid-empty {
+  margin: 0;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.admin-grid-check-col {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.admin-grid-sort-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-grid-sort-link:hover {
+  color: #ea580c;
+}
+
+.admin-grid-sort-link.is-active {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.admin-grid-sort-link.is-active::after {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.admin-grid-sort-link.is-active.is-asc::after {
+  border-bottom: 5px solid #64748b;
+}
+
+.admin-grid-sort-link.is-active.is-desc::after {
+  border-top: 5px solid #64748b;
+}
+
+.admin-grid-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+

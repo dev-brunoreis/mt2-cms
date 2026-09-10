@@ -4,8 +4,31 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class GuildRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class GuildRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/guilds', 'admin.guilds')
+            ->orderBy([
+                'id' => 'g.id',
+                'name' => 'g.name',
+                'level' => 'g.level',
+                'member_count' => 'member_count',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.guilds.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'name', 'label' => 'admin.guilds.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/guilds/{id}'],
+                ['key' => 'level', 'label' => 'admin.guilds.level', 'sort' => 'level', 'type' => 'number'],
+                ['key' => 'member_count', 'label' => 'admin.guilds.members', 'sort' => 'member_count', 'type' => 'number'],
+                ['key' => 'master', 'label' => 'admin.guilds.master', 'type' => 'text'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'player';
@@ -13,14 +36,21 @@ class GuildRepository extends Repository
 
     public function countForAdmin(?string $query = null): int
     {
+        return $this->countForGrid(new GridQuery($query, 1, 20, 'id', 'asc', []));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
         if (!$this->schemaTableExists('guild')) {
             return 0;
         }
 
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->gridWhere($query);
 
         return (int) $this->db()->fetchColumn(
-            'SELECT COUNT(*) FROM `guild` g' . $where,
+            'SELECT COUNT(*)
+             FROM `guild` g
+             LEFT JOIN `player` p ON p.id = g.master' . $where,
             $params,
         );
     }
@@ -30,16 +60,26 @@ class GuildRepository extends Repository
      */
     public function listForAdmin(int $page, int $perPage, ?string $query = null): array
     {
+        return $this->listForGrid(new GridQuery($query, $page, $perPage, 'id', 'asc', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
         if (!$this->schemaTableExists('guild')) {
             return [];
         }
 
-        $offset = max(0, ($page - 1) * $perPage);
-        [$where, $params] = $this->searchClause($query);
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
         $memberJoin = $this->schemaTableExists('guild_member')
             ? 'LEFT JOIN (SELECT guild_id, COUNT(*) AS member_count FROM `guild_member` GROUP BY guild_id) mc ON mc.guild_id = g.id'
             : '';
         $memberSelect = $this->schemaTableExists('guild_member') ? ', COALESCE(mc.member_count, 0) AS member_count' : ', 0 AS member_count';
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'g.id ASC');
 
         $rows = $this->revealAll(
             $this->db()->fetchAll(
@@ -48,9 +88,8 @@ class GuildRepository extends Repository
                  FROM `guild` g
                  LEFT JOIN `player` p ON p.id = g.master
                  ' . $memberJoin . '
-                 ' . $where . '
-                 ORDER BY g.id ASC
-                 LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset,
+                 ' . $where . $order . '
+                 LIMIT ? OFFSET ?',
                 $params,
             ),
         );
@@ -69,6 +108,7 @@ class GuildRepository extends Repository
                 'draw' => (int) ($row['draw'] ?? 0),
                 'loss' => (int) ($row['loss'] ?? 0),
                 'member_count' => (int) ($row['member_count'] ?? 0),
+                'master' => $row['master_name'] !== null ? (string) $row['master_name'] : null,
             ];
         }, $rows);
     }
@@ -309,18 +349,18 @@ class GuildRepository extends Repository
     /**
      * @return array{0: string, 1: list<mixed>}
      */
-    private function searchClause(?string $query): array
+    private function gridWhere(GridQuery $query): array
     {
-        if ($query === null || $query === '') {
+        if ($query->q === null || $query->q === '') {
             return ['', []];
         }
 
-        $like = '%' . $query . '%';
+        $like = '%' . $query->q . '%';
 
-        if (ctype_digit($query)) {
+        if (ctype_digit($query->q)) {
             return [
                 ' WHERE g.id = ? OR g.name LIKE ? OR p.name LIKE ?',
-                [(int) $query, $like, $like],
+                [(int) $query->q, $like, $like],
             ];
         }
 

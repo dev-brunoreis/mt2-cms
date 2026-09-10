@@ -1,0 +1,86 @@
+{% set type = column.type|default('text') %}
+{% set value = attribute(row, column.key)|default('') %}
+{% set rowId = attribute(row, grid.idField|default('id')) %}
+
+{% if type == 'text' %}
+    <span class="text-slate-600">{{ value|default('—') }}</span>
+
+{% elseif type == 'muted' %}
+    <span class="text-slate-400">{{ value|default('—') }}</span>
+
+{% elseif type == 'number' %}
+    <span class="text-slate-600">{{ value|default(0) }}</span>
+
+{% elseif type == 'date' %}
+    <span class="text-slate-600">{{ value ? value|game_date : '—' }}</span>
+
+{% elseif type == 'unix_date' %}
+    <span class="text-slate-600">{{ value ? value|unix_date : '—' }}</span>
+
+{% elseif type == 'empire' %}
+    <span class="text-slate-600">{{ value|empire_name }}</span>
+
+{% elseif type == 'job' %}
+    <span class="text-slate-600">{{ value|job_name(row.skill_group|default(0)) }}</span>
+
+{% elseif type == 'playtime' %}
+    <span class="text-slate-600">{{ value|playtime }}</span>
+
+{% elseif type == 'link' %}
+    {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode}) %}
+    <a href="{{ href }}" class="font-medium text-indigo-600 hover:underline">{{ value|default('—') }}</a>
+
+{% elseif type == 'icon_link' %}
+    {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+    <a href="{{ href }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
+        {% if column.icon|default('item') == 'item' %}
+            {% include 'components/item-icon.twig' with { vnum: row.vnum|default(0) } %}
+        {% elseif column.icon == 'face' %}
+            {% include 'components/face-icon.twig' with { job: row.job|default(0) } %}
+        {% endif %}
+        <span>{{ value|default('—') }}</span>
+    </a>
+
+{% elseif type == 'badge' %}
+    {% set mapKey = (value == 1 or value == '1') ? '1' : ((value == 0 or value == '0') ? '0' : value ~ '') %}
+    {% set badgeClass = column.badgeClass|default('admin-badge-muted') %}
+    {% if column.badgeMap is defined and column.badgeMap[mapKey] is defined %}
+        {% set badgeClass = column.badgeMap[mapKey].class|default(badgeClass) %}
+        {% set badgeLabel = t(column.badgeMap[mapKey].label) %}
+    {% else %}
+        {% set badgeLabel = value|default('—') %}
+    {% endif %}
+    <span class="admin-badge {{ badgeClass }}">{{ badgeLabel }}</span>
+
+{% elseif type == 'template' %}
+    {% include column.template with {
+        row: row,
+        column: column,
+        grid: grid,
+        itemColumns: column.itemColumns|default([]),
+        dateColumns: column.dateColumns|default([])
+    } %}
+
+{% elseif type == 'actions' %}
+    <div class="admin-row-actions">
+        {% for action in column.actions %}
+            {% if action.type|default('link') == 'link' %}
+                {% set href = action.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+                <a href="{{ href }}" class="admin-link-action{% if action.danger|default(false) %} admin-link-danger{% endif %}">
+                    {{ t(action.label) }}
+                </a>
+            {% elseif action.type == 'form' %}
+                {% if action.when is not defined or attribute(row, action.when.field)|default('') == action.when.equals %}
+                    {% set actionHref = action.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+                    <form method="post" action="{{ actionHref }}"
+                          {% if action.confirm is defined %}data-confirm="{{ t(action.confirm) }}"{% endif %}>
+                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                        <button type="submit" class="admin-link-action{% if action.danger|default(false) %} admin-link-danger{% endif %} cursor-pointer">
+                            {{ t(action.label) }}
+                        </button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

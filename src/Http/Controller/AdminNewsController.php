@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -18,8 +19,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminNewsController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -38,30 +37,57 @@ class AdminNewsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $status = (string) ($_GET['status'] ?? '');
-        $statusFilter = in_array($status, ['draft', 'published'], true) ? $status : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->news->countForAdmin($query, $statusFilter);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->news->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->news->countForGrid($q),
+            fn ($q) => $this->news->listForGrid($q),
+        );
 
         return $this->adminView('news', 'pages/news.twig', [
             'title' => $this->t('admin.news.title'),
             'pageLead' => $this->t('admin.news.lead'),
             'headerHref' => '/admin/news/new',
             'headerActionLabel' => $this->t('admin.news.create'),
-            'posts' => $this->news->listForAdmin($page, self::PER_PAGE, $query, $statusFilter),
-            'query' => $q,
-            'status' => $statusFilter ?? '',
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                match ($action) {
+                    'publish' => $this->setNewsStatus($id, 'published') ? true : throw new \RuntimeException('skip'),
+                    'draft' => $this->setNewsStatus($id, 'draft') ? true : throw new \RuntimeException('skip'),
+                    'delete' => $this->news->delete($id) ? true : throw new \RuntimeException('skip'),
+                    default => throw new \InvalidArgumentException('invalid'),
+                };
+                $count++;
+            } catch (\InvalidArgumentException | \RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.news.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/news');
     }
 
     public function create(): Response
@@ -224,22 +250,60 @@ class AdminNewsController extends AdminController
 
     public function comments(): Response
     {
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->comments->countPending();
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->comments->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->comments->countForGrid($q),
+            fn ($q) => $this->comments->listForGrid($q),
+        );
 
         return $this->adminView('news-comments', 'pages/news-comments.twig', [
             'title' => $this->t('admin.news.comments_title'),
             'pageLead' => $this->t('admin.news.comments_lead'),
-            'comments' => $this->comments->listPending($page, self::PER_PAGE),
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function massComments(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/news/comments');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                $ok = match ($action) {
+                    'approve' => $this->comments->setStatus($id, 'approved'),
+                    'reject' => $this->comments->setStatus($id, 'rejected'),
+                    'delete' => $this->comments->delete($id),
+                    default => throw new \InvalidArgumentException('invalid'),
+                };
+
+                if (!$ok) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\InvalidArgumentException | \RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.news.mass_comments_done', ['count' => $count]));
+
+        return $this->redirect('/admin/news/comments');
     }
 
     public function approveComment(string $id): Response
@@ -413,5 +477,22 @@ class AdminNewsController extends AdminController
         }
 
         return (bool) preg_match('#^/uploads/news/[0-9]{4}/[0-9]{2}/[a-zA-Z0-9._-]+$#', $src);
+    }
+
+    private function setNewsStatus(int $id, string $status): bool
+    {
+        $post = $this->news->findById($id);
+
+        if ($post === null) {
+            return false;
+        }
+
+        return $this->news->update($id, [
+            'title' => (string) $post['title'],
+            'body' => (string) $post['body'],
+            'cover_image' => $post['cover_image'],
+            'status' => $status,
+            'comments_enabled' => (int) $post['comments_enabled'] === 1,
+        ]);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -18,8 +20,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminItemShopController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -37,33 +37,68 @@ class AdminItemShopController extends AdminController
 
     public function productsIndex(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $categoryId = (int) ($_GET['category_id'] ?? 0);
-        $categoryFilter = $categoryId > 0 ? $categoryId : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->products->countForAdmin($query, $categoryFilter);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
-
-        $rows = $this->products->listForAdmin($page, self::PER_PAGE, $query, $categoryFilter);
+        $spec = $this->productsGridSpec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->products->countForGrid($q),
+            fn ($q) => $this->enrichProducts($this->products->listForGrid($q)),
+        );
 
         return $this->adminView('item-shop', 'pages/item-shop-products.twig', [
             'title' => $this->t('admin.item_shop.products.title'),
             'pageLead' => $this->t('admin.item_shop.products.lead'),
             'headerHref' => '/admin/item-shop/new',
             'headerActionLabel' => $this->t('admin.item_shop.products.create'),
-            'products' => $this->enrichProducts($rows),
-            'categories' => $this->categories->listAllForSelect(),
-            'query' => $q,
-            'categoryId' => $categoryFilter ?? 0,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/item-shop');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                $product = $this->products->findById($id);
+
+                if ($product === null) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $ok = match ($action) {
+                    'enable' => $this->updateProductEnabled($product, 1),
+                    'disable' => $this->updateProductEnabled($product, 0),
+                    'delete' => $this->products->delete($id),
+                    default => throw new \InvalidArgumentException('invalid'),
+                };
+
+                if (!$ok) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\InvalidArgumentException | \RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.item_shop.products.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/item-shop');
     }
 
     public function productsCreate(): Response
@@ -483,29 +518,19 @@ class AdminItemShopController extends AdminController
 
     public function ordersIndex(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $status = (string) ($_GET['status'] ?? '');
-        $statusFilter = in_array($status, ['pending', 'completed', 'failed'], true) ? $status : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->orders->countForAdmin($query, $statusFilter);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
-
-        $rows = $this->orders->listForAdmin($page, self::PER_PAGE, $query, $statusFilter);
+        $spec = $this->orders->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->orders->countForGrid($q),
+            fn ($q) => $this->enrichOrders($this->orders->listForGrid($q)),
+        );
 
         return $this->adminView('item-shop-orders', 'pages/item-shop-orders.twig', [
             'title' => $this->t('admin.item_shop.orders.title'),
             'pageLead' => $this->t('admin.item_shop.orders.lead'),
-            'orders' => $this->enrichOrders($rows),
-            'query' => $q,
-            'status' => $statusFilter ?? '',
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
     }
 
@@ -685,10 +710,42 @@ class AdminItemShopController extends AdminController
      * @param list<array<string, mixed>> $rows
      * @return list<array<string, mixed>>
      */
+    private function productsGridSpec(): GridSpec
+    {
+        $categoryOptions = [];
+
+        foreach ($this->categories->listAllForSelect() as $category) {
+            $categoryOptions[(string) $category['id']] = (string) $category['name'];
+        }
+
+        return $this->products->gridDefinition()
+            ->filterOptions('category_id', $categoryOptions, false)
+            ->spec();
+    }
+
+    /**
+     * @param array<string, mixed> $product
+     */
+    private function updateProductEnabled(array $product, int $enabled): bool
+    {
+        try {
+            $this->products->update((int) $product['id'], array_merge($product, ['enabled' => $enabled]));
+
+            return true;
+        } catch (\InvalidArgumentException | \RuntimeException) {
+            return false;
+        }
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
     private function enrichProducts(array $rows): array
     {
         foreach ($rows as &$row) {
             $row['item_name'] = $this->itemName((int) $row['vnum']);
+            $row['enabled'] = (string) (int) ($row['enabled'] ?? 0);
         }
 
         unset($row);

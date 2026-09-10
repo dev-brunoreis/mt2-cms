@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -18,8 +20,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGameProtoController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -39,33 +39,60 @@ class AdminGameProtoController extends AdminController
     {
         $route = $this->routeKind($kind);
         $internal = $this->protos->kindFromRoute($route);
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $result = $this->protos->page($internal, $page, self::PER_PAGE, $query);
-        $totalPages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-            $result = $this->protos->page($internal, $page, self::PER_PAGE, $query);
-        }
-
         $prefix = $this->i18nPrefix($route);
+        $spec = $this->protoGridSpec($route);
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->protos->countForGrid($internal, $q),
+            fn ($q) => $this->protos->listForGrid($internal, $q),
+        );
 
         return $this->adminView($route, 'pages/proto-list.twig', [
             'title' => $this->t($prefix . '.title'),
             'pageLead' => $this->t($prefix . '.lead'),
             'headerHref' => '/admin/' . $route . '/new',
             'headerActionLabel' => $this->t($prefix . '.create'),
-            'routeKind' => $route,
-            'i18nPrefix' => $prefix,
-            'records' => $result['rows'],
-            'columns' => $this->columnLabels($prefix, $this->protos->listColumns($internal)),
-            'query' => $q,
-            'page' => $page,
-            'total' => $result['total'],
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(string $kind): Response
+    {
+        $route = $this->routeKind($kind);
+        $internal = $this->protos->kindFromRoute($route);
+        $prefix = $this->i18nPrefix($route);
+
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/' . $route);
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                if ($action !== 'delete' || !$this->protos->delete($internal, $id)) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t($prefix . '.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/' . $route);
     }
 
     public function create(string $kind): Response
@@ -189,6 +216,11 @@ class AdminGameProtoController extends AdminController
         return $this->redirect('/admin/' . $route);
     }
 
+    private function protoGridSpec(string $route): GridSpec
+    {
+        return $this->protos->adminGridDefinition($route)->spec();
+    }
+
     /**
      * @param array<string, mixed> $record
      */
@@ -291,25 +323,6 @@ class AdminGameProtoController extends AdminController
         $input['vnum'] = trim((string) ($_POST['vnum'] ?? ''));
 
         return $input;
-    }
-
-    /**
-     * @param list<string> $columns
-     * @return list<array{key: string, label: string}>
-     */
-    private function columnLabels(string $prefix, array $columns): array
-    {
-        $labels = [];
-
-        foreach ($columns as $column) {
-            $key = $prefix . '.fields.' . $column;
-            $labels[] = [
-                'key' => $column,
-                'label' => $this->translator->has($key) ? $this->t($key) : $column,
-            ];
-        }
-
-        return $labels;
     }
 
     private function routeKind(string $kind): string

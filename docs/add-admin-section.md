@@ -63,3 +63,49 @@ Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<fo
 `admin-tabs.js` switches panels, keeps the active tab in `?tab=` (so F5 stays on it), and marks a tab dirty (orange dot) when its fields change. Nested tab groups (inventory pages) do not write the query string. Do not `disable` fields in hidden panels — they would drop out of the POST.
 
 Read-only panels that are expensive to build (inventory, logs, drops) can stay empty until opened: set `data-tab-src="/admin/…?tab=items&partial=1"` and only query that data when `tab` matches. The script fetches the fragment on first click. Keep editable form fields in the DOM so Save still posts every tab.
+
+## 6. List pages (admin grid)
+
+Use the shared Magento-style grid for index/list pages — do not copy table markup.
+
+### Controller
+
+1. Implement `ProvidesAdminGrid` on the repository and add `gridDefinition(): GridDefinition` next to `listForGrid()` — columns, filters, and `orderBy()` map stay in one place.
+2. Add `countForGrid()` / `listForGrid()` (accept `GridQuery`; use `GridSql::orderBy($query, $this->gridDefinition()->sortMap(), …)`).
+3. In the controller `index()`:
+
+```php
+$spec = $this->repo->gridDefinition()->spec();
+$query = $this->gridQuery($spec);
+$grid = GridRunner::fetch(
+    $spec,
+    $query,
+    fn ($q) => $this->repo->countForGrid($q),
+    fn ($q) => $this->repo->listForGrid($q),
+);
+
+return $this->adminView('your-section', 'pages/your-section.twig', [
+    'title' => $this->t('admin.your_section.title'),
+    'pageLead' => $this->t('admin.your_section.lead'),
+    'headerHref' => '/admin/your-section/new', // optional
+    'headerActionLabel' => $this->t('admin.your_section.create'),
+    'grid' => $grid,
+]);
+```
+
+4. For mass actions: set `massActionPath` on the spec, register `POST /admin/your-section/mass`, call `assertCsrf()`, read IDs via `$this->gridMassIds()`, action via `$this->gridMassAction()`.
+
+### Twig
+
+```twig
+{% include 'components/grid.twig' with {grid: grid} %}
+```
+
+### i18n
+
+- Shared labels: `admin.grid.*` (search, filter, pagination, mass submit).
+- Section-specific: `admin.your_section.count`, `.empty`, `.search_placeholder`, mass confirm keys.
+
+### Cell types
+
+`text`, `muted`, `number`, `date`, `link`, `icon_link`, `badge`, `actions`, `template` (custom Twig partial). Special columns (log cells, guild master) use `type: template`.

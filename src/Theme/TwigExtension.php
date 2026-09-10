@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Theme;
 
+use Mt2Cms\Admin\Grid\GridUrl;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
@@ -59,6 +60,12 @@ class TwigExtension extends AbstractExtension
             }),
             new TwigFunction('face_icon', function (mixed $job): ?string {
                 return $this->icons?->faceUrl($job);
+            }),
+            new TwigFunction('grid_url', function (array $grid, array $overrides = []): string {
+                return GridUrl::fromGrid($grid, $overrides);
+            }),
+            new TwigFunction('grid_sort_url', function (array $grid, string $column): string {
+                return GridUrl::sortFromGrid($grid, $column);
             }),
         ];
     }

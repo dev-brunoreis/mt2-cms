@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -16,8 +17,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAccountsController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -34,29 +33,64 @@ class AdminAccountsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->accounts->countForAdmin($query);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->accounts->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->accounts->countForGrid($q),
+            fn ($q) => $this->withPlayerIndexEmpires($this->accounts->listForGrid($q)),
+        );
 
         return $this->adminView('accounts', 'pages/accounts.twig', [
             'title' => $this->t('admin.accounts.title'),
             'pageLead' => $this->t('admin.accounts.lead'),
             'headerHref' => '/admin/accounts/new',
             'headerActionLabel' => $this->t('admin.accounts.create'),
-            'accounts' => $this->withPlayerIndexEmpires(
-                $this->accounts->listForAdmin($page, self::PER_PAGE, $query),
-            ),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+
+        if ($ids === [] || $action === '') {
+            $this->flash('error', $this->t('admin.grid.no_selection'));
+
+            return $this->redirect('/admin/accounts');
+        }
+
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                match ($action) {
+                    'block' => $this->accounts->block($id),
+                    'unblock' => $this->accounts->unblock($id),
+                    'delete' => $this->accounts->delete($id) ? true : throw new \RuntimeException('skip'),
+                    default => throw new \InvalidArgumentException('invalid'),
+                };
+                $count++;
+            } catch (\InvalidArgumentException | \RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.accounts.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/accounts');
     }
 
     public function create(): Response

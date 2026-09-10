@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -14,8 +15,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminGuildsController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     /** @var array<string, string> */
     private const TAB_TEMPLATES = [
         'membros' => 'components/guild-members.twig',
@@ -37,24 +36,19 @@ class AdminGuildsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->guilds->countForAdmin($query);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->guilds->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->guilds->countForGrid($q),
+            fn ($q) => $this->guilds->listForGrid($q),
+        );
 
         return $this->adminView('guilds', 'pages/guilds.twig', [
             'title' => $this->t('admin.guilds.title'),
             'pageLead' => $this->t('admin.guilds.lead'),
-            'guilds' => $this->guilds->listForAdmin($page, self::PER_PAGE, $query),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
     }
 

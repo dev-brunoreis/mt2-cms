@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\LogCatalog;
 use Mt2Cms\Model\Database;
 
@@ -150,6 +151,44 @@ class LogRepository extends Repository
         }
 
         return $groups;
+    }
+
+    public function countForGrid(string $id, GridQuery $query): int
+    {
+        return $this->countForAdmin($id, $this->filtersFromGrid($query));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(string $id, GridQuery $query): array
+    {
+        return $this->listForAdmin($id, $query->page, $query->perPage, $this->filtersFromGrid($query));
+    }
+
+    public function countConnectionsForGrid(GridQuery $query): int
+    {
+        return $this->countConnectionIps($this->filtersFromGrid($query));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listConnectionsForGrid(GridQuery $query): array
+    {
+        return $this->listConnectionIps($query->page, $query->perPage, $this->filtersFromGrid($query));
+    }
+
+    /**
+     * @return array{q: string, from: string, to: string}
+     */
+    private function filtersFromGrid(GridQuery $query): array
+    {
+        return [
+            'q' => $query->q ?? '',
+            'from' => $query->filter('from'),
+            'to' => $query->filter('to'),
+        ];
     }
 
     /**

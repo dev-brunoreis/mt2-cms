@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -16,8 +17,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminRefineController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -33,29 +32,24 @@ class AdminRefineController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $usedByRefineIds = $query !== null && ctype_digit($query)
-            ? $this->protos->refineIdsForItemVnumPrefix($query)
+        $spec = $this->refine->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $usedByRefineIds = $query->q !== null && ctype_digit($query->q)
+            ? $this->protos->refineIdsForItemVnumPrefix($query->q)
             : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->refine->countForAdmin($query, $usedByRefineIds);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->refine->countForGrid($q, $usedByRefineIds),
+            fn ($q) => $this->enrichRecipesForList($this->refine->listForGrid($q, $usedByRefineIds)),
+        );
 
         return $this->adminView('refine', 'pages/refine-list.twig', [
             'title' => $this->t('admin.refine.title'),
             'pageLead' => $this->t('admin.refine.lead'),
             'headerHref' => '/admin/refine/new',
             'headerActionLabel' => $this->t('admin.refine.create'),
-            'recipes' => $this->enrichRecipesForList($this->refine->listForAdmin($page, self::PER_PAGE, $query, $usedByRefineIds)),
-            'query' => $q,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
     }
 
@@ -219,17 +213,31 @@ class AdminRefineController extends AdminController
      */
     private function enrichRecipesForList(array $recipes): array
     {
-        $itemsByRefine = $this->protos->itemsByRefineId();
-
         foreach ($recipes as &$recipe) {
-            $items = $itemsByRefine[(int) $recipe['id']] ?? [];
-            $recipe['used_by_count'] = count($items);
-            $recipe['used_by_items'] = array_slice($items, 0, 3);
+            $recipe['source_label'] = $this->itemLabel((int) ($recipe['src_vnum'] ?? 0));
+            $recipe['result_label'] = $this->itemLabel((int) ($recipe['result_vnum'] ?? 0));
         }
 
         unset($recipe);
 
         return $recipes;
+    }
+
+    private function itemLabel(int $vnum): string
+    {
+        if ($vnum < 1) {
+            return '—';
+        }
+
+        $row = $this->protos->find(ProtoSchemas::KIND_ITEM, $vnum);
+
+        if ($row === null) {
+            return (string) $vnum;
+        }
+
+        $locale = trim((string) ($row['locale_name'] ?? ''));
+
+        return $locale !== '' ? $locale : trim((string) ($row['name'] ?? (string) $vnum));
     }
 
     /**

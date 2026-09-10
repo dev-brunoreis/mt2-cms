@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridRequest;
+use Mt2Cms\Admin\Grid\GridSpec;
+use Mt2Cms\Admin\Grid\GridView;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -103,5 +107,35 @@ abstract class AdminController extends Controller
         }
 
         return Response::html($this->adminTheme->renderTemplate($template, $data), $status);
+    }
+
+    protected function gridQuery(GridSpec $spec): GridQuery
+    {
+        return GridRequest::fromGet($spec);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return array<string, mixed>
+     */
+    protected function gridView(GridSpec $spec, GridQuery $query, array $rows, int $total): array
+    {
+        $totalPages = GridView::paginate($total, $query);
+        $query = GridView::clampPage($query, $totalPages);
+
+        return (new GridView($spec, $query, $rows, $total, $totalPages))->toArray();
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function gridMassIds(int $max = 100): array
+    {
+        return GridRequest::massIds($max);
+    }
+
+    protected function gridMassAction(): string
+    {
+        return GridRequest::massAction();
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -18,8 +19,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAwardsController extends AdminController
 {
-    private const PER_PAGE = 20;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -37,30 +36,55 @@ class AdminAwardsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $status = (string) ($_GET['status'] ?? '');
-        $statusFilter = in_array($status, ['pending', 'taken'], true) ? $status : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->awards->countForAdmin($query, $statusFilter);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->awards->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->awards->countForGrid($q),
+            fn ($q) => $this->enrichAwards($this->awards->listForGrid($q)),
+        );
 
         return $this->adminView('awards', 'pages/awards.twig', [
             'title' => $this->t('admin.awards.title'),
             'pageLead' => $this->t('admin.awards.lead'),
             'headerHref' => '/admin/awards/new',
             'headerActionLabel' => $this->t('admin.awards.create'),
-            'awards' => $this->awards->listForAdmin($page, self::PER_PAGE, $query, $statusFilter),
-            'query' => $q,
-            'status' => $statusFilter ?? '',
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/awards');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                if ($action !== 'delete' || !$this->awards->deletePending($id)) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.awards.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/awards');
     }
 
     public function create(): Response
@@ -112,6 +136,38 @@ class AdminAwardsController extends AdminController
         }
 
         return $this->redirect('/admin/awards');
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private function enrichAwards(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            $row['item_name'] = $this->itemName((int) ($row['vnum'] ?? 0));
+        }
+
+        unset($row);
+
+        return $rows;
+    }
+
+    private function itemName(int $vnum): string
+    {
+        if ($vnum < 1) {
+            return '';
+        }
+
+        $row = $this->protos->find(ProtoSchemas::KIND_ITEM, $vnum);
+
+        if ($row === null) {
+            return '';
+        }
+
+        $locale = trim((string) ($row['locale_name'] ?? ''));
+
+        return $locale !== '' ? $locale : trim((string) ($row['name'] ?? ''));
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -16,7 +17,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminTicketsController extends AdminController
 {
-    private const PER_PAGE = 20;
     private const MAX_HTML_BYTES = 20000;
     private const MAX_PLAIN_CHARS = 5000;
 
@@ -36,28 +36,57 @@ class AdminTicketsController extends AdminController
 
     public function index(): Response
     {
-        $q = trim((string) ($_GET['q'] ?? ''));
-        $query = $q !== '' ? $q : null;
-        $status = (string) ($_GET['status'] ?? '');
-        $statusFilter = in_array($status, ['open', 'answered', 'closed'], true) ? $status : null;
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $total = $this->tickets->countForAdmin($query, $statusFilter);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $spec = $this->tickets->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->tickets->countForGrid($q),
+            fn ($q) => $this->enrichTickets($this->tickets->listForGrid($q)),
+        );
 
         return $this->adminView('tickets', 'pages/tickets.twig', [
             'title' => $this->t('admin.tickets.title'),
             'pageLead' => $this->t('admin.tickets.lead'),
-            'tickets' => $this->tickets->listForAdmin($page, self::PER_PAGE, $query, $statusFilter),
-            'query' => $q,
-            'status' => $statusFilter ?? '',
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'grid' => $grid,
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/tickets');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                if ($action !== 'close') {
+                    throw new \InvalidArgumentException('invalid');
+                }
+
+                if ($this->tickets->findById($id) === null || !$this->tickets->setStatus($id, 'closed')) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\InvalidArgumentException | \RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.tickets.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/tickets');
     }
 
     public function show(string $id): Response
@@ -173,6 +202,23 @@ class AdminTicketsController extends AdminController
     public function reopen(string $id): Response
     {
         return $this->setStatus((int) $id, 'open', 'admin.tickets.reopened');
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private function enrichTickets(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            if (($row['status'] ?? '') === 'open' && ($row['last_author_type'] ?? '') === 'player') {
+                $row['_rowClass'] = 'is-waiting';
+            }
+        }
+
+        unset($row);
+
+        return $rows;
     }
 
     private function isValidHtmlBody(string $html): bool

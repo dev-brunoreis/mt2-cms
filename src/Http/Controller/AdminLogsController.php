@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Admin\LogCatalog;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -15,8 +17,6 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminLogsController extends AdminController
 {
-    private const PER_PAGE = 25;
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -47,92 +47,111 @@ class AdminLogsController extends AdminController
             return $this->redirect('/admin/logs/' . LogCatalog::CONNECTIONS_ID);
         }
 
-        $filters = $this->filters();
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $missing = !$this->logs->tableExists($log['table']);
-        $total = $missing ? 0 : $this->logs->countForAdmin($table, $filters);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $missingTable = !$this->logs->tableExists($log['table']);
+        $spec = $this->logGridSpec($table, $log);
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $missingTable ? 0 : $this->logs->countForGrid($table, $q),
+            fn ($q) => $missingTable ? [] : $this->logs->listForGrid($table, $q),
+        );
 
         return $this->adminView('log-' . $table, 'pages/logs.twig', [
             'title' => $this->t($log['label']),
             'pageLead' => $this->t('admin.logs.lead'),
-            'logId' => $table,
-            'logPath' => '/admin/logs/' . $table,
-            'columns' => $this->columnLabels($log['columns']),
-            'dateColumns' => $this->dateColumns($log['columns']),
-            'itemColumns' => $log['itemColumns'],
-            'rows' => $missing ? [] : $this->logs->listForAdmin($table, $page, self::PER_PAGE, $filters),
-            'missingTable' => $missing,
-            'query' => $filters['q'],
-            'from' => $filters['from'],
-            'to' => $filters['to'],
-            'hasDateFilter' => $log['dateColumn'] !== null,
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'missingTable' => $missingTable,
+            'grid' => $grid,
         ]);
     }
 
     private function connections(): Response
     {
-        $filters = $this->filters();
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $missing = !$this->logs->tableExists('loginlog2');
-        $total = $missing ? 0 : $this->logs->countConnectionIps($filters);
-        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
-
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
+        $missingTable = !$this->logs->tableExists('loginlog2');
+        $spec = $this->connectionsGridSpec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $missingTable ? 0 : $this->logs->countConnectionsForGrid($q),
+            fn ($q) => $missingTable ? [] : $this->logs->listConnectionsForGrid($q),
+        );
 
         return $this->adminView('log-' . LogCatalog::CONNECTIONS_ID, 'pages/account-ips.twig', [
             'title' => $this->t('admin.logs.connections_title'),
             'pageLead' => $this->t('admin.logs.connections_lead'),
-            'logPath' => '/admin/logs/' . LogCatalog::CONNECTIONS_ID,
-            'rows' => $missing ? [] : $this->logs->listConnectionIps($page, self::PER_PAGE, $filters),
-            'missingTable' => $missing,
-            'query' => $filters['q'],
-            'from' => $filters['from'],
-            'to' => $filters['to'],
-            'page' => $page,
-            'total' => $total,
-            'totalPages' => $totalPages,
+            'missingTable' => $missingTable,
+            'grid' => $grid,
         ]);
     }
 
     /**
-     * @return array{q: string, from: string, to: string}
+     * @param array{
+     *   id: string,
+     *   table: string,
+     *   label: string,
+     *   columns: list<string>,
+     *   search: list<string>,
+     *   dateColumn: string|null,
+     *   playerColumns: list<string>,
+     *   itemColumns: list<string>
+     * } $log
      */
-    private function filters(): array
+    private function logGridSpec(string $table, array $log): GridSpec
     {
-        return [
-            'q' => trim((string) ($_GET['q'] ?? '')),
-            'from' => trim((string) ($_GET['from'] ?? '')),
-            'to' => trim((string) ($_GET['to'] ?? '')),
-        ];
-    }
+        $dateColumns = $this->dateColumns($log['columns']);
+        $columns = [];
 
-    /**
-     * @param list<string> $columns
-     * @return list<array{key: string, label: string}>
-     */
-    private function columnLabels(array $columns): array
-    {
-        $labels = [];
-
-        foreach ($columns as $column) {
-            $key = 'admin.logs.columns.' . $column;
-            $labels[] = [
+        foreach ($log['columns'] as $column) {
+            $columns[] = [
                 'key' => $column,
-                'label' => $this->translator->has($key) ? $this->t($key) : $column,
+                'label' => $this->translator->has('admin.logs.columns.' . $column)
+                    ? 'admin.logs.columns.' . $column
+                    : $column,
+                'type' => 'template',
+                'template' => 'components/log-cell.twig',
+                'itemColumns' => $log['itemColumns'],
+                'dateColumns' => $dateColumns,
             ];
         }
 
-        return $labels;
+        $filters = [];
+
+        if ($log['dateColumn'] !== null) {
+            $filters[] = ['key' => 'from', 'label' => 'admin.logs.from', 'type' => 'date'];
+            $filters[] = ['key' => 'to', 'label' => 'admin.logs.to', 'type' => 'date'];
+        }
+
+        return new GridSpec(
+            action: '/admin/logs/' . $table,
+            i18nPrefix: 'admin.logs',
+            columns: $columns,
+            filters: $filters,
+            searchable: true,
+            defaultSort: $log['columns'][0],
+            sortWhitelist: $log['columns'],
+        );
+    }
+
+    private function connectionsGridSpec(): GridSpec
+    {
+        return new GridSpec(
+            action: '/admin/logs/' . LogCatalog::CONNECTIONS_ID,
+            i18nPrefix: 'admin.logs',
+            columns: [
+                ['key' => 'ip', 'label' => 'admin.logs.columns.ip', 'type' => 'text'],
+                ['key' => 'account_id', 'label' => 'admin.logs.columns.account_id', 'type' => 'template', 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
+                ['key' => 'connections', 'label' => 'admin.logs.columns.connections', 'type' => 'number'],
+                ['key' => 'first_seen', 'label' => 'admin.logs.columns.first_seen', 'type' => 'date'],
+                ['key' => 'last_seen', 'label' => 'admin.logs.columns.last_seen', 'type' => 'date'],
+            ],
+            filters: [
+                ['key' => 'from', 'label' => 'admin.logs.from', 'type' => 'date'],
+                ['key' => 'to', 'label' => 'admin.logs.to', 'type' => 'date'],
+            ],
+            defaultSort: 'last_seen',
+            sortWhitelist: ['ip', 'account_id', 'connections', 'first_seen', 'last_seen'],
+        );
     }
 
     /**

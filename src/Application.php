@@ -205,6 +205,7 @@ class Application
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/block', [AdminAccountsController::class, 'block']);
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/unblock', [AdminAccountsController::class, 'unblock']);
             $r->addRoute('POST', '/admin/accounts/{id:\d+}/delete', [AdminAccountsController::class, 'destroy']);
+            $r->addRoute('POST', '/admin/accounts/mass', [AdminAccountsController::class, 'mass']);
             $r->addRoute('GET', '/admin/characters', [AdminCharactersController::class, 'index']);
             $r->addRoute('GET', '/admin/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
             $r->addRoute('GET', '/admin/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
@@ -218,6 +219,7 @@ class Application
             $r->addRoute('GET', '/admin/awards/new', [AdminAwardsController::class, 'create']);
             $r->addRoute('POST', '/admin/awards', [AdminAwardsController::class, 'store']);
             $r->addRoute('POST', '/admin/awards/{id:\d+}/delete', [AdminAwardsController::class, 'destroy']);
+            $r->addRoute('POST', '/admin/awards/mass', [AdminAwardsController::class, 'mass']);
             $r->addRoute('GET', '/admin/news', [AdminNewsController::class, 'index']);
             $r->addRoute('GET', '/admin/news/new', [AdminNewsController::class, 'create']);
             $r->addRoute('POST', '/admin/news', [AdminNewsController::class, 'store']);
@@ -231,7 +233,10 @@ class Application
             $r->addRoute('GET', '/admin/news/{id:\d+}', [AdminNewsController::class, 'edit']);
             $r->addRoute('POST', '/admin/news/{id:\d+}', [AdminNewsController::class, 'update']);
             $r->addRoute('POST', '/admin/news/{id:\d+}/delete', [AdminNewsController::class, 'destroy']);
+            $r->addRoute('POST', '/admin/news/mass', [AdminNewsController::class, 'mass']);
+            $r->addRoute('POST', '/admin/news/comments/mass', [AdminNewsController::class, 'massComments']);
             $r->addRoute('GET', '/admin/tickets', [AdminTicketsController::class, 'index']);
+            $r->addRoute('POST', '/admin/tickets/mass', [AdminTicketsController::class, 'mass']);
             $r->addRoute('GET', '/admin/tickets/{id:\d+}', [AdminTicketsController::class, 'show']);
             $r->addRoute('GET', '/admin/tickets/{id:\d+}/attachments/{attachmentId:\d+}', [AdminTicketsController::class, 'downloadAttachment']);
             $r->addRoute('POST', '/admin/tickets/{id:\d+}/reply', [AdminTicketsController::class, 'reply']);
@@ -255,6 +260,7 @@ class Application
             $r->addRoute('GET', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsEdit']);
             $r->addRoute('POST', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsUpdate']);
             $r->addRoute('POST', '/admin/item-shop/{id:\d+}/delete', [AdminItemShopController::class, 'productsDestroy']);
+            $r->addRoute('POST', '/admin/item-shop/mass', [AdminItemShopController::class, 'mass']);
             $r->addRoute('GET', '/admin/shops', [AdminShopsController::class, 'index']);
             $r->addRoute('GET', '/admin/shops/new', [AdminShopsController::class, 'create']);
             $r->addRoute('POST', '/admin/shops', [AdminShopsController::class, 'store']);
@@ -284,7 +290,9 @@ class Application
             $r->addRoute('POST', '/admin/gms/{id:\d+}/delete', [AdminGmsController::class, 'destroy']);
             $r->addRoute('POST', '/admin/gms/hosts', [AdminGmsController::class, 'addHost']);
             $r->addRoute('POST', '/admin/gms/hosts/delete', [AdminGmsController::class, 'deleteHost']);
+            $r->addRoute('POST', '/admin/gms/mass', [AdminGmsController::class, 'mass']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'index']);
+            $r->addRoute('POST', '/admin/{kind:items|mobs}/mass', [AdminGameProtoController::class, 'mass']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}/new', [AdminGameProtoController::class, 'create']);
             $r->addRoute('POST', '/admin/{kind:items|mobs}', [AdminGameProtoController::class, 'store']);
             $r->addRoute('GET', '/admin/{kind:items|mobs}/{id:\d+}', [AdminGameProtoController::class, 'edit']);

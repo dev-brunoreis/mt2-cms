@@ -1,0 +1,192 @@
+{% set actionColumns = grid.columns|filter(c => c.type|default('text') == 'actions') %}
+{% set hasActions = actionColumns|length > 0 %}
+{% set dataColumns = grid.columns|filter(c => c.type|default('text') != 'actions') %}
+
+<div class="admin-panel admin-grid overflow-hidden" data-admin-grid>
+    <div class="admin-grid-toolbar">
+        <div class="admin-grid-toolbar-start">
+            <p class="admin-grid-count">
+                {{ t(grid.i18nPrefix ~ '.count', {count: grid.total}) }}
+                {% if grid.query %} {{ t(grid.i18nPrefix ~ '.matching', {query: grid.query}) }}{% endif %}
+            </p>
+        </div>
+
+        <div class="admin-grid-toolbar-end">
+            {% if grid.searchable %}
+                <form method="get" action="{{ grid.action }}" class="admin-grid-search">
+                    {% for key, value in grid.filterValues %}
+                        <input type="hidden" name="filter[{{ key }}]" value="{{ value }}">
+                    {% endfor %}
+                    {% if grid.sort %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
+                    {% if grid.dir %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
+                    {% if grid.perPage != 20 %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
+                    <input type="search" name="q" value="{{ grid.query }}"
+                           placeholder="{{ t(grid.i18nPrefix ~ '.search_placeholder') }}"
+                           class="admin-input admin-input-compact">
+                    <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                        {{ t('admin.grid.search') }}
+                    </button>
+                </form>
+            {% endif %}
+
+            <label class="admin-grid-limit">
+                <span class="sr-only">{{ t('admin.grid.per_page') }}</span>
+                <select class="admin-input admin-input-compact" data-grid-limit>
+                    {% for option in grid.perPageOptions %}
+                        <option value="{{ grid_url(grid, {limit: option, page: 1}) }}"
+                                {% if grid.perPage == option %}selected{% endif %}>
+                            {{ option }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+    </div>
+
+    {% if grid.filters is not empty %}
+        <form method="get" action="{{ grid.action }}" class="admin-grid-filters">
+            {% if grid.query %}<input type="hidden" name="q" value="{{ grid.query }}">{% endif %}
+            {% if grid.perPage != 20 %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
+            {% if grid.sort %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
+            {% if grid.dir %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
+            <div class="admin-grid-filters-row">
+                {% for filter in grid.filters %}
+                    <div class="admin-field admin-grid-filter-field">
+                        <label for="grid-filter-{{ filter.key }}">{{ t(filter.label) }}</label>
+                        {% if filter.type == 'select' %}
+                            <select id="grid-filter-{{ filter.key }}" name="filter[{{ filter.key }}]" class="admin-input admin-input-compact">
+                                <option value=""></option>
+                                {% for optValue, optLabel in filter.options %}
+                                    <option value="{{ optValue }}"
+                                        {% if grid.filterValues[filter.key]|default('') == optValue %}selected{% endif %}>
+                                        {% if filter.translateOptions|default(true) %}{{ t(optLabel) }}{% else %}{{ optLabel }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% elseif filter.type == 'date' %}
+                            <input id="grid-filter-{{ filter.key }}" type="date" name="filter[{{ filter.key }}]"
+                                   value="{{ grid.filterValues[filter.key]|default('') }}"
+                                   class="admin-input admin-input-compact">
+                        {% else %}
+                            <input id="grid-filter-{{ filter.key }}" type="text" name="filter[{{ filter.key }}]"
+                                   value="{{ grid.filterValues[filter.key]|default('') }}"
+                                   class="admin-input admin-input-compact">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="admin-grid-filter-actions">
+                    <button type="submit" class="admin-btn-secondary rounded-md px-3 py-2 text-sm font-medium">
+                        {{ t('admin.grid.filter') }}
+                    </button>
+                    <a href="{{ grid.urls.reset }}" class="admin-link-action text-sm">{{ t('admin.grid.reset') }}</a>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+
+    {% if grid.rows is empty %}
+        <p class="admin-grid-empty">
+            {{ t(grid.i18nPrefix ~ '.empty') }}
+        </p>
+    {% else %}
+        {% if grid.hasMassActions %}
+            <form method="post" action="{{ grid.massActionPath }}" data-grid-mass-form>
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <div class="admin-grid-mass-bar">
+                    <select name="mass_action" class="admin-input admin-input-compact" data-grid-mass-action required>
+                        <option value="">{{ t('admin.grid.mass_actions') }}</option>
+                        {% for action in grid.massActions %}
+                            <option value="{{ action.id }}"
+                                    {% if action.confirm is defined %}data-confirm="{{ t(action.confirm) }}"{% endif %}>
+                                {{ t(action.label) }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium"
+                            data-grid-mass-submit disabled>
+                        {{ t('admin.grid.mass_submit') }}
+                    </button>
+                    <span class="admin-grid-selected text-sm text-slate-500" data-grid-selected-count
+                          data-template="{{ t('admin.grid.selected', {count: '__COUNT__'})|e('html_attr') }}" hidden></span>
+                </div>
+        {% endif %}
+
+        <div class="overflow-x-auto">
+            <table class="admin-table admin-grid-table">
+                <thead>
+                    <tr>
+                        {% if grid.hasMassActions %}
+                            <th class="admin-grid-check-col">
+                                <input type="checkbox" data-grid-select-all
+                                       aria-label="{{ t('admin.grid.select_all') }}">
+                            </th>
+                        {% endif %}
+                        {% for column in dataColumns %}
+                            <th>
+                                {% if column.sort is defined and column.sort %}
+                                    <a href="{{ grid_sort_url(grid, column.sort) }}"
+                                       class="admin-grid-sort-link {% if grid.sort == column.sort %}is-active is-{{ grid.dir }}{% endif %}">
+                                        {{ t(column.label) }}
+                                    </a>
+                                {% else %}
+                                    {{ t(column.label) }}
+                                {% endif %}
+                            </th>
+                        {% endfor %}
+                        {% if hasActions %}
+                            <th>{{ t(grid.i18nPrefix ~ '.actions') }}</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in grid.rows %}
+                        <tr{% if row._rowClass is defined %} class="{{ row._rowClass }}"{% endif %}>
+                            {% if grid.hasMassActions %}
+                                <td class="admin-grid-check-col">
+                                    <input type="checkbox" name="ids[]" value="{{ attribute(row, grid.idField) }}"
+                                           data-grid-row-check>
+                                </td>
+                            {% endif %}
+                            {% for column in dataColumns %}
+                                <td>
+                                    {% include 'components/grid-cell.twig' with {column: column, row: row, grid: grid} %}
+                                </td>
+                            {% endfor %}
+                            {% if hasActions %}
+                                <td>
+                                    {% for column in actionColumns %}
+                                        {% include 'components/grid-cell.twig' with {column: column, row: row, grid: grid} %}
+                                    {% endfor %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if grid.hasMassActions %}
+            </form>
+        {% endif %}
+    {% endif %}
+
+    {% if grid.totalPages > 1 %}
+        <nav class="admin-grid-pager">
+            {% if grid.page > 1 %}
+                <a href="{{ grid_url(grid, {page: grid.page - 1}) }}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">
+                    {{ t('admin.grid.previous') }}
+                </a>
+            {% endif %}
+            <span class="px-2 text-slate-500">
+                {{ t('admin.grid.page_of', {page: grid.page, total: grid.totalPages}) }}
+            </span>
+            {% if grid.page < grid.totalPages %}
+                <a href="{{ grid_url(grid, {page: grid.page + 1}) }}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">
+                    {{ t('admin.grid.next') }}
+                </a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

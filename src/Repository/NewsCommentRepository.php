@@ -4,8 +4,37 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class NewsCommentRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class NewsCommentRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/news/comments', 'admin.news')
+            ->searchable(false)
+            ->defaultSort('created_at')
+            ->orderBy([
+                'id' => 'c.id',
+                'author_login' => 'c.account_login',
+                'created_at' => 'c.created_at',
+            ])
+            ->columns([
+                ['key' => 'id', 'label' => 'admin.news.comment_id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'news_title', 'label' => 'admin.news.post_title', 'type' => 'text'],
+                ['key' => 'author_login', 'label' => 'admin.news.comment_author', 'sort' => 'author_login', 'type' => 'text'],
+                ['key' => 'body', 'label' => 'admin.news.comment_body', 'type' => 'text'],
+                ['key' => 'created_at', 'label' => 'admin.news.comment_date', 'sort' => 'created_at', 'type' => 'date'],
+            ])
+            ->massActions('/admin/news/comments/mass', [
+                ['id' => 'approve', 'label' => 'admin.grid.approve'],
+                ['id' => 'reject', 'label' => 'admin.grid.reject'],
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.news.confirm_mass_delete_comments'],
+            ]);
+    }
+
     protected function database(): string
     {
         return 'cms';
@@ -38,9 +67,18 @@ class NewsCommentRepository extends Repository
 
     public function countPending(): int
     {
+        return $this->countForGrid(new GridQuery(null, 1, 20, 'created_at', 'asc', []));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        [$where, $params] = $this->gridWhere($query);
+
         return (int) $this->db()->fetchColumn(
-            'SELECT COUNT(*) FROM news_comments WHERE status = ?',
-            ['pending'],
+            'SELECT COUNT(*)
+             FROM news_comments c
+             INNER JOIN news n ON n.id = c.news_id' . $where,
+            $params,
         );
     }
 
@@ -49,17 +87,26 @@ class NewsCommentRepository extends Repository
      */
     public function listPending(int $page, int $perPage): array
     {
-        $offset = max(0, ($page - 1) * $perPage);
+        return $this->listForGrid(new GridQuery(null, $page, $perPage, 'created_at', 'asc', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'c.created_at ASC, c.id ASC');
 
         return $this->db()->fetchAll(
             'SELECT c.id, c.news_id, c.account_id, c.account_login, c.body, c.status, c.created_at,
                     n.title AS news_title
              FROM news_comments c
-             INNER JOIN news n ON n.id = c.news_id
-             WHERE c.status = ?
-             ORDER BY c.created_at ASC, c.id ASC
+             INNER JOIN news n ON n.id = c.news_id' . $where . $order . '
              LIMIT ? OFFSET ?',
-            ['pending', $perPage, $offset],
+            $params,
         );
     }
 
@@ -96,5 +143,13 @@ class NewsCommentRepository extends Repository
     public function delete(int $id): bool
     {
         return $this->db()->execute('DELETE FROM news_comments WHERE id = ?', [$id]) > 0;
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function gridWhere(GridQuery $query): array
+    {
+        return [' WHERE c.status = ?', ['pending']];
     }
 }

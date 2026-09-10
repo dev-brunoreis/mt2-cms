@@ -4,8 +4,34 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-class CommonRepository extends Repository
+use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
+use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+
+class CommonRepository extends Repository implements ProvidesAdminGrid
 {
+    public function gridDefinition(): GridDefinition
+    {
+        return GridDefinition::create('/admin/gms', 'admin.gms')
+            ->idField('mID')
+            ->orderBy([
+                'mID' => 'mID',
+                'mAccount' => 'mAccount',
+                'mName' => 'mName',
+                'mAuthority' => 'mAuthority',
+            ])
+            ->columns([
+                ['key' => 'mID', 'label' => 'admin.gms.id', 'sort' => 'mID', 'type' => 'muted'],
+                ['key' => 'mAccount', 'label' => 'admin.gms.account', 'sort' => 'mAccount', 'type' => 'link', 'href' => '/admin/gms/{mID}'],
+                ['key' => 'mName', 'label' => 'admin.gms.name', 'sort' => 'mName', 'type' => 'text'],
+                ['key' => 'mAuthority', 'label' => 'admin.gms.authority', 'sort' => 'mAuthority', 'type' => 'text'],
+            ])
+            ->massActions('/admin/gms/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.gms.confirm_mass_delete'],
+            ]);
+    }
+
     private const AUTHORITIES = [
         'IMPLEMENTOR',
         'HIGH_WIZARD',
@@ -21,13 +47,56 @@ class CommonRepository extends Repository
 
     public function gmList(): array
     {
+        return $this->listForGrid(new GridQuery(null, 1, 10000, 'mID', 'asc', []));
+    }
+
+    public function countForAdmin(?string $q = null): int
+    {
+        return $this->countForGrid(new GridQuery($q, 1, 20, 'mID', 'asc', []));
+    }
+
+    public function countForGrid(GridQuery $query): int
+    {
+        if (!$this->schemaTableExists('gmlist')) {
+            return 0;
+        }
+
+        [$where, $params] = $this->gridWhere($query);
+
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM `gmlist`' . $where,
+            $params,
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForAdmin(int $page, int $perPage, ?string $q = null): array
+    {
+        return $this->listForGrid(new GridQuery($q, $page, $perPage, 'mID', 'asc', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForGrid(GridQuery $query): array
+    {
         if (!$this->schemaTableExists('gmlist')) {
             return [];
         }
 
+        [$where, $params] = $this->gridWhere($query);
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
+        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'mID ASC');
+
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT mID, mAccount, mName, mContactIP, mServerIP, mAuthority FROM `gmlist` ORDER BY mID ASC',
+                'SELECT mID, mAccount, mName, mContactIP, mServerIP, mAuthority
+                 FROM `gmlist`' . $where . $order . '
+                 LIMIT ? OFFSET ?',
+                $params,
             ),
         );
     }
@@ -180,6 +249,24 @@ class CommonRepository extends Repository
     public static function authorities(): array
     {
         return self::AUTHORITIES;
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function gridWhere(GridQuery $query): array
+    {
+        if ($query->q === null || $query->q === '') {
+            return ['', []];
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
+        $like = '%' . $escaped . '%';
+
+        return [
+            ' WHERE mAccount LIKE ? OR mName LIKE ?',
+            [$like, $like],
+        ];
     }
 
     /**

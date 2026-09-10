@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -30,15 +31,56 @@ class AdminGmsController extends AdminController
 
     public function index(): Response
     {
+        $spec = $this->common->gridDefinition()->spec();
+        $query = $this->gridQuery($spec);
+        $grid = GridRunner::fetch(
+            $spec,
+            $query,
+            fn ($q) => $this->common->countForGrid($q),
+            fn ($q) => $this->common->listForGrid($q),
+        );
+
         return $this->adminView('gms', 'pages/gms.twig', [
             'title' => $this->t('admin.gms.title'),
             'pageLead' => $this->t('admin.gms.lead'),
             'headerHref' => '/admin/gms/new',
             'headerActionLabel' => $this->t('admin.gms.create'),
-            'gms' => $this->common->gmList(),
+            'grid' => $grid,
             'hosts' => $this->common->gmHosts(),
-            'authorities' => CommonRepository::authorities(),
         ]);
+    }
+
+    public function mass(): Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/gms');
+        }
+
+        $action = $this->gridMassAction();
+        $ids = $this->gridMassIds();
+        $count = 0;
+
+        foreach ($ids as $id) {
+            try {
+                if ($action !== 'delete' || !$this->common->deleteGm($id)) {
+                    throw new \RuntimeException('skip');
+                }
+
+                $count++;
+            } catch (\RuntimeException) {
+                continue;
+            }
+        }
+
+        $this->flash('success', $this->t('admin.gms.mass_done', ['count' => $count]));
+
+        return $this->redirect('/admin/gms');
     }
 
     public function create(): Response

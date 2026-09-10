@@ -6,7 +6,7 @@
         </p>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.status') }}</p>
             <p class="mt-1 text-lg font-semibold text-slate-900">{{ account.status|default('—') }}</p>
@@ -14,6 +14,10 @@
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.empire') }}</p>
             <p class="mt-1 text-lg font-semibold text-slate-900">{{ account.empire|empire_name }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.cash') }}</p>
+            <p class="mt-1 text-lg font-semibold text-slate-900">{{ account.cash|default(0) }}</p>
         </div>
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('account.created') }}</p>

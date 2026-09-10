@@ -24,7 +24,8 @@ use Mt2Cms\Http\Controller\AdminLogsController;
 use Mt2Cms\Http\Controller\AdminNewsController;
 use Mt2Cms\Http\Controller\AdminRefineController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
-use Mt2Cms\Http\Controller\AdminShopsController;
+use Mt2Cms\Http\Controller\AdminItemShopController;
+use Mt2Cms\Http\Controller\ItemShopController;
 use Mt2Cms\Http\Controller\AdminTicketsController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\GameIconController;
@@ -53,6 +54,9 @@ use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
 use Mt2Cms\Repository\RefineRepository;
 use Mt2Cms\Repository\SettingsRepository;
+use Mt2Cms\Repository\ItemShopCategoryRepository;
+use Mt2Cms\Repository\ItemShopOrderRepository;
+use Mt2Cms\Repository\ItemShopProductRepository;
 use Mt2Cms\Repository\ShopRepository;
 use Mt2Cms\Repository\TicketRepository;
 use Mt2Cms\Game\GameProfile;
@@ -67,6 +71,7 @@ use Mt2Cms\Game\Drop\GroupTextWriter;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Service\ItemShopPurchaseService;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\SettingsService;
@@ -115,6 +120,10 @@ class Application
     private NewsRepository $news;
     private NewsCommentRepository $newsComments;
     private TicketRepository $tickets;
+    private ItemShopCategoryRepository $itemShopCategories;
+    private ItemShopProductRepository $itemShopProducts;
+    private ItemShopOrderRepository $itemShopOrders;
+    private ItemShopPurchaseService $itemShopPurchases;
     private HtmlSanitizer $htmlSanitizer;
     private NewsUploadService $newsUploads;
     private TicketUploadService $ticketUploads;
@@ -169,6 +178,8 @@ class Application
             $r->addRoute('GET', '/news', [NewsController::class, 'index']);
             $r->addRoute('GET', '/news/{id:\d+}', [NewsController::class, 'show']);
             $r->addRoute('POST', '/news/{id:\d+}/comment', [NewsController::class, 'comment']);
+            $r->addRoute('GET', '/shop', [ItemShopController::class, 'index']);
+            $r->addRoute('POST', '/shop/buy', [ItemShopController::class, 'buy']);
             $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
             $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
             $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);
@@ -223,6 +234,19 @@ class Application
             $r->addRoute('POST', '/admin/tickets/{id:\d+}/reply', [AdminTicketsController::class, 'reply']);
             $r->addRoute('POST', '/admin/tickets/{id:\d+}/close', [AdminTicketsController::class, 'close']);
             $r->addRoute('POST', '/admin/tickets/{id:\d+}/reopen', [AdminTicketsController::class, 'reopen']);
+            $r->addRoute('GET', '/admin/item-shop/categories', [AdminItemShopController::class, 'categoriesIndex']);
+            $r->addRoute('GET', '/admin/item-shop/categories/new', [AdminItemShopController::class, 'categoriesCreate']);
+            $r->addRoute('POST', '/admin/item-shop/categories', [AdminItemShopController::class, 'categoriesStore']);
+            $r->addRoute('GET', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesEdit']);
+            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesUpdate']);
+            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/delete', [AdminItemShopController::class, 'categoriesDestroy']);
+            $r->addRoute('GET', '/admin/item-shop/orders', [AdminItemShopController::class, 'ordersIndex']);
+            $r->addRoute('GET', '/admin/item-shop', [AdminItemShopController::class, 'productsIndex']);
+            $r->addRoute('GET', '/admin/item-shop/new', [AdminItemShopController::class, 'productsCreate']);
+            $r->addRoute('POST', '/admin/item-shop', [AdminItemShopController::class, 'productsStore']);
+            $r->addRoute('GET', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsEdit']);
+            $r->addRoute('POST', '/admin/item-shop/{id:\d+}', [AdminItemShopController::class, 'productsUpdate']);
+            $r->addRoute('POST', '/admin/item-shop/{id:\d+}/delete', [AdminItemShopController::class, 'productsDestroy']);
             $r->addRoute('GET', '/admin/shops', [AdminShopsController::class, 'index']);
             $r->addRoute('GET', '/admin/shops/new', [AdminShopsController::class, 'create']);
             $r->addRoute('POST', '/admin/shops', [AdminShopsController::class, 'store']);
@@ -350,6 +374,9 @@ class Application
         $this->news = new NewsRepository($this->cmsDb);
         $this->newsComments = new NewsCommentRepository($this->cmsDb);
         $this->tickets = new TicketRepository($this->cmsDb);
+        $this->itemShopCategories = new ItemShopCategoryRepository($this->cmsDb);
+        $this->itemShopProducts = new ItemShopProductRepository($this->cmsDb);
+        $this->itemShopOrders = new ItemShopOrderRepository($this->cmsDb);
 
         $defaultLocale = $this->settings->defaultLocale();
         $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
@@ -400,6 +427,12 @@ class Application
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
         $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+        $this->itemShopPurchases = new ItemShopPurchaseService(
+            $this->itemShopProducts,
+            $this->itemShopOrders,
+            $this->accounts,
+            $this->awards,
+        );
         $this->attachAdminNavCounts();
     }
 
@@ -504,6 +537,16 @@ class Application
                 $this->csrf,
                 $this->translator,
                 $this->players,
+            ),
+            ItemShopController::class => new ItemShopController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopPurchases,
+                $this->gameProto,
             ),
             RankingController::class => new RankingController(
                 $this->theme,
@@ -668,6 +711,18 @@ class Application
                 $this->tickets,
                 $this->ticketUploads,
                 $this->htmlSanitizer,
+            ),
+            AdminItemShopController::class => new AdminItemShopController(
+                $this->theme,
+                $this->auth,
+                $this->csrf,
+                $this->translator,
+                $this->adminAuth,
+                $this->adminTheme,
+                $this->itemShopCategories,
+                $this->itemShopProducts,
+                $this->itemShopOrders,
+                $this->gameProto,
             ),
             AdminShopsController::class => new AdminShopsController(
                 $this->theme,

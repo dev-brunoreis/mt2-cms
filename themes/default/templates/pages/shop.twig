@@ -1,0 +1,88 @@
+<section class="space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">{{ t('shop.title') }}</h1>
+            <p class="mt-1 text-slate-500">{{ t('shop.lead') }}</p>
+        </div>
+        {% if auth.check and cash is not null %}
+            <div class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm">
+                <span class="text-indigo-700">{{ t('shop.your_cash') }}</span>
+                <span class="ml-2 font-semibold text-indigo-900">{{ cash }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if notFound %}
+        <p class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+            {{ t('shop.category_not_found') }}
+        </p>
+        <p class="text-center">
+            <a href="/shop" class="font-medium text-indigo-600 hover:underline">{{ t('shop.back') }}</a>
+        </p>
+    {% else %}
+        {% if categories is not empty %}
+            <div class="flex flex-wrap gap-2">
+                <a href="/shop"
+                   class="rounded-full px-3 py-1.5 text-sm font-medium {% if not activeCategory %}bg-indigo-600 text-white{% else %}bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50{% endif %}">
+                    {{ t('shop.all_categories') }}
+                </a>
+                {% for category in categories %}
+                    <a href="/shop?category={{ category.slug|url_encode }}"
+                       class="rounded-full px-3 py-1.5 text-sm font-medium {% if activeCategory and activeCategory.id == category.id %}bg-indigo-600 text-white{% else %}bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50{% endif %}">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if products is empty %}
+            <p class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+                {{ t('shop.empty') }}
+            </p>
+        {% else %}
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {% for product in products %}
+                    <article class="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="flex items-start gap-3 border-b border-slate-100 p-4">
+                            {% set icon = item_icon(product.vnum) %}
+                            {% if icon %}
+                                <img src="{{ icon }}" alt="" class="h-10 w-10 shrink-0 object-contain" width="40" height="40">
+                            {% else %}
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">?</div>
+                            {% endif %}
+                            <div class="min-w-0 flex-1">
+                                <h2 class="truncate font-semibold text-slate-900">{{ product.item_name }}</h2>
+                                <p class="mt-0.5 text-xs text-slate-500">
+                                    {{ product.category_name }} · x{{ product.count }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex flex-1 flex-col justify-between gap-3 p-4">
+                            <p class="text-lg font-bold text-indigo-700">
+                                {{ t('shop.price', {price: product.price}) }}
+                            </p>
+
+                            {% if auth.check %}
+                                <form method="post" action="/shop/buy"
+                                      onsubmit="return confirm({{ t('shop.confirm_buy', {name: product.item_name, price: product.price})|json_encode|raw }});">
+                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <input type="hidden" name="idempotency_key" value="{{ idempotencyKeys[product.id]|default('') }}">
+                                    <button type="submit"
+                                            class="w-full cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                                        {{ t('shop.buy') }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <a href="/login"
+                                   class="block rounded-lg border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                    {{ t('shop.login_to_buy') }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+</section>

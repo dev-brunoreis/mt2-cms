@@ -1,0 +1,84 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.item_shop.categories.count', {count: total}) }}
+            {% if query %} {{ t('admin.item_shop.categories.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/item-shop/categories" class="flex flex-wrap gap-2">
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.item_shop.categories.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.item_shop.categories.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if categories is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.item_shop.categories.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.item_shop.categories.id') }}</th>
+                        <th>{{ t('admin.item_shop.categories.name') }}</th>
+                        <th>{{ t('admin.item_shop.categories.slug') }}</th>
+                        <th>{{ t('admin.item_shop.categories.products') }}</th>
+                        <th>{{ t('admin.item_shop.categories.sort_order') }}</th>
+                        <th>{{ t('admin.item_shop.categories.enabled') }}</th>
+                        <th>{{ t('admin.item_shop.categories.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td class="text-slate-400">{{ category.id }}</td>
+                            <td>
+                                <a href="/admin/item-shop/categories/{{ category.id }}" class="font-medium text-indigo-600 hover:underline">
+                                    {{ category.name }}
+                                </a>
+                            </td>
+                            <td class="text-slate-600">{{ category.slug }}</td>
+                            <td class="text-slate-600">{{ category.product_count }}</td>
+                            <td class="text-slate-600">{{ category.sort_order }}</td>
+                            <td>
+                                <span class="admin-badge {% if category.enabled %}admin-badge-ok{% else %}admin-badge-danger{% endif %}">
+                                    {{ category.enabled ? t('admin.item_shop.enabled_yes') : t('admin.item_shop.enabled_no') }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="/admin/item-shop/categories/{{ category.id }}" class="admin-link-action">
+                                        {{ t('admin.item_shop.categories.edit') }}
+                                    </a>
+                                    <form method="post" action="/admin/item-shop/categories/{{ category.id }}/delete"
+                                          data-confirm="{{ t('admin.item_shop.categories.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.item_shop.categories.delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/item-shop/categories?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.item_shop.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/item-shop/categories?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

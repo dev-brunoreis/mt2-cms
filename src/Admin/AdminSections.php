@@ -68,6 +68,21 @@ class AdminSections
                         'path' => '/admin/tickets',
                         'label' => 'admin.nav.tickets',
                     ],
+                    [
+                        'id' => 'item-shop',
+                        'path' => '/admin/item-shop',
+                        'label' => 'admin.nav.item_shop',
+                    ],
+                    [
+                        'id' => 'item-shop-categories',
+                        'path' => '/admin/item-shop/categories',
+                        'label' => 'admin.nav.item_shop_categories',
+                    ],
+                    [
+                        'id' => 'item-shop-orders',
+                        'path' => '/admin/item-shop/orders',
+                        'label' => 'admin.nav.item_shop_orders',
+                    ],
                 ],
             ],
             [

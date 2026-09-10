@@ -1,0 +1,96 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.item_shop.products.count', {count: total}) }}
+            {% if query %} {{ t('admin.item_shop.products.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/item-shop" class="flex flex-wrap gap-2">
+            <select name="category_id" class="admin-input admin-input-compact">
+                <option value="">{{ t('admin.item_shop.products.category_all') }}</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if categoryId == category.id %}selected{% endif %}>
+                        {{ category.name }}{% if not category.enabled %} ({{ t('admin.item_shop.disabled') }}){% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.item_shop.products.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.item_shop.products.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if products is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.item_shop.products.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.item_shop.products.id') }}</th>
+                        <th>{{ t('admin.item_shop.products.item') }}</th>
+                        <th>{{ t('admin.item_shop.products.category') }}</th>
+                        <th>{{ t('admin.item_shop.products.count_label') }}</th>
+                        <th>{{ t('admin.item_shop.products.price') }}</th>
+                        <th>{{ t('admin.item_shop.products.enabled') }}</th>
+                        <th>{{ t('admin.item_shop.products.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td class="text-slate-400">{{ product.id }}</td>
+                            <td>
+                                <div class="admin-game-icon-row">
+                                    {% include 'components/item-icon.twig' with { vnum: product.vnum } %}
+                                    <div>
+                                        <a href="/admin/item-shop/{{ product.id }}" class="font-medium text-indigo-600 hover:underline">
+                                            {{ product.item_name|default(product.vnum) }}
+                                        </a>
+                                        <div class="text-xs text-slate-400">{{ product.vnum }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-slate-600">{{ product.category_name }}</td>
+                            <td class="text-slate-600">{{ product.count }}</td>
+                            <td class="text-slate-600">{{ product.price }}</td>
+                            <td>
+                                <span class="admin-badge {% if product.enabled %}admin-badge-ok{% else %}admin-badge-danger{% endif %}">
+                                    {{ product.enabled ? t('admin.item_shop.enabled_yes') : t('admin.item_shop.enabled_no') }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="/admin/item-shop/{{ product.id }}" class="admin-link-action">{{ t('admin.item_shop.products.edit') }}</a>
+                                    <form method="post" action="/admin/item-shop/{{ product.id }}/delete"
+                                          data-confirm="{{ t('admin.item_shop.products.confirm_delete') }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
+                                            {{ t('admin.item_shop.products.delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/item-shop?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if categoryId %}&category_id={{ categoryId }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.item_shop.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/item-shop?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if categoryId %}&category_id={{ categoryId }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

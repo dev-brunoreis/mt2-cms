@@ -137,6 +137,138 @@ class ItemAwardRepository extends Repository
     }
 
     /**
+     * Deliver a mall item award for the item shop (pid=0, mall=1).
+     *
+     * @param array{
+     *   login: string,
+     *   vnum: int,
+     *   count: int,
+     *   socket0?: int,
+     *   socket1?: int,
+     *   socket2?: int,
+     *   why?: string
+     * } $input
+     */
+    public function createMallAward(array $input): int
+    {
+        if (!$this->schemaTableExists('item_award')) {
+            throw new \RuntimeException('shop.awards_unavailable');
+        }
+
+        $login = trim((string) ($input['login'] ?? ''));
+        $vnum = (int) ($input['vnum'] ?? 0);
+        $count = max(1, (int) ($input['count'] ?? 1));
+        $why = trim((string) ($input['why'] ?? ''));
+
+        if ($login === '' || strlen($login) > 30) {
+            throw new \InvalidArgumentException('admin.awards.invalid_login');
+        }
+
+        if ($vnum < 1) {
+            throw new \InvalidArgumentException('admin.awards.invalid_vnum');
+        }
+
+        if ($count > 200) {
+            throw new \InvalidArgumentException('admin.awards.invalid_count');
+        }
+
+        if (strlen($why) > 128) {
+            throw new \InvalidArgumentException('admin.awards.invalid_why');
+        }
+
+        $this->db()->execute(
+            'INSERT INTO `item_award`
+             (pid, login, vnum, count, given_time, taken_time, item_id, why, socket0, socket1, socket2, mall)
+             VALUES (0, ?, ?, ?, NOW(), NULL, NULL, ?, ?, ?, ?, 1)',
+            [
+                $login,
+                $vnum,
+                $count,
+                $why !== '' ? $why : null,
+                (int) ($input['socket0'] ?? 0),
+                (int) ($input['socket1'] ?? 0),
+                (int) ($input['socket2'] ?? 0),
+            ],
+        );
+
+        $id = (int) $this->db()->lastInsertId();
+
+        if ($id < 1) {
+            throw new \RuntimeException('admin.awards.create_failed');
+        }
+
+        return $id;
+    }
+
+    public function findPendingIdByWhy(string $why): ?int
+    {
+        $why = trim($why);
+
+        if ($why === '' || !$this->schemaTableExists('item_award')) {
+            return null;
+        }
+
+        $id = $this->db()->fetchColumn(
+            'SELECT id FROM `item_award`
+             WHERE why = ? AND taken_time IS NULL
+             ORDER BY id DESC
+             LIMIT 1',
+            [$why],
+        );
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    public function findPendingIdByWhyPrefix(string $whyPrefix): ?int
+    {
+        $whyPrefix = trim($whyPrefix);
+
+        if ($whyPrefix === '' || !$this->schemaTableExists('item_award')) {
+            return null;
+        }
+
+        $id = $this->db()->fetchColumn(
+            'SELECT id FROM `item_award`
+             WHERE (why = ? OR why = ?) AND taken_time IS NULL
+             ORDER BY id DESC
+             LIMIT 1',
+            [$whyPrefix, $whyPrefix . ':ok'],
+        );
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    public function markShopAwardPaid(int $id, string $whyPrefix): bool
+    {
+        if ($id < 1 || !$this->schemaTableExists('item_award')) {
+            return false;
+        }
+
+        $whyPrefix = trim($whyPrefix);
+
+        return $this->db()->execute(
+            'UPDATE `item_award`
+             SET why = ?
+             WHERE id = ? AND taken_time IS NULL AND why = ?',
+            [$whyPrefix . ':ok', $id, $whyPrefix],
+        ) > 0;
+    }
+
+    public function isShopAwardPaid(int $id, string $whyPrefix): bool
+    {
+        if ($id < 1 || !$this->schemaTableExists('item_award')) {
+            return false;
+        }
+
+        $why = $this->db()->fetchColumn(
+            'SELECT why FROM `item_award` WHERE id = ? LIMIT 1',
+            [$id],
+        );
+
+        return is_string($why) && $why === trim($whyPrefix) . ':ok';
+    }
+
+    /**
      * @return array{0: string, 1: list<mixed>}
      */
     private function filterClause(?string $query, ?string $status): array

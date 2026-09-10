@@ -1,0 +1,87 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-item-shop-product-form" method="post"
+      action="{% if isEdit %}/admin/item-shop/{{ product.id }}{% else %}/admin/item-shop{% endif %}"
+      class="admin-panel p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.item_shop.products.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.item_shop.products.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="product-category">{{ t('admin.item_shop.products.category') }}</label>
+                <select id="product-category" name="category_id" required class="admin-input">
+                    <option value="">{{ t('admin.item_shop.products.category_placeholder') }}</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if product.category_id|default(0) == category.id %}selected{% endif %}>
+                            {{ category.name }}{% if not category.enabled %} ({{ t('admin.item_shop.disabled') }}){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="admin-field">
+                <label for="product-vnum">{{ t('admin.item_shop.products.vnum') }}</label>
+                <input id="product-vnum" type="number" name="vnum" min="1" required
+                       value="{{ product.vnum|default('') }}" class="admin-input">
+                {% if itemName %}
+                    <span class="admin-field-help">{{ itemName }}</span>
+                {% endif %}
+            </div>
+            <div class="admin-field">
+                <label for="product-count">{{ t('admin.item_shop.products.count_label') }}</label>
+                <input id="product-count" type="number" name="count" min="1" max="200" required
+                       value="{{ product.count|default(1) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="product-price">{{ t('admin.item_shop.products.price') }}</label>
+                <input id="product-price" type="number" name="price" min="1" required
+                       value="{{ product.price|default(1) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="product-socket0">{{ t('admin.item_shop.products.socket0') }}</label>
+                <input id="product-socket0" type="number" name="socket0"
+                       value="{{ product.socket0|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="product-socket1">{{ t('admin.item_shop.products.socket1') }}</label>
+                <input id="product-socket1" type="number" name="socket1"
+                       value="{{ product.socket1|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="product-socket2">{{ t('admin.item_shop.products.socket2') }}</label>
+                <input id="product-socket2" type="number" name="socket2"
+                       value="{{ product.socket2|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="product-sort">{{ t('admin.item_shop.products.sort_order') }}</label>
+                <input id="product-sort" type="number" name="sort_order"
+                       value="{{ product.sort_order|default(0) }}" class="admin-input">
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="inline-flex items-center gap-2">
+                    <input type="checkbox" name="enabled" value="1"
+                           {% if product.enabled is not defined or product.enabled %}checked{% endif %}>
+                    <span>{{ t('admin.item_shop.products.enabled') }}</span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+{% if isEdit %}
+    <div class="mt-4 flex justify-end">
+        <form method="post" action="/admin/item-shop/{{ product.id }}/delete"
+              data-confirm="{{ t('admin.item_shop.products.confirm_delete') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
+                {{ t('admin.item_shop.products.delete') }}
+            </button>
+        </form>
+    </div>
+{% endif %}

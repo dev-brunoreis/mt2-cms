@@ -226,6 +226,51 @@ class AccountRepository extends Repository
         return $this->db()->execute('DELETE FROM `account` WHERE id = ?', [$id]) > 0;
     }
 
+    /**
+     * Atomically debit cash when the account is OK and has enough balance.
+     * Returns true only when exactly one row was updated.
+     */
+    public function debitCash(int $id, int $amount): bool
+    {
+        $this->assertId($id);
+        $amount = $this->assertCurrency($amount);
+
+        if ($amount < 1) {
+            throw new \InvalidArgumentException('admin.accounts.invalid_currency');
+        }
+
+        return $this->db()->execute(
+            'UPDATE `account`
+             SET cash = cash - ?
+             WHERE id = ? AND status = ? AND cash >= ?',
+            [$amount, $id, 'OK', $amount],
+        ) === 1;
+    }
+
+    public function acquireNamedLock(string $name, int $timeoutSeconds = 5): bool
+    {
+        if (!preg_match('/^[A-Za-z0-9:_-]{1,64}$/', $name)) {
+            throw new \InvalidArgumentException('Invalid lock name');
+        }
+
+        $timeoutSeconds = max(0, min(30, $timeoutSeconds));
+        $result = $this->db()->fetchColumn(
+            'SELECT GET_LOCK(?, ?)',
+            [$name, $timeoutSeconds],
+        );
+
+        return (int) $result === 1;
+    }
+
+    public function releaseNamedLock(string $name): void
+    {
+        if (!preg_match('/^[A-Za-z0-9:_-]{1,64}$/', $name)) {
+            return;
+        }
+
+        $this->db()->fetchColumn('SELECT RELEASE_LOCK(?)', [$name]);
+    }
+
     private function setStatus(int $id, string $status): array
     {
         $this->assertId($id);

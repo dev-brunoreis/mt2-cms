@@ -118,6 +118,69 @@ class CmsSchema
                 CONSTRAINT fk_ticket_attachments_message FOREIGN KEY (message_id) REFERENCES ticket_messages (id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
         );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS item_shop_categories (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                name VARCHAR(120) NOT NULL,
+                slug VARCHAR(140) NOT NULL,
+                sort_order INT NOT NULL DEFAULT 0,
+                enabled TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY uniq_item_shop_category_slug (slug),
+                KEY idx_item_shop_categories_sort (enabled, sort_order, id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS item_shop_products (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                category_id INT UNSIGNED NOT NULL,
+                vnum INT UNSIGNED NOT NULL,
+                count INT UNSIGNED NOT NULL DEFAULT 1,
+                price INT UNSIGNED NOT NULL,
+                socket0 INT NOT NULL DEFAULT 0,
+                socket1 INT NOT NULL DEFAULT 0,
+                socket2 INT NOT NULL DEFAULT 0,
+                enabled TINYINT(1) NOT NULL DEFAULT 1,
+                sort_order INT NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_item_shop_products_category (category_id, enabled, sort_order, id),
+                KEY idx_item_shop_products_enabled (enabled, sort_order, id),
+                CONSTRAINT fk_item_shop_products_category
+                    FOREIGN KEY (category_id) REFERENCES item_shop_categories (id) ON DELETE RESTRICT
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
+
+        $this->db->execute(
+            'CREATE TABLE IF NOT EXISTS item_shop_orders (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                account_id INT UNSIGNED NOT NULL,
+                account_login VARCHAR(30) NOT NULL,
+                product_id INT UNSIGNED NOT NULL,
+                vnum INT UNSIGNED NOT NULL,
+                count INT UNSIGNED NOT NULL,
+                price INT UNSIGNED NOT NULL,
+                socket0 INT NOT NULL DEFAULT 0,
+                socket1 INT NOT NULL DEFAULT 0,
+                socket2 INT NOT NULL DEFAULT 0,
+                item_award_id INT UNSIGNED NULL,
+                cash_debited TINYINT(1) NOT NULL DEFAULT 0,
+                status ENUM(\'pending\', \'completed\', \'failed\') NOT NULL DEFAULT \'pending\',
+                idempotency_key VARCHAR(64) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY uniq_item_shop_order_idempotency (idempotency_key),
+                KEY idx_item_shop_orders_account (account_id, created_at),
+                KEY idx_item_shop_orders_status (status, created_at),
+                KEY idx_item_shop_orders_product (product_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        );
     }
 
     /**

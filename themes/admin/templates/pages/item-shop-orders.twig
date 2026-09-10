@@ -1,0 +1,88 @@
+<div class="admin-panel overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p class="text-sm text-slate-500">
+            {{ t('admin.item_shop.orders.count', {count: total}) }}
+            {% if query %} {{ t('admin.item_shop.orders.matching', {query: query}) }}{% endif %}
+        </p>
+
+        <form method="get" action="/admin/item-shop/orders" class="flex flex-wrap gap-2">
+            <select name="status" class="admin-input admin-input-compact">
+                <option value="">{{ t('admin.item_shop.orders.status_all') }}</option>
+                <option value="pending" {% if status == 'pending' %}selected{% endif %}>{{ t('admin.item_shop.orders.status_pending') }}</option>
+                <option value="completed" {% if status == 'completed' %}selected{% endif %}>{{ t('admin.item_shop.orders.status_completed') }}</option>
+                <option value="failed" {% if status == 'failed' %}selected{% endif %}>{{ t('admin.item_shop.orders.status_failed') }}</option>
+            </select>
+            <input type="search" name="q" value="{{ query }}" placeholder="{{ t('admin.item_shop.orders.search_placeholder') }}"
+                   class="admin-input admin-input-compact">
+            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                {{ t('admin.item_shop.orders.search') }}
+            </button>
+        </form>
+    </div>
+
+    {% if orders is empty %}
+        <p class="px-4 py-10 text-center text-sm text-slate-500 md:px-6">{{ t('admin.item_shop.orders.empty') }}</p>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.item_shop.orders.id') }}</th>
+                        <th>{{ t('admin.item_shop.orders.account') }}</th>
+                        <th>{{ t('admin.item_shop.orders.item') }}</th>
+                        <th>{{ t('admin.item_shop.orders.count_label') }}</th>
+                        <th>{{ t('admin.item_shop.orders.price') }}</th>
+                        <th>{{ t('admin.item_shop.orders.award') }}</th>
+                        <th>{{ t('admin.item_shop.orders.status') }}</th>
+                        <th>{{ t('admin.item_shop.orders.created') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td class="text-slate-400">{{ order.id }}</td>
+                            <td class="text-slate-600">
+                                <a href="/admin/accounts/{{ order.account_id }}" class="text-indigo-600 hover:underline">
+                                    {{ order.account_login }}
+                                </a>
+                                <div class="text-xs text-slate-400">#{{ order.account_id }}</div>
+                            </td>
+                            <td>
+                                <div class="admin-game-icon-row">
+                                    {% include 'components/item-icon.twig' with { vnum: order.vnum } %}
+                                    <div>
+                                        <span class="font-medium text-slate-800">{{ order.item_name|default(order.vnum) }}</span>
+                                        <div class="text-xs text-slate-400">{{ order.vnum }} · product #{{ order.product_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-slate-600">{{ order.count }}</td>
+                            <td class="text-slate-600">{{ order.price }}</td>
+                            <td class="text-slate-600">{{ order.item_award_id|default('—') }}</td>
+                            <td>
+                                <span class="admin-badge {% if order.status == 'completed' %}admin-badge-ok{% elseif order.status == 'failed' %}admin-badge-danger{% else %}admin-badge-warn{% endif %}">
+                                    {{ t('admin.item_shop.orders.status_' ~ order.status) }}
+                                </span>
+                            </td>
+                            <td class="text-slate-600">{{ order.created_at|game_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 border-t border-slate-100 px-4 py-3 text-sm">
+            {% if page > 1 %}
+                <a href="/admin/item-shop/orders?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.previous') }}</a>
+            {% endif %}
+            <span class="px-2 text-slate-500">{{ t('admin.item_shop.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/admin/item-shop/orders?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+                   class="admin-btn-secondary rounded-md px-3 py-1.5">{{ t('admin.item_shop.next') }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>

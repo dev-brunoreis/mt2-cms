@@ -29,7 +29,7 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>{{ t('admin.item_shop.products.id') }}</th>
+                        <th>{{ t('admin.item_shop.products.vnum') }}</th>
                         <th>{{ t('admin.item_shop.products.item') }}</th>
                         <th>{{ t('admin.item_shop.products.category') }}</th>
                         <th>{{ t('admin.item_shop.products.count_label') }}</th>
@@ -41,16 +41,13 @@
                 <tbody>
                     {% for product in products %}
                         <tr>
-                            <td class="text-slate-400">{{ product.id }}</td>
+                            <td class="text-slate-500">{{ product.vnum }}</td>
                             <td>
                                 <div class="admin-game-icon-row">
-                                    {% include 'components/item-icon.twig' with { vnum: product.vnum } %}
-                                    <div>
-                                        <a href="/admin/item-shop/{{ product.id }}" class="font-medium text-indigo-600 hover:underline">
-                                            {{ product.item_name|default(product.vnum) }}
-                                        </a>
-                                        <div class="text-xs text-slate-400">{{ product.vnum }}</div>
-                                    </div>
+                                    {% include 'components/item-icon.twig' with { vnum: product.vnum, size: 'lg' } %}
+                                    <a href="/admin/item-shop/{{ product.id }}" class="font-medium text-indigo-600 hover:underline">
+                                        {{ product.item_name|default(product.vnum) }}
+                                    </a>
                                 </div>
                             </td>
                             <td class="text-slate-600">{{ product.category_name }}</td>

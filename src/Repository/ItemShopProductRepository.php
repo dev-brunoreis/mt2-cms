@@ -123,6 +123,105 @@ class ItemShopProductRepository extends Repository
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public function listByCategoryId(int $categoryId): array
+    {
+        if ($categoryId < 1) {
+            return [];
+        }
+
+        return $this->db()->fetchAll(
+            'SELECT p.id, p.category_id, p.vnum, p.count, p.price, p.socket0, p.socket1, p.socket2,
+                    p.enabled, p.sort_order, p.created_at, p.updated_at,
+                    c.name AS category_name, c.slug AS category_slug
+             FROM item_shop_products p
+             INNER JOIN item_shop_categories c ON c.id = p.category_id
+             WHERE p.category_id = ?
+             ORDER BY p.sort_order ASC, p.id ASC',
+            [$categoryId],
+        );
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function vnumsInCategory(int $categoryId): array
+    {
+        if ($categoryId < 1) {
+            return [];
+        }
+
+        $rows = $this->db()->fetchAll(
+            'SELECT DISTINCT vnum FROM item_shop_products WHERE category_id = ?',
+            [$categoryId],
+        );
+
+        return array_map(static fn (array $row): int => (int) $row['vnum'], $rows);
+    }
+
+    /**
+     * @param list<array{vnum: int, count?: int, price: int}> $items
+     * @return list<array<string, mixed>>
+     */
+    public function createManyForCategory(int $categoryId, array $items): array
+    {
+        if ($categoryId < 1) {
+            throw new \InvalidArgumentException('admin.item_shop.products.invalid_category');
+        }
+
+        if ($items === []) {
+            throw new \InvalidArgumentException('admin.item_shop.categories.no_items_selected');
+        }
+
+        $created = [];
+        $sortBase = (int) $this->db()->fetchColumn(
+            'SELECT COALESCE(MAX(sort_order), -1) + 1 FROM item_shop_products WHERE category_id = ?',
+            [$categoryId],
+        );
+
+        $this->db()->beginTransaction();
+
+        try {
+            foreach ($items as $index => $item) {
+                $created[] = $this->create([
+                    'category_id' => $categoryId,
+                    'vnum' => (int) ($item['vnum'] ?? 0),
+                    'count' => (int) ($item['count'] ?? 1),
+                    'price' => (int) ($item['price'] ?? 0),
+                    'socket0' => (int) ($item['socket0'] ?? 0),
+                    'socket1' => (int) ($item['socket1'] ?? 0),
+                    'socket2' => (int) ($item['socket2'] ?? 0),
+                    'enabled' => 1,
+                    'sort_order' => $sortBase + $index,
+                ]);
+            }
+
+            $this->db()->commit();
+        } catch (\Throwable $e) {
+            $this->db()->rollBack();
+
+            throw $e;
+        }
+
+        return $created;
+    }
+
+    public function updatePriceAndCount(int $id, int $price, int $count): array
+    {
+        $existing = $this->findById($id);
+
+        if ($existing === null) {
+            throw new \RuntimeException('admin.item_shop.products.not_found');
+        }
+
+        return $this->update($id, array_merge($existing, [
+            'price' => $price,
+            'count' => $count,
+        ]));
+    }
+
+    /**
      * @param array<string, mixed> $input
      */
     public function create(array $input): array

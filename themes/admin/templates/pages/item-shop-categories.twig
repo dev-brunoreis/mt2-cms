@@ -1,4 +1,4 @@
-{# Magento-style category tree: left tree, right edit form #}
+{# Magento-style category tree: left tree, right edit + products #}
 <div class="admin-category-workspace"
      data-category-tree
      data-move-url="{{ moveUrl }}"
@@ -44,75 +44,28 @@
         {% endif %}
 
         {% if showForm and category %}
-            <form id="admin-item-shop-category-form" method="post"
-                  action="{% if isEdit %}/admin/item-shop/categories/{{ category.id }}{% else %}/admin/item-shop/categories{% endif %}"
-                  class="admin-panel p-6">
-                <input type="hidden" name="_csrf" value="{{ csrf }}">
-
-                <fieldset class="admin-fieldset">
-                    <legend>
-                        {{ isEdit ? t('admin.item_shop.categories.edit_title') : t('admin.item_shop.categories.create_title') }}
-                        <span class="admin-fieldset-help">{{ t('admin.item_shop.categories.details_help') }}</span>
-                    </legend>
-
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="admin-field sm:col-span-2">
-                            <label for="category-parent">{{ t('admin.item_shop.categories.parent') }}</label>
-                            <select id="category-parent" name="parent_id" class="admin-input">
-                                <option value="">{{ t('admin.item_shop.categories.parent_root') }}</option>
-                                {% for option in parentOptions %}
-                                    {% if not isEdit or option.id != category.id %}
-                                        <option value="{{ option.id }}"
-                                            {% if category.parent_id|default(0) == option.id %}selected{% endif %}>
-                                            {{ option.label|default(option.name) }}
-                                            {% if not option.enabled %} ({{ t('admin.item_shop.disabled') }}){% endif %}
-                                        </option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="admin-field">
-                            <label for="category-name">{{ t('admin.item_shop.categories.name') }}</label>
-                            <input id="category-name" type="text" name="name" required maxlength="120"
-                                   value="{{ category.name|default('') }}" class="admin-input" autocomplete="off">
-                        </div>
-                        <div class="admin-field">
-                            <label for="category-slug">{{ t('admin.item_shop.categories.slug') }}</label>
-                            <input id="category-slug" type="text" name="slug" maxlength="140"
-                                   value="{{ category.slug|default('') }}" class="admin-input" autocomplete="off">
-                            <span class="admin-field-help">{{ t('admin.item_shop.categories.slug_help') }}</span>
-                        </div>
-                        <div class="admin-field">
-                            <label for="category-sort">{{ t('admin.item_shop.categories.sort_order') }}</label>
-                            <input id="category-sort" type="number" name="sort_order"
-                                   value="{{ category.sort_order|default(0) }}" class="admin-input">
-                            <span class="admin-field-help">{{ t('admin.item_shop.categories.sort_help') }}</span>
-                        </div>
-                        <div class="admin-field sm:col-span-2">
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" name="enabled" value="1"
-                                       {% if category.enabled is not defined or category.enabled %}checked{% endif %}>
-                                <span>{{ t('admin.item_shop.categories.enabled') }}</span>
-                            </label>
-                        </div>
+            {% if isEdit %}
+                <div class="admin-panel admin-tabs overflow-hidden"
+                     data-admin-tabs data-default-tab="{{ activeTab|default('dados') }}"
+                     data-tab-loading="{{ t('admin.tabs.loading') }}"
+                     data-tab-load-error="{{ t('admin.tabs.load_error') }}">
+                    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+                        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.item_shop.categories.tab_settings'), active: activeTab|default('dados') == 'dados' } %}
+                        {% include 'components/tab.twig' with { id: 'products', label: t('admin.item_shop.categories.tab_products'), active: activeTab|default('dados') == 'products' } %}
                     </div>
-                </fieldset>
-            </form>
 
-            {% if isEdit and category.id is defined %}
-                <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <a href="/admin/item-shop/categories/new?parent_id={{ category.id }}"
-                       class="admin-btn-secondary rounded-md px-4 py-2 text-sm font-medium">
-                        {{ t('admin.item_shop.categories.add_child') }}
-                    </a>
-                    <form method="post" action="/admin/item-shop/categories/{{ category.id }}/delete"
-                          data-confirm="{{ t('admin.item_shop.categories.confirm_delete') }}">
-                        <input type="hidden" name="_csrf" value="{{ csrf }}">
-                        <button type="submit" class="admin-link-action admin-link-danger cursor-pointer rounded-md border border-red-200 px-4 py-2 text-sm">
-                            {{ t('admin.item_shop.categories.delete') }}
-                        </button>
-                    </form>
+                    <div id="admin-tab-panel-dados" class="admin-tabs-panel" role="tabpanel" data-tab-panel="dados"
+                         {% if activeTab|default('dados') != 'dados' %}hidden{% endif %}>
+                        {% include 'components/category-settings-form.twig' %}
+                    </div>
+
+                    <div id="admin-tab-panel-products" class="admin-tabs-panel" role="tabpanel" data-tab-panel="products"
+                         {% if activeTab|default('dados') != 'products' %}hidden{% endif %}>
+                        {% include 'components/category-products.twig' %}
+                    </div>
                 </div>
+            {% else %}
+                {% include 'components/category-settings-form.twig' %}
             {% endif %}
         {% else %}
             <div class="admin-panel flex min-h-[16rem] items-center justify-center p-8 text-center">

@@ -1,9 +1,17 @@
 <li class="admin-category-tree-item"
     data-tree-item
     data-id="{{ node.id }}"
-    data-parent-id="{{ node.parent_id|default('') }}"
-    draggable="true">
-    <div class="admin-category-tree-row {% if selectedId == node.id %}is-selected{% endif %} {% if not node.enabled %}is-disabled{% endif %}">
+    data-parent-id="{{ node.parent_id|default('') }}">
+    <div class="admin-category-tree-row {% if selectedId == node.id %}is-selected{% endif %} {% if not node.enabled %}is-disabled{% endif %}"
+         data-tree-row>
+        <button type="button" class="admin-category-tree-handle" data-tree-handle draggable="true"
+                title="{{ t('admin.item_shop.categories.drag_handle') }}"
+                aria-label="{{ t('admin.item_shop.categories.drag_handle') }}">
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+            </svg>
+        </button>
+
         {% if node.children is not empty %}
             <button type="button" class="admin-category-tree-toggle" data-tree-toggle aria-expanded="true"
                     aria-label="{{ t('admin.item_shop.categories.toggle') }}">
@@ -15,13 +23,21 @@
             <span class="admin-category-tree-toggle-spacer" aria-hidden="true"></span>
         {% endif %}
 
-        <a href="/admin/item-shop/categories/{{ node.id }}" class="admin-category-tree-link">
+        <a href="/admin/item-shop/categories/{{ node.id }}?tab=products" class="admin-category-tree-link">
             <span class="admin-category-tree-name">{{ node.name }}</span>
             {% if node.product_count > 0 %}
                 <span class="admin-category-tree-count">{{ node.product_count }}</span>
             {% endif %}
         </a>
+
+        <div class="admin-category-tree-move">
+            <button type="button" class="admin-category-tree-move-btn" data-move-up title="{{ t('admin.item_shop.categories.move_up') }}">↑</button>
+            <button type="button" class="admin-category-tree-move-btn" data-move-down title="{{ t('admin.item_shop.categories.move_down') }}">↓</button>
+        </div>
     </div>
+
+    <div class="admin-category-drop-line" data-drop-line="before" hidden></div>
+    <div class="admin-category-drop-line" data-drop-line="after" hidden></div>
 
     {% if node.children is not empty %}
         <ul class="admin-category-tree-list" data-tree-list data-parent-id="{{ node.id }}">
@@ -33,6 +49,6 @@
             {% endfor %}
         </ul>
     {% else %}
-        <ul class="admin-category-tree-list is-empty-drop" data-tree-list data-parent-id="{{ node.id }}" hidden></ul>
+        <ul class="admin-category-tree-list is-empty-drop" data-tree-list data-parent-id="{{ node.id }}"></ul>
     {% endif %}
 </li>

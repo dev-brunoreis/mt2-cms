@@ -238,6 +238,10 @@ class Application
             $r->addRoute('GET', '/admin/item-shop/categories/new', [AdminItemShopController::class, 'categoriesCreate']);
             $r->addRoute('POST', '/admin/item-shop/categories', [AdminItemShopController::class, 'categoriesStore']);
             $r->addRoute('POST', '/admin/item-shop/categories/move', [AdminItemShopController::class, 'categoriesMove']);
+            $r->addRoute('GET', '/admin/item-shop/categories/{id:\d+}/item-search', [AdminItemShopController::class, 'categoriesItemSearch']);
+            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products', [AdminItemShopController::class, 'categoriesAddProducts']);
+            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products/{productId:\d+}', [AdminItemShopController::class, 'categoriesUpdateProduct']);
+            $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/products/{productId:\d+}/delete', [AdminItemShopController::class, 'categoriesRemoveProduct']);
             $r->addRoute('GET', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesEdit']);
             $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}', [AdminItemShopController::class, 'categoriesUpdate']);
             $r->addRoute('POST', '/admin/item-shop/categories/{id:\d+}/delete', [AdminItemShopController::class, 'categoriesDestroy']);

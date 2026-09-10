@@ -76,42 +76,42 @@ class AdminSections
                     ],
                 ],
             ],
-            [
-                'id' => 'game-data',
-                'label' => 'admin.nav.game_data',
-                'children' => [
-                    [
-                        'id' => 'shops',
-                        'path' => AdminPaths::gameDataShops(),
-                        'label' => 'admin.nav.shops',
-                    ],
-                    [
-                        'id' => 'refine',
-                        'path' => AdminPaths::gameDataRefine(),
-                        'label' => 'admin.nav.refine',
-                    ],
-                    [
-                        'id' => 'drops',
-                        'path' => AdminPaths::gameDataDrops(),
-                        'label' => 'admin.nav.drops',
-                    ],
-                    [
-                        'id' => 'items',
-                        'path' => AdminPaths::gameDataItems(),
-                        'label' => 'admin.nav.proto_items',
-                    ],
-                    [
-                        'id' => 'mobs',
-                        'path' => AdminPaths::gameDataMobs(),
-                        'label' => 'admin.nav.proto_mobs',
-                    ],
-                    [
-                        'id' => 'gms',
-                        'path' => AdminPaths::gameDataGms(),
-                        'label' => 'admin.nav.gms',
-                    ],
-                ],
-            ],
+            // [
+            //     'id' => 'game-data',
+            //     'label' => 'admin.nav.game_data',
+            //     'children' => [
+            //         [
+            //             'id' => 'shops',
+            //             'path' => AdminPaths::gameDataShops(),
+            //             'label' => 'admin.nav.shops',
+            //         ],
+            //         [
+            //             'id' => 'refine',
+            //             'path' => AdminPaths::gameDataRefine(),
+            //             'label' => 'admin.nav.refine',
+            //         ],
+            //         [
+            //             'id' => 'drops',
+            //             'path' => AdminPaths::gameDataDrops(),
+            //             'label' => 'admin.nav.drops',
+            //         ],
+            //         [
+            //             'id' => 'items',
+            //             'path' => AdminPaths::gameDataItems(),
+            //             'label' => 'admin.nav.proto_items',
+            //         ],
+            //         [
+            //             'id' => 'mobs',
+            //             'path' => AdminPaths::gameDataMobs(),
+            //             'label' => 'admin.nav.proto_mobs',
+            //         ],
+            //         [
+            //             'id' => 'gms',
+            //             'path' => AdminPaths::gameDataGms(),
+            //             'label' => 'admin.nav.gms',
+            //         ],
+            //     ],
+            // ],
             [
                 'id' => 'logs',
                 'label' => 'admin.nav.logs.group',

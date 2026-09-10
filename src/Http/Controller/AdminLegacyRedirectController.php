@@ -9,7 +9,7 @@ use Mt2Cms\Http\Response;
 
 final class AdminLegacyRedirectController extends Controller
 {
-    public function redirect(): Response
+    public function legacyRedirect(): Response
     {
         $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
         $path = $uri;

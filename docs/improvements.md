@@ -72,7 +72,7 @@ Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/set
 - Nginx denies PHP under `/uploads/`
 - Compose site bound to loopback (`127.0.0.1:8000`)
 - `APP_KEY` + encrypted admin TOTP secrets (`AppCrypto`)
-- 2FA required by default on new installs
+- Optional admin 2FA (off by default on new installs)
 - Player self-service password change (`/account/password`)
 
 ---

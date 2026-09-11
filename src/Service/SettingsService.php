@@ -177,7 +177,7 @@ class SettingsService
         $value = $this->settings->get('admin_2fa_required');
 
         if ($value === null) {
-            return true;
+            return false;
         }
 
         return $value === '1';

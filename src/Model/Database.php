@@ -64,6 +64,28 @@ class Database
         }
     }
 
+    /**
+     * @param array{host: string, port: string|int, user: string, password: string} $config
+     */
+    public static function testGameSchema(array $config): bool
+    {
+        try {
+            $db = new self([
+                'host' => $config['host'],
+                'port' => (string) $config['port'],
+                'user' => $config['user'],
+                'password' => $config['password'],
+                'requirePassword' => false,
+            ]);
+            $db->fetchColumn('SELECT 1 FROM `account`.`account` LIMIT 1');
+            $db->fetchColumn('SELECT 1 FROM `player`.`player` LIMIT 1');
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     private function connect(): void
     {
         if ($this->conn !== null) {

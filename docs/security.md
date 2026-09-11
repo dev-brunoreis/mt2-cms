@@ -15,7 +15,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Session | Hardened cookie params; separate admin cookie (`MT2ADMIN`, path `/admin`) vs public (`MT2CMS`); `session_regenerate_id(true)` on successful login; idle timeout (admin 30 min, public 2 h) via `SessionGuard` |
 | Brute force | File-backed IP + action rate limit on login/register/admin login, password change, and other sensitive POSTs (`var/rate-limit/`); fail-closed when storage is unavailable |
 | Captcha | Self-hosted SVG captcha on public login/register and admin login (toggle in `/admin/settings/security`; on by default on new installs) |
-| Admin 2FA | TOTP + one-time recovery codes; enrollment at `/admin/account/security`; policy requiring 2FA for all admins (on by default on new installs); TOTP secrets encrypted at rest with `APP_KEY` |
+| Admin 2FA | TOTP + one-time recovery codes; enrollment at `/admin/account/security`; optional policy requiring 2FA for all admins (off by default on new installs); TOTP secrets encrypted at rest with `APP_KEY` |
 | Player password | Self-service change at `/account/password` (current password required, CSRF, rate limited); Metin2-compatible hash unchanged |
 | Errors | Unhandled exceptions logged via `Log`; generic HTTP 500 to clients (no stack traces) |
 | Admin ACL | Resource-based access via `AclService` (Magento-style hierarchical IDs in `acl_role_resources` / `acl_admin_resources`, catalog in `AdminResourceCatalog`). Section checks in nav map to resource prefixes; mutations use `requireAdminResource()`. Super-only: admins, roles, audit log |
@@ -52,7 +52,7 @@ Accounts use Metin2 / MySQL `PASSWORD()` style (`*` + uppercase `SHA1(SHA1(passw
 
 ## Production deployment
 
-See [deploy.md](deploy.md): TLS and HSTS on the reverse proxy, MySQL/Adminer not on `0.0.0.0`, dedicated MySQL app users, immutable production images (`compose.prod.yml`), `php bin/migrate.php` after deploy (schema + `APP_KEY`), PayPal webhook id when donate is enabled, `APP_TRUST_PROXY=1` when TLS terminates at a proxy, first admin 2FA enrollment.
+See [deploy.md](deploy.md): TLS and HSTS on the reverse proxy, MySQL/Adminer not on `0.0.0.0`, dedicated MySQL app users, immutable production images (`compose.prod.yml`), `php bin/migrate.php` after deploy (schema + `APP_KEY`), PayPal webhook id when donate is enabled, `APP_TRUST_PROXY=1` when TLS terminates at a proxy, optional admin 2FA enrollment.
 
 ## Out of scope (for now)
 

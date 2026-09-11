@@ -33,6 +33,7 @@ class SetupController extends Controller
         Translator $translator,
         private ThemeCatalog $themes,
         private EnvWriter $envWriter,
+        private bool $adminRecoveryOnly = false,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -41,6 +42,10 @@ class SetupController extends Controller
 
     public function show(): Response
     {
+        if ($this->adminRecoveryOnly) {
+            return $this->setupView('admin');
+        }
+
         $step = $this->currentStep();
 
         if ($step === 'admin' && !$this->hasSetupSession()) {
@@ -62,6 +67,10 @@ class SetupController extends Controller
             return $this->setupView($this->currentStep(), error: $this->t('auth.too_many_attempts'), status: 429);
         }
 
+        if ($this->adminRecoveryOnly) {
+            return $this->submitAdminStep($bucket, recovery: true);
+        }
+
         $step = $this->currentStep();
 
         if ($step === 'db') {
@@ -77,15 +86,20 @@ class SetupController extends Controller
         $port = trim((string) ($_POST['db_port'] ?? '3306'));
         $user = trim((string) ($_POST['db_user'] ?? ''));
         $password = (string) ($_POST['db_password'] ?? '');
+        $cmsHost = trim((string) ($_POST['cms_db_host'] ?? ''));
+        $cmsPort = trim((string) ($_POST['cms_db_port'] ?? '3306'));
+        $cmsUser = trim((string) ($_POST['cms_db_user'] ?? ''));
+        $cmsPassword = (string) ($_POST['cms_db_password'] ?? '');
         $theme = trim((string) ($_POST['theme'] ?? ''));
+        $trustProxy = isset($_POST['app_trust_proxy']);
 
-        if ($host === '' || $user === '' || $password === '') {
+        if ($host === '' || $user === '' || $password === '' || $cmsHost === '' || $cmsUser === '' || $cmsPassword === '') {
             $this->rateLimiter->hit($bucket);
 
             return $this->setupView('db', error: $this->t('setup.fields_required'), status: 422);
         }
 
-        if (!ctype_digit($port) || (int) $port < 1 || (int) $port > 65535) {
+        if (!$this->isValidPort($port) || !$this->isValidPort($cmsPort)) {
             $this->rateLimiter->hit($bucket);
 
             return $this->setupView('db', error: $this->t('setup.invalid_port'), status: 422);
@@ -105,7 +119,30 @@ class SetupController extends Controller
         ])) {
             $this->rateLimiter->hit($bucket);
 
-            return $this->setupView('db', error: $this->t('setup.db_connection_failed'), status: 422);
+            return $this->setupView('db', error: $this->dbConnectionError('setup.db_connection_failed'), status: 422);
+        }
+
+        if (!Database::testGameSchema([
+            'host' => $host,
+            'port' => $port,
+            'user' => $user,
+            'password' => $password,
+        ])) {
+            $this->rateLimiter->hit($bucket);
+
+            return $this->setupView('db', error: $this->t('setup.game_schema_missing'), status: 422);
+        }
+
+        if (!Database::testConnection([
+            'host' => $cmsHost,
+            'port' => $cmsPort,
+            'user' => $cmsUser,
+            'password' => $cmsPassword,
+            'database' => 'cms',
+        ])) {
+            $this->rateLimiter->hit($bucket);
+
+            return $this->setupView('db', error: $this->dbConnectionError('setup.cms_db_connection_failed'), status: 422);
         }
 
         $_SESSION[self::SESSION_KEY] = [
@@ -113,7 +150,12 @@ class SetupController extends Controller
             'db_port' => $port,
             'db_user' => $user,
             'db_password' => $password,
+            'cms_db_host' => $cmsHost,
+            'cms_db_port' => $cmsPort,
+            'cms_db_user' => $cmsUser,
+            'cms_db_password' => $cmsPassword,
             'theme' => $theme,
+            'app_trust_proxy' => $trustProxy,
         ];
 
         $this->rateLimiter->clear($bucket);
@@ -121,9 +163,9 @@ class SetupController extends Controller
         return $this->redirect('/setup?step=admin');
     }
 
-    private function submitAdminStep(string $bucket): Response
+    private function submitAdminStep(string $bucket, bool $recovery = false): Response
     {
-        if (!$this->hasSetupSession()) {
+        if (!$recovery && !$this->hasSetupSession()) {
             return $this->redirect('/setup?step=db');
         }
 
@@ -149,48 +191,56 @@ class SetupController extends Controller
             return $this->setupView('admin', error: $this->t('setup.password_mismatch'), status: 422);
         }
 
-        /** @var array<string, string> $setup */
-        $setup = $_SESSION[self::SESSION_KEY];
-
         try {
-            $envValues = [
-                'DB_HOST' => $setup['db_host'],
-                'DB_PORT' => $setup['db_port'],
-                'DB_USER' => $setup['db_user'],
-                'DB_PASSWORD' => $setup['db_password'],
-                'THEME' => $setup['theme'],
-                'LOCALE' => 'en',
-                'APP_KEY' => AppCrypto::generateKey(),
-                'CMS_DB_HOST' => 'mysql',
-                'CMS_DB_PORT' => $setup['db_port'],
-                'CMS_DB_USER' => $setup['db_user'],
-                'CMS_DB_PASSWORD' => $setup['db_password'],
-                'CMS_DB_NAME' => 'cms',
-                'APP_INSTALLED' => 'true',
-            ];
+            if ($recovery) {
+                $cmsDb = Database::forCms();
+            } else {
+                /** @var array<string, mixed> $setup */
+                $setup = $_SESSION[self::SESSION_KEY];
 
-            $this->envWriter->write($envValues, BASE_DIR . '/.env');
-            Env::load();
+                $existingKey = trim(Env::getInstance()->get('APP_KEY', ''));
+                $appKey = $existingKey !== '' ? $existingKey : AppCrypto::generateKey();
 
-            $cmsDb = new Database([
-                'host' => 'mysql',
-                'port' => $setup['db_port'],
-                'user' => $setup['db_user'],
-                'password' => $setup['db_password'],
-                'database' => 'cms',
-                'requirePassword' => false,
-            ]);
+                $envValues = [
+                    'DB_HOST' => (string) $setup['db_host'],
+                    'DB_PORT' => (string) $setup['db_port'],
+                    'DB_USER' => (string) $setup['db_user'],
+                    'DB_PASSWORD' => (string) $setup['db_password'],
+                    'THEME' => (string) $setup['theme'],
+                    'LOCALE' => 'en',
+                    'APP_KEY' => $appKey,
+                    'CMS_DB_HOST' => (string) $setup['cms_db_host'],
+                    'CMS_DB_PORT' => (string) $setup['cms_db_port'],
+                    'CMS_DB_USER' => (string) $setup['cms_db_user'],
+                    'CMS_DB_PASSWORD' => (string) $setup['cms_db_password'],
+                    'CMS_DB_NAME' => 'cms',
+                    'APP_TRUST_PROXY' => !empty($setup['app_trust_proxy']) ? '1' : '0',
+                    'APP_INSTALLED' => 'true',
+                ];
 
-            $schema = new CmsSchema($cmsDb);
-            $schema->ensure();
-            $schema->seedDefaults(array_merge([
-                'registration_enabled' => '1',
-                'available_themes' => json_encode([$setup['theme']], JSON_THROW_ON_ERROR),
-                'active_theme' => $setup['theme'],
-                'default_locale' => 'en',
-                'news_comments_enabled' => '1',
-                'news_comments_require_approval' => '0',
-            ], CmsSchema::defaultSecuritySettings()));
+                $this->envWriter->upsert($envValues, BASE_DIR . '/.env');
+                Env::load();
+
+                $cmsDb = new Database([
+                    'host' => (string) $setup['cms_db_host'],
+                    'port' => (string) $setup['cms_db_port'],
+                    'user' => (string) $setup['cms_db_user'],
+                    'password' => (string) $setup['cms_db_password'],
+                    'database' => 'cms',
+                    'requirePassword' => false,
+                ]);
+
+                $schema = new CmsSchema($cmsDb);
+                $schema->ensure();
+                $schema->seedDefaults(array_merge([
+                    'registration_enabled' => '1',
+                    'available_themes' => json_encode([(string) $setup['theme']], JSON_THROW_ON_ERROR),
+                    'active_theme' => (string) $setup['theme'],
+                    'default_locale' => 'en',
+                    'news_comments_enabled' => '1',
+                    'news_comments_require_approval' => '0',
+                ], CmsSchema::defaultSecuritySettings()));
+            }
 
             $admins = new AdminRepository($cmsDb);
             $admins->create($login, $password);
@@ -230,19 +280,29 @@ class SetupController extends Controller
             'title' => $this->t('setup.title'),
             'step' => $step,
             'error' => $error,
+            'adminRecoveryOnly' => $this->adminRecoveryOnly,
             'themes' => $this->themes->available(),
             'values' => [
                 'db_host' => (string) ($setup['db_host'] ?? $env->get('DB_HOST', 'game')),
                 'db_port' => (string) ($setup['db_port'] ?? $env->get('DB_PORT', '3306')),
                 'db_user' => (string) ($setup['db_user'] ?? $env->get('DB_USER', 'root')),
-                'db_password' => (string) ($setup['db_password'] ?? $env->get('DB_PASSWORD', '')),
+                'db_password' => (string) ($setup['db_password'] ?? ''),
+                'cms_db_host' => (string) ($setup['cms_db_host'] ?? $env->get('CMS_DB_HOST', 'mysql')),
+                'cms_db_port' => (string) ($setup['cms_db_port'] ?? $env->get('CMS_DB_PORT', '3306')),
+                'cms_db_user' => (string) ($setup['cms_db_user'] ?? $env->get('CMS_DB_USER', 'cms')),
+                'cms_db_password' => (string) ($setup['cms_db_password'] ?? ''),
                 'theme' => (string) ($setup['theme'] ?? $env->get('THEME', 'default')),
+                'app_trust_proxy' => (bool) ($setup['app_trust_proxy'] ?? $env->get('APP_TRUST_PROXY', '0') === '1'),
             ],
         ], $status);
     }
 
     private function currentStep(): string
     {
+        if ($this->adminRecoveryOnly) {
+            return 'admin';
+        }
+
         $step = trim((string) ($_GET['step'] ?? 'db'));
 
         return $step === 'admin' ? 'admin' : 'db';
@@ -253,11 +313,31 @@ class SetupController extends Controller
         $setup = $_SESSION[self::SESSION_KEY] ?? null;
 
         return is_array($setup)
-            && isset($setup['db_host'], $setup['db_port'], $setup['db_user'], $setup['db_password'], $setup['theme']);
+            && isset(
+                $setup['db_host'],
+                $setup['db_port'],
+                $setup['db_user'],
+                $setup['db_password'],
+                $setup['cms_db_host'],
+                $setup['cms_db_port'],
+                $setup['cms_db_user'],
+                $setup['cms_db_password'],
+                $setup['theme'],
+            );
+    }
+
+    private function isValidPort(string $port): bool
+    {
+        return ctype_digit($port) && (int) $port >= 1 && (int) $port <= 65535;
     }
 
     private function authBucket(string $action): string
     {
         return $action . ':' . Request::clientIp();
+    }
+
+    private function dbConnectionError(string $messageKey): string
+    {
+        return $this->t($messageKey) . ' ' . $this->t('setup.db_password_hint');
     }
 }

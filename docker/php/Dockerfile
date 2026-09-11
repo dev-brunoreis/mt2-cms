@@ -32,6 +32,7 @@ RUN npm ci
 COPY public ./public
 COPY resources ./resources
 COPY scripts ./scripts
+COPY themes ./themes
 
 RUN npm run build
 
@@ -50,6 +51,9 @@ RUN composer install --no-dev --prefer-dist --no-scripts --no-interaction
 # =============================================================================
 FROM php:8.3-fpm-alpine AS php
 
+ARG PUID=1000
+ARG PGID=1000
+
 RUN docker-php-ext-install pdo_mysql \
     && apk add --no-cache fcgi
 
@@ -66,7 +70,11 @@ COPY lang ./lang
 COPY bin ./bin
 COPY --from=assets /app/public ./public
 
-RUN mkdir -p var/sessions var/rate-limit var/cache var/uploads/tickets var/downloads var/backups public/uploads \
+RUN deluser www-data \
+    && (delgroup www-data || true) \
+    && addgroup -g "${PGID}" www-data \
+    && adduser -D -H -s /bin/sh -u "${PUID}" -G www-data www-data \
+    && mkdir -p var/sessions var/rate-limit var/cache var/uploads/tickets var/downloads var/backups public/uploads \
     && chown -R www-data:www-data var public/uploads
 
 USER www-data

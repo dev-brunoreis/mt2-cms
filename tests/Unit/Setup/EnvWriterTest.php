@@ -64,4 +64,42 @@ final class EnvWriterTest extends TestCase
         self::assertStringContainsString('DB_PASSWORD=secret123', $content);
         self::assertStringContainsString('APP_KEY=' . str_repeat('a', 64), $content);
     }
+
+    public function testUpsertPreservesKeysOutsideAllowedList(): void
+    {
+        $path = $this->tempDir . '/.env';
+        file_put_contents($path, implode("\n", [
+            'DB_HOST=game',
+            'MYSQL_ROOT_PASSWORD=root-secret',
+            '# comment',
+            'CMS_DB_USER=cms',
+        ]) . "\n");
+
+        $writer = new EnvWriter();
+        $writer->upsert(['APP_KEY' => str_repeat('c', 64)], $path);
+        $content = (string) file_get_contents($path);
+
+        self::assertStringContainsString('MYSQL_ROOT_PASSWORD=root-secret', $content);
+        self::assertStringContainsString('# comment', $content);
+        self::assertStringContainsString('CMS_DB_USER=cms', $content);
+        self::assertStringContainsString('APP_KEY=' . str_repeat('c', 64), $content);
+    }
+
+    public function testUpsertUpdatesExistingFileWhenParentDirectoryIsNotWritable(): void
+    {
+        $root = $this->tempDir . '/root';
+        mkdir($root, 0700);
+        $path = $root . '/.env';
+        file_put_contents($path, "DB_HOST=game\n");
+        chmod($root, 0555);
+        chmod($path, 0600);
+
+        $writer = new EnvWriter();
+        $writer->upsert(['APP_KEY' => str_repeat('b', 64)], $path);
+
+        self::assertStringContainsString('APP_KEY=' . str_repeat('b', 64), (string) file_get_contents($path));
+
+        chmod($path, 0700);
+        chmod($root, 0700);
+    }
 }

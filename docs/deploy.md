@@ -30,11 +30,12 @@ Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
    ```bash
    docker compose -f compose.prod.yml exec php php bin/migrate.php
    ```
+   The PHP image runs as your host UID/GID (`PUID` / `PGID`, default `1000`) so the bind-mounted `.env` stays readable/writable. Rebuild after changing them: `PUID=$(id -u) PGID=$(id -g) docker compose -f compose.prod.yml up -d --build`.
    From the host (outside Docker), point `.env` at the mapped CMS port: `CMS_DB_HOST=127.0.0.1`, `CMS_DB_PORT=8002`, then run `php bin/migrate.php`.
 5. **Set `APP_INSTALLED=true`** in `.env` after setup (`/setup` writes this automatically).
 6. **Confirm `APP_KEY`** is present in `.env` (64 hex chars). Setup and migrate generate it; the app returns a generic 503 without it (details are logged server-side only).
 7. **`APP_TRUST_PROXY=1`** is set in `compose.prod.yml`. Keep it when TLS terminates at a reverse proxy so session cookies get the `Secure` flag.
-8. **Enroll admin 2FA** on first login (`/admin/account/security`) when the require-2FA policy is enabled (default on new installs).
+8. **Enroll admin 2FA** on first login (`/admin/account/security`) when the require-2FA policy is enabled (off by default on new installs; enable under **Settings → Security**).
 9. Configure **Settings → Community**: PayPal client id/secret, **PayPal webhook id** (required for `/donate`), site URL, mail, Discord.
 
 ## Production Compose
@@ -144,7 +145,28 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON log.* TO 'mt2cms'@'%';
 FLUSH PRIVILEGES;
 ```
 
-Then update `.env` to use `DB_USER=mt2cms` and restart PHP.
+```sql
+-- CMS MySQL 8 (as root)
+CREATE USER IF NOT EXISTS 'cms'@'%' IDENTIFIED BY 'strong-password';
+GRANT ALL PRIVILEGES ON cms.* TO 'cms'@'%';
+FLUSH PRIVILEGES;
+```
+
+From the host (replace passwords with your `.env` values):
+
+```bash
+docker compose -f compose.prod.yml exec mysql \
+  mysql -uroot -p"$CMS_MYSQL_ROOT_PASSWORD" -e "
+    CREATE USER IF NOT EXISTS 'cms'@'%' IDENTIFIED BY '$CMS_DB_PASSWORD';
+    GRANT ALL PRIVILEGES ON cms.* TO 'cms'@'%';
+    FLUSH PRIVILEGES;"
+```
+
+Then update `.env` to use `DB_USER=mt2cms`, `CMS_DB_USER=cms`, and restart PHP.
+
+**Fresh local prod test** (wipes databases): `docker compose -f compose.prod.yml down -v` then `up -d --build` again.
+
+The bundled `game` service imports `docker/mysql/backup/*.sql` on first start (same fixtures as the dev stack). Omit the `game` service in real production and point `DB_HOST` at the live Metin2 MySQL instead.
 
 ## Health checks
 
@@ -197,7 +219,7 @@ Do **not** treat `var/backups/` on the app server as off-site backup storage. Do
 - [ ] `APP_TRUST_PROXY=1` if behind reverse proxy
 - [ ] PayPal webhook id configured when `/donate` is enabled
 - [ ] `var/` and `.env` not web-accessible (document root is `public/` only)
-- [ ] First admin enrolled in 2FA (`/admin/account/security`)
+- [ ] Admin 2FA enrolled if **Settings → Security → Require 2FA** is enabled
 - [ ] Default admin password not reused from setup
 - [ ] Database backups scheduled to off-server storage
 

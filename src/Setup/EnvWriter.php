@@ -39,13 +39,62 @@ class EnvWriter
      */
     public function upsert(array $values, string $path): void
     {
-        $merged = $this->parseExisting($path);
+        $updates = $this->filterValues($values);
 
-        foreach ($this->filterValues($values) as $key => $value) {
-            $merged[$key] = $value;
+        if (!is_file($path)) {
+            $this->persist($updates, $path);
+
+            return;
         }
 
-        $this->persist($merged, $path);
+        if (!is_writable($path)) {
+            throw new \RuntimeException('setup.env_not_writable');
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES);
+
+        if ($lines === false) {
+            throw new \RuntimeException('setup.env_write_failed');
+        }
+
+        $updated = [];
+        $output = [];
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if ($trimmed === '' || str_starts_with($trimmed, '#') || !str_contains($trimmed, '=')) {
+                $output[] = $line;
+
+                continue;
+            }
+
+            [$key, ] = explode('=', $trimmed, 2);
+            $key = trim($key);
+
+            if ($key !== '' && array_key_exists($key, $updates)) {
+                $output[] = $key . '=' . $this->escapeValue($updates[$key]);
+                $updated[$key] = true;
+
+                continue;
+            }
+
+            $output[] = $line;
+        }
+
+        foreach ($updates as $key => $value) {
+            if (!isset($updated[$key])) {
+                $output[] = $key . '=' . $this->escapeValue($value);
+            }
+        }
+
+        $content = implode("\n", $output) . "\n";
+
+        if (file_put_contents($path, $content, LOCK_EX) === false) {
+            throw new \RuntimeException('setup.env_write_failed');
+        }
+
+        $this->applyPermissions($path);
     }
 
     /**
@@ -122,7 +171,11 @@ class EnvWriter
     {
         $dir = dirname($path);
 
-        if (!is_dir($dir) || !is_writable($dir)) {
+        if (is_file($path)) {
+            if (!is_writable($path)) {
+                throw new \RuntimeException('setup.env_not_writable');
+            }
+        } elseif (!is_dir($dir) || !is_writable($dir)) {
             throw new \RuntimeException('setup.env_not_writable');
         }
 
@@ -133,6 +186,17 @@ class EnvWriter
         }
 
         $content = implode("\n", $lines) . "\n";
+
+        if (is_file($path)) {
+            if (file_put_contents($path, $content, LOCK_EX) === false) {
+                throw new \RuntimeException('setup.env_write_failed');
+            }
+
+            $this->applyPermissions($path);
+
+            return;
+        }
+
         $tempPath = $path . '.tmp.' . bin2hex(random_bytes(8));
 
         if (file_put_contents($tempPath, $content, LOCK_EX) === false) {

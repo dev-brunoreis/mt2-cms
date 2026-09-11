@@ -29,7 +29,7 @@ class CmsSchema
         return [
             'captcha_public' => '1',
             'captcha_admin' => '1',
-            'admin_2fa_required' => '1',
+            'admin_2fa_required' => '0',
         ];
     }
 

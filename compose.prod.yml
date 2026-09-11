@@ -10,6 +10,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
       - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./docker/mysql/backup:/dumps:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "--password=${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -52,6 +53,9 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
       target: php
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
     working_dir: /var/www
     environment:
       APP_TRUST_PROXY: "1"

@@ -101,6 +101,9 @@ class Application
     use \Mt2Cms\Http\ControllerMap;
     private bool $installed;
 
+    /** True when APP_INSTALLED is set but the admins table has no rows. */
+    public bool $needsAdminRecovery = false;
+
     /** DI container — public for controller_factories.php */
     public Database $db;
     public Database $cmsDb;
@@ -204,6 +207,12 @@ class Application
                 return;
             }
 
+            if ($this->needsAdminRecovery) {
+                $this->runAdminRecoverySetup();
+
+                return;
+            }
+
             $this->dispatch(function (RouteCollector $r): void {
                 PublicRoutes::register($r);
                 AdminRoutes::register($r);
@@ -216,11 +225,21 @@ class Application
 
     private function runSetupOnly(): void
     {
+        $this->runSetupRoutes('/setup');
+    }
+
+    private function runAdminRecoverySetup(): void
+    {
+        $this->runSetupRoutes('/setup?step=admin');
+    }
+
+    private function runSetupRoutes(string $redirectTarget): void
+    {
         try {
             $uri = $this->normalizeUri();
 
             if ($uri !== '/setup') {
-                Response::redirect('/setup')->send();
+                Response::redirect($redirectTarget)->send();
 
                 return;
             }
@@ -293,7 +312,9 @@ class Application
         $this->assertAppKey();
         $this->cmsDb = Database::forCms();
         $this->assertSchemaCurrent();
-        $this->adminAuth = new AdminAuth(new AdminRepository($this->cmsDb));
+        $adminRepo = new AdminRepository($this->cmsDb);
+        $this->needsAdminRecovery = $adminRepo->count() === 0;
+        $this->adminAuth = new AdminAuth($adminRepo);
         $this->adminRoles = new AdminRoleRepository($this->cmsDb);
         $this->adminTotp = new AdminTotpRepository($this->cmsDb);
         $this->acl = new AclService(new AclRepository($this->cmsDb), $this->adminRoles);

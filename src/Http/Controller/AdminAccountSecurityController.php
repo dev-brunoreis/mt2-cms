@@ -126,7 +126,14 @@ class AdminAccountSecurityController extends AdminController
             return $this->redirect('/admin/account/security');
         }
 
-        $recoveryCodes = $this->totp->enable($adminId, $secret);
+        try {
+            $recoveryCodes = $this->totp->enable($adminId, $secret);
+        } catch (\Throwable $e) {
+            $this->adminAuth->setEnrollSecret($secret);
+
+            throw $e;
+        }
+
         $_SESSION['_admin_2fa_recovery_codes'] = $recoveryCodes;
         $this->audit('admin.2fa.enable', 'admin', $adminId);
         $this->flash('success', $this->t('admin.2fa.enabled'));

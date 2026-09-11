@@ -42,6 +42,27 @@ final class AppCryptoTest extends TestCase
         self::assertSame($plain, AppCrypto::decrypt($encrypted));
     }
 
+    public function testEncryptedTotpSecretExceedsLegacyVarchar64(): void
+    {
+        $encrypted = AppCrypto::encrypt(\Mt2Cms\Auth\Totp::generateSecret());
+
+        self::assertGreaterThan(64, strlen($encrypted));
+        self::assertLessThanOrEqual(255, strlen($encrypted));
+    }
+
+    public function testMigrationsStoreTotpSecretAsVarchar255(): void
+    {
+        foreach (glob(BASE_DIR . '/src/Setup/migrations/*.sql') ?: [] as $file) {
+            $sql = (string) file_get_contents($file);
+
+            self::assertDoesNotMatchRegularExpression(
+                '/totp_secret\s+VARCHAR\(64\)/i',
+                $sql,
+                basename($file) . ' totp_secret must fit AppCrypto ciphertext',
+            );
+        }
+    }
+
     public function testTamperedPayloadFails(): void
     {
         $encrypted = AppCrypto::encrypt('secret');

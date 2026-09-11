@@ -174,7 +174,7 @@ Logged-in players can change their password at `/account/password` (requires cur
 
 ## Admin panel
 
-After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when **Settings → Security → Require 2FA** is on (default for new installs). Configure captcha and 2FA policy under **Settings → Security**.
+After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when **Settings → Security → Require 2FA** is on (off by default on new installs). Configure captcha and 2FA policy under **Settings → Security**.
 
 ## Local dumps
 

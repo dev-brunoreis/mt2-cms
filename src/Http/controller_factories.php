@@ -67,7 +67,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator,
     ),
     \Mt2Cms\Http\Controller\SetupController::class => static fn ($app) => new \Mt2Cms\Http\Controller\SetupController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->themeCatalog, new EnvWriter(),
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->themeCatalog, new EnvWriter(), $app->needsAdminRecovery,
     ),
     \Mt2Cms\Http\Controller\AdminAuthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAuthController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->settings, $app->adminTotp,

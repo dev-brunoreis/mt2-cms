@@ -18,7 +18,8 @@ What the CMS already enforces, and what every change must keep intact.
 | Admin 2FA | TOTP + one-time recovery codes; enrollment at `/admin/account/security`; policy requiring 2FA for all admins (on by default on new installs); TOTP secrets encrypted at rest with `APP_KEY` |
 | Player password | Self-service change at `/account/password` (current password required, CSRF, rate limited); Metin2-compatible hash unchanged |
 | Errors | Unhandled exceptions logged via `Log`; generic HTTP 500 to clients (no stack traces) |
-| Admin ACL | Resource-based access via `AclService` (Magento-style hierarchical IDs in `acl_role_resources` / `acl_admin_resources`, catalog in `AdminResourceCatalog`). Section checks in nav map to resource prefixes; mutations use `requireAdminResource()`. Super-only: admins, roles, audit log. Game-data modules are assignable but hidden from the sidebar — access by URL when permitted |
+| Admin ACL | Resource-based access via `AclService` (Magento-style hierarchical IDs in `acl_role_resources` / `acl_admin_resources`, catalog in `AdminResourceCatalog`). Section checks in nav map to resource prefixes; mutations use `requireAdminResource()`. Super-only: admins, roles, audit log |
+| Security contracts | `tests/Unit/Contract/SecurityContractTest.php` — CSRF, mass-action whitelist, rate-limited POSTs, prepared statements. Keep green on every PR |
 | Admin audit | Mutating admin POSTs write to `admin_audit_log`; super admins can browse `/admin/audit-log` |
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only) |
 | Config | `DB_PASSWORD` and `APP_KEY` required in `.env` when installed (no hardcoded runtime default) |
@@ -45,6 +46,7 @@ Accounts use Metin2 / MySQL `PASSWORD()` style (`*` + uppercase `SHA1(SHA1(passw
 - [ ] New Twig output is escaped (no `|raw` on data)
 - [ ] No new hardcoded DB credentials in source
 - [ ] Rate-sensitive auth endpoints stay behind the limiter
+- [ ] `SecurityContractTest` passes (`composer test`)
 
 ## Production deployment
 

@@ -19,8 +19,8 @@ class AdminGuildsController extends AdminController
 {
     /** @var array<string, string> */
     private const TAB_TEMPLATES = [
-        'membros' => 'components/guild-members.twig',
-        'comentarios' => 'components/guild-comments.twig',
+        'members' => 'components/guild-members.twig',
+        'comments' => 'components/guild-comments.twig',
         'wars' => 'components/guild-wars.twig',
     ];
 
@@ -71,7 +71,7 @@ class AdminGuildsController extends AdminController
             return $this->redirect('/admin/game/guilds');
         }
 
-        $tab = $this->requestedTab(['dados', 'membros', 'comentarios', 'wars'], 'dados');
+        $tab = $this->requestedTab(['data', 'members', 'comments', 'wars'], 'data');
         $data = [
             'title' => $this->t('admin.guilds.view_title', ['name' => (string) $guild['name']]),
             'pageLead' => $this->t('admin.guilds.view_lead'),
@@ -156,7 +156,7 @@ class AdminGuildsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comentarios');
+            return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comments');
         }
 
         if (!$this->guilds->deleteComment((int) $id, (int) $commentId)) {
@@ -166,7 +166,7 @@ class AdminGuildsController extends AdminController
             $this->flash('success', $this->t('admin.guilds.comment_deleted'));
         }
 
-        return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comentarios');
+        return $this->redirect('/admin/game/guilds/' . (int) $id . '?tab=comments');
     }
 
     public function dissolve(string $id): Response
@@ -200,7 +200,7 @@ class AdminGuildsController extends AdminController
             return $guard;
         }
 
-        $tab = $this->requestedTab(['dados', 'membros', 'comentarios', 'wars'], 'dados');
+        $tab = $this->requestedTab(['data', 'members', 'comments', 'wars'], 'data');
 
         return $this->adminView('guilds', 'pages/guild.twig', [
             'title' => $this->t('admin.guilds.view_title', ['name' => (string) ($guild['name'] ?? '')]),
@@ -239,7 +239,7 @@ class AdminGuildsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=membros');
+            return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=members');
         }
 
         $playerId = (int) ($_POST['player_id'] ?? 0);
@@ -257,6 +257,6 @@ class AdminGuildsController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=membros');
+        return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=members');
     }
 }

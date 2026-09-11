@@ -34,11 +34,13 @@ final class SecurityContractTest extends TestCase
         'Mt2Cms\\Http\\Controller\\PasswordController::forgot',
         'Mt2Cms\\Http\\Controller\\PasswordController::reset',
         'Mt2Cms\\Http\\Controller\\AccountController::updatePassword',
+        'Mt2Cms\\Http\\Controller\\AccountController::unstuck',
         'Mt2Cms\\Http\\Controller\\AdminAuthController::login',
         'Mt2Cms\\Http\\Controller\\AdminAuthController::verifyTwoFactor',
         'Mt2Cms\\Http\\Controller\\NewsController::comment',
         'Mt2Cms\\Http\\Controller\\TicketController::store',
         'Mt2Cms\\Http\\Controller\\ItemShopController::buy',
+        'Mt2Cms\\Http\\Controller\\DonateController::buy',
         'Mt2Cms\\Http\\Controller\\SetupController::submit',
     ];
 

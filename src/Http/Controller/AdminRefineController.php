@@ -57,6 +57,20 @@ class AdminRefineController extends AdminController
         ]);
     }
 
+    public function mass(): Response
+    {
+        return $this->runMassActions(
+            $this->refine->gridDefinition()->spec(),
+            '/admin/game-data/refine',
+            [
+                'delete' => fn (int $id): bool => $this->refine->delete($id),
+            ],
+            'refine',
+            'admin.refine.mass_done',
+            'game-data/refine/mass',
+        );
+    }
+
     public function create(): Response
     {
         return $this->formView($this->emptyRecipe());

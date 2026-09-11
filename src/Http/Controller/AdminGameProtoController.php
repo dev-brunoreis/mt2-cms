@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
@@ -56,7 +57,7 @@ class AdminGameProtoController extends AdminController
         return $this->adminView($route, 'pages/proto-list.twig', [
             'title' => $this->t($prefix . '.title'),
             'pageLead' => $this->t($prefix . '.lead'),
-            'headerHref' => '/admin/' . $route . '/new',
+            'headerHref' => $this->protoPath($route) . '/new',
             'headerActionLabel' => $this->t($prefix . '.create'),
             'grid' => $grid,
         ]);
@@ -70,7 +71,7 @@ class AdminGameProtoController extends AdminController
 
         return $this->runMassActions(
             $this->protoGridSpec($route),
-            '/admin/' . $route,
+            $this->protoPath($route),
             [
                 'delete' => fn (int $id): bool => $this->protos->delete($internal, $id),
             ],
@@ -110,7 +111,7 @@ class AdminGameProtoController extends AdminController
             $this->audit($route . '.create', 'proto_' . $route, $vnum > 0 ? $vnum : null);
             $this->flash('success', $this->t($this->i18nPrefix($route) . '.created'));
 
-            return $this->redirect('/admin/' . $route);
+            return $this->redirect($this->protoPath($route));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView($route, $input, $this->t($e->getMessage()), 422, false);
         }
@@ -125,7 +126,7 @@ class AdminGameProtoController extends AdminController
         if ($record === null) {
             $this->flash('error', $this->t($this->i18nPrefix($route) . '.not_found'));
 
-            return $this->redirect('/admin/' . $route);
+            return $this->redirect($this->protoPath($route));
         }
 
         return $this->formView($route, $record, null, 200, true);
@@ -146,13 +147,13 @@ class AdminGameProtoController extends AdminController
         if ($record === null) {
             $this->flash('error', $this->t($this->i18nPrefix($route) . '.not_found'));
 
-            return $this->redirect('/admin/' . $route);
+            return $this->redirect($this->protoPath($route));
         }
 
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/' . $route . '/' . $vnum);
+            return $this->redirect($this->protoPath($route) . '/' . $vnum);
         }
 
         $input = $this->formInput($internal);
@@ -168,7 +169,7 @@ class AdminGameProtoController extends AdminController
             );
             $this->flash('success', $this->t($this->i18nPrefix($route) . '.updated'));
 
-            return $this->redirect('/admin/' . $route . '/' . $vnum);
+            return $this->redirect($this->protoPath($route) . '/' . $vnum);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
             return $this->formView(
                 $route,
@@ -208,7 +209,14 @@ class AdminGameProtoController extends AdminController
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/admin/' . $route);
+        return $this->redirect($this->protoPath($route));
+    }
+
+    private function protoPath(string $route): string
+    {
+        return $route === GameProtoService::ROUTE_MOBS
+            ? AdminPaths::gameDataMobs()
+            : AdminPaths::gameDataItems();
     }
 
     private function protoGridSpec(string $route): GridSpec

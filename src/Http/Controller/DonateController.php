@@ -6,7 +6,10 @@ namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Auth\RateLimiter;
+use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
+use Mt2Cms\Support\Log;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Payment\PayPalGateway;
 use Mt2Cms\Repository\CashPackageRepository;
@@ -19,6 +22,8 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class DonateController extends Controller
 {
+    private RateLimiter $rateLimiter;
+
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -31,8 +36,10 @@ class DonateController extends Controller
         private PayPalGateway $paypal,
         private AccountEmailService $accountEmails,
         private SettingsService $settings,
+        ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
+        $this->rateLimiter = $rateLimiter ?? new RateLimiter(5, 900);
     }
 
     public function index(): Response
@@ -83,6 +90,16 @@ class DonateController extends Controller
             return $this->redirect('/login');
         }
 
+        $bucket = 'donate-buy:' . Request::clientIp() . ':' . $accountId;
+
+        if ($this->rateLimiter->tooManyAttempts($bucket)) {
+            $this->flash('error', $this->t('auth.too_many_attempts'));
+
+            return $this->redirect('/donate');
+        }
+
+        $this->rateLimiter->hit($bucket);
+
         try {
             $result = $this->checkout->startCheckout($accountId, $login, $packageId);
 
@@ -122,8 +139,8 @@ class DonateController extends Controller
             try {
                 $this->paypal->captureOrder($providerRef);
                 $this->credits->markPaidAndCredit('paypal', $providerRef);
-            } catch (\Throwable) {
-                // Webhook may still credit later.
+            } catch (\Throwable $e) {
+                Log::error('payments', 'Donate return capture/credit failed for ' . $providerRef, $e);
             }
         }
 

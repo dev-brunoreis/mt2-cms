@@ -1,0 +1,30 @@
+stages:
+  - test
+
+variables:
+  COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+
+phpunit:
+  stage: test
+  image: php:8.3-cli
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev
+    - docker-php-ext-install zip
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --no-progress
+  script:
+    - composer test
+
+assets:
+  stage: test
+  image: node:20-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run build
+  rules:
+    - changes:
+        - package.json
+        - package-lock.json
+        - resources/**/*
+        - tailwind.config.js

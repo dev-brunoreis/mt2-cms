@@ -69,9 +69,7 @@ final class PayPalGateway implements PaymentGateway
         $base = $this->apiBase();
         $response = $this->request('POST', $base . '/v2/checkout/orders/' . rawurlencode($orderId) . '/capture', $token, []);
 
-        $status = (string) ($response['status'] ?? '');
-
-        return in_array($status, ['COMPLETED', 'APPROVED'], true);
+        return (string) ($response['status'] ?? '') === 'COMPLETED';
     }
 
     /**
@@ -85,28 +83,85 @@ final class PayPalGateway implements PaymentGateway
             throw new \InvalidArgumentException('payments.invalid_webhook');
         }
 
+        if (!$this->verifyWebhookSignature($rawBody, $headers, $payload)) {
+            throw new \InvalidArgumentException('payments.invalid_webhook_signature');
+        }
+
         $eventType = (string) ($payload['event_type'] ?? '');
         $resource = is_array($payload['resource'] ?? null) ? $payload['resource'] : [];
-        $providerRef = (string) ($resource['id'] ?? '');
+        $orderId = PayPalWebhookParser::resolveOrderId($eventType, $resource);
 
-        if ($providerRef === '') {
-            throw new \InvalidArgumentException('payments.invalid_webhook');
+        $paid = false;
+
+        if (PayPalWebhookParser::isPaymentEvent($eventType)) {
+            if ($eventType === 'CHECKOUT.ORDER.APPROVED') {
+                try {
+                    $this->captureOrder($orderId);
+                } catch (\Throwable $e) {
+                    Log::error('payments', 'PayPal capture on APPROVED failed for ' . $orderId, $e);
+                }
+            }
+
+            $paid = $this->verifyOrderCompleted($orderId);
         }
 
-        $paid = in_array($eventType, [
-            'CHECKOUT.ORDER.APPROVED',
-            'CHECKOUT.ORDER.COMPLETED',
-            'PAYMENT.CAPTURE.COMPLETED',
-        ], true);
-
-        if ($paid && !$this->verifyOrderPaid($providerRef)) {
-            $paid = false;
-        }
-
-        return new WebhookEvent($providerRef, $eventType, $paid);
+        return new WebhookEvent($orderId, $eventType, $paid);
     }
 
-    private function verifyOrderPaid(string $orderId): bool
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $headers
+     */
+    private function verifyWebhookSignature(string $rawBody, array $headers, array $payload): bool
+    {
+        $webhookId = $this->settings->paypalWebhookId();
+
+        if ($webhookId === '') {
+            return true;
+        }
+
+        $normalized = [];
+
+        foreach ($headers as $name => $value) {
+            $normalized[strtoupper(str_replace('-', '_', $name))] = $value;
+        }
+
+        $transmissionId = $normalized['PAYPAL_TRANSMISSION_ID'] ?? '';
+        $transmissionTime = $normalized['PAYPAL_TRANSMISSION_TIME'] ?? '';
+        $certUrl = $normalized['PAYPAL_CERT_URL'] ?? '';
+        $authAlgo = $normalized['PAYPAL_AUTH_ALGO'] ?? '';
+        $transmissionSig = $normalized['PAYPAL_TRANSMISSION_SIG'] ?? '';
+
+        if ($transmissionId === '' || $transmissionSig === '') {
+            Log::error('payments', 'PayPal webhook missing transmission headers');
+
+            return false;
+        }
+
+        try {
+            $token = $this->accessToken();
+            $base = $this->apiBase();
+            $body = [
+                'auth_algo' => $authAlgo,
+                'cert_url' => $certUrl,
+                'transmission_id' => $transmissionId,
+                'transmission_sig' => $transmissionSig,
+                'transmission_time' => $transmissionTime,
+                'webhook_id' => $webhookId,
+                'webhook_event' => $payload,
+            ];
+            $response = $this->request('POST', $base . '/v1/notifications/verify-webhook-signature', $token, $body);
+            $status = (string) ($response['verification_status'] ?? '');
+
+            return strtoupper($status) === 'SUCCESS';
+        } catch (\Throwable $e) {
+            Log::error('payments', 'PayPal webhook signature verify failed', $e);
+
+            return false;
+        }
+    }
+
+    private function verifyOrderCompleted(string $orderId): bool
     {
         try {
             $token = $this->accessToken();
@@ -114,7 +169,7 @@ final class PayPalGateway implements PaymentGateway
             $response = $this->request('GET', $base . '/v2/checkout/orders/' . rawurlencode($orderId), $token, null);
             $status = (string) ($response['status'] ?? '');
 
-            return in_array($status, ['COMPLETED', 'APPROVED'], true);
+            return $status === 'COMPLETED';
         } catch (\Throwable $e) {
             Log::error('payments', 'PayPal order verify failed', $e);
 

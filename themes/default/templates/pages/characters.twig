@@ -17,11 +17,15 @@
                         <th class="px-4 py-3 font-medium">{{ t('account.job') }}</th>
                         <th class="px-4 py-3 font-medium">{{ t('account.level') }}</th>
                         <th class="px-4 py-3 font-medium">{{ t('account.playtime') }}</th>
+                        {% if unstuckAvailable|default(false) %}
+                            <th class="px-4 py-3 font-medium">{{ t('unstuck.action') }}</th>
+                        {% endif %}
                         <th class="px-4 py-3 font-medium"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     {% for player in players %}
+                        {% set state = unstuckStates[player.id]|default(null) %}
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3">
                                 <div class="inline-flex items-center gap-2 font-medium text-slate-900">
@@ -32,6 +36,26 @@
                             <td class="px-4 py-3 text-slate-600">{{ player.job|job_name(player.skill_group) }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ player.level }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ player.playtime|playtime }}</td>
+                            {% if unstuckAvailable|default(false) %}
+                                <td class="px-4 py-3">
+                                    {% if state and state.offline and state.cooldown_seconds == 0 %}
+                                        <form method="post" action="/account/characters/unstuck" class="inline">
+                                            <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                            <input type="hidden" name="player_id" value="{{ player.id }}">
+                                            <button type="submit"
+                                                    class="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100">
+                                                {{ t('unstuck.button') }}
+                                            </button>
+                                        </form>
+                                    {% elseif state and not state.offline %}
+                                        <span class="text-sm text-amber-700">{{ t('unstuck.player_online', {minutes: onlineWindowMinutes}) }}</span>
+                                    {% elseif state and state.cooldown_seconds > 0 %}
+                                        <span class="text-sm text-slate-500">{{ t('unstuck.cooldown_active') }}</span>
+                                    {% else %}
+                                        <span class="text-sm text-slate-400">—</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
                             <td class="px-4 py-3 text-right">
                                 <a href="/player/{{ player.name|url_encode }}"
                                    class="font-medium text-indigo-600 hover:underline">{{ t('account.view') }}</a>

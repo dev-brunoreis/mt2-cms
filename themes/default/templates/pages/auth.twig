@@ -86,6 +86,16 @@
                            class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
                 </div>
 
+                {% if referralEnabled|default(false) %}
+                    <div class="flex flex-col gap-2">
+                        <label for="referral_code" class="text-sm font-medium text-slate-700">{{ t('auth.referral_code') }}</label>
+                        <input id="referral_code" type="text" name="referral_code" value="{{ referralCode|default('') }}"
+                               autocomplete="off" maxlength="32"
+                               class="rounded-lg border border-slate-300 bg-white px-4 py-3 uppercase tracking-widest text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                        <p class="text-xs text-slate-500">{{ t('auth.referral_code_help') }}</p>
+                    </div>
+                {% endif %}
+
                 {% if error %}
                     <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
                 {% endif %}

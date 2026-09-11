@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Game\GameProfile;
+use Mt2Cms\Game\Proto\ProtoIndexCache;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Proto\TabProtoTable;
 use Mt2Cms\Repository\ProtoNameRepository;
@@ -24,6 +26,7 @@ class GameProtoService
         GameProfile $profile,
         private ProtoSchemas $schemas,
         private ProtoNameRepository $protoNames,
+        private ProtoIndexCache $protoIndex,
     ) {
         $this->items = new TabProtoTable(
             $profile->path('item_proto'),
@@ -39,9 +42,14 @@ class GameProtoService
 
     public function kindFromRoute(string $routeKind): string
     {
-        return match ($routeKind) {
-            self::ROUTE_ITEMS => ProtoSchemas::KIND_ITEM,
-            self::ROUTE_MOBS => ProtoSchemas::KIND_MOB,
+        return $this->resolveKind($routeKind);
+    }
+
+    private function resolveKind(string $kind): string
+    {
+        return match ($kind) {
+            self::ROUTE_ITEMS, ProtoSchemas::KIND_ITEM => ProtoSchemas::KIND_ITEM,
+            self::ROUTE_MOBS, ProtoSchemas::KIND_MOB => ProtoSchemas::KIND_MOB,
             default => throw new \InvalidArgumentException('admin.proto.unknown'),
         };
     }
@@ -52,7 +60,7 @@ class GameProtoService
      */
     public function page(string $kind, int $page, int $perPage, ?string $query, array $excludeVnums = []): array
     {
-        $filtered = $this->filter($this->table($kind)->all(), $query);
+        $filtered = $this->filter($this->indexedRows($this->resolveKind($kind)), $query);
 
         if ($excludeVnums !== []) {
             $exclude = [];
@@ -79,7 +87,7 @@ class GameProtoService
 
     public function countForGrid(string $kind, GridQuery $query): int
     {
-        return count($this->filter($this->table($kind)->all(), $query->q));
+        return count($this->filter($this->indexedRows($this->resolveKind($kind)), $query->q));
     }
 
     /**
@@ -87,10 +95,11 @@ class GameProtoService
      */
     public function listForGrid(string $kind, GridQuery $query): array
     {
+        $internal = $this->resolveKind($kind);
         $rows = $this->sortRows(
-            $this->filter($this->table($kind)->all(), $query->q),
+            $this->filter($this->indexedRows($internal), $query->q),
             $query,
-            $this->listColumns($kind),
+            $this->listColumns($internal),
         );
 
         return array_slice($rows, $query->offset(), $query->perPage);
@@ -109,7 +118,7 @@ class GameProtoService
      */
     public function all(string $kind): array
     {
-        return $this->table($kind)->all();
+        return $this->indexedRows($this->resolveKind($kind));
     }
 
     /**
@@ -174,6 +183,7 @@ class GameProtoService
     {
         $record = $this->validatedRecord($kind, $input, null);
         $this->table($kind)->create($record);
+        $this->invalidateIndex($kind);
         $this->syncDatabase($kind, (int) $record['vnum'], $record['locale_name'], false);
 
         return $record;
@@ -192,6 +202,7 @@ class GameProtoService
 
         $record = $this->validatedRecord($kind, $input, $current);
         $this->table($kind)->update($vnum, $record);
+        $this->invalidateIndex($kind);
         $this->syncDatabase($kind, $vnum, $record['locale_name'], false);
 
         return $record;
@@ -202,6 +213,7 @@ class GameProtoService
         $deleted = $this->table($kind)->delete($vnum);
 
         if ($deleted) {
+            $this->invalidateIndex($kind);
             $this->syncDatabase($kind, $vnum, '', true);
         }
 
@@ -230,7 +242,7 @@ class GameProtoService
                     'sort' => 'locale_name',
                     'type' => 'icon_link',
                     'icon' => $route === self::ROUTE_ITEMS ? 'item' : 'face',
-                    'href' => '/admin/' . $route . '/{id}',
+                    'href' => $this->adminListPath($route) . '/{id}',
                 ];
 
                 continue;
@@ -250,12 +262,12 @@ class GameProtoService
             $sortMap[$column] = $column;
         }
 
-        return GridDefinition::create('/admin/' . $route, $prefix)
+        return GridDefinition::create($this->adminListPath($route), $prefix)
             ->idField('vnum')
             ->defaultSort('vnum')
             ->orderBy($sortMap)
             ->columns($columns)
-            ->massActions('/admin/' . $route . '/mass', [
+            ->massActions($this->adminListPath($route) . '/mass', [
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => $prefix . '.confirm_mass_delete'],
             ]);
     }
@@ -276,9 +288,22 @@ class GameProtoService
         return $this->schemas->defaults($kind);
     }
 
+    public function invalidateIndex(string $kind): void
+    {
+        $this->protoIndex->invalidate($this->resolveKind($kind));
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    private function indexedRows(string $kind): array
+    {
+        return $this->protoIndex->all($this->table($kind), $kind);
+    }
+
     private function table(string $kind): TabProtoTable
     {
-        return $kind === ProtoSchemas::KIND_MOB ? $this->mobs : $this->items;
+        return $this->resolveKind($kind) === ProtoSchemas::KIND_MOB ? $this->mobs : $this->items;
     }
 
     /**
@@ -411,5 +436,10 @@ class GameProtoService
         } catch (\Throwable $exception) {
             Log::error('proto-db', 'Failed to sync proto names to player schema', $exception);
         }
+    }
+
+    private function adminListPath(string $route): string
+    {
+        return $route === self::ROUTE_MOBS ? AdminPaths::gameDataMobs() : AdminPaths::gameDataItems();
     }
 }

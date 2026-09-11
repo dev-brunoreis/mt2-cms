@@ -241,7 +241,7 @@ class AdminAccountsController extends AdminController
         }
 
         $isEdit = isset($account['id']) && (int) $account['id'] > 0;
-        $tab = $isEdit ? $this->requestedTab(['dados', 'activity'], 'dados') : 'dados';
+        $tab = $isEdit ? $this->requestedTab(['data', 'activity'], 'data') : 'data';
         $characters = [];
         $connectionIps = [];
 

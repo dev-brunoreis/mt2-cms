@@ -31,6 +31,16 @@ Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
 6. **Set `APP_TRUST_PROXY=1`** when TLS terminates at a reverse proxy so session cookies get the `Secure` flag.
 7. **Enroll admin 2FA** on first login (`/admin/account/security`) when the require-2FA policy is enabled (default on new installs).
 
+## Production Compose
+
+Use `compose.prod.yml` for a single-node production stack (no MySQL/Adminer host ports, `APP_TRUST_PROXY=1`, persistent `var/` volume):
+
+```bash
+docker compose -f compose.prod.yml up -d
+```
+
+Run migrations inside the PHP container after deploy. Configure a TLS reverse proxy in front of `127.0.0.1:8000`.
+
 ## Docker Compose (development only)
 
 | Service | Port | Notes |
@@ -86,13 +96,17 @@ server {
 
 See `.env-example` for the full list.
 
-Configure **Settings → Community** after deploy: site URL, mail from name/address, online window, PayPal mode/currency, and server channel labels.
+Configure **Settings → Community** after deploy: site URL, mail from name/address, online window, PayPal mode/currency, PayPal webhook id, Discord invite/webhook URLs, and server channel labels.
+
+Register PayPal webhook URL: `POST /payments/webhook/paypal` (HTTPS, public site URL).
 
 ## PHP runtime (production)
 
-The Docker PHP image ships `docker/php/zz-hardening.ini` (`display_errors=Off`, `expose_php=Off`, `log_errors=On`). Mirror these in your production `php.ini` if you deploy without the Compose image.
+The Docker PHP image ships `docker/php/zz-hardening.ini` (`display_errors=Off`, OPcache, 512M upload limits). Mirror these in your production `php.ini` if you deploy without the Compose image.
 
-Nginx denies `*.php` under `/uploads/` (news images are static files only).
+Nginx (`docker/nginx/default.conf`): `client_max_body_size 512m` (aligned with download uploads), static `/uploads/` without FastCGI, denies `*.php` under `/uploads/`. Download files are stored under `var/downloads/`, not `public/`.
+
+PHP sessions are stored in `var/sessions/` (0750). Use sticky sessions if you run more than one PHP worker.
 
 ## Backups
 
@@ -102,6 +116,14 @@ Schedule regular **mysqldump** (or managed-DB snapshots) for both databases:
 - CMS MySQL (`cms` schema: admins, settings, news, tickets, ACL, …)
 
 Store dumps off-server and test restores periodically. The CMS does not include a backup daemon.
+
+Example cron (daily at 03:00, from the project root on the host):
+
+```cron
+0 3 * * * cd /path/to/mt2-cms && ./bin/backup-dbs.sh >> var/backups/backup.log 2>&1
+```
+
+Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
 
 ## Post-deploy checklist
 

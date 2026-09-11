@@ -59,6 +59,20 @@ class AdminShopsController extends AdminController
         ]);
     }
 
+    public function mass(): Response
+    {
+        return $this->runMassActions(
+            $this->shops->gridDefinition()->spec(),
+            '/admin/game-data/shops',
+            [
+                'delete' => fn (int $id): bool => $this->shops->delete($id),
+            ],
+            'shop',
+            'admin.shops.mass_done',
+            'game-data/shops/mass',
+        );
+    }
+
     public function create(): Response
     {
         return $this->formView(['vnum' => '', 'name' => '', 'npc_vnum' => 0], null, 200, false);

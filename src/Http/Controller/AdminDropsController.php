@@ -39,9 +39,19 @@ class AdminDropsController extends AdminController
 
     public function index(): Response
     {
+        $mobQuery = trim((string) ($_GET['mob_q'] ?? ''));
+        $mobResults = [];
+
+        if ($mobQuery !== '') {
+            $page = $this->protos->page(GameProtoService::ROUTE_MOBS, 1, 15, $mobQuery);
+            $mobResults = $page['rows'];
+        }
+
         return $this->adminView('drops', 'pages/drops-index.twig', [
             'title' => $this->t('admin.drops.title'),
             'pageLead' => $this->t('admin.drops.lead'),
+            'mobQuery' => $mobQuery,
+            'mobResults' => $mobResults,
         ]);
     }
 

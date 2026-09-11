@@ -11,7 +11,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\AccountRepository;
-use Mt2Cms\Repository\CommonRepository;
+use Mt2Cms\Repository\GmRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Theme\ThemeEngine;
@@ -27,7 +27,7 @@ class AdminGmsController extends AdminController
         ThemeEngine $adminTheme,
         AclService $acl,
         AdminAuditService $auditLog,
-        private CommonRepository $common,
+        private GmRepository $gms,
         private AccountRepository $accounts,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
@@ -35,13 +35,13 @@ class AdminGmsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->common->gridDefinition()->spec();
+        $spec = $this->gms->gridDefinition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
             $query,
-            fn ($q) => $this->common->countForGrid($q),
-            fn ($q) => $this->common->listForGrid($q),
+            fn ($q) => $this->gms->countForGrid($q),
+            fn ($q) => $this->gms->listForGrid($q),
         );
 
         return $this->adminView('gms', 'pages/gms.twig', [
@@ -50,17 +50,17 @@ class AdminGmsController extends AdminController
             'headerHref' => '/admin/game-data/gms/new',
             'headerActionLabel' => $this->t('admin.gms.create'),
             'grid' => $grid,
-            'hosts' => $this->common->gmHosts(),
+            'hosts' => $this->gms->gmHosts(),
         ]);
     }
 
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->common->gridDefinition()->spec(),
+            $this->gms->gridDefinition()->spec(),
             '/admin/game-data/gms',
             [
-                'delete' => fn (int $id): bool => $this->common->deleteGm($id),
+                'delete' => fn (int $id): bool => $this->gms->deleteGm($id),
             ],
             'gm',
             'admin.gms.mass_done',
@@ -89,7 +89,7 @@ class AdminGmsController extends AdminController
 
         try {
             $this->assertAccountExists((string) $input['mAccount']);
-            $gm = $this->common->createGm($input);
+            $gm = $this->gms->createGm($input);
             $this->audit('gm.create', 'gm', (int) $gm['mID']);
             $this->flash('success', $this->t('admin.gms.created'));
 
@@ -101,7 +101,7 @@ class AdminGmsController extends AdminController
 
     public function edit(string $id): Response
     {
-        $gm = $this->common->findGmById((int) $id);
+        $gm = $this->gms->findGmById((int) $id);
 
         if ($gm === null) {
             $this->flash('error', $this->t('admin.gms.not_found'));
@@ -119,7 +119,7 @@ class AdminGmsController extends AdminController
         }
 
         $gmId = (int) $id;
-        $gm = $this->common->findGmById($gmId);
+        $gm = $this->gms->findGmById($gmId);
 
         if ($gm === null) {
             $this->flash('error', $this->t('admin.gms.not_found'));
@@ -137,7 +137,7 @@ class AdminGmsController extends AdminController
 
         try {
             $this->assertAccountExists((string) $input['mAccount']);
-            $this->common->updateGm($gmId, $input);
+            $this->gms->updateGm($gmId, $input);
             $this->auditChange('gm.update', 'gm', $gmId, [
                 'mAccount' => $gm['mAccount'],
                 'mName' => $gm['mName'],
@@ -165,7 +165,7 @@ class AdminGmsController extends AdminController
             return $this->redirect('/admin/game-data/gms');
         }
 
-        if (!$this->common->deleteGm((int) $id)) {
+        if (!$this->gms->deleteGm((int) $id)) {
             $this->flash('error', $this->t('admin.gms.not_found'));
         } else {
             $this->audit('gm.delete', 'gm', (int) $id);
@@ -188,7 +188,7 @@ class AdminGmsController extends AdminController
         }
 
         try {
-            $this->common->addGmHost(trim((string) ($_POST['mIP'] ?? '')));
+            $this->gms->addGmHost(trim((string) ($_POST['mIP'] ?? '')));
             $this->audit('gm.host_add', 'gm_host', null);
             $this->flash('success', $this->t('admin.gms.host_added'));
         } catch (\InvalidArgumentException | \RuntimeException $e) {
@@ -210,7 +210,7 @@ class AdminGmsController extends AdminController
             return $this->redirect('/admin/game-data/gms');
         }
 
-        if (!$this->common->deleteGmHost(trim((string) ($_POST['mIP'] ?? '')))) {
+        if (!$this->gms->deleteGmHost(trim((string) ($_POST['mIP'] ?? '')))) {
             $this->flash('error', $this->t('admin.gms.host_not_found'));
         } else {
             $this->audit('gm.host_delete', 'gm_host', null);
@@ -238,7 +238,7 @@ class AdminGmsController extends AdminController
             'saveLabel' => $this->t('admin.save'),
             'gm' => $gm,
             'isEdit' => $isEdit,
-            'authorities' => CommonRepository::authorities(),
+            'authorities' => GmRepository::authorities(),
             'error' => $error,
         ], $status);
     }

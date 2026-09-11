@@ -1,4 +1,4 @@
-{% set activeTab = activeTab|default('dados') %}
+{% set activeTab = activeTab|default('data') %}
 
 {% if error %}
     <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -11,33 +11,33 @@
       action="/admin/game/guilds/{{ guild.id }}"
       class="admin-panel admin-tabs overflow-hidden"
       data-admin-tabs
-      data-default-tab="dados"
+      data-default-tab="data"
       data-tab-loading="{{ t('admin.tabs.loading') }}"
       data-tab-load-error="{{ t('admin.tabs.load_error') }}">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
-        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.guilds.tab_data'), active: activeTab == 'dados' } %}
-        {% include 'components/tab.twig' with { id: 'membros', label: t('admin.guilds.tab_members'), active: activeTab == 'membros' } %}
-        {% include 'components/tab.twig' with { id: 'comentarios', label: t('admin.guilds.tab_comments'), active: activeTab == 'comentarios' } %}
+        {% include 'components/tab.twig' with { id: 'data', label: t('admin.guilds.tab_data'), active: activeTab == 'data' } %}
+        {% include 'components/tab.twig' with { id: 'members', label: t('admin.guilds.tab_members'), active: activeTab == 'members' } %}
+        {% include 'components/tab.twig' with { id: 'comments', label: t('admin.guilds.tab_comments'), active: activeTab == 'comments' } %}
         {% include 'components/tab.twig' with { id: 'wars', label: t('admin.guilds.tab_wars'), active: activeTab == 'wars' } %}
     </div>
 
     {% include 'components/tab-panel.twig' with {
-        id: 'dados',
-        visible: activeTab == 'dados',
+        id: 'data',
+        visible: activeTab == 'data',
         template: 'components/guild-data.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
-        id: 'membros',
-        visible: activeTab == 'membros',
-        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=membros&partial=1',
+        id: 'members',
+        visible: activeTab == 'members',
+        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=members&partial=1',
         template: 'components/guild-members.twig'
     } %}
     {% include 'components/tab-panel.twig' with {
-        id: 'comentarios',
-        visible: activeTab == 'comentarios',
-        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=comentarios&partial=1',
+        id: 'comments',
+        visible: activeTab == 'comments',
+        src: '/admin/game/guilds/' ~ guild.id ~ '?tab=comments&partial=1',
         template: 'components/guild-comments.twig'
     } %}
     {% include 'components/tab-panel.twig' with {

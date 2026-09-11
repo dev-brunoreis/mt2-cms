@@ -69,9 +69,63 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
     private const DETAIL_COLUMNS = 'id, account_id, name, job, skill_group, level, exp, gold, playtime, map_index, last_play';
     private const ADMIN_COLUMNS = 'p.id, p.account_id, p.name, p.job, p.skill_group, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play';
 
+    private ?bool $positionColumnsAvailable = null;
+
     protected function database(): string
     {
         return 'player';
+    }
+
+    public function hasPositionColumns(): bool
+    {
+        if ($this->positionColumnsAvailable !== null) {
+            return $this->positionColumnsAvailable;
+        }
+
+        if (!$this->schemaTableExists('player')) {
+            $this->positionColumnsAvailable = false;
+
+            return false;
+        }
+
+        $rows = $this->db()->fetchAll(
+            'SELECT COLUMN_NAME
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME IN (?, ?)',
+            [$this->database(), 'player', 'x', 'y'],
+        );
+
+        $found = [];
+
+        foreach ($rows as $row) {
+            $found[(string) ($row['COLUMN_NAME'] ?? '')] = true;
+        }
+
+        $this->positionColumnsAvailable = isset($found['x'], $found['y']);
+
+        return $this->positionColumnsAvailable;
+    }
+
+    public function teleportTo(int $playerId, int $accountId, int $mapIndex, int $x, int $y): bool
+    {
+        if (!$this->hasPositionColumns()) {
+            return false;
+        }
+
+        return $this->db()->execute(
+            'UPDATE `player` SET map_index = ?, x = ?, y = ? WHERE id = ? AND account_id = ?',
+            [$mapIndex, $x, $y, $playerId, $accountId],
+        ) === 1;
+    }
+
+    public function maxLevelByAccountId(int $accountId): int
+    {
+        $level = $this->db()->fetchColumn(
+            'SELECT MAX(level) FROM `player` WHERE account_id = ?',
+            [$accountId],
+        );
+
+        return (int) ($level ?? 0);
     }
 
     public function findById(int $id): ?array

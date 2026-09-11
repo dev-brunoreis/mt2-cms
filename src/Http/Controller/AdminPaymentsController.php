@@ -50,6 +50,30 @@ class AdminPaymentsController extends AdminController
         ]);
     }
 
+    public function show(string $id): Response
+    {
+        if ($redirect = $this->requireAdminResource('store/payments/view')) {
+            return $redirect;
+        }
+
+        $paymentId = (int) $id;
+        $payment = $this->payments->findById($paymentId);
+
+        if ($payment === null) {
+            $this->flash('error', $this->t('admin.payments.not_found'));
+
+            return $this->redirect('/admin/store/payments');
+        }
+
+        return $this->adminView('payments', 'pages/payment-detail.twig', [
+            'title' => $this->t('admin.payments.detail_title', ['id' => $paymentId]),
+            'pageLead' => $this->t('admin.payments.detail_lead'),
+            'payment' => $payment,
+            'canRecredit' => $this->acl->isAllowed($this->adminAuth->user(), 'store/payments/edit')
+                && $payment['credited_at'] === null,
+        ]);
+    }
+
     public function recredit(string $id): Response
     {
         if ($redirect = $this->requireAdminResource('store/payments/edit')) {
@@ -59,7 +83,7 @@ class AdminPaymentsController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/store/payments');
+            return $this->redirect('/admin/store/payments/' . (int) $id);
         }
 
         $paymentId = (int) $id;
@@ -74,7 +98,7 @@ class AdminPaymentsController extends AdminController
         if ($payment['credited_at'] !== null) {
             $this->flash('error', $this->t('admin.payments.already_credited'));
 
-            return $this->redirect('/admin/store/payments');
+            return $this->redirect('/admin/store/payments/' . $paymentId);
         }
 
         $provider = (string) ($payment['provider'] ?? '');
@@ -87,6 +111,6 @@ class AdminPaymentsController extends AdminController
             $this->flash('error', $this->t('admin.payments.recredit_failed'));
         }
 
-        return $this->redirect('/admin/store/payments');
+        return $this->redirect('/admin/store/payments/' . $paymentId);
     }
 }

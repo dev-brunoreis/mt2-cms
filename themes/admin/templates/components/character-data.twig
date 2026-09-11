@@ -62,10 +62,21 @@
         </div>
     </dl>
 
-    <div class="mt-4">
+    <div class="mt-4 flex flex-wrap gap-3">
         <a href="/admin/game/awards/new?login={{ character.account_login|url_encode }}&pid={{ character.id }}"
            class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium">
             {{ t('admin.awards.send_item') }}
         </a>
+
+        {% if unstuckAvailable|default(false) %}
+            <form method="post" action="/admin/game/characters/{{ character.id }}/unstuck" class="inline">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <button type="submit"
+                        class="admin-btn-secondary inline-flex rounded-md px-4 py-2 text-sm font-medium"
+                        {% if not unstuckOffline|default(false) %}title="{{ t('admin.unstuck.player_online', {minutes: onlineWindowMinutes}) }}"{% endif %}>
+                    {{ t('admin.unstuck.button') }}
+                </button>
+            </form>
+        {% endif %}
     </div>
 </fieldset>

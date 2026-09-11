@@ -16,6 +16,10 @@
             <a href="/status" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.status') }}</a>
             <a href="/downloads" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.downloads') }}</a>
             <a href="/donate" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.donate') }}</a>
+            {% if discord_invite_url %}
+                <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer"
+                   class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.discord') }}</a>
+            {% endif %}
 
             {% if auth.check %}
                 <a href="/account" class="font-medium text-slate-600 hover:text-slate-900 transition">{{ t('nav.account') }}</a>

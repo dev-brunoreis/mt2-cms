@@ -18,7 +18,9 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
+use Mt2Cms\Unstuck\UnstuckService;
 
 class AdminCharactersController extends AdminController
 {
@@ -44,6 +46,8 @@ class AdminCharactersController extends AdminController
         private GuildRepository $guilds,
         private LogRepository $logs,
         private AccountRepository $accounts,
+        private SettingsService $settings,
+        private UnstuckService $unstuck,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -83,7 +87,7 @@ class AdminCharactersController extends AdminController
         $playerId = (int) $character['id'];
         $accountId = (int) ($character['account_id'] ?? 0);
         $name = (string) $character['name'];
-        $tab = $this->requestedTab(['dados', 'logs', 'items', 'guild', 'marriage'], 'dados');
+        $tab = $this->requestedTab(['data', 'logs', 'items', 'guild', 'marriage'], 'data');
         $data = [
             'title' => $this->t('admin.characters.view_title', ['name' => $name]),
             'pageLead' => $this->t('admin.characters.view_lead'),
@@ -96,6 +100,9 @@ class AdminCharactersController extends AdminController
             'safeboxLayout' => null,
             'guild' => null,
             'marriage' => null,
+            'unstuckAvailable' => $this->unstuck->hasPositionColumns(),
+            'unstuckOffline' => $this->unstuck->isOffline($playerId),
+            'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
         ];
 
         if ($tab === 'logs') {
@@ -134,6 +141,43 @@ class AdminCharactersController extends AdminController
         return $this->adminView('characters', 'pages/character.twig', $data);
     }
 
+    public function unstuck(string $id): Response
+    {
+        if ($redirect = $this->requireAdminResource('game/characters/unstuck')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/game/characters/' . (int) $id);
+        }
+
+        $character = $this->players->findForAdmin((int) $id);
+
+        if ($character === null) {
+            $this->flash('error', $this->t('admin.characters.not_found'));
+
+            return $this->redirect('/admin/game/characters');
+        }
+
+        $playerId = (int) $character['id'];
+        $accountId = (int) ($character['account_id'] ?? 0);
+
+        try {
+            $this->unstuck->unstuck($playerId, $accountId, true);
+            $this->audit('character.unstuck', 'player', $playerId, [
+                'name' => (string) ($character['name'] ?? ''),
+                'account_id' => $accountId,
+            ]);
+            $this->flash('success', $this->t('admin.unstuck.done'));
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
+
+        return $this->redirect('/admin/game/characters/' . $playerId);
+    }
+
     public function showOwnedItem(string $id): Response
     {
         if ($guard = $this->denyUnlessAdmin()) {
@@ -148,7 +192,7 @@ class AdminCharactersController extends AdminController
             return $this->redirect('/admin/game/characters');
         }
 
-        $tab = $this->requestedTab(['dados', 'logs'], 'dados');
+        $tab = $this->requestedTab(['data', 'logs'], 'data');
         $item = $this->items->findById($itemId);
         $itemLogs = [];
 

@@ -47,6 +47,9 @@ class AdminCommunityController extends AdminController
             'paypalCurrency' => $this->settings->paypalCurrency(),
             'paypalClientId' => $this->settings->paypalClientId(),
             'paypalConfigured' => $this->settings->paypalConfigured(),
+            'paypalWebhookId' => $this->settings->paypalWebhookId(),
+            'discordInviteUrl' => $this->settings->discordInviteUrl(),
+            'discordWebhookConfigured' => $this->settings->discordWebhookConfigured(),
             'formId' => 'admin-community-form',
             'saveLabel' => $this->t('admin.save'),
         ]);
@@ -77,6 +80,9 @@ class AdminCommunityController extends AdminController
             $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
             $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
             $this->settings->setPaypalClientSecret(trim((string) ($_POST['paypal_client_secret'] ?? '')));
+            $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
+            $this->settings->setDiscordInviteUrl(trim((string) ($_POST['discord_invite_url'] ?? '')));
+            $this->settings->setDiscordWebhookUrl(trim((string) ($_POST['discord_webhook_url'] ?? '')));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 

@@ -8,22 +8,22 @@
       method="post"
       action="{% if isEdit %}/admin/game/accounts/{{ account.id }}{% else %}/admin/game/accounts{% endif %}"
       class="admin-panel{% if isEdit %} admin-tabs overflow-hidden{% else %} p-6{% endif %}"
-      {% if isEdit %}data-admin-tabs data-default-tab="dados" data-tab-loading="{{ t('admin.tabs.loading') }}" data-tab-load-error="{{ t('admin.tabs.load_error') }}"{% endif %}>
+      {% if isEdit %}data-admin-tabs data-default-tab="data" data-tab-loading="{{ t('admin.tabs.loading') }}" data-tab-load-error="{{ t('admin.tabs.load_error') }}"{% endif %}>
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     {% if isEdit %}
         <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
-            {% include 'components/tab.twig' with { id: 'dados', label: t('admin.accounts.tab_data'), active: activeTab|default('dados') == 'dados' } %}
-            {% include 'components/tab.twig' with { id: 'activity', label: t('admin.accounts.tab_activity'), active: activeTab|default('dados') == 'activity' } %}
+            {% include 'components/tab.twig' with { id: 'data', label: t('admin.accounts.tab_data'), active: activeTab|default('data') == 'data' } %}
+            {% include 'components/tab.twig' with { id: 'activity', label: t('admin.accounts.tab_activity'), active: activeTab|default('data') == 'activity' } %}
         </div>
     {% endif %}
 
-    <div {% if isEdit %}id="admin-tab-panel-dados"
+    <div {% if isEdit %}id="admin-tab-panel-data"
          class="admin-tabs-panel"
          role="tabpanel"
-         data-tab-panel="dados"
-         aria-labelledby="admin-tab-dados"
-         {% if activeTab|default('dados') != 'dados' %}hidden{% endif %}{% endif %}>
+         data-tab-panel="data"
+         aria-labelledby="admin-tab-data"
+         {% if activeTab|default('data') != 'data' %}hidden{% endif %}{% endif %}>
         <fieldset class="admin-fieldset">
             <legend>
                 {{ t('admin.accounts.details') }}
@@ -119,7 +119,7 @@
     {% if isEdit %}
         {% include 'components/tab-panel.twig' with {
             id: 'activity',
-            visible: activeTab|default('dados') == 'activity',
+            visible: activeTab|default('data') == 'activity',
             src: '/admin/game/accounts/' ~ account.id ~ '?tab=activity&partial=1',
             template: 'components/account-activity.twig'
         } %}

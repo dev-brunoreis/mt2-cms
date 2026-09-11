@@ -14,8 +14,11 @@ use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\ItemShopOrderRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Repository\PlayerRepository;
+use Mt2Cms\Referral\ReferralService;
 use Mt2Cms\Service\AccountEmailService;
+use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
+use Mt2Cms\Unstuck\UnstuckService;
 
 class AccountController extends Controller
 {
@@ -32,6 +35,9 @@ class AccountController extends Controller
         private ItemShopOrderRepository $shopOrders,
         private PaymentRepository $payments,
         private MailerInterface $mailer,
+        private SettingsService $settings,
+        private UnstuckService $unstuck,
+        private ReferralService $referrals,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -51,12 +57,21 @@ class AccountController extends Controller
             $account['empire'] = $this->players->findEmpireByAccountId($accountId);
             $account['email'] = $this->accounts->findEmailById($accountId);
             $account['email_verified'] = $this->accountEmails->isVerified($accountId);
+            $this->referrals->processPendingReward($accountId);
+        }
+
+        $referralCode = null;
+
+        if ($accountId !== null && $this->referrals->isEnabled()) {
+            $referralCode = $this->referrals->ensureCodeForAccount($accountId);
         }
 
         return $this->view('account', [
             'title' => $this->t('account.title'),
             'account' => $account,
             'mailConfigured' => $this->mailer->isConfigured(),
+            'referralCode' => $referralCode,
+            'referralEnabled' => $this->referrals->isEnabled(),
         ]);
     }
 
@@ -71,10 +86,77 @@ class AccountController extends Controller
             ? $this->players->findByAccountId($accountId)
             : [];
 
+        if ($accountId !== null) {
+            $this->referrals->processPendingReward($accountId);
+        }
+
+        $unstuckStates = [];
+
+        if ($accountId !== null && $this->unstuck->isAvailable()) {
+            foreach ($players as $player) {
+                $playerId = (int) ($player['id'] ?? 0);
+
+                if ($playerId < 1) {
+                    continue;
+                }
+
+                $unstuckStates[$playerId] = [
+                    'offline' => $this->unstuck->isOffline($playerId),
+                    'cooldown_seconds' => $this->unstuck->cooldownRemainingSeconds($playerId),
+                ];
+            }
+        }
+
         return $this->view('characters', [
             'title' => $this->t('account.characters'),
             'players' => $players,
+            'unstuckAvailable' => $this->unstuck->isAvailable(),
+            'unstuckStates' => $unstuckStates,
+            'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
         ]);
+    }
+
+    public function unstuck(): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/account/characters');
+        }
+
+        $accountId = $this->auth->id();
+
+        if ($accountId === null) {
+            return $this->redirect('/login');
+        }
+
+        $bucket = 'account-unstuck:' . $accountId;
+
+        if ($this->rateLimiter->tooManyAttempts($bucket)) {
+            $this->flash('error', $this->t('unstuck.rate_limited'));
+
+            return $this->redirect('/account/characters');
+        }
+
+        $this->rateLimiter->hit($bucket);
+
+        $playerId = (int) ($_POST['player_id'] ?? 0);
+
+        try {
+            $this->unstuck->unstuck($playerId, $accountId);
+            $this->rateLimiter->clear($bucket);
+            $this->flash('success', $this->t('unstuck.success'));
+        } catch (\InvalidArgumentException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        } catch (\RuntimeException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
+
+        return $this->redirect('/account/characters');
     }
 
     public function showPassword(): Response

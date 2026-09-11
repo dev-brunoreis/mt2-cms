@@ -41,25 +41,29 @@ docs/                     How-to guides for new features
 | --- | --- | --- |
 | `AccountRepository` | `account` | Find, create, authenticate, block/unblock |
 | `PlayerRepository` | `player` | Characters, public ranking, public profile |
-| `CommonRepository` | `common` | GM list and locales |
+| `GmRepository` | `common` | GM list and hosts |
 | `LogRepository` | `log` | Recent login log rows |
 
 Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are stripped before public results.
 
 ## Routes
 
+Public routes are registered in [`src/Http/PublicRoutes.php`](src/Http/PublicRoutes.php). Highlights:
+
 | Method | Path | Notes |
 | --- | --- | --- |
-| GET | `/` | Home |
-| GET/POST | `/register` | Account registration (CSRF, rate limited) |
-| GET/POST | `/login` | Login (CSRF, rate limited) |
-| POST | `/logout` | Logout (CSRF) |
-| POST | `/locale` | Switch locale cookie (CSRF) |
-| GET | `/account` | My account dashboard (auth required) |
-| GET/POST | `/account/password` | Change game password (CSRF, rate limited) |
-| GET | `/account/characters` | Character list |
-| GET | `/ranking` | Paged ranking (`?q=&page=`) |
-| GET | `/player/{name}` | Public player profile |
+| GET | `/` | Home (+ upcoming events) |
+| GET/POST | `/register`, `/login` | Auth (CSRF, rate limited) |
+| GET | `/news`, `/news/{id}` | News |
+| GET | `/events`, `/events/{id}` | Events |
+| GET | `/shop` | Item shop |
+| GET | `/donate` | Cash packages (PayPal) |
+| POST | `/payments/webhook/paypal` | PayPal webhook (configure in production) |
+| GET | `/account`, `/account/characters` | Account area |
+| POST | `/account/characters/unstuck` | Unstuck (offline, rate limited) |
+| GET | `/ranking`, `/player/{name}` | Ranking and profiles |
+
+Admin routes: [`src/Http/AdminRoutes.php`](src/Http/AdminRoutes.php). Controller wiring: [`src/Http/controller_factories.php`](src/Http/controller_factories.php).
 
 ## Themes
 
@@ -91,7 +95,7 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 
 HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`), idle timeouts (admin 30 min, public 2 h), and regenerate on login. Login/register and password change are rate limited (file-backed, fail-closed). Player passwords use Metin2-compatible `*SHA1(SHA1)` hashing; admins use `password_hash` with TOTP 2FA (encrypted at rest via `APP_KEY`). Unhandled exceptions return a generic 500 (no stack traces to clients).
 
-See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production.
+See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`compose.prod.yml`, backups, PayPal webhook URL).
 
 ## Requirements
 

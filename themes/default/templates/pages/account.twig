@@ -42,4 +42,14 @@
             <p class="mt-1 text-lg font-semibold text-slate-900">{{ account.create_time|game_date }}</p>
         </div>
     </div>
+
+    {% if referralEnabled|default(false) and referralCode %}
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900">{{ t('referral.your_code') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('referral.your_code_help') }}</p>
+            <p class="mt-4 inline-block rounded-lg bg-slate-100 px-4 py-3 font-mono text-lg tracking-widest text-slate-900">
+                {{ referralCode }}
+            </p>
+        </div>
+    {% endif %}
 </section>

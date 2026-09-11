@@ -5,10 +5,44 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Discord\DiscordWebhookService;
 use Mt2Cms\Http\Response;
 
 class AdminNewsPostsController extends AdminNewsBaseController
 {
+    public function __construct(
+        \Mt2Cms\Theme\ThemeEngine $theme,
+        \Mt2Cms\Auth\Auth $auth,
+        \Mt2Cms\Auth\Csrf $csrf,
+        \Mt2Cms\I18n\Translator $translator,
+        \Mt2Cms\Auth\AdminAuth $adminAuth,
+        \Mt2Cms\Theme\ThemeEngine $adminTheme,
+        \Mt2Cms\Service\AclService $acl,
+        \Mt2Cms\Service\AdminAuditService $auditLog,
+        \Mt2Cms\Repository\NewsRepository $news,
+        \Mt2Cms\Repository\NewsCommentRepository $comments,
+        \Mt2Cms\Service\SettingsService $settings,
+        \Mt2Cms\Support\HtmlSanitizer $sanitizer,
+        \Mt2Cms\Service\NewsUploadService $uploads,
+        private DiscordWebhookService $discord,
+    ) {
+        parent::__construct(
+            $theme,
+            $auth,
+            $csrf,
+            $translator,
+            $adminAuth,
+            $adminTheme,
+            $acl,
+            $auditLog,
+            $news,
+            $comments,
+            $settings,
+            $sanitizer,
+            $uploads,
+        );
+    }
+
     public function index(): Response
     {
         $spec = $this->news->gridDefinition()->spec();
@@ -82,6 +116,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
                 'comments_enabled' => $input['comments_enabled'],
             ]);
             $this->audit('news.create', 'news', $newsId);
+            $this->notifyIfPublished($newsId, $input['title'], $input['status'], null);
             $this->flash('success', $this->t('admin.news.created'));
 
             return $this->redirect('/admin/content/news?tab=posts');
@@ -162,6 +197,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
                 'status' => $input['status'],
                 'comments_enabled' => $input['comments_enabled'],
             ]);
+            $this->notifyIfPublished((int) $id, $input['title'], $input['status'], (string) $existing['status']);
             $this->flash('success', $this->t('admin.news.update_ok'));
 
             return $this->redirect('/admin/content/news/posts/' . (int) $id);
@@ -312,12 +348,27 @@ class AdminNewsPostsController extends AdminNewsBaseController
             return false;
         }
 
-        return $this->news->update($id, [
+        $updated = $this->news->update($id, [
             'title' => (string) $post['title'],
             'body' => (string) $post['body'],
             'cover_image' => $post['cover_image'],
             'status' => $status,
             'comments_enabled' => (int) $post['comments_enabled'] === 1,
         ]);
+
+        if ($updated) {
+            $this->notifyIfPublished($id, (string) $post['title'], $status, (string) $post['status']);
+        }
+
+        return $updated;
+    }
+
+    private function notifyIfPublished(int $newsId, string $title, string $newStatus, ?string $previousStatus): void
+    {
+        if ($newStatus !== 'published' || $previousStatus === 'published') {
+            return;
+        }
+
+        $this->discord->notifyNewsPublished($newsId, $title);
     }
 }

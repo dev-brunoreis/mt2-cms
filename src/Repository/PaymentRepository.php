@@ -23,7 +23,7 @@ class PaymentRepository extends Repository implements ProvidesAdminGrid
                 'created_at' => 'created_at',
             ])
             ->columns([
-                ['key' => 'id', 'label' => 'admin.payments.id', 'sort' => 'id', 'type' => 'muted'],
+                ['key' => 'id', 'label' => 'admin.payments.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/store/payments/{id}'],
                 ['key' => 'account_login', 'label' => 'admin.payments.account', 'sort' => 'account_login', 'type' => 'text'],
                 ['key' => 'cash_amount', 'label' => 'admin.payments.cash', 'type' => 'number'],
                 ['key' => 'amount_cents', 'label' => 'admin.payments.amount', 'sort' => 'amount_cents', 'type' => 'number'],

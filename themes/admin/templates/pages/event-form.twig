@@ -1,0 +1,67 @@
+{% if error %}
+    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
+{% endif %}
+
+<form id="admin-event-form"
+      method="post"
+      action="{% if isEdit %}/admin/content/events/{{ event.id }}{% else %}/admin/content/events{% endif %}"
+      class="admin-panel p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.events.details') }}
+            <span class="admin-fieldset-help">{{ t('admin.events.details_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="event-title">{{ t('admin.events.title_col') }}</label>
+                <input id="event-title" type="text" name="title" required maxlength="200"
+                       value="{{ event.title|default('') }}" class="admin-input">
+            </div>
+
+            <div class="admin-field">
+                <label for="event-starts-at">{{ t('admin.events.starts_at') }}</label>
+                <input id="event-starts-at" type="datetime-local" name="starts_at" required
+                       value="{{ event.starts_at|default('') }}" class="admin-input">
+            </div>
+
+            <div class="admin-field">
+                <label for="event-ends-at">{{ t('admin.events.ends_at') }}</label>
+                <input id="event-ends-at" type="datetime-local" name="ends_at"
+                       value="{{ event.ends_at|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.events.ends_at_help') }}</span>
+            </div>
+
+            <div class="admin-field sm:col-span-2">
+                <label class="flex items-start gap-3">
+                    <input type="checkbox" name="published" value="1"
+                           {% if event.published|default(false) %}checked{% endif %}
+                           class="mt-1">
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.events.published_col') }}</span>
+                        <span class="mt-1 block text-sm text-slate-500">{{ t('admin.events.published_help') }}</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.events.body') }}
+            <span class="admin-fieldset-help">{{ t('admin.events.body_help') }}</span>
+        </legend>
+        <textarea id="event-body" name="body" rows="16" class="admin-input">{{ event.body|default('') }}</textarea>
+    </fieldset>
+
+    <div class="flex justify-end">
+        <button type="submit" class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white">
+            {{ t('admin.save') }}
+        </button>
+    </div>
+</form>
+
+<script src="/vendor/tinymce/tinymce.min.js"></script>
+<script src="/js/admin/admin-events-editor.js" defer></script>

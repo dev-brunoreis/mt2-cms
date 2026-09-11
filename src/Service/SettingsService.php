@@ -358,4 +358,217 @@ class SettingsService
 
         $this->settings->set('paypal_client_secret', AppCrypto::encrypt($secret));
     }
+
+    public function paypalWebhookId(): string
+    {
+        return trim((string) ($this->settings->get('paypal_webhook_id') ?? ''));
+    }
+
+    public function setPaypalWebhookId(string $webhookId): void
+    {
+        $this->settings->set('paypal_webhook_id', trim($webhookId));
+    }
+
+    public function discordInviteUrl(): string
+    {
+        return trim((string) ($this->settings->get('discord_invite_url') ?? ''));
+    }
+
+    public function setDiscordInviteUrl(string $url): void
+    {
+        $url = trim($url);
+
+        if ($url === '') {
+            $this->settings->set('discord_invite_url', '');
+
+            return;
+        }
+
+        if (!preg_match('#^https://#i', $url)) {
+            throw new \InvalidArgumentException('admin.community.discord_invite_invalid');
+        }
+
+        $this->settings->set('discord_invite_url', rtrim($url, '/'));
+    }
+
+    public function discordWebhookUrl(): string
+    {
+        $stored = trim((string) ($this->settings->get('discord_webhook_url') ?? ''));
+
+        if ($stored === '') {
+            return '';
+        }
+
+        try {
+            return AppCrypto::isEncrypted($stored) ? AppCrypto::decrypt($stored) : $stored;
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    public function discordWebhookConfigured(): bool
+    {
+        return $this->discordWebhookUrl() !== '';
+    }
+
+    public function setDiscordWebhookUrl(string $url): void
+    {
+        $url = trim($url);
+
+        if ($url === '') {
+            return;
+        }
+
+        if (!preg_match('#^https://(discord\.com|discordapp\.com)/api/webhooks/#i', $url)) {
+            throw new \InvalidArgumentException('admin.community.discord_webhook_invalid');
+        }
+
+        $this->settings->set('discord_webhook_url', AppCrypto::encrypt($url));
+    }
+
+    public function unstuckEnabled(): bool
+    {
+        $value = $this->settings->get('unstuck_enabled');
+
+        if ($value === null) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function setUnstuckEnabled(bool $enabled): void
+    {
+        $this->settings->set('unstuck_enabled', $enabled ? '1' : '0');
+    }
+
+    public function unstuckCooldownMinutes(): int
+    {
+        $value = (int) ($this->settings->get('unstuck_cooldown_minutes') ?? 60);
+
+        return max(1, min(1440, $value));
+    }
+
+    public function setUnstuckCooldownMinutes(int $minutes): void
+    {
+        $this->settings->set('unstuck_cooldown_minutes', (string) max(1, min(1440, $minutes)));
+    }
+
+    /**
+     * @return array<int, array{map_index: int, x: int, y: int}>
+     */
+    public function unstuckSpawns(): array
+    {
+        $stored = $this->settings->getJson('unstuck_spawns', []);
+        $defaults = self::defaultUnstuckSpawns();
+        $spawns = [];
+
+        foreach ([1, 2, 3] as $empire) {
+            $raw = $stored[(string) $empire] ?? $stored[$empire] ?? null;
+
+            if (is_array($raw)) {
+                $spawns[$empire] = [
+                    'map_index' => max(0, (int) ($raw['map_index'] ?? 0)),
+                    'x' => (int) ($raw['x'] ?? 0),
+                    'y' => (int) ($raw['y'] ?? 0),
+                ];
+            } else {
+                $spawns[$empire] = $defaults[$empire];
+            }
+        }
+
+        return $spawns;
+    }
+
+    /**
+     * @param array<int, array{map_index: int, x: int, y: int}> $spawns
+     */
+    public function setUnstuckSpawns(array $spawns): void
+    {
+        $normalized = [];
+
+        foreach ([1, 2, 3] as $empire) {
+            $raw = $spawns[$empire] ?? [];
+            $normalized[(string) $empire] = [
+                'map_index' => max(0, (int) ($raw['map_index'] ?? 0)),
+                'x' => (int) ($raw['x'] ?? 0),
+                'y' => (int) ($raw['y'] ?? 0),
+            ];
+        }
+
+        $this->settings->setJson('unstuck_spawns', $normalized);
+    }
+
+    /**
+     * @return array{map_index: int, x: int, y: int}|null
+     */
+    public function unstuckSpawnForEmpire(int $empire): ?array
+    {
+        $spawns = $this->unstuckSpawns();
+        $spawn = $spawns[$empire] ?? null;
+
+        if ($spawn === null || ($spawn['map_index'] === 0 && $spawn['x'] === 0 && $spawn['y'] === 0)) {
+            return null;
+        }
+
+        return $spawn;
+    }
+
+    public function referralEnabled(): bool
+    {
+        $value = $this->settings->get('referral_enabled');
+
+        if ($value === null) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function setReferralEnabled(bool $enabled): void
+    {
+        $this->settings->set('referral_enabled', $enabled ? '1' : '0');
+    }
+
+    public function referralRewardCash(): int
+    {
+        return max(0, (int) ($this->settings->get('referral_reward_cash') ?? 0));
+    }
+
+    public function setReferralRewardCash(int $amount): void
+    {
+        $this->settings->set('referral_reward_cash', (string) max(0, $amount));
+    }
+
+    public function referralMinLevel(): int
+    {
+        return max(1, (int) ($this->settings->get('referral_min_level') ?? 10));
+    }
+
+    public function setReferralMinLevel(int $level): void
+    {
+        $this->settings->set('referral_min_level', (string) max(1, $level));
+    }
+
+    public function referralCap(): int
+    {
+        return max(0, (int) ($this->settings->get('referral_cap') ?? 0));
+    }
+
+    public function setReferralCap(int $cap): void
+    {
+        $this->settings->set('referral_cap', (string) max(0, $cap));
+    }
+
+    /**
+     * @return array<int, array{map_index: int, x: int, y: int}>
+     */
+    private static function defaultUnstuckSpawns(): array
+    {
+        return [
+            1 => ['map_index' => 1, 'x' => 469300, 'y' => 964200],
+            2 => ['map_index' => 21, 'x' => 55700, 'y' => 157900],
+            3 => ['map_index' => 41, 'x' => 969600, 'y' => 278400],
+        ];
+    }
 }

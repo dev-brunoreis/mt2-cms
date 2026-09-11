@@ -64,6 +64,16 @@ class TabProtoTable
         return $this->find($vnum) !== null;
     }
 
+    public function protoMtime(): int
+    {
+        return is_file($this->protoPath) ? (int) filemtime($this->protoPath) : 0;
+    }
+
+    public function namesMtime(): int
+    {
+        return is_file($this->namesPath) ? (int) filemtime($this->namesPath) : 0;
+    }
+
     /**
      * @param array<string, string> $record
      */

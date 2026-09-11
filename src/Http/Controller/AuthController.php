@@ -14,6 +14,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Ban\BanService;
 use Mt2Cms\Mail\MailerInterface;
 use Mt2Cms\Repository\AccountRepository;
+use Mt2Cms\Referral\ReferralService;
 use Mt2Cms\Service\AccountEmailService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
@@ -33,6 +34,7 @@ class AuthController extends Controller
         private AccountEmailService $accountEmails,
         private BanService $bans,
         private MailerInterface $mailer,
+        private ReferralService $referrals,
         ?RateLimiter $rateLimiter = null,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
@@ -143,6 +145,7 @@ class AuthController extends Controller
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $socialId = trim((string) ($_POST['social_id'] ?? ''));
+        $referralCode = trim((string) ($_POST['referral_code'] ?? ''));
 
         if (!$this->assertCsrf()) {
             return $this->authForm(
@@ -150,6 +153,7 @@ class AuthController extends Controller
                 username: $username,
                 email: $email,
                 socialId: $socialId,
+                referralCode: $referralCode,
                 error: $this->t('auth.invalid_csrf'),
                 status: 400,
             );
@@ -164,6 +168,7 @@ class AuthController extends Controller
                     username: $username,
                     email: $email,
                     socialId: $socialId,
+                    referralCode: $referralCode,
                     error: $this->t('auth.invalid_captcha'),
                     status: 422,
                 );
@@ -178,6 +183,7 @@ class AuthController extends Controller
                 username: $username,
                 email: $email,
                 socialId: $socialId,
+                referralCode: $referralCode,
                 error: $this->t('auth.too_many_attempts'),
                 status: 429,
             );
@@ -185,6 +191,7 @@ class AuthController extends Controller
 
         try {
             $account = $this->accounts->create($username, $email, $password, $socialId);
+            $this->referrals->linkOnRegister((int) $account['id'], $referralCode !== '' ? $referralCode : null);
             $this->accountEmails->syncFromAccount((int) $account['id'], $email, false);
 
             if ($this->mailer->isConfigured()) {
@@ -208,6 +215,7 @@ class AuthController extends Controller
                 username: $username,
                 email: $email,
                 socialId: $socialId,
+                referralCode: $referralCode,
                 error: $this->t($e->getMessage()),
                 status: 422,
             );
@@ -238,6 +246,7 @@ class AuthController extends Controller
         string $username = '',
         string $email = '',
         string $socialId = '',
+        string $referralCode = '',
         ?string $error = null,
         bool $registrationBlocked = false,
         int $status = 200,
@@ -248,9 +257,11 @@ class AuthController extends Controller
             'username' => $username,
             'email' => $email,
             'socialId' => $socialId,
+            'referralCode' => $referralCode,
             'error' => $error,
             'registrationBlocked' => $registrationBlocked,
             'captchaEnabled' => $this->settings->captchaPublicEnabled(),
+            'referralEnabled' => $this->referrals->isEnabled(),
         ], $status);
     }
 }

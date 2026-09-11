@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
+use Mt2Cms\Discord\DiscordWebhookService;
 use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
@@ -31,6 +32,7 @@ class TicketController extends Controller
         private TicketRepository $tickets,
         private TicketUploadService $uploads,
         private HtmlSanitizer $sanitizer,
+        private DiscordWebhookService $discord,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
         $this->rateLimiter = new RateLimiter(8, 900);
@@ -157,6 +159,11 @@ class TicketController extends Controller
         }
 
         $this->rateLimiter->hit($bucket);
+        $this->discord->notifyNewTicket(
+            (int) $created['ticket_id'],
+            $subject,
+            (string) $this->auth->login(),
+        );
         $this->flash('success', $this->t('tickets.created'));
 
         return $this->redirect('/account/tickets/' . $created['ticket_id']);

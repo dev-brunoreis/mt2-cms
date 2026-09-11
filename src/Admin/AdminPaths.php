@@ -40,6 +40,11 @@ final class AdminPaths
         return '/admin/game/bans';
     }
 
+    public static function gameReferrals(): string
+    {
+        return '/admin/game/referrals';
+    }
+
     // Content
     public static function contentNews(?string $tab = null): string
     {
@@ -64,6 +69,16 @@ final class AdminPaths
     public static function contentDownloads(): string
     {
         return '/admin/content/downloads';
+    }
+
+    public static function contentEvents(): string
+    {
+        return '/admin/content/events';
+    }
+
+    public static function contentEvent(int $id): string
+    {
+        return '/admin/content/events/' . $id;
     }
 
     // Store
@@ -213,6 +228,11 @@ final class AdminPaths
         return '/admin/settings/community';
     }
 
+    public static function settingsUnstuck(): string
+    {
+        return '/admin/settings/unstuck';
+    }
+
     public static function accountSecurity(): string
     {
         return '/admin/account/security';
@@ -227,9 +247,11 @@ final class AdminPaths
             'guilds' => self::gameGuilds(),
             'awards' => self::gameAwards(),
             'bans' => self::gameBans(),
+            'referrals' => self::gameReferrals(),
             'news' => self::contentNews(),
             'tickets' => self::contentTickets(),
             'downloads' => self::contentDownloads(),
+            'events' => self::contentEvents(),
             'store' => self::store(),
             'packages' => self::storePackages(),
             'payments' => self::storePayments(),
@@ -248,6 +270,7 @@ final class AdminPaths
             'locale' => self::settingsLocale(),
             'security' => self::settingsSecurity(),
             'community' => self::settingsCommunity(),
+            'unstuck' => self::settingsUnstuck(),
             default => null,
         };
     }

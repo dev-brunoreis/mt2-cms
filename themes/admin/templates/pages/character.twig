@@ -1,11 +1,11 @@
-{% set activeTab = activeTab|default('dados') %}
+{% set activeTab = activeTab|default('data') %}
 <div class="admin-panel admin-tabs overflow-hidden"
      data-admin-tabs
-     data-default-tab="dados"
+     data-default-tab="data"
      data-tab-loading="{{ t('admin.tabs.loading') }}"
      data-tab-load-error="{{ t('admin.tabs.load_error') }}">
     <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
-        {% include 'components/tab.twig' with { id: 'dados', label: t('admin.characters.tab_data'), active: activeTab == 'dados' } %}
+        {% include 'components/tab.twig' with { id: 'data', label: t('admin.characters.tab_data'), active: activeTab == 'data' } %}
         {% include 'components/tab.twig' with { id: 'logs', label: t('admin.characters.tab_logs'), active: activeTab == 'logs' } %}
         {% include 'components/tab.twig' with { id: 'items', label: t('admin.characters.tab_items'), active: activeTab == 'items' } %}
         {% include 'components/tab.twig' with { id: 'guild', label: t('admin.characters.tab_guild'), active: activeTab == 'guild' } %}
@@ -13,8 +13,8 @@
     </div>
 
     {% include 'components/tab-panel.twig' with {
-        id: 'dados',
-        visible: activeTab == 'dados',
+        id: 'data',
+        visible: activeTab == 'data',
         template: 'components/character-data.twig'
     } %}
     {% include 'components/tab-panel.twig' with {

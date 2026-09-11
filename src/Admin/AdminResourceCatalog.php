@@ -34,10 +34,11 @@ final class AdminResourceCatalog
             ]),
             self::group('admin.nav.game', 'game', [
                 self::flatModule('admin.nav.accounts', 'accounts', ['view', 'create', 'edit', 'delete', 'mass', 'block']),
-                self::flatModule('admin.nav.characters', 'characters', ['view']),
+                self::flatModule('admin.nav.characters', 'characters', ['view', 'unstuck']),
                 self::flatModule('admin.nav.guilds', 'guilds', ['view', 'edit', 'kick', 'delete_comment', 'dissolve']),
                 self::flatModule('admin.nav.awards', 'awards', ['view', 'create', 'delete', 'mass']),
                 self::flatModule('admin.nav.bans', 'bans', ['view', 'create', 'mass']),
+                self::flatModule('admin.nav.referrals', 'referrals', ['view', 'edit']),
             ]),
             self::group('admin.nav.content', 'content', [
                 self::subgroup('admin.nav.news', 'news', [
@@ -47,15 +48,16 @@ final class AdminResourceCatalog
                 ]),
                 self::flatModule('admin.nav.tickets', 'tickets', ['view', 'reply', 'close', 'reopen', 'mass']),
                 self::flatModule('admin.nav.downloads', 'downloads', ['view', 'create', 'edit', 'delete', 'mass']),
+                self::flatModule('admin.nav.events', 'events', self::CRUD),
             ]),
             self::group('admin.nav.store', 'store', [
                 self::flatModule('admin.resources.categories', 'categories', ['view', 'create', 'edit', 'delete', 'move']),
-                self::flatModule('admin.resources.products', 'products', ['create', 'edit', 'delete', 'mass']),
+                self::flatModule('admin.resources.products', 'products', ['view', 'create', 'edit', 'delete', 'mass']),
                 self::flatModule('admin.resources.orders', 'orders', ['view']),
                 self::flatModule('admin.nav.packages', 'packages', ['view', 'create', 'edit', 'delete', 'mass']),
                 self::flatModule('admin.nav.payments', 'payments', ['view', 'edit']),
             ]),
-            self::group('admin.nav.game_data', 'game-data', self::gameDataModules(), navHidden: true),
+            self::group('admin.nav.game_data', 'game-data', self::gameDataModules()),
             self::group('admin.nav.logs.group', 'logs', self::logModules()),
             self::group('admin.nav.settings', 'settings', [
                 self::flatModule('admin.nav.registration', 'registration', ['view', 'edit']),
@@ -63,6 +65,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.locale', 'locale', ['view', 'edit']),
                 self::flatModule('admin.nav.security', 'security', ['view', 'edit']),
                 self::flatModule('admin.nav.community', 'community', ['view', 'edit']),
+                self::flatModule('admin.nav.unstuck', 'unstuck', ['view', 'edit']),
             ]),
         ];
     }
@@ -107,7 +110,7 @@ final class AdminResourceCatalog
      */
     public static function navHiddenSectionIds(): array
     {
-        return ['shops', 'refine', 'drops', 'items', 'mobs', 'gms'];
+        return [];
     }
 
     /**
@@ -206,6 +209,10 @@ final class AdminResourceCatalog
             return 'bans';
         }
 
+        if (str_starts_with($resourceId, 'game/referrals/')) {
+            return 'referrals';
+        }
+
         if (str_starts_with($resourceId, 'content/news/')) {
             return 'news';
         }
@@ -216,6 +223,10 @@ final class AdminResourceCatalog
 
         if (str_starts_with($resourceId, 'content/downloads/')) {
             return 'downloads';
+        }
+
+        if (str_starts_with($resourceId, 'content/events/')) {
+            return 'events';
         }
 
         if (str_starts_with($resourceId, 'store/packages/')) {
@@ -254,7 +265,11 @@ final class AdminResourceCatalog
             return 'community';
         }
 
-        foreach (self::navHiddenSectionIds() as $sectionId) {
+        if (str_starts_with($resourceId, 'settings/unstuck/')) {
+            return 'unstuck';
+        }
+
+        foreach (['shops', 'refine', 'drops', 'items', 'mobs', 'gms'] as $sectionId) {
             if (str_starts_with($resourceId, 'game-data/' . $sectionId . '/')) {
                 return $sectionId;
             }
@@ -272,9 +287,11 @@ final class AdminResourceCatalog
             'guilds' => 'game/guilds',
             'awards' => 'game/awards',
             'bans' => 'game/bans',
+            'referrals' => 'game/referrals',
             'news' => 'content/news',
             'tickets' => 'content/tickets',
             'downloads' => 'content/downloads',
+            'events' => 'content/events',
             'store' => 'store',
             'packages' => 'store/packages',
             'payments' => 'store/payments',
@@ -284,6 +301,7 @@ final class AdminResourceCatalog
             'locale' => 'settings/locale',
             'security' => 'settings/security',
             'community' => 'settings/community',
+            'unstuck' => 'settings/unstuck',
             'shops', 'refine', 'drops', 'items', 'mobs', 'gms' => 'game-data/' . $sectionId,
             default => null,
         };
@@ -343,7 +361,7 @@ final class AdminResourceCatalog
     {
         $modules = [];
 
-        foreach (self::navHiddenSectionIds() as $sectionId) {
+        foreach (['shops', 'refine', 'drops', 'items', 'mobs', 'gms'] as $sectionId) {
             $labelKey = match ($sectionId) {
                 'items' => 'admin.nav.proto_items',
                 'mobs' => 'admin.nav.proto_mobs',
@@ -495,7 +513,7 @@ final class AdminResourceCatalog
             'news' => self::resourcesUnderPrefix('content/news'),
         ];
 
-        foreach (self::navHiddenSectionIds() as $sectionId) {
+        foreach (['shops', 'refine', 'drops', 'items', 'mobs', 'gms'] as $sectionId) {
             $map[$sectionId] = self::resourcesUnderPrefix('game-data/' . $sectionId);
         }
 

@@ -25,6 +25,9 @@ class RefineRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'result_label', 'label' => 'admin.refine.result', 'type' => 'text'],
                 ['key' => 'cost', 'label' => 'admin.refine.cost', 'sort' => 'cost', 'type' => 'number'],
                 ['key' => 'prob', 'label' => 'admin.refine.prob', 'sort' => 'prob', 'type' => 'number'],
+            ])
+            ->massActions('/admin/game-data/refine/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.refine.confirm_mass_delete'],
             ]);
     }
 

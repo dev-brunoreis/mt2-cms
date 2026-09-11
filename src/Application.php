@@ -23,7 +23,8 @@ use Mt2Cms\Model\Env;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\AdminAuditRepository;
 use Mt2Cms\Repository\AdminRepository;
-use Mt2Cms\Repository\CommonRepository;
+use Mt2Cms\Game\Proto\ProtoIndexCache;
+use Mt2Cms\Repository\GmRepository;
 use Mt2Cms\Repository\GuildRepository;
 use Mt2Cms\Repository\ItemAwardRepository;
 use Mt2Cms\Repository\ItemRepository;
@@ -64,6 +65,13 @@ use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Ban\BanRepository;
 use Mt2Cms\Ban\BanService;
+use Mt2Cms\Referral\ReferralRepository;
+use Mt2Cms\Referral\ReferralService;
+use Mt2Cms\Unstuck\UnstuckRepository;
+use Mt2Cms\Unstuck\UnstuckService;
+use Mt2Cms\Discord\DiscordWebhookService;
+use Mt2Cms\Event\EventRepository;
+use Mt2Cms\Event\EventService;
 use Mt2Cms\Mail\MailerInterface;
 use Mt2Cms\Mail\SymfonyMailer;
 use Mt2Cms\Payment\PayPalGateway;
@@ -105,7 +113,7 @@ class Application
     private PlayerRepository $players;
     private ItemRepository $items;
     private GuildRepository $guilds;
-    private CommonRepository $common;
+    private GmRepository $gms;
     private ItemAwardRepository $awards;
     private ShopRepository $shops;
     private RefineRepository $refine;
@@ -143,6 +151,10 @@ class Application
     private AccountEmailService $accountEmailService;
     private BanRepository $banRepo;
     private BanService $banService;
+    private UnstuckRepository $unstuckRepo;
+    private UnstuckService $unstuckService;
+    private ReferralRepository $referralRepo;
+    private ReferralService $referralService;
     private ServerChannelRepository $serverChannels;
     private DownloadRepository $downloads;
     private DownloadUploadService $downloadUploads;
@@ -151,6 +163,9 @@ class Application
     private PayPalGateway $paypal;
     private CashCreditService $cashCredits;
     private PaymentCheckoutService $paymentCheckout;
+    private EventRepository $events;
+    private EventService $eventService;
+    private DiscordWebhookService $discord;
 
     public function __construct()
     {
@@ -295,6 +310,8 @@ class Application
         $this->accountEmails = new AccountEmailRepository($this->cmsDb);
         $this->emailTokens = new EmailTokenRepository($this->cmsDb);
         $this->banRepo = new BanRepository($this->cmsDb);
+        $this->unstuckRepo = new UnstuckRepository($this->cmsDb);
+        $this->events = new EventRepository($this->cmsDb);
         $this->serverChannels = new ServerChannelRepository($this->cmsDb);
         $this->downloads = new DownloadRepository($this->cmsDb);
         $this->downloadUploads = new DownloadUploadService(BASE_DIR . '/var/downloads');
@@ -320,13 +337,17 @@ class Application
         );
         $activeTheme = $this->settings->activeTheme();
         $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
+        $this->discord = new DiscordWebhookService($this->settings);
+        $this->eventService = new EventService($this->events, $this->discord);
         $this->theme->setGlobals([
             'has_news' => $this->news->countPublished() > 0,
+            'discord_invite_url' => $this->settings->discordInviteUrl(),
         ]);
         $this->adminTheme = $this->createThemeEngine('admin', true, true);
 
         $this->db = new Database();
         $this->accounts = new AccountRepository($this->db);
+        $this->referralRepo = new ReferralRepository($this->cmsDb, $this->accounts);
         $this->players = new PlayerRepository($this->db);
         $this->items = new ItemRepository(
             $this->db,
@@ -334,7 +355,7 @@ class Application
             $this->itemStats,
         );
         $this->guilds = new GuildRepository($this->db);
-        $this->common = new CommonRepository($this->db);
+        $this->gms = new GmRepository($this->db);
         $this->awards = new ItemAwardRepository($this->db);
         $this->shops = new ShopRepository($this->db);
         $this->refine = new RefineRepository($this->db);
@@ -343,6 +364,7 @@ class Application
             $this->gameProfile,
             $this->protoSchemas,
             new ProtoNameRepository($this->db),
+            new ProtoIndexCache(dirname(__DIR__) . '/var/cache'),
         );
         $groupParser = new GroupTextParser();
         $this->mobDrops = new MobDropService(
@@ -358,6 +380,13 @@ class Application
         $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
         $this->auth = new Auth($this->accounts);
         $this->banService = new BanService($this->banRepo, $this->accounts);
+        $this->unstuckService = new UnstuckService($this->unstuckRepo, $this->players, $this->settings);
+        $this->referralService = new ReferralService(
+            $this->referralRepo,
+            $this->accounts,
+            $this->players,
+            $this->settings,
+        );
         $this->accountEmailService = new AccountEmailService(
             $this->accounts,
             $this->accountEmails,
@@ -365,7 +394,7 @@ class Application
             $this->mailer,
             $this->settings,
         );
-        $this->cashCredits = new CashCreditService($this->payments, $this->accounts);
+        $this->cashCredits = new CashCreditService($this->payments, $this->accounts, $this->discord);
         $this->paymentCheckout = new PaymentCheckoutService(
             $this->cashPackages,
             $this->payments,
@@ -528,6 +557,13 @@ class Application
         $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
         $config = SessionConfig::forRequestUri($uri);
 
+        $sessionDir = dirname(__DIR__) . '/var/sessions';
+
+        if (!is_dir($sessionDir)) {
+            mkdir($sessionDir, 0750, true);
+        }
+
+        ini_set('session.save_path', $sessionDir);
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.name', $config->name);

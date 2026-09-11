@@ -37,7 +37,7 @@ If the section should appear in the sidebar, add it to `AdminSections`. For **as
 
 ## 2. Routes + controller
 
-Extend `AdminController`, register routes in [`src/Http/AdminRoutes.php`](../src/Http/AdminRoutes.php), and wire the controller in [`src/Http/ControllerMap.php`](../src/Http/ControllerMap.php).
+Extend `AdminController`, register routes in [`src/Http/AdminRoutes.php`](../src/Http/AdminRoutes.php), and add one factory entry in [`src/Http/controller_factories.php`](../src/Http/controller_factories.php).
 
 Pass page header data in `adminView()`:
 

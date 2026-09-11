@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Discord\DiscordWebhookService;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Support\Log;
@@ -13,6 +14,7 @@ class CashCreditService
     public function __construct(
         private PaymentRepository $payments,
         private AccountRepository $accounts,
+        private DiscordWebhookService $discord,
     ) {
     }
 
@@ -55,6 +57,10 @@ class CashCreditService
             }
 
             $this->payments->markCredited($paymentId);
+            $this->discord->notifyPaymentCredited(
+                (string) ($payment['account_login'] ?? ''),
+                $cashAmount,
+            );
 
             return true;
         } finally {

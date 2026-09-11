@@ -78,6 +78,36 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
+     * @return list<int>
+     */
+    public function findIdsByLoginLike(string $query, int $max = 100): array
+    {
+        $query = trim($query);
+
+        if ($query === '') {
+            return [];
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query);
+        $like = '%' . $escaped . '%';
+        $rows = $this->db()->fetchAll(
+            'SELECT id FROM `account` WHERE login LIKE ? ORDER BY id ASC LIMIT ' . max(1, min(500, $max)),
+            [$like],
+        );
+        $ids = [];
+
+        foreach ($rows as $row) {
+            $id = (int) ($row['id'] ?? 0);
+
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    /**
      * Verify credentials. Returns a public account row or null.
      * Password is never returned.
      */

@@ -1,3 +1,9 @@
 <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-    {{ t('app.name') }}
+    <p>{{ t('app.name') }}</p>
+    {% if discord_invite_url %}
+        <p class="mt-2">
+            <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer"
+               class="font-medium text-indigo-600 hover:text-indigo-500">{{ t('nav.discord') }}</a>
+        </p>
+    {% endif %}
 </footer>

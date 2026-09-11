@@ -10,6 +10,7 @@ use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\AuthController;
 use Mt2Cms\Http\Controller\DonateController;
 use Mt2Cms\Http\Controller\DownloadsController;
+use Mt2Cms\Http\Controller\EventsController;
 use Mt2Cms\Http\Controller\EmailVerificationController;
 use Mt2Cms\Http\Controller\GameIconController;
 use Mt2Cms\Http\Controller\HomeController;
@@ -43,6 +44,7 @@ final class PublicRoutes
         $r->addRoute('POST', '/locale', [LocaleController::class, 'update']);
         $r->addRoute('GET', '/account', [AccountController::class, 'index']);
         $r->addRoute('GET', '/account/characters', [AccountController::class, 'characters']);
+        $r->addRoute('POST', '/account/characters/unstuck', [AccountController::class, 'unstuck']);
         $r->addRoute('GET', '/account/password', [AccountController::class, 'showPassword']);
         $r->addRoute('POST', '/account/password', [AccountController::class, 'updatePassword']);
         $r->addRoute('GET', '/account/email', [AccountController::class, 'showEmail']);
@@ -60,6 +62,8 @@ final class PublicRoutes
         $r->addRoute('POST', '/account/tickets/{id:\d+}/close', [TicketController::class, 'close']);
         $r->addRoute('GET', '/news', [NewsController::class, 'index']);
         $r->addRoute('GET', '/news/{id:\d+}', [NewsController::class, 'show']);
+        $r->addRoute('GET', '/events', [EventsController::class, 'index']);
+        $r->addRoute('GET', '/events/{id:\d+}', [EventsController::class, 'show']);
         $r->addRoute('POST', '/news/{id:\d+}/comment', [NewsController::class, 'comment']);
         $r->addRoute('GET', '/shop', [ItemShopController::class, 'index']);
         $r->addRoute('POST', '/shop/buy', [ItemShopController::class, 'buy']);

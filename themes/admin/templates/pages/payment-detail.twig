@@ -1,0 +1,60 @@
+<div class="admin-panel p-6 space-y-6">
+    <dl class="grid gap-4 sm:grid-cols-2">
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.id') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">#{{ payment.id }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.account') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ payment.account_login }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.provider') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ payment.provider }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.status') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ payment.status }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.amount') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ (payment.amount_cents / 100)|number_format(2) }} {{ payment.currency }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.cash') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ payment.cash_amount }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.provider_ref') }}</dt>
+            <dd class="mt-1 break-all font-mono text-sm text-slate-900">{{ payment.provider_ref }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.created') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">{{ payment.created_at|game_date }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('admin.payments.credited_at') }}</dt>
+            <dd class="mt-1 text-sm text-slate-900">
+                {% if payment.credited_at %}
+                    {{ payment.credited_at|game_date }}
+                {% else %}
+                    {{ t('admin.payments.not_credited') }}
+                {% endif %}
+            </dd>
+        </div>
+    </dl>
+
+    {% if canRecredit %}
+        <form method="post" action="/admin/store/payments/{{ payment.id }}/recredit" class="border-t border-slate-200 pt-6">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit" class="admin-btn-primary cursor-pointer rounded-md px-4 py-2 text-sm font-semibold">
+                {{ t('admin.payments.recredit_action') }}
+            </button>
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.payments.recredit_help') }}</p>
+        </form>
+    {% endif %}
+
+    <p class="text-sm">
+        <a href="/admin/store/payments" class="text-indigo-600 hover:underline">{{ t('admin.payments.back_to_list') }}</a>
+    </p>
+</div>

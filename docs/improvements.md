@@ -79,11 +79,9 @@ Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/set
 
 ## Organization, files, naming
 
-### `Application.php` is the bottleneck
+### ~~`Application.php` is the bottleneck~~ — routes + factories done
 
-[`src/Application.php`](../src/Application.php) (~830 lines) owns routes, session, bootstrap, and a huge `match` for DI. Every new section touches it twice (route + `resolveController`).
-
-**Fix:** split `PublicRoutes` / `AdminRoutes` (or `src/Http/routes.php`) and a small factory map instead of the manual `match`. Do this before the next large admin section.
+Routes live in [`PublicRoutes.php`](../src/Http/PublicRoutes.php) / [`AdminRoutes.php`](../src/Http/AdminRoutes.php). Controllers are wired via [`controller_factories.php`](../src/Http/controller_factories.php) (one line per new controller).
 
 ### Controllers mixed in one folder
 
@@ -113,7 +111,7 @@ Better split:
 - Repository: `countForGrid` / `listForGrid` + SQL `sortMap()`
 - Definition: `src/Admin/Grid/Definitions/AccountsGrid.php` (or the controller)
 
-`ProvidesAdminGrid` only requires `gridDefinition()`. If it is the contract, add `countForGrid` / `listForGrid` (or drop the interface).
+`ProvidesAdminGrid` requires `gridDefinition()`, `countForGrid`, and `listForGrid`.
 
 Two ways to build a spec today:
 
@@ -129,12 +127,12 @@ Padronize: same place for the definition; use `GridDefinition::filterOptions()` 
 | `countForAdmin` / `listForAdmin` | Wrappers around `*ForGrid`. Callers are gone except `LogRepository` and one awards lookup. Remove. |
 | `GameProtoService::page()` | Overlaps `countForGrid` / `listForGrid`. Still used by item-shop category item search. |
 | `AdminController::gridView()` | Dead — `GridRunner` already builds the view. |
-| `CommonRepository` | GMs + hosts. Rename to `GmRepository`. |
+| ~~`CommonRepository`~~ | Renamed to `GmRepository`. |
 | `GridUrl` | Hardcoded `limit !== 20` and `sort !== 'id'`. Tickets/logs use other defaults, so URLs are noisy or drop sort. Use `spec->defaultPerPage` / `defaultSort`. |
 
 ### Front-end JS is a flat folder
 
-`public/js/` mixes `admin-grid.js`, `locale-switcher.js`, `shop-category-tree.js`. Split `public/js/admin/` vs `public/js/site/` when moving assets.
+~~`public/js/` flat folder~~ — split into `public/js/admin/` and `public/js/site/`.
 
 ### i18n
 
@@ -167,7 +165,7 @@ Register routes in the route list, not by editing a 300-line `addRoute` block. M
 
 ### Request helper
 
-Controllers still read `$_GET` / `$_POST` directly. `GridRequest` already wraps query/mass POST. The same idea should cover forms (`string()`, `int()`, `postArray()`) so tests do not need a full front controller.
+Form helpers: [`FormInput`](../src/Http/FormInput.php) (`string()`, `int()`, `postArray()`). Prefer over raw `$_POST` in new code.
 
 ### Mass-action dispatcher
 
@@ -188,7 +186,7 @@ Action whitelist comes from the spec.
 
 ### Proto / drops do not fit the SQL grid
 
-`GameProtoService` loads the whole proto file to filter/paginate. Large files will hurt. Cache an index (`var/cache/proto-index.json` or SQLite) for list columns; the form still opens the full row.
+Proto list/filter uses [`ProtoIndexCache`](../src/Game/Proto/ProtoIndexCache.php) (`var/cache/proto-index-*.json`); forms still read full rows from tab files.
 
 ### Tests
 
@@ -217,7 +215,7 @@ Do these as separate changes. Do not mix a rename pass with a security change.
 
 Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path, exception handler, idle sessions, `APP_KEY`/encrypted TOTP, 2FA defaults, player password change. See [deploy.md](deploy.md).
 
-Later / opportunistic: `CommonRepository` → `GmRepository`, `public/js` split, i18n file split, proto index, PHPUnit, nested grids on character/guild.
+Done: `GmRepository` rename, JS split, proto index cache, `FormInput`, controller factories, game-data nav, PayPal hardening, production Compose/CI/backups. Still opportunistic: nested read-only tables → `grid.twig` fragments, i18n file split, split `AdminItemShopCategoriesController`.
 
 ---
 

@@ -25,6 +25,9 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
                 ['key' => 'name', 'label' => 'admin.shops.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game-data/shops/{vnum}'],
                 ['key' => 'npc_vnum', 'label' => 'admin.shops.npc', 'sort' => 'npc_vnum', 'type' => 'number'],
                 ['key' => 'item_count', 'label' => 'admin.shops.items', 'type' => 'number'],
+            ])
+            ->massActions('/admin/game-data/shops/mass', [
+                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.shops.confirm_mass_delete'],
             ]);
     }
 

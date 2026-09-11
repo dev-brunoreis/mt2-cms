@@ -16,6 +16,7 @@ use Mt2Cms\Http\Controller\AdminBansController;
 use Mt2Cms\Http\Controller\AdminCashPackagesController;
 use Mt2Cms\Http\Controller\AdminCommunityController;
 use Mt2Cms\Http\Controller\AdminDownloadsController;
+use Mt2Cms\Http\Controller\AdminEventsController;
 use Mt2Cms\Http\Controller\AdminPaymentsController;
 use Mt2Cms\Http\Controller\AdminCharactersController;
 use Mt2Cms\Http\Controller\AdminDashboardController;
@@ -32,7 +33,9 @@ use Mt2Cms\Http\Controller\AdminNewsHubController;
 use Mt2Cms\Http\Controller\AdminRolesController;
 use Mt2Cms\Http\Controller\AdminNewsPostsController;
 use Mt2Cms\Http\Controller\AdminNewsSettingsController;
+use Mt2Cms\Http\Controller\AdminReferralsController;
 use Mt2Cms\Http\Controller\AdminRefineController;
+use Mt2Cms\Http\Controller\AdminUnstuckController;
 use Mt2Cms\Http\Controller\AdminSettingsController;
 use Mt2Cms\Http\Controller\AdminShopsController;
 use Mt2Cms\Http\Controller\AdminStoreHubController;
@@ -65,6 +68,8 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/settings/community', [AdminCommunityController::class, 'channels']);
         $r->addRoute('POST', '/admin/settings/community', [AdminCommunityController::class, 'saveChannels']);
         $r->addRoute('POST', '/admin/settings/community/channels/{id:\d+}/delete', [AdminCommunityController::class, 'deleteChannel']);
+        $r->addRoute('GET', '/admin/settings/unstuck', [AdminUnstuckController::class, 'settings']);
+        $r->addRoute('POST', '/admin/settings/unstuck', [AdminUnstuckController::class, 'saveSettings']);
 
         // System
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);
@@ -97,7 +102,10 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/game/accounts/mass', [AdminAccountsController::class, 'mass']);
         $r->addRoute('GET', '/admin/game/characters', [AdminCharactersController::class, 'index']);
         $r->addRoute('GET', '/admin/game/characters/{id:\d+}', [AdminCharactersController::class, 'show']);
+        $r->addRoute('POST', '/admin/game/characters/{id:\d+}/unstuck', [AdminCharactersController::class, 'unstuck']);
         $r->addRoute('GET', '/admin/game/owned-items/{id:\d+}', [AdminCharactersController::class, 'showOwnedItem']);
+        $r->addRoute('GET', '/admin/game/referrals', [AdminReferralsController::class, 'index']);
+        $r->addRoute('POST', '/admin/game/referrals/settings', [AdminReferralsController::class, 'saveSettings']);
         $r->addRoute('GET', '/admin/game/guilds', [AdminGuildsController::class, 'index']);
         $r->addRoute('GET', '/admin/game/guilds/{id:\d+}', [AdminGuildsController::class, 'show']);
         $r->addRoute('POST', '/admin/game/guilds/{id:\d+}', [AdminGuildsController::class, 'update']);
@@ -143,6 +151,12 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'edit']);
         $r->addRoute('POST', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'update']);
         $r->addRoute('POST', '/admin/content/downloads/mass', [AdminDownloadsController::class, 'mass']);
+        $r->addRoute('GET', '/admin/content/events', [AdminEventsController::class, 'index']);
+        $r->addRoute('GET', '/admin/content/events/new', [AdminEventsController::class, 'create']);
+        $r->addRoute('POST', '/admin/content/events', [AdminEventsController::class, 'store']);
+        $r->addRoute('POST', '/admin/content/events/mass', [AdminEventsController::class, 'mass']);
+        $r->addRoute('GET', '/admin/content/events/{id:\d+}', [AdminEventsController::class, 'edit']);
+        $r->addRoute('POST', '/admin/content/events/{id:\d+}', [AdminEventsController::class, 'update']);
 
         // Store hub
         $r->addRoute('GET', '/admin/store', [AdminStoreHubController::class, 'index']);
@@ -172,6 +186,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/store/packages/{id:\d+}', [AdminCashPackagesController::class, 'update']);
         $r->addRoute('POST', '/admin/store/packages/mass', [AdminCashPackagesController::class, 'mass']);
         $r->addRoute('GET', '/admin/store/payments', [AdminPaymentsController::class, 'index']);
+        $r->addRoute('GET', '/admin/store/payments/{id:\d+}', [AdminPaymentsController::class, 'show']);
         $r->addRoute('POST', '/admin/store/payments/{id:\d+}/recredit', [AdminPaymentsController::class, 'recredit']);
 
         // Game data
@@ -183,12 +198,14 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/delete', [AdminShopsController::class, 'destroy']);
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/items', [AdminShopsController::class, 'addItem']);
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/items/delete', [AdminShopsController::class, 'removeItem']);
+        $r->addRoute('POST', '/admin/game-data/shops/mass', [AdminShopsController::class, 'mass']);
         $r->addRoute('GET', '/admin/game-data/refine', [AdminRefineController::class, 'index']);
         $r->addRoute('GET', '/admin/game-data/refine/new', [AdminRefineController::class, 'create']);
         $r->addRoute('POST', '/admin/game-data/refine', [AdminRefineController::class, 'store']);
         $r->addRoute('GET', '/admin/game-data/refine/{id:\d+}', [AdminRefineController::class, 'edit']);
         $r->addRoute('POST', '/admin/game-data/refine/{id:\d+}', [AdminRefineController::class, 'update']);
         $r->addRoute('POST', '/admin/game-data/refine/{id:\d+}/delete', [AdminRefineController::class, 'destroy']);
+        $r->addRoute('POST', '/admin/game-data/refine/mass', [AdminRefineController::class, 'mass']);
         $r->addRoute('GET', '/admin/game-data/drops', [AdminDropsController::class, 'index']);
         $r->addRoute('GET', '/admin/game-data/drops/etc', [AdminDropsController::class, 'etc']);
         $r->addRoute('POST', '/admin/game-data/drops/etc', [AdminDropsController::class, 'saveEtc']);

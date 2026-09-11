@@ -1,0 +1,65 @@
+<form id="admin-unstuck-form" method="post" action="/admin/settings/unstuck" class="admin-panel p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    {% if not positionColumnsAvailable %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {{ t('admin.unstuck.position_columns_missing') }}
+        </div>
+    {% endif %}
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.unstuck.title') }}
+            <span class="admin-fieldset-help">{{ t('admin.unstuck.lead') }}</span>
+        </legend>
+
+        <label class="admin-toggle-row cursor-pointer">
+            <input type="checkbox" name="unstuck_enabled" value="1"
+                   {% if unstuckEnabled %}checked{% endif %}
+                   {% if not positionColumnsAvailable %}disabled{% endif %}>
+            <span>
+                <span class="block text-sm font-semibold text-slate-900">{{ t('admin.unstuck.enable') }}</span>
+                <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.unstuck.enable_help') }}</span>
+            </span>
+        </label>
+
+        <div class="admin-field mt-4">
+            <label for="unstuck_cooldown_minutes" class="admin-label">{{ t('admin.unstuck.cooldown') }}</label>
+            <input id="unstuck_cooldown_minutes" type="number" name="unstuck_cooldown_minutes" min="1" max="1440"
+                   value="{{ cooldownMinutes }}"
+                   class="admin-input max-w-xs">
+            <p class="admin-help">{{ t('admin.unstuck.cooldown_help') }}</p>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.unstuck.spawns_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.unstuck.spawns_help') }}</span>
+        </legend>
+
+        {% for empire in [1, 2, 3] %}
+            {% set spawn = spawns[empire] %}
+            <div class="mb-6 rounded-lg border border-slate-200 p-4">
+                <h3 class="mb-3 text-sm font-semibold text-slate-900">{{ t('admin.unstuck.empire_' ~ empire) }}</h3>
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="admin-field">
+                        <label for="spawn_map_{{ empire }}" class="admin-label">{{ t('admin.unstuck.map_index') }}</label>
+                        <input id="spawn_map_{{ empire }}" type="number" name="spawn_map_{{ empire }}"
+                               value="{{ spawn.map_index }}" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="spawn_x_{{ empire }}" class="admin-label">{{ t('admin.unstuck.x') }}</label>
+                        <input id="spawn_x_{{ empire }}" type="number" name="spawn_x_{{ empire }}"
+                               value="{{ spawn.x }}" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="spawn_y_{{ empire }}" class="admin-label">{{ t('admin.unstuck.y') }}</label>
+                        <input id="spawn_y_{{ empire }}" type="number" name="spawn_y_{{ empire }}"
+                               value="{{ spawn.y }}" class="admin-input">
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </fieldset>
+</form>

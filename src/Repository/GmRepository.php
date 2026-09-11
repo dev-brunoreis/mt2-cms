@@ -9,7 +9,7 @@ use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
-class CommonRepository extends Repository implements ProvidesAdminGrid
+class GmRepository extends Repository implements ProvidesAdminGrid
 {
     public function gridDefinition(): GridDefinition
     {

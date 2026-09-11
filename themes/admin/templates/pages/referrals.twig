@@ -1,0 +1,41 @@
+<div class="space-y-6">
+    <form id="admin-referral-settings-form" method="post" action="/admin/game/referrals/settings" class="admin-panel p-6">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.referrals.settings_title') }}
+                <span class="admin-fieldset-help">{{ t('admin.referrals.settings_lead') }}</span>
+            </legend>
+
+            <label class="admin-toggle-row cursor-pointer">
+                <input type="checkbox" name="referral_enabled" value="1" {% if referralEnabled %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.referrals.enable') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.referrals.enable_help') }}</span>
+                </span>
+            </label>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                <div class="admin-field">
+                    <label for="referral_reward_cash" class="admin-label">{{ t('admin.referrals.reward_cash') }}</label>
+                    <input id="referral_reward_cash" type="number" name="referral_reward_cash" min="0"
+                           value="{{ rewardCash }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label for="referral_min_level" class="admin-label">{{ t('admin.referrals.min_level') }}</label>
+                    <input id="referral_min_level" type="number" name="referral_min_level" min="1"
+                           value="{{ minLevel }}" class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label for="referral_cap" class="admin-label">{{ t('admin.referrals.cap') }}</label>
+                    <input id="referral_cap" type="number" name="referral_cap" min="0"
+                           value="{{ cap }}" class="admin-input">
+                    <p class="admin-help">{{ t('admin.referrals.cap_help') }}</p>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+
+    {% include 'components/grid.twig' with {grid: grid} %}
+</div>

@@ -15,7 +15,7 @@ final class AdminResourceCatalogTest extends TestCase
         self::assertContains('game/accounts/view', AdminResourceCatalog::allResourceIds());
         self::assertContains('store/products/create', AdminResourceCatalog::allResourceIds());
         self::assertContains('content/news/posts/mass', AdminResourceCatalog::allResourceIds());
-        self::assertNotContains('store/products/view', AdminResourceCatalog::allResourceIds());
+        self::assertContains('store/products/view', AdminResourceCatalog::allResourceIds());
     }
 
     public function testPrefixInheritance(): void
@@ -39,7 +39,7 @@ final class AdminResourceCatalogTest extends TestCase
         self::assertContains('content/news/settings/edit', $resources);
     }
 
-    public function testNavHiddenGameDataResources(): void
+    public function testGameDataLegacyResources(): void
     {
         $resources = AdminResourceCatalog::resourcesForLegacySection('shops');
 

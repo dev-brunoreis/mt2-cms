@@ -1,13 +1,29 @@
 <div class="admin-panel p-6">
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="rounded-lg border border-slate-200 p-4">
+        <div class="rounded-lg border border-slate-200 p-4 sm:col-span-2 lg:col-span-1">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.drops.mob_section') }}</h2>
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.drops.mob_section_help') }}</p>
-            <form method="get" action="/admin/game-data/drops" class="mt-4 flex flex-wrap gap-2"
-                  onsubmit="event.preventDefault(); const v=document.getElementById('mob-vnum').value; if(v) window.location='/admin/game-data/drops/mob/'+v;">
-                <input id="mob-vnum" type="number" min="1" placeholder="{{ t('admin.drops.mob_vnum_placeholder') }}" class="admin-input admin-input-compact">
-                <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">{{ t('admin.drops.open_mob') }}</button>
+            <form method="get" action="/admin/game-data/drops" class="mt-4 space-y-3">
+                <input type="search" name="mob_q" value="{{ mobQuery|default('') }}"
+                       placeholder="{{ t('admin.drops.mob_search_placeholder') }}"
+                       class="admin-input w-full">
+                <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-2 text-sm font-medium">
+                    {{ t('admin.drops.search_mob') }}
+                </button>
             </form>
+            {% if mobResults is defined and mobResults is not empty %}
+                <ul class="mt-4 space-y-1 border-t border-slate-100 pt-3 text-sm">
+                    {% for mob in mobResults %}
+                        <li>
+                            <a href="/admin/game-data/drops/mob/{{ mob.vnum }}" class="text-indigo-600 hover:underline">
+                                #{{ mob.vnum }} — {{ mob.locale_name|default(mob.vnum) }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% elseif mobQuery|default('') != '' %}
+                <p class="mt-3 text-sm text-slate-500">{{ t('admin.drops.mob_search_empty') }}</p>
+            {% endif %}
         </div>
         <a href="/admin/game-data/drops/etc" class="rounded-lg border border-slate-200 p-4 hover:border-indigo-300">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.drops.etc_section') }}</h2>

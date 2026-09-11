@@ -198,9 +198,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             return Response::json(['error' => $this->t('admin.login_required')], 401);
         }
 
-        $token = $_POST['_csrf'] ?? null;
-
-        if (!$this->csrf->validate(is_string($token) ? $token : null)) {
+        if (!$this->assertCsrf()) {
             return Response::json(['error' => $this->t('auth.invalid_csrf')], 403);
         }
 

@@ -29,53 +29,18 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 
     public function massComments(): Response
     {
-        if ($redirect = $this->requireAdminResource('content/news/comments/mass')) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect('/admin/content/news?tab=comments');
-        }
-
-        $spec = $this->comments->gridDefinition()->spec();
-        $action = $this->gridMassAction();
-        $ids = $this->gridMassIds($spec);
-        $count = 0;
-        $succeeded = [];
-
-        foreach ($ids as $id) {
-            try {
-                $ok = match ($action) {
-                    'approve' => $this->comments->setStatus($id, 'approved'),
-                    'reject' => $this->comments->setStatus($id, 'rejected'),
-                    'delete' => $this->comments->delete($id),
-                    default => throw new \InvalidArgumentException('invalid'),
-                };
-
-                if (!$ok) {
-                    throw new \RuntimeException('skip');
-                }
-
-                $count++;
-                $succeeded[] = $id;
-            } catch (\InvalidArgumentException | \RuntimeException) {
-                continue;
-            }
-        }
-
-        if ($count > 0) {
-            $this->audit('news.comments_mass', 'news_comment', null, [
-                'action' => $action,
-                'ids' => $succeeded,
-                'count' => $count,
-            ]);
-        }
-
-        $this->flash('success', $this->t('admin.news.mass_comments_done', ['count' => $count]));
-
-        return $this->redirect('/admin/content/news?tab=comments');
+        return $this->runMassActions(
+            $this->comments->gridDefinition()->spec(),
+            '/admin/content/news?tab=comments',
+            [
+                'approve' => fn (int $id): bool => $this->comments->setStatus($id, 'approved'),
+                'reject' => fn (int $id): bool => $this->comments->setStatus($id, 'rejected'),
+                'delete' => fn (int $id): bool => $this->comments->delete($id),
+            ],
+            'news_comment',
+            'admin.news.mass_comments_done',
+            'content/news/comments/mass',
+        );
     }
 
     public function approveComment(string $id): Response

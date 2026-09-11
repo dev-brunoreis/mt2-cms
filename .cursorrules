@@ -8,3 +8,4 @@
 
 # Implementation / security
 - Follow docs/ and .cursor/rules/implementing.mdc + security.mdc when adding features
+- Keep tests/Unit/Contract/SecurityContractTest.php green (SQL, CSRF, Twig, mass/actions, audit, rate limit)

@@ -269,7 +269,7 @@ abstract class AdminController extends Controller
             return $this->redirect($redirect);
         }
 
-        if (!$this->isAllowedMassAction($spec, $action) || !isset($handlers[$action])) {
+        if (!$spec->allowsMassAction($action) || !isset($handlers[$action])) {
             $this->flash('error', $this->t('admin.grid.invalid_action'));
 
             return $this->redirect($redirect);
@@ -350,17 +350,6 @@ abstract class AdminController extends Controller
         $this->flash('error', $this->t('admin.no_sections'));
 
         return $this->redirect('/admin/login');
-    }
-
-    private function isAllowedMassAction(GridSpec $spec, string $action): bool
-    {
-        foreach ($spec->massActions as $entry) {
-            if (($entry['id'] ?? '') === $action) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     protected function requireTwoFactorEnrollment(string $section): ?Response

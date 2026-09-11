@@ -30,10 +30,13 @@ Grids use **one** action model:
 Mass actions require:
 
 - `->massActions('/admin/…/mass', [...])` on `GridDefinition`
-- `POST /admin/…/mass` route + controller `mass()` → `runMassActions()`
+- `POST /admin/…/mass` route + controller `mass()` → `runMassActions()` (do not hand-roll CSRF/`match`)
+- Handler keys in `runMassActions()` **must** be the spec `id`s from `massActions()` (`GridSpec::allowsMassAction()`)
 - i18n: `confirm_mass_*`, `mass_done`
 
 Rows that must not be bulk-selected (e.g. system Super role) set `'can_mass' => false`.
+
+Mass-or-actions and the `runMassActions` whitelist are locked by `tests/Unit/Contract/SecurityContractTest.php`.
 
 ## Non-numeric row IDs
 

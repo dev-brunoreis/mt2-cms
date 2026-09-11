@@ -36,6 +36,21 @@ final class GridSpec
         return $this->massActionPath !== null && $this->massActions !== [];
     }
 
+    public function allowsMassAction(string $action): bool
+    {
+        if ($action === '') {
+            return false;
+        }
+
+        foreach ($this->massActions as $entry) {
+            if (($entry['id'] ?? '') === $action) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function usesStringMassIds(): bool
     {
         return $this->massIdType === 'string';

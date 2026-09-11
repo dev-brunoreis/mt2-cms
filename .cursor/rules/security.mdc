@@ -1,18 +1,20 @@
 ---
-description: Security rules for Mt2 CMS (SQL, CSRF, XSS, secrets)
-globs: src/**/*,themes/**/*,lang/**/*
+description: Security rules for Mt2 CMS (SQL, CSRF, XSS, audit, rate limit)
+globs: src/**/*,themes/**/*,lang/**/*,tests/Unit/Contract/**
 alwaysApply: false
 ---
 
 # Security
 
-See `docs/security.md` and `docs/deploy.md` for the full checklist.
+See `docs/security.md` and `docs/deploy.md`. These invariants are locked by `tests/Unit/Contract/SecurityContractTest.php` — keep it green.
 
 ## Required
 
-- SQL: prepared statements only (`?` + bind). Never interpolate request data into SQL.
-- POST: always validate CSRF via `assertCsrf()` / `_csrf`
-- Twig: rely on autoescape; never `|raw` on user or DB data (slots already rendered by Twig are OK)
+- SQL: prepared statements only (`?` + bind). Never interpolate request data into SQL. Raw PDO `query`/`exec` only inside `Database`.
+- POST: always `assertCsrf()` (or `runMassActions()`, which does it). Include `_csrf` in forms. Exception: PayPal webhook.
+- Twig: rely on autoescape (`html`); `|raw` only on layout `slots.*`. Never `|raw` on user or DB data. `news_html` / `ticket_html` already sanitize.
+- Admin POST: write audit via `$this->audit()` / `auditChange()` / `runMassActions()`. Skip: login, logout, 2FA verify, 2FA enroll start.
+- Rate limit: `RateLimiter::tooManyAttempts()` on login, register, forgot/reset, account password, admin login/2FA, news comments, ticket create, shop buy, setup.
 - Auth failures: generic messages; use `hash_equals` for secrets
 - Redirects: internal paths only (`safeRedirect` pattern)
 - Response headers: use `Response` / `withHeader()` — do not call `header()` in controllers

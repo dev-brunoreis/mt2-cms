@@ -117,17 +117,28 @@ class PasswordController extends Controller
             return $this->resetForm($token, error: $this->t('auth.invalid_csrf'), status: 400);
         }
 
+        $bucket = 'reset:' . Request::clientIp();
+
+        if ($this->rateLimiter->tooManyAttempts($bucket)) {
+            return $this->resetForm($token, error: $this->t('auth.too_many_attempts'), status: 429);
+        }
+
         $password = (string) ($_POST['password'] ?? '');
         $confirm = (string) ($_POST['password_confirm'] ?? '');
 
         if (!hash_equals($password, $confirm)) {
+            $this->rateLimiter->hit($bucket);
+
             return $this->resetForm($token, error: $this->t('account.password_mismatch'), status: 422);
         }
 
         if (!$this->emails->resetPassword($token, $password)) {
+            $this->rateLimiter->hit($bucket);
+
             return $this->resetForm($token, error: $this->t('auth.reset_invalid'), status: 422);
         }
 
+        $this->rateLimiter->clear($bucket);
         $this->flash('success', $this->t('auth.reset_success'));
 
         return $this->redirect('/login');

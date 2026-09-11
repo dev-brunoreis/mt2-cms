@@ -43,4 +43,11 @@ final class PayPalWebhookParserTest extends TestCase
 
         PayPalWebhookParser::resolveOrderId('BILLING.SUBSCRIPTION.CREATED', ['id' => 'X']);
     }
+
+    public function testCanVerifySignatureRequiresWebhookId(): void
+    {
+        self::assertFalse(PayPalWebhookParser::canVerifySignature(''));
+        self::assertFalse(PayPalWebhookParser::canVerifySignature('   '));
+        self::assertTrue(PayPalWebhookParser::canVerifySignature('WH-123'));
+    }
 }

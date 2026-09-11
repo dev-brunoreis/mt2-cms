@@ -51,4 +51,9 @@ final class PayPalWebhookParser
             'PAYMENT.CAPTURE.COMPLETED',
         ], true);
     }
+
+    public static function canVerifySignature(string $webhookId): bool
+    {
+        return trim($webhookId) !== '';
+    }
 }

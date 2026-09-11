@@ -3,10 +3,17 @@ stages:
 
 variables:
   COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+  DOCKER_TLS_CERTDIR: ""
 
 phpunit:
   stage: test
   image: php:8.3-cli
+  cache:
+    key:
+      files:
+        - composer.lock
+    paths:
+      - .composer-cache/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev
     - docker-php-ext-install zip
@@ -18,13 +25,22 @@ phpunit:
 assets:
   stage: test
   image: node:20-alpine
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
   before_script:
     - npm ci
   script:
     - npm run build
-  rules:
-    - changes:
-        - package.json
-        - package-lock.json
-        - resources/**/*
-        - tailwind.config.js
+
+docker:
+  stage: test
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  script:
+    - docker build --target php -f docker/php/Dockerfile -t mt2-cms-php:ci .
+    - docker build --target nginx -f docker/php/Dockerfile -t mt2-cms-nginx:ci .

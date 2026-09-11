@@ -2,6 +2,12 @@
 set -euo pipefail
 
 DUMPS_DIR="${DUMPS_DIR:-/dumps}"
+sample="${DUMPS_DIR}/account.sql"
+
+if [ ! -f "${sample}" ]; then
+  echo "No fixture dumps found; skipping import (production mode)."
+  exit 0
+fi
 
 for db in account common log player; do
   dump="${DUMPS_DIR}/${db}.sql"

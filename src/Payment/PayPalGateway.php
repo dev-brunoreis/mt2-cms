@@ -116,8 +116,10 @@ final class PayPalGateway implements PaymentGateway
     {
         $webhookId = $this->settings->paypalWebhookId();
 
-        if ($webhookId === '') {
-            return true;
+        if (!PayPalWebhookParser::canVerifySignature($webhookId)) {
+            Log::error('payments', 'PayPal webhook ID is not configured');
+
+            return false;
         }
 
         $normalized = [];

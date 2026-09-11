@@ -340,7 +340,9 @@ class SettingsService
 
     public function paypalConfigured(): bool
     {
-        return $this->paypalClientId() !== '' && $this->paypalClientSecret() !== '';
+        return $this->paypalClientId() !== ''
+            && $this->paypalClientSecret() !== ''
+            && $this->paypalWebhookId() !== '';
     }
 
     public function setPaypalClientId(string $clientId): void

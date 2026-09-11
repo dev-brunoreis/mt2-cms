@@ -13,6 +13,7 @@ use Mt2Cms\Http\Controller\DownloadsController;
 use Mt2Cms\Http\Controller\EventsController;
 use Mt2Cms\Http\Controller\EmailVerificationController;
 use Mt2Cms\Http\Controller\GameIconController;
+use Mt2Cms\Http\Controller\HealthController;
 use Mt2Cms\Http\Controller\HomeController;
 use Mt2Cms\Http\Controller\ItemShopController;
 use Mt2Cms\Http\Controller\LocaleController;
@@ -28,6 +29,7 @@ final class PublicRoutes
 {
     public static function register(RouteCollector $r): void
     {
+        $r->addRoute('GET', '/health', [HealthController::class, 'index']);
         $r->addRoute('GET', '/', [HomeController::class, 'index']);
         $r->addRoute('GET', '/captcha.svg', [CaptchaController::class, 'publicSvg']);
         $r->addRoute('GET', '/login', [AuthController::class, 'showLogin']);

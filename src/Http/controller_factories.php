@@ -9,6 +9,9 @@ use Mt2Cms\Setup\EnvWriter;
  * @return array<class-string, callable(\Mt2Cms\Application): object>
  */
 return [
+    \Mt2Cms\Http\Controller\HealthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\HealthController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->cmsDb, $app->db,
+    ),
     \Mt2Cms\Http\Controller\HomeController::class => static fn ($app) => new \Mt2Cms\Http\Controller\HomeController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->news, $app->events, $app->players, $app->settings,
     ),

@@ -23,6 +23,8 @@ What the CMS already enforces, and what every change must keep intact.
 | Admin audit | Mutating admin POSTs write to `admin_audit_log`; super admins can browse `/admin/audit-log` |
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only) |
 | Config | `DB_PASSWORD` and `APP_KEY` required in `.env` when installed (no hardcoded runtime default) |
+| PayPal webhooks | Signature verification is fail-closed; webhook id required in **Settings → Community** for `/donate` and webhook acceptance |
+| Operational errors | Schema drift and missing `APP_KEY` return generic HTTP 503; details logged server-side only |
 
 ## Password hashing
 
@@ -50,7 +52,7 @@ Accounts use Metin2 / MySQL `PASSWORD()` style (`*` + uppercase `SHA1(SHA1(passw
 
 ## Production deployment
 
-See [deploy.md](deploy.md): TLS and HSTS on the reverse proxy, MySQL/Adminer not on `0.0.0.0`, `php bin/migrate.php` after deploy (schema + `APP_KEY`), `APP_TRUST_PROXY=1` when TLS terminates at a proxy, first admin 2FA enrollment.
+See [deploy.md](deploy.md): TLS and HSTS on the reverse proxy, MySQL/Adminer not on `0.0.0.0`, dedicated MySQL app users, immutable production images (`compose.prod.yml`), `php bin/migrate.php` after deploy (schema + `APP_KEY`), PayPal webhook id when donate is enabled, `APP_TRUST_PROXY=1` when TLS terminates at a proxy, first admin 2FA enrollment.
 
 ## Out of scope (for now)
 

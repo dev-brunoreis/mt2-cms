@@ -52,6 +52,7 @@ Public routes are registered in [`src/Http/PublicRoutes.php`](src/Http/PublicRou
 
 | Method | Path | Notes |
 | --- | --- | --- |
+| GET | `/health` | Liveness (DB connectivity; for monitoring) |
 | GET | `/` | Home (+ upcoming events) |
 | GET/POST | `/register`, `/login` | Auth (CSRF, rate limited) |
 | GET | `/news`, `/news/{id}` | News |
@@ -95,7 +96,7 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 
 HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`), idle timeouts (admin 30 min, public 2 h), and regenerate on login. Login/register and password change are rate limited (file-backed, fail-closed). Player passwords use Metin2-compatible `*SHA1(SHA1)` hashing; admins use `password_hash` with TOTP 2FA (encrypted at rest via `APP_KEY`). Unhandled exceptions return a generic 500 (no stack traces to clients).
 
-See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`compose.prod.yml`, backups, PayPal webhook URL).
+See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`compose.prod.yml`, immutable images, MySQL app users, `/health`, backups, PayPal webhook id).
 
 ## Requirements
 
@@ -181,7 +182,8 @@ After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when
 
 ## Current status
 
-- Working: Docker stack, game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/item shop, themes, public auth/account (including password change), ranking/player pages, i18n, security headers, session hardening, rate limits, migrations off hot path.
+- Working: Docker stack (dev + production compose), game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/events/item shop, themes, public auth/account (including password change and unstuck), ranking/player pages, referrals, i18n, security headers, session hardening, rate limits, migrations off hot path, PayPal fail-closed webhooks, `/health` endpoint.
+- Production: `compose.prod.yml` builds immutable PHP/Nginx images, uses dedicated MySQL app users, and ships container healthchecks. See [docs/deploy.md](docs/deploy.md) post-deploy checklist.
 - See [docs/improvements.md](docs/improvements.md) for remaining organizational refactors (not blockers for production).
 
 ## License

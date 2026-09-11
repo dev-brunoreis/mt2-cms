@@ -100,72 +100,74 @@ class Application
 {
     use \Mt2Cms\Http\ControllerMap;
     private bool $installed;
-    private Database $db;
-    private Database $cmsDb;
-    private Auth $auth;
-    private AdminAuth $adminAuth;
-    private Csrf $csrf;
-    private Locales $locales;
-    private Translator $translator;
-    private ThemeEngine $theme;
-    private ThemeEngine $adminTheme;
-    private AccountRepository $accounts;
-    private PlayerRepository $players;
-    private ItemRepository $items;
-    private GuildRepository $guilds;
-    private GmRepository $gms;
-    private ItemAwardRepository $awards;
-    private ShopRepository $shops;
-    private RefineRepository $refine;
-    private LogRepository $logs;
-    private GameProtoService $gameProto;
-    private MobDropService $mobDrops;
-    private DropFileService $dropFiles;
-    private ?GameIconService $icons = null;
-    private GameProfile $gameProfile;
-    private ProtoSchemas $protoSchemas;
-    private ProtoEnums $protoEnums;
-    private ItemStats $itemStats;
-    private ProtoFormFields $protoFields;
-    private SettingsRepository $settingsRepo;
-    private SettingsService $settings;
-    private ThemeCatalog $themeCatalog;
-    private NewsRepository $news;
-    private NewsCommentRepository $newsComments;
-    private TicketRepository $tickets;
-    private ItemShopCategoryRepository $itemShopCategories;
-    private ItemShopProductRepository $itemShopProducts;
-    private ItemShopOrderRepository $itemShopOrders;
-    private ItemShopPurchaseService $itemShopPurchases;
-    private ItemTooltipBuilder $itemTooltips;
-    private HtmlSanitizer $htmlSanitizer;
-    private NewsUploadService $newsUploads;
-    private TicketUploadService $ticketUploads;
-    private AdminAuditService $adminAudit;
-    private AclService $acl;
-    private AdminRoleRepository $adminRoles;
-    private AdminTotpRepository $adminTotp;
-    private MailerInterface $mailer;
-    private AccountEmailRepository $accountEmails;
-    private EmailTokenRepository $emailTokens;
-    private AccountEmailService $accountEmailService;
-    private BanRepository $banRepo;
-    private BanService $banService;
-    private UnstuckRepository $unstuckRepo;
-    private UnstuckService $unstuckService;
-    private ReferralRepository $referralRepo;
-    private ReferralService $referralService;
-    private ServerChannelRepository $serverChannels;
-    private DownloadRepository $downloads;
-    private DownloadUploadService $downloadUploads;
-    private CashPackageRepository $cashPackages;
-    private PaymentRepository $payments;
-    private PayPalGateway $paypal;
-    private CashCreditService $cashCredits;
-    private PaymentCheckoutService $paymentCheckout;
-    private EventRepository $events;
-    private EventService $eventService;
-    private DiscordWebhookService $discord;
+
+    /** DI container — public for controller_factories.php */
+    public Database $db;
+    public Database $cmsDb;
+    public Auth $auth;
+    public AdminAuth $adminAuth;
+    public Csrf $csrf;
+    public Locales $locales;
+    public Translator $translator;
+    public ThemeEngine $theme;
+    public ThemeEngine $adminTheme;
+    public AccountRepository $accounts;
+    public PlayerRepository $players;
+    public ItemRepository $items;
+    public GuildRepository $guilds;
+    public GmRepository $gms;
+    public ItemAwardRepository $awards;
+    public ShopRepository $shops;
+    public RefineRepository $refine;
+    public LogRepository $logs;
+    public GameProtoService $gameProto;
+    public MobDropService $mobDrops;
+    public DropFileService $dropFiles;
+    public ?GameIconService $icons = null;
+    public GameProfile $gameProfile;
+    public ProtoSchemas $protoSchemas;
+    public ProtoEnums $protoEnums;
+    public ItemStats $itemStats;
+    public ProtoFormFields $protoFields;
+    public SettingsRepository $settingsRepo;
+    public SettingsService $settings;
+    public ThemeCatalog $themeCatalog;
+    public NewsRepository $news;
+    public NewsCommentRepository $newsComments;
+    public TicketRepository $tickets;
+    public ItemShopCategoryRepository $itemShopCategories;
+    public ItemShopProductRepository $itemShopProducts;
+    public ItemShopOrderRepository $itemShopOrders;
+    public ItemShopPurchaseService $itemShopPurchases;
+    public ItemTooltipBuilder $itemTooltips;
+    public HtmlSanitizer $htmlSanitizer;
+    public NewsUploadService $newsUploads;
+    public TicketUploadService $ticketUploads;
+    public AdminAuditService $adminAudit;
+    public AclService $acl;
+    public AdminRoleRepository $adminRoles;
+    public AdminTotpRepository $adminTotp;
+    public MailerInterface $mailer;
+    public AccountEmailRepository $accountEmails;
+    public EmailTokenRepository $emailTokens;
+    public AccountEmailService $accountEmailService;
+    public BanRepository $banRepo;
+    public BanService $banService;
+    public UnstuckRepository $unstuckRepo;
+    public UnstuckService $unstuckService;
+    public ReferralRepository $referralRepo;
+    public ReferralService $referralService;
+    public ServerChannelRepository $serverChannels;
+    public DownloadRepository $downloads;
+    public DownloadUploadService $downloadUploads;
+    public CashPackageRepository $cashPackages;
+    public PaymentRepository $payments;
+    public PayPalGateway $paypal;
+    public CashCreditService $cashCredits;
+    public PaymentCheckoutService $paymentCheckout;
+    public EventRepository $events;
+    public EventService $eventService;
+    public DiscordWebhookService $discord;
 
     public function __construct()
     {
@@ -586,11 +588,15 @@ class Application
             return;
         }
 
-        Response::html(
-            'Service temporarily unavailable. Database schema is out of date. Run: php bin/migrate.php',
-            503,
-        )->send();
-        exit;
+        Log::error(
+            'app',
+            sprintf(
+                'Database schema is out of date (current=%d, latest=%d). Run: php bin/migrate.php',
+                $current,
+                $latest,
+            ),
+        );
+        $this->serviceUnavailable();
     }
 
     private function assertAppKey(): void
@@ -599,10 +605,13 @@ class Application
             return;
         }
 
-        Response::html(
-            'Service temporarily unavailable. APP_KEY is missing. Run: php bin/migrate.php',
-            503,
-        )->send();
+        Log::error('app', 'APP_KEY is missing or invalid. Run: php bin/migrate.php');
+        $this->serviceUnavailable();
+    }
+
+    private function serviceUnavailable(): void
+    {
+        Response::html('Service temporarily unavailable', 503)->send();
         exit;
     }
 }

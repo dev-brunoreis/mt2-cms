@@ -96,7 +96,7 @@ Layout merge is deep **by node `id`**, so a child can replace only the navbar wi
 
 HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`), idle timeouts (admin 30 min, public 2 h), and regenerate on login. Login/register and password change are rate limited (file-backed, fail-closed). Player passwords use Metin2-compatible `*SHA1(SHA1)` hashing; admins use `password_hash` with TOTP 2FA (encrypted at rest via `APP_KEY`). Unhandled exceptions return a generic 500 (no stack traces to clients).
 
-See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`compose.prod.yml`, immutable images, MySQL app users, `/health`, backups, PayPal webhook id).
+See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`cp .env.prod-example .env`, then `compose.prod.yml`, immutable images, MySQL app users, `/health`, backups, PayPal webhook id).
 
 ## Requirements
 

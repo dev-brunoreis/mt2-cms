@@ -16,9 +16,13 @@ Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
 
 ## Before go-live
 
-1. Copy `.env-example` to `.env` with **strong passwords** (not `admin123@`). Production uses dedicated MySQL app users — see [Environment variables](#environment-variables-production) below.
-2. Create an empty `.env` file before the first `compose.prod.yml` up if you have not written one yet (the file is bind-mounted into the PHP container).
-3. **Build and start** the production stack (assets and Composer deps are baked into the image — Node is not required on the host):
+1. Copy **`.env.prod-example`** to `.env` and set **strong passwords** (not the placeholders). This file includes `MYSQL_ROOT_PASSWORD`, `CMS_MYSQL_ROOT_PASSWORD`, and dedicated app users (`DB_USER=mt2cms`, `CMS_DB_USER=cms`) required by `compose.prod.yml`.
+   ```bash
+   cp .env.prod-example .env
+   # edit .env — replace every change-me-* password
+   ```
+   Do **not** use `.env-example` for production — it targets the dev stack (`compose.yml`) and omits the MySQL root variables.
+2. **Build and start** the production stack (assets and Composer deps are baked into the image — Node is not required on the host):
    ```bash
    docker compose -f compose.prod.yml up -d --build
    ```

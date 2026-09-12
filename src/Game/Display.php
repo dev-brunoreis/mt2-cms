@@ -73,6 +73,18 @@ class Display
         return $this->translator->get($key);
     }
 
+    public function map(mixed $mapIndex): string
+    {
+        $id = (int) $mapIndex;
+        $key = 'map.' . $id;
+
+        if ($this->translator->has($key)) {
+            return $this->translator->get($key);
+        }
+
+        return $this->translator->get('map.unknown', ['id' => $id]);
+    }
+
     /**
      * Playtime is stored in minutes on the player table.
      */

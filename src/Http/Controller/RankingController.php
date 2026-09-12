@@ -44,16 +44,14 @@ class RankingController extends Controller
 
             $ranking = $this->players->listPlaytimeRanking($page, self::PER_PAGE, $query);
         } elseif ($tab === 'guilds') {
-            $total = $this->guilds->countPublicRanking();
+            $total = $this->guilds->countPublicRanking($query);
             $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
 
             if ($page > $totalPages) {
                 $page = $totalPages;
             }
 
-            $ranking = $this->guilds->listPublicRanking($page, self::PER_PAGE);
-            $query = null;
-            $q = '';
+            $ranking = $this->guilds->listPublicRanking($page, self::PER_PAGE, $query);
         } else {
             $tab = 'level';
             $total = $this->players->countRanking($query);

@@ -3,19 +3,21 @@
         <div>
             <h1 class="k-title text-2xl">{{ t('ranking.title') }}</h1>
             <p class="mt-1 text-sm k-muted">
-                {{ t('ranking.player_count', {count: total}) }}
+                {% if tab == 'guilds' %}
+                    {{ t('ranking.guild_count', {count: total}) }}
+                {% else %}
+                    {{ t('ranking.player_count', {count: total}) }}
+                {% endif %}
                 {% if query %} {{ t('ranking.matching', {query: query}) }}{% endif %}
             </p>
         </div>
-
-        {% if tab != 'guilds' %}
-            <form method="get" action="/ranking" class="flex w-full gap-2">
-                <input type="hidden" name="tab" value="{{ tab }}">
-                <input type="search" name="q" value="{{ query }}" placeholder="{{ t('ranking.search_placeholder') }}"
-                       class="k-input min-w-0 flex-1 text-sm">
-                <button type="submit" class="k-btn shrink-0">{{ t('ranking.search') }}</button>
-            </form>
-        {% endif %}
+        <form method="get" action="/ranking" class="k-search-form">
+            <input type="hidden" name="tab" value="{{ tab }}">
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="{{ tab == 'guilds' ? t('ranking.search_guilds_placeholder') : t('ranking.search_placeholder') }}"
+                   class="k-input text-sm" autocomplete="off">
+            <button type="submit" class="k-btn shrink-0">{{ t('ranking.search') }}</button>
+        </form>
     </div>
 
     <nav class="k-tabs flex flex-wrap gap-1 border-b border-[var(--k-border)] pb-3">
@@ -23,13 +25,13 @@
            class="{% if tab == 'level' %}k-tab-active{% endif %}">{{ t('ranking.tab_level') }}</a>
         <a href="/ranking?tab=playtime{% if query %}&q={{ query|url_encode }}{% endif %}"
            class="{% if tab == 'playtime' %}k-tab-active{% endif %}">{{ t('ranking.tab_playtime') }}</a>
-        <a href="/ranking?tab=guilds"
+        <a href="/ranking?tab=guilds{% if query %}&q={{ query|url_encode }}{% endif %}"
            class="{% if tab == 'guilds' %}k-tab-active{% endif %}">{{ t('ranking.tab_guilds') }}</a>
     </nav>
 
     <div class="k-panel{% if tab == 'guilds' %} overflow-x-auto{% else %} overflow-hidden{% endif %}">
         {% if ranking is empty %}
-            <p class="p-8 text-center text-sm k-muted">{{ t('ranking.empty') }}</p>
+            <p class="p-8 text-center text-sm k-muted">{{ tab == 'guilds' ? t('ranking.empty_guilds') : t('ranking.empty') }}</p>
         {% elseif tab == 'guilds' %}
             <table class="k-table">
                 <thead>
@@ -56,7 +58,13 @@
                             <td class="k-num">{{ row.draw }}</td>
                             <td class="k-num">{{ row.loss }}</td>
                             <td class="k-num">{{ row.member_count }}</td>
-                            <td>{{ row.master_name|default('—') }}</td>
+                            <td>
+                                {% if row.master_name %}
+                                    <a href="/player/{{ row.master_name|url_encode }}">{{ row.master_name }}</a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

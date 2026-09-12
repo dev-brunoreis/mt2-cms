@@ -764,3 +764,292 @@
   border-color: var(--k-border) !important;
   color: var(--k-text) !important;
 }
+
+.theme-kingdoms .k-search-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.theme-kingdoms .k-search-form .k-input,
+.theme-kingdoms .k-search-form input[type="search"] {
+  flex: 1 1 auto;
+  min-width: 8rem;
+}
+
+.theme-kingdoms .k-event-status {
+  font-family: "Cinzel", serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--k-border);
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-event-status-upcoming {
+  color: var(--k-bronze);
+  border-color: var(--k-border-bright);
+}
+
+.theme-kingdoms .k-event-status-ongoing {
+  color: #b8e0c0;
+  border-color: #3d6b4a;
+  background: rgba(30, 80, 50, 0.28);
+}
+
+.theme-kingdoms .k-event-status-ended {
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-player-stripe {
+  height: 3px;
+  background: var(--k-border-bright);
+}
+
+.theme-kingdoms .k-player-stripe.k-player-empire-1,
+.theme-kingdoms .k-player-empire.k-player-empire-1 {
+  background: var(--k-crimson);
+}
+
+.theme-kingdoms .k-player-stripe.k-player-empire-2,
+.theme-kingdoms .k-player-empire.k-player-empire-2 {
+  background: var(--k-bronze);
+}
+
+.theme-kingdoms .k-player-stripe.k-player-empire-3,
+.theme-kingdoms .k-player-empire.k-player-empire-3 {
+  background: var(--k-cobalt);
+}
+
+.theme-kingdoms .k-player-empire {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  font-family: "Cinzel", serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f5ead4;
+}
+
+.theme-kingdoms .k-player-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #b8e0c0;
+}
+
+.theme-kingdoms .k-player-face img {
+  width: 4rem;
+  height: 4rem;
+}
+
+.theme-kingdoms .k-player-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+}
+
+@media (min-width: 640px) {
+  .theme-kingdoms .k-player-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.theme-kingdoms .k-player-stats > div {
+  border: 1px solid var(--k-border);
+  background: rgba(10, 8, 6, 0.45);
+  padding: 0.85rem 0.9rem;
+}
+
+.theme-kingdoms .k-player-stats dt {
+  font-family: "Cinzel", serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-player-stats dd {
+  margin: 0.35rem 0 0;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  color: var(--k-text);
+  overflow-wrap: break-word;
+}
+
+.theme-kingdoms .k-shop-cash {
+  border: 1px solid var(--k-border);
+  background: rgba(196, 163, 90, 0.08);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.theme-kingdoms .k-shop-cash-value {
+  margin-left: 0.5rem;
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms .k-shop-cat {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  color: var(--k-text);
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.theme-kingdoms a.k-shop-cat {
+  color: var(--k-text);
+}
+
+.theme-kingdoms .k-shop-cat:hover:not(.is-active) {
+  background: rgba(196, 163, 90, 0.06);
+}
+
+.theme-kingdoms .k-shop-cat.is-active {
+  background: linear-gradient(180deg, var(--k-ember-hot), var(--k-ember));
+  color: #f5e6d8;
+}
+
+.theme-kingdoms .k-shop-cat-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.theme-kingdoms .k-shop-cat-spacer {
+  display: inline-block;
+  width: 2rem;
+  flex-shrink: 0;
+}
+
+.theme-kingdoms .k-shop-cat-link {
+  min-width: 0;
+  flex: 1;
+  padding: 0.4rem 0.5rem 0.4rem 0;
+  font-size: 0.85rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.theme-kingdoms .k-shop-cat.is-active .k-shop-cat-link,
+.theme-kingdoms a.k-shop-cat.is-active {
+  color: #f5e6d8;
+}
+
+.theme-kingdoms .k-shop-cat-children {
+  margin-left: 1rem;
+  padding-left: 0.25rem;
+  border-left: 1px solid var(--k-border);
+}
+
+.theme-kingdoms .k-shop-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+}
+
+.theme-kingdoms .k-shop-product {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  grid-template-areas:
+    "icon body"
+    "buy buy";
+  gap: 0.75rem 0.85rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(165deg, var(--k-bg-raised) 0%, var(--k-bg-panel) 100%);
+  border: 1px solid var(--k-border);
+  box-shadow: inset 0 1px 0 rgba(196, 163, 90, 0.08);
+}
+
+@media (min-width: 640px) {
+  .theme-kingdoms .k-shop-product {
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    grid-template-areas: "icon body buy";
+  }
+}
+
+.theme-kingdoms .k-shop-icon {
+  grid-area: icon;
+}
+
+.theme-kingdoms .k-shop-icon img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.theme-kingdoms .k-shop-icon-fallback {
+  display: flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  background: rgba(196, 163, 90, 0.08);
+  color: var(--k-muted);
+  font-size: 0.75rem;
+}
+
+.theme-kingdoms .k-shop-product-body {
+  grid-area: body;
+  min-width: 0;
+}
+
+.theme-kingdoms .k-shop-product-name {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--k-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-kingdoms .k-shop-product-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-shop-product-buy {
+  grid-area: buy;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .theme-kingdoms .k-shop-product-buy {
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+  }
+}
+
+.theme-kingdoms .k-shop-price {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--k-bronze);
+  white-space: nowrap;
+}

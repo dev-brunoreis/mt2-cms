@@ -14,7 +14,7 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
 {
 
 
-    private const PUBLIC_COLUMNS = 'id, name, job, skill_group, level, exp, playtime, last_play, map_index';
+    private const PUBLIC_COLUMNS = 'p.id, p.name, p.job, p.skill_group, p.level, p.exp, p.playtime, p.last_play, p.map_index';
     private const DETAIL_COLUMNS = 'id, account_id, name, job, skill_group, level, exp, gold, playtime, map_index, last_play';
     private const ADMIN_COLUMNS = 'p.id, p.account_id, p.name, p.job, p.skill_group, p.level, p.exp, p.gold, p.playtime, p.map_index, p.last_play';
 
@@ -106,7 +106,9 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
     {
         return $this->reveal(
             $this->db()->fetch(
-                'SELECT ' . self::PUBLIC_COLUMNS . ' FROM `player` WHERE name = ?',
+                'SELECT ' . self::PUBLIC_COLUMNS . $this->empireSelect() . '
+                 FROM `player` p' . $this->empireJoin() . '
+                 WHERE p.name = ?',
                 [$name],
             ),
         );
@@ -172,7 +174,7 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->rankingWhere($q);
 
         $count = $this->db()->fetchColumn(
-            'SELECT COUNT(*) FROM `player`' . $where,
+            'SELECT COUNT(*) FROM `player` p' . $where,
             $params,
         );
 
@@ -199,9 +201,9 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
 
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT ' . self::PUBLIC_COLUMNS . '
-                 FROM `player`' . $where . '
-                 ORDER BY playtime DESC, level DESC, id ASC
+                'SELECT ' . self::PUBLIC_COLUMNS . $this->empireSelect() . '
+                 FROM `player` p' . $this->empireJoin() . $where . '
+                 ORDER BY p.playtime DESC, p.level DESC, p.id ASC
                  LIMIT ? OFFSET ?',
                 $params,
             ),
@@ -223,9 +225,9 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
 
         return $this->revealAll(
             $this->db()->fetchAll(
-                'SELECT ' . self::PUBLIC_COLUMNS . '
-                 FROM `player`' . $where . '
-                 ORDER BY level DESC, exp DESC, id ASC
+                'SELECT ' . self::PUBLIC_COLUMNS . $this->empireSelect() . '
+                 FROM `player` p' . $this->empireJoin() . $where . '
+                 ORDER BY p.level DESC, p.exp DESC, p.id ASC
                  LIMIT ? OFFSET ?',
                 $params,
             ),
@@ -436,6 +438,76 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
 
         $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
 
-        return [' WHERE name LIKE ?', ['%' . $escaped . '%']];
+        return [' WHERE p.name LIKE ?', ['%' . $escaped . '%']];
+    }
+
+    public function levelRank(int $playerId): ?int
+    {
+        $player = $this->db()->fetch(
+            'SELECT id, level, exp FROM `player` WHERE id = ?',
+            [$playerId],
+        );
+
+        if ($player === null) {
+            return null;
+        }
+
+        $better = (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM `player`
+             WHERE level > ?
+                OR (level = ? AND exp > ?)
+                OR (level = ? AND exp = ? AND id < ?)',
+            [
+                $player['level'],
+                $player['level'],
+                $player['exp'],
+                $player['level'],
+                $player['exp'],
+                $player['id'],
+            ],
+        );
+
+        return $better + 1;
+    }
+
+    public function playtimeRank(int $playerId): ?int
+    {
+        $player = $this->db()->fetch(
+            'SELECT id, playtime, level FROM `player` WHERE id = ?',
+            [$playerId],
+        );
+
+        if ($player === null) {
+            return null;
+        }
+
+        $better = (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM `player`
+             WHERE playtime > ?
+                OR (playtime = ? AND level > ?)
+                OR (playtime = ? AND level = ? AND id < ?)',
+            [
+                $player['playtime'],
+                $player['playtime'],
+                $player['level'],
+                $player['playtime'],
+                $player['level'],
+                $player['id'],
+            ],
+        );
+
+        return $better + 1;
+    }
+
+    private function empireSelect(): string
+    {
+        return $this->schemaTableExists('player_index') ? ', pi.empire AS empire' : ', 0 AS empire';
+    }
+
+    private function empireJoin(): string
+    {
+        return $this->schemaTableExists('player_index')
+            ? ' LEFT JOIN `player_index` pi ON pi.id = p.account_id'
+            : '';
     }
 }

@@ -1,69 +1,142 @@
-<section class="space-y-6">
+<section class="space-y-5">
     {% if notFound or player is null %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <h1 class="mb-2 text-2xl font-bold text-slate-900">{{ t('player.not_found_title') }}</h1>
-            <p class="mb-6 text-slate-500">{{ t('player.not_found_body') }}</p>
-            <a href="/ranking" class="font-medium text-indigo-600 hover:underline">{{ t('player.back_to_ranking') }}</a>
+        <div class="k-panel p-10 text-center">
+            <h1 class="k-title text-xl">{{ t('player.not_found_title') }}</h1>
+            <p class="mt-2 text-sm k-muted">{{ t('player.not_found_body') }}</p>
+            <a href="/ranking" class="k-btn k-btn-ghost mt-5 inline-flex">{{ t('player.back_to_ranking') }}</a>
         </div>
     {% else %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p class="mb-1 text-sm text-slate-500">
-                <a href="/ranking" class="hover:text-slate-700 transition">{{ t('nav.ranking') }}</a>
-                <span class="mx-2">/</span>
-                {{ player.name }}
-            </p>
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="flex items-center gap-3 text-3xl font-bold text-slate-900">
-                    {% include 'components/face-icon.twig' with { job: player.job } %}
-                    <span>{{ player.name }}</span>
-                </h1>
-                {% if unstuckAvailable|default(false) %}
-                    {% set state = unstuckState|default(null) %}
-                    {% if state and state.offline and state.cooldown_seconds == 0 %}
-                        <form method="post" action="/account/characters/unstuck">
-                            <input type="hidden" name="_csrf" value="{{ csrf }}">
-                            <input type="hidden" name="player_id" value="{{ player.id }}">
-                            <input type="hidden" name="return_to" value="player">
-                            <button type="submit" class="k-btn">{{ t('unstuck.button') }}</button>
-                        </form>
-                    {% elseif state and not state.offline %}
-                        <p class="text-sm text-amber-700">{{ t('unstuck.player_online', {minutes: onlineWindowMinutes}) }}</p>
-                    {% elseif state and state.cooldown_seconds > 0 %}
-                        <p class="text-sm text-slate-500">{{ t('unstuck.cooldown_active') }}</p>
-                    {% endif %}
-                {% endif %}
-            </div>
+        {% set empireId = player.empire|default(0) %}
+        <article class="k-panel k-player overflow-hidden">
+            <div class="k-player-stripe k-player-empire-{{ empireId }}" aria-hidden="true"></div>
+            <div class="p-5 sm:p-6">
+                <p class="mb-4 text-xs k-muted">
+                    <a href="/ranking" class="hover:!text-[var(--k-text)]">{{ t('nav.ranking') }}</a>
+                    <span class="mx-2">/</span>
+                    {{ player.name }}
+                </p>
 
-            <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.job') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.job|job_name }}</dd>
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex min-w-0 items-center gap-4">
+                        <div class="k-player-face shrink-0">
+                            {% include 'components/face-icon.twig' with { job: player.job } %}
+                        </div>
+                        <div class="min-w-0">
+                            <h1 class="k-title truncate text-2xl sm:text-3xl">{{ player.name }}</h1>
+                            <p class="mt-1 text-sm k-muted">
+                                {{ player.job|job_name }}
+                                {% if player.job|skill_name(player.skill_group) %}
+                                    · {{ player.job|skill_name(player.skill_group) }}
+                                {% endif %}
+                            </p>
+                            <p class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                {% if online %}
+                                    <span class="k-player-online">
+                                        <span class="k-online-pulse" aria-hidden="true"></span>
+                                        {{ t('player.online') }}
+                                    </span>
+                                {% else %}
+                                    <span class="k-muted">{{ t('player.offline') }}</span>
+                                {% endif %}
+                                {% if empireId %}
+                                    <span class="k-player-empire k-player-empire-{{ empireId }}">{{ empireId|empire_name }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if unstuckAvailable|default(false) %}
+                        {% set state = unstuckState|default(null) %}
+                        {% if state and state.offline and state.cooldown_seconds == 0 %}
+                            <form method="post" action="/account/characters/unstuck">
+                                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                <input type="hidden" name="player_id" value="{{ player.id }}">
+                                <input type="hidden" name="return_to" value="player">
+                                <button type="submit" class="k-btn">{{ t('unstuck.button') }}</button>
+                            </form>
+                        {% elseif state and not state.offline %}
+                            <p class="text-sm text-amber-200/80">{{ t('unstuck.player_online', {minutes: onlineWindowMinutes}) }}</p>
+                        {% elseif state and state.cooldown_seconds > 0 %}
+                            <p class="text-sm k-muted">{{ t('unstuck.cooldown_active') }}</p>
+                        {% endif %}
+                    {% endif %}
                 </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.skill') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.job|skill_name(player.skill_group)|default('—') }}</dd>
+
+                <dl class="k-player-stats">
+                    <div>
+                        <dt>{{ t('player.level') }}</dt>
+                        <dd>{{ player.level }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.experience') }}</dt>
+                        <dd>{{ player.exp }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.rank_level') }}</dt>
+                        <dd>{% if levelRank %}#{{ levelRank }}{% else %}—{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.playtime') }}</dt>
+                        <dd>{{ player.playtime|playtime }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.rank_playtime') }}</dt>
+                        <dd>{% if playtimeRank %}#{{ playtimeRank }}{% else %}—{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.last_play') }}</dt>
+                        <dd>{{ player.last_play|game_date }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t('player.map') }}</dt>
+                        <dd>{{ player.map_index|map_name }}</dd>
+                    </div>
+                    {% if marriage %}
+                        <div>
+                            <dt>{{ t('player.partner') }}</dt>
+                            <dd>
+                                <a href="/player/{{ marriage.partner_name|url_encode }}">{{ marriage.partner_name }}</a>
+                            </dd>
+                        </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </article>
+
+        {% if guild %}
+            <section class="k-panel overflow-hidden">
+                <h2 class="k-panel-head">{{ t('player.guild') }}</h2>
+                <div class="flex flex-wrap items-baseline justify-between gap-3 p-5 sm:p-6">
+                    <div>
+                        <p class="text-lg font-semibold text-[var(--k-text)]">{{ guild.name }}</p>
+                        <p class="mt-1 text-sm k-muted">
+                            {% if guild.is_master %}
+                                {{ t('player.guild_master') }}
+                            {% elseif guild.grade_name %}
+                                {{ guild.grade_name }}
+                            {% elseif guild.is_general %}
+                                {{ t('player.guild_general') }}
+                            {% else %}
+                                {{ t('player.guild_member') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <dl class="k-char-meta">
+                        <div>
+                            <dt>{{ t('player.guild_level') }}</dt>
+                            <dd>{{ guild.level }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ t('player.guild_members') }}</dt>
+                            <dd>{{ guild.member_count }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ t('player.guild_ladder') }}</dt>
+                            <dd>{{ guild.ladder_point }}</dd>
+                        </div>
+                    </dl>
                 </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.level') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.level }}</dd>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.experience') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.exp }}</dd>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.playtime') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.playtime|playtime }}</dd>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.last_play') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.last_play|game_date }}</dd>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <dt class="text-xs uppercase tracking-wider text-slate-500">{{ t('player.map') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold text-slate-900">{{ player.map_index }}</dd>
-                </div>
-            </dl>
-        </div>
+            </section>
+        {% endif %}
     {% endif %}
 </section>

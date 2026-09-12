@@ -83,19 +83,21 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
         }, $rows);
     }
 
-    public function countPublicRanking(): int
+    public function countPublicRanking(?string $q = null): int
     {
         if (!$this->schemaTableExists('guild')) {
             return 0;
         }
 
-        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `guild`');
+        [$where, $params] = $this->publicRankingWhere($q);
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `guild` g' . $where, $params);
     }
 
     /**
      * @return list<array<string, mixed>>
      */
-    public function listPublicRanking(int $page, int $perPage): array
+    public function listPublicRanking(int $page, int $perPage, ?string $q = null): array
     {
         if (!$this->schemaTableExists('guild')) {
             return [];
@@ -108,15 +110,19 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
             ? 'LEFT JOIN (SELECT guild_id, COUNT(*) AS member_count FROM `guild_member` GROUP BY guild_id) mc ON mc.guild_id = g.id'
             : '';
         $memberSelect = $this->schemaTableExists('guild_member') ? ', COALESCE(mc.member_count, 0) AS member_count' : ', 0 AS member_count';
+        [$where, $params] = $this->publicRankingWhere($q);
+        $params[] = $perPage;
+        $params[] = $offset;
 
         $rows = $this->db()->fetchAll(
             'SELECT g.id, g.name, g.level, g.win, g.draw, g.loss, g.ladder_point, p.name AS master_name' . $memberSelect . '
              FROM `guild` g
              LEFT JOIN `player` p ON p.id = g.master
              ' . $memberJoin . '
+             ' . $where . '
              ORDER BY g.level DESC, g.ladder_point DESC, g.win DESC, g.id ASC
              LIMIT ? OFFSET ?',
-            [$perPage, $offset],
+            $params,
         );
 
         return array_map(static fn (array $row): array => [
@@ -363,6 +369,73 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
             'members' => $this->members($guildId),
             'comments' => $this->comments($guildId),
         ];
+    }
+
+    /**
+     * Public guild summary for a character profile (no gold, roster, or comments).
+     *
+     * @return array{
+     *   id: int,
+     *   name: string,
+     *   level: int,
+     *   ladder_point: int,
+     *   is_master: bool,
+     *   is_general: bool,
+     *   grade_name: string|null,
+     *   member_count: int
+     * }|null
+     */
+    public function publicForPlayer(int $playerId): ?array
+    {
+        if ($playerId < 1 || !$this->schemaTableExists('guild') || !$this->schemaTableExists('guild_member')) {
+            return null;
+        }
+
+        $gradeJoin = $this->gradeJoin();
+        $memberCount = $this->schemaTableExists('guild_member')
+            ? ', (SELECT COUNT(*) FROM `guild_member` gmc WHERE gmc.guild_id = g.id) AS member_count'
+            : ', 0 AS member_count';
+        $row = $this->db()->fetch(
+            'SELECT g.id, g.name, g.level, g.ladder_point, g.master,
+                    gm.is_general, ' . $gradeJoin['select'] . $memberCount . '
+             FROM `guild_member` gm
+             INNER JOIN `guild` g ON g.id = gm.guild_id
+             ' . $gradeJoin['join'] . '
+             WHERE gm.pid = ?
+             LIMIT 1',
+            [$playerId],
+        );
+
+        if ($row === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $row['id'],
+            'name' => (string) $row['name'],
+            'level' => (int) ($row['level'] ?? 0),
+            'ladder_point' => (int) ($row['ladder_point'] ?? 0),
+            'is_master' => (int) ($row['master'] ?? 0) === $playerId,
+            'is_general' => (int) ($row['is_general'] ?? 0) === 1,
+            'grade_name' => $row['grade_name'] !== null && trim((string) $row['grade_name']) !== ''
+                ? trim((string) $row['grade_name'])
+                : null,
+            'member_count' => (int) ($row['member_count'] ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{0: string, 1: list<mixed>}
+     */
+    private function publicRankingWhere(?string $q): array
+    {
+        if ($q === null || $q === '') {
+            return ['', []];
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+
+        return [' WHERE g.name LIKE ?', ['%' . $escaped . '%']];
     }
 
     /**

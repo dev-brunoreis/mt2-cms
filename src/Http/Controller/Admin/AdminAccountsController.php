@@ -16,6 +16,7 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAccountsController extends AdminController
@@ -32,6 +33,7 @@ class AdminAccountsController extends AdminController
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private LogRepository $logs,
+        private NotificationService $notifications,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -62,7 +64,12 @@ class AdminAccountsController extends AdminController
             AccountsGrid::definition()->spec(),
             '/admin/game/accounts',
             [
-                'block' => fn (int $id): bool => $this->accounts->block($id),
+                'block' => function (int $id): bool {
+                    $this->accounts->block($id);
+                    $this->notifications->accountBanned($id, '');
+
+                    return true;
+                },
                 'unblock' => fn (int $id): bool => $this->accounts->unblock($id),
                 'delete' => fn (int $id): bool => $this->accounts->delete($id),
             ],
@@ -184,6 +191,11 @@ class AdminAccountsController extends AdminController
             }
 
             $this->auditChange('account.update', 'account', $accountId, $before, $after);
+
+            if ((string) ($account['status'] ?? '') !== 'BLOCK' && $input['status'] === 'BLOCK') {
+                $this->notifications->accountBanned($accountId, '');
+            }
+
             $this->flash('success', $this->t('admin.accounts.updated'));
 
             return $this->redirect('/admin/game/accounts/' . $accountId);
@@ -340,6 +352,7 @@ class AdminAccountsController extends AdminController
 
             if ($action === 'block') {
                 $this->accounts->block($id);
+                $this->notifications->accountBanned($id, '');
             } else {
                 $this->accounts->unblock($id);
             }

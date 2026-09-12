@@ -15,6 +15,7 @@ class CashCreditService
         private PaymentRepository $payments,
         private AccountRepository $accounts,
         private DiscordWebhookService $discord,
+        private NotificationService $notifications,
     ) {
     }
 
@@ -61,6 +62,7 @@ class CashCreditService
                 (string) ($payment['account_login'] ?? ''),
                 $cashAmount,
             );
+            $this->notifications->paymentCredited($accountId, $cashAmount, $paymentId);
 
             return true;
         } finally {

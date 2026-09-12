@@ -15,6 +15,7 @@ use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\CashCreditService;
+use Mt2Cms\Service\PaymentExpiryService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminPaymentsController extends AdminController
@@ -30,12 +31,15 @@ class AdminPaymentsController extends AdminController
         AdminAuditService $auditLog,
         private PaymentRepository $payments,
         private CashCreditService $credits,
+        private PaymentExpiryService $expiry,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
     {
+        $this->expiry->expireDue();
+
         $spec = PaymentsGrid::definition()->spec();
         $grid = GridRunner::fetch(
             $spec,

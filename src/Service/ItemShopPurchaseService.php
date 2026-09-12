@@ -18,6 +18,7 @@ class ItemShopPurchaseService
         private ItemShopOrderRepository $orders,
         private AccountRepository $accounts,
         private ItemAwardRepository $awards,
+        private NotificationService $notifications,
     ) {
     }
 
@@ -166,6 +167,13 @@ class ItemShopPurchaseService
             }
 
             $this->safeMarkCompleted($orderId, $awardId);
+            $this->notifications->itemSent(
+                $accountId,
+                $vnum,
+                $count,
+                '',
+                'shop:' . $orderId,
+            );
 
             return [
                 'order_id' => $orderId,

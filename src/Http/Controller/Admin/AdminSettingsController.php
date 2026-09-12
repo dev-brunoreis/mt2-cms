@@ -454,6 +454,7 @@ class AdminSettingsController extends AdminController
             'paypalConfigured' => $paypalConfigured,
             'paypalSecretSet' => $this->settings->paypalClientSecret() !== '',
             'paypalWebhookId' => $this->settings->paypalWebhookId(),
+            'paypalPendingMinutes' => $this->settings->paypalPendingMinutes(),
         ];
     }
 

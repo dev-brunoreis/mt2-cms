@@ -263,7 +263,31 @@
     "payments_status_pending": "Pending",
     "payments_status_paid": "Paid",
     "payments_status_failed": "Failed",
-    "payments_status_refunded": "Refunded"
+    "payments_status_expired": "Expired",
+    "payments_status_refunded": "Refunded",
+    "notifications": "Notifications",
+    "notifications_title": "Notifications",
+    "notifications_lead": "Cash, shop, and account alerts for this login.",
+    "notifications_empty": "No notifications yet.",
+    "notifications_mark_all": "Mark all as read",
+    "notifications_mark_read": "Mark as read",
+    "notifications_marked_read": "Notifications marked as read."
+  },
+  "notifications": {
+    "title_payment_credited": "Cash accepted",
+    "title_payment_failed": "Cash declined",
+    "title_payment_expired": "Checkout expired",
+    "title_payment_cancelled": "Checkout cancelled",
+    "title_account_banned": "Account banned",
+    "title_item_sent": "Item sent",
+    "payment_credited": "Your cash top-up of {amount} was credited.",
+    "payment_failed": "Your cash top-up of {amount} could not be completed.",
+    "payment_expired": "Your PayPal checkout for {amount} cash expired and was cancelled.",
+    "payment_cancelled": "Your PayPal checkout for {amount} cash was cancelled.",
+    "account_banned": "Your account was banned. Reason: {reason}",
+    "account_banned_no_reason": "Your account was banned.",
+    "item_sent": "{item} ×{count} was sent to your mall.",
+    "unknown_item": "Item"
   },
   "shop": {
     "title": "Item Shop",
@@ -2342,7 +2366,9 @@
       "paypal_secret_keep": "Leave blank to keep the current secret.",
       "paypal_not_configured": "Not set. Paste credentials from developer.paypal.com, or use PAYPAL_* in .env.",
       "paypal_webhook_id": "Webhook ID",
-      "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal."
+      "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal.",
+      "paypal_pending_minutes": "Pending checkout timeout (minutes)",
+      "paypal_pending_minutes_help": "Unpaid PayPal checkouts are cancelled after this many minutes (5–180). The player is notified."
     },
     "events": {
       "title": "Events",
@@ -2426,6 +2452,7 @@
       "status_pending": "Pending",
       "status_paid": "Paid",
       "status_failed": "Failed",
+      "status_expired": "Expired",
       "status_refunded": "Refunded",
       "count": {
         "one": "{count} payment",

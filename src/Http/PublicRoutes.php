@@ -55,6 +55,9 @@ final class PublicRoutes
         $r->addRoute('POST', '/account/pin', [AccountController::class, 'updatePin']);
         $r->addRoute('GET', '/account/orders', [AccountController::class, 'orders']);
         $r->addRoute('GET', '/account/payments', [AccountController::class, 'payments']);
+        $r->addRoute('GET', '/account/notifications', [AccountController::class, 'notifications']);
+        $r->addRoute('POST', '/account/notifications/read-all', [AccountController::class, 'markAllNotificationsRead']);
+        $r->addRoute('POST', '/account/notifications/{id:\d+}/read', [AccountController::class, 'markNotificationRead']);
         $r->addRoute('GET', '/account/tickets', [TicketController::class, 'index']);
         $r->addRoute('GET', '/account/tickets/new', [TicketController::class, 'create']);
         $r->addRoute('POST', '/account/tickets', [TicketController::class, 'store']);

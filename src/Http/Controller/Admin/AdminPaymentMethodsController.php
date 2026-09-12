@@ -57,6 +57,7 @@ class AdminPaymentMethodsController extends AdminController
             $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
             $this->settings->setPaypalClientSecret($secretPosted);
             $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
+            $this->settings->setPaypalPendingMinutes((int) ($_POST['paypal_pending_minutes'] ?? 30));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 
@@ -85,6 +86,7 @@ class AdminPaymentMethodsController extends AdminController
             'paypal_currency' => $this->settings->paypalCurrency(),
             'paypal_client_id' => $this->settings->paypalClientId(),
             'paypal_webhook_id' => $this->settings->paypalWebhookId(),
+            'paypal_pending_minutes' => $this->settings->paypalPendingMinutes(),
             'paypal_configured' => $this->settings->paypalConfigured(),
         ];
 

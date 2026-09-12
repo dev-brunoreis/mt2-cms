@@ -12,13 +12,15 @@ class BanService
     public function __construct(
         private BanRepository $bans,
         private AccountRepository $accounts,
+        private NotificationService $notifications,
     ) {
     }
 
     public function apply(int $accountId, string $login, string $reason, ?string $expiresAt, ?int $adminId): void
     {
-        $this->bans->create($accountId, $login, $reason, $expiresAt, $adminId);
+        $banId = $this->bans->create($accountId, $login, $reason, $expiresAt, $adminId);
         $this->accounts->block($accountId);
+        $this->notifications->accountBanned($accountId, $reason, $banId);
     }
 
     public function lift(int $banId, int $accountId): void

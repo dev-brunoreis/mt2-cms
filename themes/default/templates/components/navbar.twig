@@ -20,7 +20,14 @@
                 <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer">{{ t('nav.discord') }}</a>
             {% endif %}
             {% if auth.check %}
-                <a href="/account" class="{% if current_path starts with '/account' %}k-nav-active{% endif %}">{{ t('nav.account') }}</a>
+                <a href="/account" class="{% if current_path starts with '/account' %}k-nav-active{% endif %}">
+                    {{ t('nav.account') }}
+                    {% if notification_unread|default(0) > 0 %}
+                        <span class="ml-1 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-[var(--k-ember-hot)] px-1 text-[0.6rem] font-semibold text-white">
+                            {{ notification_unread }}
+                        </span>
+                    {% endif %}
+                </a>
             {% else %}
                 <a href="/register" class="k-btn k-btn-ember ml-1 !py-1.5 !px-3 text-[0.65rem]">{{ t('nav.register') }}</a>
             {% endif %}

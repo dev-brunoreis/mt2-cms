@@ -151,6 +151,13 @@ class DonateController extends Controller
 
     public function cancel(): Response
     {
+        $paymentId = (int) ($_GET['payment_id'] ?? 0);
+        $accountId = $this->auth->id();
+
+        if ($accountId !== null && $paymentId > 0) {
+            $this->checkout->cancelPending($paymentId, $accountId);
+        }
+
         $this->flash('error', $this->t('donate.cancelled'));
 
         return $this->redirect('/donate');

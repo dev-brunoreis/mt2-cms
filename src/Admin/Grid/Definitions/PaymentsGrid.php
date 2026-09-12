@@ -32,6 +32,7 @@ final class PaymentsGrid
                     'pending' => ['class' => 'admin-badge-warn', 'label' => 'admin.payments.status_pending'],
                     'paid' => ['class' => 'admin-badge-ok', 'label' => 'admin.payments.status_paid'],
                     'failed' => ['class' => 'admin-badge-danger', 'label' => 'admin.payments.status_failed'],
+                    'expired' => ['class' => 'admin-badge-muted', 'label' => 'admin.payments.status_expired'],
                     'refunded' => ['class' => 'admin-badge-muted', 'label' => 'admin.payments.status_refunded'],
                 ]],
                 ['key' => 'created_at', 'label' => 'admin.payments.created', 'sort' => 'created_at', 'type' => 'date'],
@@ -41,6 +42,7 @@ final class PaymentsGrid
                     'pending' => 'admin.payments.status_pending',
                     'paid' => 'admin.payments.status_paid',
                     'failed' => 'admin.payments.status_failed',
+                    'expired' => 'admin.payments.status_expired',
                     'refunded' => 'admin.payments.status_refunded',
                 ]],
             ]);

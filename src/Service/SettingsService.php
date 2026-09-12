@@ -584,6 +584,18 @@ class SettingsService
         $this->settings->set('paypal_webhook_id', trim($webhookId));
     }
 
+    public function paypalPendingMinutes(): int
+    {
+        $value = (int) ($this->settings->get('paypal_pending_minutes') ?? 30);
+
+        return max(5, min(180, $value > 0 ? $value : 30));
+    }
+
+    public function setPaypalPendingMinutes(int $minutes): void
+    {
+        $this->settings->set('paypal_pending_minutes', (string) max(5, min(180, $minutes)));
+    }
+
     public function discordInviteUrl(): string
     {
         return trim((string) ($this->settings->get('discord_invite_url') ?? ''));

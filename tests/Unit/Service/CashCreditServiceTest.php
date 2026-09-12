@@ -8,6 +8,7 @@ use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Service\CashCreditService;
+use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Service\SettingsService;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +20,7 @@ final class CashCreditServiceTest extends TestCase
         $payments->method('findByProviderRef')->willReturn(null);
 
         $accounts = $this->createMock(AccountRepository::class);
-        $service = new CashCreditService($payments, $accounts, $this->discord());
+        $service = new CashCreditService($payments, $accounts, $this->discord(), $this->notifications());
 
         self::assertFalse($service->creditIfPaid('paypal', 'ORDER-1'));
     }
@@ -36,7 +37,7 @@ final class CashCreditServiceTest extends TestCase
         ]);
 
         $accounts = $this->createMock(AccountRepository::class);
-        $service = new CashCreditService($payments, $accounts, $this->discord());
+        $service = new CashCreditService($payments, $accounts, $this->discord(), $this->notifications());
 
         self::assertTrue($service->creditIfPaid('paypal', 'ORDER-1'));
     }
@@ -72,7 +73,10 @@ final class CashCreditServiceTest extends TestCase
         $accounts->method('creditCash')->with(7, 50)->willReturn(true);
         $accounts->method('releaseNamedLock');
 
-        $service = new CashCreditService($payments, $accounts, $this->discord());
+        $notifications = $this->createMock(NotificationService::class);
+        $notifications->expects(self::once())->method('paymentCredited')->with(7, 50, 2);
+
+        $service = new CashCreditService($payments, $accounts, $this->discord(), $notifications);
 
         self::assertTrue($service->markPaidAndCredit('paypal', 'ORDER-2'));
     }
@@ -84,5 +88,10 @@ final class CashCreditServiceTest extends TestCase
         $settings->method('siteUrl')->willReturn('https://example.test');
 
         return new DiscordWebhookService($settings);
+    }
+
+    private function notifications(): NotificationService
+    {
+        return $this->createMock(NotificationService::class);
     }
 }

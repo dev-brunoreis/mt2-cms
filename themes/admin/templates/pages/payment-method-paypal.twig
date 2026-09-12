@@ -47,6 +47,12 @@
                        value="{{ paypalWebhookId|default('') }}" class="admin-input">
                 <span class="admin-field-help">{{ t('admin.payment_methods.paypal_webhook_id_help') }}</span>
             </div>
+            <div class="admin-field">
+                <label for="paypal-pending-minutes">{{ t('admin.payment_methods.paypal_pending_minutes') }}</label>
+                <input id="paypal-pending-minutes" type="number" name="paypal_pending_minutes" min="5" max="180"
+                       value="{{ paypalPendingMinutes|default(30) }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.payment_methods.paypal_pending_minutes_help') }}</span>
+            </div>
         </div>
     </fieldset>
 </form>

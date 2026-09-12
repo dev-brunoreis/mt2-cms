@@ -6,6 +6,16 @@
            {% if current_path == '/account' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
             {{ t('account.dashboard') }}
         </a>
+        <a href="/account/notifications"
+           class="flex items-center justify-between rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/notifications' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            <span>{{ t('account.notifications') }}</span>
+            {% if notification_unread|default(0) > 0 %}
+                <span class="ml-2 rounded-full bg-[var(--k-ember-hot)] px-1.5 py-0.5 text-[0.65rem] font-semibold text-white">
+                    {{ notification_unread }}
+                </span>
+            {% endif %}
+        </a>
         <a href="/account/characters"
            class="block rounded-sm px-3 py-2 text-sm transition
            {% if current_path starts with '/account/characters' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">

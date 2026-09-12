@@ -114,20 +114,48 @@ class PaymentRepository extends Repository implements ProvidesAdminGrid
         return $row;
     }
 
-    public function markPaid(int $id): void
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listExpiredPending(int $olderThanMinutes, int $limit = 100): array
     {
-        $this->db()->execute(
-            'UPDATE cms_payments SET status = ? WHERE id = ? AND status = ?',
-            ['paid', $id, 'pending'],
+        $minutes = max(1, min(1440, $olderThanMinutes));
+        $cutoff = date('Y-m-d H:i:s', time() - ($minutes * 60));
+
+        return $this->db()->fetchAll(
+            'SELECT id, account_id, cash_amount
+             FROM cms_payments
+             WHERE status = ?
+               AND created_at < ?
+             ORDER BY id ASC
+             LIMIT ?',
+            ['pending', $cutoff, max(1, min(200, $limit))],
         );
     }
 
-    public function markFailed(int $id): void
+    public function markPaid(int $id): void
     {
         $this->db()->execute(
+            'UPDATE cms_payments SET status = ?
+             WHERE id = ? AND status IN (?, ?, ?)',
+            ['paid', $id, 'pending', 'failed', 'expired'],
+        );
+    }
+
+    public function markFailed(int $id): bool
+    {
+        return $this->db()->execute(
             'UPDATE cms_payments SET status = ? WHERE id = ? AND status = ?',
             ['failed', $id, 'pending'],
-        );
+        ) > 0;
+    }
+
+    public function markExpired(int $id): bool
+    {
+        return $this->db()->execute(
+            'UPDATE cms_payments SET status = ? WHERE id = ? AND status = ?',
+            ['expired', $id, 'pending'],
+        ) > 0;
     }
 
     public function markCredited(int $id): void

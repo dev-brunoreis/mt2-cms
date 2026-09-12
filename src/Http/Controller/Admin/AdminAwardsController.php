@@ -18,6 +18,7 @@ use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminAwardsController extends AdminController
@@ -35,6 +36,7 @@ class AdminAwardsController extends AdminController
         private AccountRepository $accounts,
         private PlayerRepository $players,
         private GameProtoService $protos,
+        private NotificationService $notifications,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -94,7 +96,19 @@ class AdminAwardsController extends AdminController
 
         try {
             $this->validateAwardInput($input);
-            $this->awards->create($input);
+            $award = $this->awards->create($input);
+            $account = $this->accounts->findByLogin((string) $input['login']);
+
+            if ($account !== null) {
+                $this->notifications->itemSent(
+                    (int) $account['id'],
+                    (int) $input['vnum'],
+                    (int) $input['count'],
+                    $this->itemName((int) $input['vnum']),
+                    'award:' . (int) ($award['id'] ?? 0),
+                );
+            }
+
             $this->audit('award.create', 'award', null);
             $this->flash('success', $this->t('admin.awards.created'));
 

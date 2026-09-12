@@ -16,6 +16,8 @@ class PaymentCheckoutService
         private PaymentRepository $payments,
         private PaymentGateway $gateway,
         private SettingsService $settings,
+        private NotificationService $notifications,
+        private PaymentExpiryService $expiry,
     ) {
     }
 
@@ -24,6 +26,8 @@ class PaymentCheckoutService
      */
     public function startCheckout(int $accountId, string $accountLogin, int $packageId): array
     {
+        $this->expiry->expireDue();
+
         $package = $this->packages->findEnabledById($packageId);
 
         if ($package === null) {
@@ -43,6 +47,7 @@ class PaymentCheckoutService
         ]);
 
         $paymentId = (int) $payment['id'];
+        $cashAmount = (int) $package['cash_amount'];
         $base = rtrim($this->settings->siteUrl(), '/');
         $intent = new PaymentIntent(
             $paymentId,
@@ -51,15 +56,41 @@ class PaymentCheckoutService
             $packageId,
             (int) $package['price_cents'],
             (string) ($package['currency'] ?? $this->settings->paypalCurrency()),
-            (int) $package['cash_amount'],
+            $cashAmount,
             $base . '/donate/return?payment_id=' . $paymentId,
             $base . '/donate/cancel?payment_id=' . $paymentId,
         );
 
-        $redirect = $this->gateway->createCheckout($intent);
+        try {
+            $redirect = $this->gateway->createCheckout($intent);
+            $this->payments->updateProviderRef($paymentId, $redirect->providerRef);
+        } catch (\Throwable $e) {
+            if ($this->payments->markFailed($paymentId)) {
+                $this->notifications->paymentFailed($accountId, $cashAmount, $paymentId);
+            }
 
-        $this->payments->updateProviderRef($paymentId, $redirect->providerRef);
+            throw $e;
+        }
 
         return ['approval_url' => $redirect->approvalUrl, 'payment_id' => $paymentId];
+    }
+
+    public function cancelPending(int $paymentId, int $accountId): bool
+    {
+        $payment = $this->payments->findByIdForAccount($paymentId, $accountId);
+
+        if ($payment === null || (string) ($payment['status'] ?? '') !== 'pending') {
+            return false;
+        }
+
+        if (!$this->payments->markFailed($paymentId)) {
+            return false;
+        }
+
+        $full = $this->payments->findById($paymentId);
+        $cashAmount = (int) ($full['cash_amount'] ?? 0);
+        $this->notifications->paymentCancelled($accountId, $cashAmount, $paymentId);
+
+        return true;
     }
 }

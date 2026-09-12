@@ -41,6 +41,7 @@ use Mt2Cms\Repository\ItemShopProductRepository;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\NewsCommentRepository;
 use Mt2Cms\Repository\NewsRepository;
+use Mt2Cms\Repository\NotificationRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
@@ -69,13 +70,16 @@ use Mt2Cms\Service\ItemShopPurchaseService;
 use Mt2Cms\Service\ItemTooltipBuilder;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\NewsUploadService;
+use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Service\PaymentCheckoutService;
+use Mt2Cms\Service\PaymentExpiryService;
 use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Service\UnstuckService;
 use Mt2Cms\Support\Database;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Support\Log;
 use Mt2Cms\I18n\Translator;
 
 /**
@@ -124,6 +128,8 @@ return static function (Application $app): void {
     ))->seedIfNeeded();
     $app->cashPackages = new CashPackageRepository($app->cmsDb);
     $app->payments = new PaymentRepository($app->cmsDb);
+    $app->notifications = new NotificationRepository($app->cmsDb);
+    $app->notificationService = new NotificationService($app->notifications);
     $app->mailer = new SymfonyMailer(
         $app->settings->mailFromAddress(),
         $app->settings->mailFromName(),
@@ -204,7 +210,7 @@ return static function (Application $app): void {
     );
     $app->protoFields = new ProtoFormFields($app->translator, $app->protoEnums);
     $app->auth = new Auth($app->accounts);
-    $app->banService = new BanService($app->banRepo, $app->accounts);
+    $app->banService = new BanService($app->banRepo, $app->accounts, $app->notificationService);
     $app->unstuckService = new UnstuckService($app->unstuckRepo, $app->players, $app->settings);
     $app->referralService = new ReferralService(
         $app->referralRepo,
@@ -219,12 +225,24 @@ return static function (Application $app): void {
         $app->mailer,
         $app->settings,
     );
-    $app->cashCredits = new CashCreditService($app->payments, $app->accounts, $app->discord);
+    $app->cashCredits = new CashCreditService(
+        $app->payments,
+        $app->accounts,
+        $app->discord,
+        $app->notificationService,
+    );
+    $app->paymentExpiry = new PaymentExpiryService(
+        $app->payments,
+        $app->settings,
+        $app->notificationService,
+    );
     $app->paymentCheckout = new PaymentCheckoutService(
         $app->cashPackages,
         $app->payments,
         $app->paypal,
         $app->settings,
+        $app->notificationService,
+        $app->paymentExpiry,
     );
     $app->adminAudit = new AdminAuditService(
         new AdminAuditRepository($app->cmsDb),
@@ -235,6 +253,7 @@ return static function (Application $app): void {
         $app->itemShopOrders,
         $app->accounts,
         $app->awards,
+        $app->notificationService,
     );
     $app->itemTooltips = new ItemTooltipBuilder(
         $app->gameProto,
@@ -242,6 +261,20 @@ return static function (Application $app): void {
         $app->protoEnums,
         new ItemDescCatalog($app->gameProfile->path('itemdesc')),
     );
+
+    $accountId = $app->auth->id();
+    $unread = 0;
+
+    if ($accountId !== null) {
+        try {
+            $app->paymentExpiry->expireDue();
+            $unread = $app->notifications->countUnread($accountId);
+        } catch (\Throwable $e) {
+            Log::error('payments', 'Pending payment expiry or notification count failed', $e);
+        }
+    }
+
+    $app->theme->setGlobals(['notification_unread' => $unread]);
     $app->attachAdminNavCounts();
     AdminRuntime::bind($app->settings);
 };

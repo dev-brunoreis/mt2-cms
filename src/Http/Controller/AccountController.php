@@ -12,11 +12,14 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Mail\MailerInterface;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\ItemShopOrderRepository;
+use Mt2Cms\Repository\NotificationRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Service\AccountEmailService;
+use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Theme\ThemeEngine;
 use Mt2Cms\Service\UnstuckService;
 
@@ -34,6 +37,8 @@ class AccountController extends Controller
         private AccountEmailService $accountEmails,
         private ItemShopOrderRepository $shopOrders,
         private PaymentRepository $payments,
+        private NotificationRepository $notifications,
+        private GameProtoService $gameProto,
         private MailerInterface $mailer,
         private SettingsService $settings,
         private UnstuckService $unstuck,
@@ -372,6 +377,135 @@ class AccountController extends Controller
             'title' => $this->t('account.payments_title'),
             'payments' => $accountId !== null ? $this->payments->listByAccountId($accountId) : [],
         ]);
+    }
+
+    public function notifications(): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        $accountId = $this->auth->id();
+        $rows = $accountId !== null ? $this->notifications->listByAccountId($accountId) : [];
+
+        return $this->view('account-notifications', [
+            'title' => $this->t('account.notifications_title'),
+            'notifications' => $this->presentNotifications($rows),
+            'unreadCount' => $accountId !== null ? $this->notifications->countUnread($accountId) : 0,
+        ]);
+    }
+
+    public function markAllNotificationsRead(): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/account/notifications');
+        }
+
+        $accountId = $this->auth->id();
+
+        if ($accountId !== null) {
+            $this->notifications->markAllRead($accountId);
+        }
+
+        $this->flash('success', $this->t('account.notifications_marked_read'));
+
+        return $this->redirect('/account/notifications');
+    }
+
+    public function markNotificationRead(string $id): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/account/notifications');
+        }
+
+        $accountId = $this->auth->id();
+
+        if ($accountId !== null) {
+            $this->notifications->markRead((int) $id, $accountId);
+        }
+
+        return $this->redirect('/account/notifications');
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private function presentNotifications(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            $payload = is_array($row['payload'] ?? null) ? $row['payload'] : [];
+            $type = (string) ($row['type'] ?? '');
+            $known = [
+                'payment_credited',
+                'payment_failed',
+                'payment_expired',
+                'payment_cancelled',
+                'account_banned',
+                'item_sent',
+            ];
+
+            if (!in_array($type, $known, true)) {
+                $row['title'] = $this->t('account.notifications');
+                $row['body'] = '';
+                continue;
+            }
+
+            if ($type === 'item_sent') {
+                $payload['item'] = $this->notificationItemLabel($payload);
+            }
+
+            if ($type === 'account_banned' && trim((string) ($payload['reason'] ?? '')) === '') {
+                $row['body'] = $this->t('notifications.account_banned_no_reason');
+            } else {
+                $row['body'] = $this->t('notifications.' . $type, $payload);
+            }
+
+            $row['title'] = $this->t('notifications.title_' . $type);
+        }
+
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function notificationItemLabel(array $payload): string
+    {
+        $stored = trim((string) ($payload['item'] ?? ''));
+        $vnum = (int) ($payload['vnum'] ?? 0);
+
+        if ($stored !== '' && !str_starts_with($stored, '#')) {
+            return $stored;
+        }
+
+        if ($vnum < 1) {
+            return $stored !== '' ? $stored : $this->t('notifications.unknown_item');
+        }
+
+        try {
+            $proto = $this->gameProto->find(ProtoSchemas::KIND_ITEM, $vnum);
+        } catch (\Throwable) {
+            $proto = null;
+        }
+        $locale = trim((string) ($proto['locale_name'] ?? ''));
+        $name = $locale !== '' ? $locale : trim((string) ($proto['name'] ?? ''));
+
+        return $name !== '' ? $name : '#' . $vnum;
     }
 
     private function emailForm(?string $error = null, int $status = 200): Response

@@ -250,6 +250,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .theme-kingdoms .k-nav-toggle {
@@ -264,6 +265,7 @@
   border: 1px solid var(--k-border-bright);
   border-radius: 2px;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
@@ -320,6 +322,8 @@
 }
 
 .theme-kingdoms .k-brand {
+  display: flex;
+  align-items: center;
   font-family: "Cinzel", serif;
   font-weight: 700;
   font-size: 1.15rem;
@@ -332,6 +336,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.theme-kingdoms .k-brand-logo {
+  display: block;
+  height: 2rem;
+  width: auto;
+  max-width: min(46vw, 10rem);
+  object-fit: contain;
+}
+
+.theme-kingdoms .k-brand:has(.k-brand-logo) {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
 }
 
 @media (max-width: 959px) {
@@ -349,10 +367,25 @@
 
   .theme-kingdoms .k-nav-enhanced .k-nav-toggle {
     display: inline-flex;
+    order: 1;
+  }
+
+  .theme-kingdoms .k-nav-enhanced .k-brand {
+    order: 2;
+    flex: 1;
+    justify-content: center;
+    max-width: none;
+    text-align: center;
+  }
+
+  .theme-kingdoms .k-nav-enhanced .k-nav-toolbar {
+    order: 3;
+    margin-left: 0;
   }
 
   .theme-kingdoms .k-nav-enhanced .k-nav-links {
     display: none;
+    order: 4;
     position: absolute;
     left: 0;
     right: 0;
@@ -373,10 +406,12 @@
 
 @media (min-width: 960px) {
   .theme-kingdoms .k-nav-toolbar {
+    order: 3;
     margin-left: 0;
   }
 
   .theme-kingdoms .k-brand {
+    order: 1;
     max-width: none;
   }
 
@@ -390,6 +425,7 @@
     gap: 0.15rem 0.25rem;
     width: auto;
     flex: 1;
+    order: 2;
     position: static;
     padding: 0;
     background: none;
@@ -1243,4 +1279,40 @@
   font-weight: 700;
   color: var(--k-bronze);
   white-space: nowrap;
+}
+
+.theme-kingdoms .locale-switcher-toggle {
+  background: rgba(12, 10, 8, 0.55);
+  border-color: var(--k-border-bright);
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms .locale-switcher-toggle:hover,
+.theme-kingdoms .locale-switcher.is-open .locale-switcher-toggle {
+  background: rgba(28, 22, 16, 0.88);
+  border-color: var(--k-bronze);
+}
+
+.theme-kingdoms .locale-switcher-toggle:focus-visible,
+.theme-kingdoms .locale-switcher-option:focus-visible {
+  outline-color: var(--k-bronze);
+}
+
+.theme-kingdoms .locale-switcher-menu {
+  background: linear-gradient(180deg, #16120e 0%, #100d0b 100%);
+  border: 1px solid var(--k-border);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.45);
+}
+
+.theme-kingdoms .locale-switcher-option:hover,
+.theme-kingdoms .locale-switcher-option:focus-visible {
+  background: rgba(196, 163, 90, 0.12);
+}
+
+.theme-kingdoms .locale-switcher-option.is-current {
+  background: rgba(196, 163, 90, 0.2);
+}
+
+.theme-kingdoms .locale-switcher-code {
+  color: var(--k-bronze);
 }

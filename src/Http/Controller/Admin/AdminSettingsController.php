@@ -380,6 +380,7 @@ class AdminSettingsController extends AdminController
                     'channels' => $this->channels->allForAdmin(),
                     'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
                     'siteTitle' => $this->settings->siteTitle(),
+                    'siteLogo' => $this->settings->siteLogo(),
                     'footerText' => $this->settings->footerText(),
                     'socialLinks' => $this->settings->socialLinks(),
                     'socialNetworks' => SettingsService::socialNetworks(),

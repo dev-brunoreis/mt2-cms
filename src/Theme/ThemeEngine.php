@@ -19,7 +19,7 @@ class ThemeEngine
     private ThemeResolver $resolver;
 
     /**
-     * @param list<array{code: string, name: string}> $locales
+     * @param list<array{code: string, name: string, flag?: ?string}> $locales
      */
     public function __construct(
         string $themesPath,

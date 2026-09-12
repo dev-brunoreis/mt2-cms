@@ -7,16 +7,22 @@
             <span class="admin-fieldset-help">{{ t('admin.locale.lead') }}</span>
         </legend>
 
-        <label for="default_locale" class="mb-2 block text-sm font-medium text-slate-700">
-            {{ t('admin.locale.default') }}
-        </label>
-        <select id="default_locale" name="default_locale" required class="admin-select">
+        <p class="mb-2 text-sm font-medium text-slate-700">{{ t('admin.locale.default') }}</p>
+        <div class="admin-locale-picker" role="radiogroup" aria-label="{{ t('admin.locale.default') }}">
             {% for locale in availableLocales %}
-                <option value="{{ locale.code }}" {% if defaultLocale == locale.code %}selected{% endif %}>
-                    {{ locale.name }}
-                </option>
+                <label class="admin-locale-pick">
+                    <input type="radio"
+                           name="default_locale"
+                           value="{{ locale.code }}"
+                           required
+                           {% if defaultLocale == locale.code %}checked{% endif %}>
+                    {% if locale.flag %}
+                        <img src="{{ locale.flag }}" alt="" width="33" height="20">
+                    {% endif %}
+                    <span class="admin-locale-pick-name">{{ locale.name }}</span>
+                </label>
             {% endfor %}
-        </select>
+        </div>
     </fieldset>
 
     <fieldset class="admin-fieldset">

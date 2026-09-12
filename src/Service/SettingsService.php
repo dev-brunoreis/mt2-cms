@@ -187,6 +187,28 @@ class SettingsService
         $this->settings->set('site_title', $title);
     }
 
+    public function siteLogo(): string
+    {
+        $path = trim((string) ($this->settings->get('site_logo') ?? ''));
+
+        if ($path === '' || !LogoUploadService::isStoredPath($path)) {
+            return '';
+        }
+
+        return $path;
+    }
+
+    public function setSiteLogo(string $path): void
+    {
+        $path = trim($path);
+
+        if ($path !== '' && !LogoUploadService::isStoredPath($path)) {
+            throw new \InvalidArgumentException('admin.community.logo_upload_invalid');
+        }
+
+        $this->settings->set('site_logo', $path);
+    }
+
     public function footerText(): string
     {
         return trim((string) ($this->settings->get('footer_text') ?? ''));

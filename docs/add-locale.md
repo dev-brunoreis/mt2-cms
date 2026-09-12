@@ -35,6 +35,7 @@ Pass `{n}` or `{count}`.
 2. Include `"locale": { "label": "...", "name": "..." }` so the switcher can label it.
 3. Copy structure from `en.json` and translate.
 4. No PHP/route changes — `Locales::available()` scans `lang/*.json`.
+5. Optional flag: drop `{code}.webp` in `public/flag/` (language→country aliases: `cs`→`cz`, `da`→`dk`, `el`→`gr`). The switcher shows the flag instead of the language name.
 
 Default when no cookie: `LOCALE` in `.env` (default `en`).
 

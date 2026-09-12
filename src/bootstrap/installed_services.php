@@ -60,6 +60,7 @@ use Mt2Cms\Service\CashCreditService;
 use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Service\DownloadUploadService;
 use Mt2Cms\Service\BannerUploadService;
+use Mt2Cms\Service\LogoUploadService;
 use Mt2Cms\Service\BannerSeedService;
 use Mt2Cms\Service\ImageVariantService;
 use Mt2Cms\Service\DropFileService;
@@ -100,6 +101,7 @@ return static function (Application $app): void {
     $app->settings = new SettingsService($app->settingsRepo, $app->themeCatalog);
     $app->htmlSanitizer = new HtmlSanitizer();
     $app->newsUploads = new NewsUploadService(BASE_DIR . '/public');
+    $app->logoUploads = new LogoUploadService(BASE_DIR . '/public');
     $app->ticketUploads = new TicketUploadService(BASE_DIR . '/var/uploads/tickets');
     $app->news = new NewsRepository($app->cmsDb);
     $app->newsComments = new NewsCommentRepository($app->cmsDb);
@@ -172,6 +174,7 @@ return static function (Application $app): void {
         'captchaEnabled' => $app->settings->captchaPublicEnabled(),
         'discord_invite_url' => $app->settings->discordInviteUrl(),
         'site_title' => $app->settings->siteTitle(),
+        'site_logo' => $app->settings->siteLogo(),
         'footer_text' => $app->settings->footerText(),
         'social_links' => $app->settings->socialLinksEnabled(),
         'news_show_views' => $app->settings->newsShowViews(),

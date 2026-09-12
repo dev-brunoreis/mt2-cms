@@ -455,57 +455,206 @@
   color: #3730a3;
 }
 
-.admin-locale-form {
+.admin-locale-switcher {
   display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.admin-locale-select {
   width: 100%;
-  appearance: none;
-  cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.06);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.6rem center;
-  background-size: 0.9rem;
-  padding: 0.5rem 2rem 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 20;
+}
+
+.admin-locale-switcher.is-open {
+  z-index: 70;
+}
+
+.admin-locale-switcher.locale-switcher-static {
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 0.375rem;
-  font-size: 0.75rem;
   color: #e2e8f0;
-  outline: none;
 }
 
-.admin-locale-select:hover,
-.admin-locale-select:focus {
-  border-color: rgba(165, 180, 252, 0.45);
+.admin-locale-switcher .locale-switcher-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #f1f5f9;
 }
 
-.admin-locale-select option {
-  color: #0f172a;
+.admin-locale-switcher .locale-switcher-caret {
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #94a3b8;
 }
 
-.admin-locale-select-light {
-  background-color: #fff;
-  color: #334155;
+.admin-locale-switcher.is-open .locale-switcher-caret {
+  transform: rotate(180deg);
+}
+
+.admin-locale-switcher .locale-switcher-toggle {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #f1f5f9;
+}
+
+.admin-locale-switcher .locale-switcher-toggle:hover,
+.admin-locale-switcher .locale-switcher-toggle:focus-visible {
+  border-color: rgba(165, 180, 252, 0.55);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.admin-locale-switcher .locale-switcher-menu {
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
+  min-width: 100%;
+  padding: 0.35rem;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  box-shadow: 0 14px 32px rgba(2, 6, 23, 0.55);
+}
+
+.admin-locale-switcher .locale-switcher-option {
+  justify-content: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.5rem 0.55rem;
+  color: #cbd5e1;
+}
+
+.admin-locale-switcher .locale-switcher-option .locale-switcher-name {
+  color: #e2e8f0;
+}
+
+.admin-locale-switcher .locale-switcher-option:hover,
+.admin-locale-switcher .locale-switcher-option:focus-visible {
+  background: rgba(148, 163, 184, 0.14);
+  color: #f8fafc;
+}
+
+.admin-locale-switcher .locale-switcher-option.is-current {
+  background: rgba(99, 102, 241, 0.32);
+  color: #fff;
+}
+
+.admin-locale-switcher .locale-switcher-option.is-current .locale-switcher-name {
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-locale-switcher--light,
+.admin-locale-switcher--light.locale-switcher-static {
+  width: auto;
+}
+
+.admin-locale-switcher--light.locale-switcher-static {
+  background: #fff;
   border-color: #cbd5e1;
+  color: #334155;
 }
 
-.admin-locale-select-light:hover,
-.admin-locale-select-light:focus {
+.admin-locale-switcher--light .locale-switcher-toggle {
+  width: auto;
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.admin-locale-switcher--light .locale-switcher-name {
+  color: #334155;
+}
+
+.admin-locale-switcher--light .locale-switcher-caret {
+  color: #64748b;
+}
+
+.admin-locale-switcher--light .locale-switcher-toggle:hover,
+.admin-locale-switcher--light .locale-switcher-toggle:focus-visible {
   border-color: #6366f1;
 }
 
-.admin-locale-fallback {
-  cursor: pointer;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.admin-locale-switcher--light .locale-switcher-menu {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.admin-locale-switcher--light .locale-switcher-option .locale-switcher-name {
+  color: #334155;
+}
+
+.admin-locale-switcher--light .locale-switcher-option:hover,
+.admin-locale-switcher--light .locale-switcher-option:focus-visible {
+  background: #f1f5f9;
+}
+
+.admin-locale-switcher--light .locale-switcher-option.is-current {
+  background: #eef2ff;
+}
+
+.admin-locale-switcher--light .locale-switcher-option.is-current .locale-switcher-name {
+  color: #3730a3;
+}
+
+.admin-locale-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.5rem;
+  max-width: 40rem;
+}
+
+.admin-locale-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cbd5e1;
   border-radius: 0.375rem;
-  font-size: 0.75rem;
-  color: #cbd5e1;
-  background: transparent;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-locale-pick:hover {
+  border-color: #818cf8;
+}
+
+.admin-locale-pick:has(input:checked) {
+  border-color: #6366f1;
+  background: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.admin-locale-pick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-locale-pick img {
+  width: 1.65rem;
+  height: 1rem;
+  object-fit: contain;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
+}
+
+.admin-locale-pick-name {
+  font-size: 0.875rem;
+  color: #0f172a;
 }
 
 .admin-user-badge {

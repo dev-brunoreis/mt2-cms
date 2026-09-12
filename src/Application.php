@@ -62,6 +62,7 @@ use Mt2Cms\Service\ItemShopPurchaseService;
 use Mt2Cms\Service\ItemTooltipBuilder;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\NewsUploadService;
+use Mt2Cms\Service\LogoUploadService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Repository\BanRepository;
@@ -151,6 +152,7 @@ class Application
     public ItemTooltipBuilder $itemTooltips;
     public HtmlSanitizer $htmlSanitizer;
     public NewsUploadService $newsUploads;
+    public LogoUploadService $logoUploads;
     public TicketUploadService $ticketUploads;
     public AdminAuditService $adminAudit;
     public AclService $acl;

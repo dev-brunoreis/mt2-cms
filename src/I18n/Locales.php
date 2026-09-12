@@ -10,13 +10,24 @@ class Locales
 {
     public const COOKIE = 'locale';
 
+    /**
+     * Language codes whose flag files use a different ISO country stem.
+     *
+     * @var array<string, string>
+     */
+    private const FLAG_ALIASES = [
+        'cs' => 'cz',
+        'da' => 'dk',
+        'el' => 'gr',
+    ];
+
     public function __construct(
         private string $path,
     ) {
     }
 
     /**
-     * @return list<array{code: string, name: string}>
+     * @return list<array{code: string, name: string, flag: ?string}>
      */
     public function available(): array
     {
@@ -41,6 +52,7 @@ class Locales
             $list[] = [
                 'code' => $code,
                 'name' => $name !== '' ? $name : $code,
+                'flag' => $this->flagUrl($code),
             ];
         }
 
@@ -82,5 +94,40 @@ class Locales
         }
 
         return $target;
+    }
+
+    private function flagUrl(string $code): ?string
+    {
+        $normalized = strtolower(str_replace('-', '_', $code));
+
+        if ($normalized === '' || !preg_match('/^[a-z0-9_]+$/', $normalized)) {
+            return null;
+        }
+
+        $candidates = [$normalized];
+
+        if (isset(self::FLAG_ALIASES[$normalized])) {
+            $candidates[] = self::FLAG_ALIASES[$normalized];
+        }
+
+        $base = explode('_', $normalized, 2)[0];
+
+        if ($base !== $normalized) {
+            $candidates[] = $base;
+
+            if (isset(self::FLAG_ALIASES[$base])) {
+                $candidates[] = self::FLAG_ALIASES[$base];
+            }
+        }
+
+        $dir = dirname($this->path) . '/public/flag';
+
+        foreach (array_unique($candidates) as $stem) {
+            if (is_file($dir . '/' . $stem . '.webp')) {
+                return '/flag/' . $stem . '.webp';
+            }
+        }
+
+        return null;
     }
 }

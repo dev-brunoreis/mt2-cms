@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/locale-switcher.css">
     <script src="/js/admin/admin-sidebar.js" defer></script>
     <script src="/js/admin/admin-tabs.js" defer></script>
     <script src="/js/admin/admin-proto-form.js" defer></script>
@@ -37,8 +38,8 @@
                 {{ slots.sidebar|raw }}
             </div>
 
-            <div class="border-t border-white/10 p-4">
-                {% include 'components/locale-switcher.twig' %}
+            <div class="relative z-20 overflow-visible border-t border-white/10 p-4">
+                {% include 'components/locale-switcher.twig' with { drop: 'up' } %}
             </div>
 
             {% if admin_pinned_nav is defined and admin_pinned_nav %}

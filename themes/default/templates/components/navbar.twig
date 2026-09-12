@@ -1,25 +1,32 @@
 {% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
 <header class="k-nav" data-k-nav>
     <nav class="k-nav-bar">
-        <a href="/" class="k-brand">{{ brand }}</a>
+        <button type="button"
+                class="k-nav-toggle"
+                data-k-nav-toggle
+                aria-controls="k-nav-menu"
+                aria-expanded="false"
+                aria-label="{{ t('nav.open_menu') }}"
+                data-label-open="{{ t('nav.open_menu') }}"
+                data-label-close="{{ t('nav.close_menu') }}">
+            <svg class="k-nav-icon-open h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <svg class="k-nav-icon-close h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <a href="/" class="k-brand">
+            {% if site_logo|default('') %}
+                <img src="{{ site_logo }}" alt="{{ brand }}" class="k-brand-logo">
+            {% else %}
+                {{ brand }}
+            {% endif %}
+        </a>
 
         <div class="k-nav-toolbar">
             {% include 'components/locale-switcher.twig' %}
-            <button type="button"
-                    class="k-nav-toggle"
-                    data-k-nav-toggle
-                    aria-controls="k-nav-menu"
-                    aria-expanded="false"
-                    aria-label="{{ t('nav.open_menu') }}"
-                    data-label-open="{{ t('nav.open_menu') }}"
-                    data-label-close="{{ t('nav.close_menu') }}">
-                <svg class="k-nav-icon-open h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-                <svg class="k-nav-icon-close h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
         </div>
 
         <div id="k-nav-menu" class="k-nav-links" data-k-nav-menu>

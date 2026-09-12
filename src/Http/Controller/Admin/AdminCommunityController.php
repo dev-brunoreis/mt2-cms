@@ -13,6 +13,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\ServerChannelRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\LogoUploadService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -29,6 +30,7 @@ class AdminCommunityController extends AdminController
         AdminAuditService $auditLog,
         private ServerChannelRepository $channels,
         private SettingsService $settings,
+        private LogoUploadService $logoUploads,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -54,6 +56,7 @@ class AdminCommunityController extends AdminController
 
         try {
             $this->settings->setSiteTitle(trim((string) ($_POST['site_title'] ?? '')));
+            $this->replaceSiteLogo();
             $this->settings->setFooterText(trim((string) ($_POST['footer_text'] ?? '')));
             $this->settings->setSiteUrl(trim((string) ($_POST['site_url'] ?? '')));
             $this->settings->setMailFrom(
@@ -67,6 +70,10 @@ class AdminCommunityController extends AdminController
             $this->settings->setSocialLinks(is_array($social) ? $social : []);
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
+
+            return $this->redirect(AdminPaths::settingsCommunity());
+        } catch (\RuntimeException $e) {
+            $this->flash('error', $this->t('admin.community.logo_upload_failed'));
 
             return $this->redirect(AdminPaths::settingsCommunity());
         }
@@ -127,6 +134,30 @@ class AdminCommunityController extends AdminController
         $this->flash('success', $this->t('admin.saved'));
 
         return $this->redirect(AdminPaths::settingsCommunity());
+    }
+
+    private function replaceSiteLogo(): void
+    {
+        $file = $_FILES['site_logo'] ?? null;
+        $hasUpload = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $remove = isset($_POST['remove_site_logo']);
+
+        if (!$hasUpload && !$remove) {
+            return;
+        }
+
+        $previous = $this->settings->siteLogo();
+
+        if ($hasUpload) {
+            $path = $this->logoUploads->store($file);
+            $this->settings->setSiteLogo($path);
+        } else {
+            $this->settings->setSiteLogo('');
+        }
+
+        if ($previous !== '') {
+            $this->logoUploads->delete($previous);
+        }
     }
 
     public function deleteChannel(string $id): Response

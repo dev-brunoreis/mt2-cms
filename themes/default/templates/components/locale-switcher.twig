@@ -1,16 +1,53 @@
-<form method="post" action="/locale" class="inline-flex items-center">
-    <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <input type="hidden" name="redirect" value="{{ current_path }}">
-    <label for="locale-switcher" class="sr-only">{{ t('locale.label') }}</label>
-    <select id="locale-switcher" name="locale"
-            class="k-input cursor-pointer !py-1 !px-2 text-xs">
-        {% for item in locales %}
-            <option value="{{ item.code }}"{% if item.code == locale %} selected{% endif %}>{{ item.name }}</option>
-        {% endfor %}
-    </select>
-    <noscript>
-        <button type="submit" class="k-btn k-btn-ghost ml-1 !py-1 !px-2 text-xs">
-            {{ t('locale.label') }}
+{% if locales|length == 1 %}
+    {% for item in locales %}
+        <span class="locale-switcher locale-switcher-static" title="{{ item.name }}">
+            {% if item.flag %}
+                <img src="{{ item.flag }}" alt="" width="33" height="20" class="locale-switcher-flag">
+            {% else %}
+                <span class="locale-switcher-code">{{ item.code }}</span>
+            {% endif %}
+            <span class="sr-only">{{ item.name }}</span>
+        </span>
+    {% endfor %}
+{% elseif locales|length > 1 %}
+    <form method="post" action="/locale" class="locale-switcher" data-locale-switcher>
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="redirect" value="{{ current_path }}">
+
+        <button type="button"
+                class="locale-switcher-toggle"
+                data-locale-toggle
+                aria-expanded="false"
+                aria-haspopup="true"
+                title="{{ t('locale.label') }}">
+            {% for item in locales %}
+                {% if item.code == locale %}
+                    {% if item.flag %}
+                        <img src="{{ item.flag }}" alt="" width="33" height="20" class="locale-switcher-flag">
+                    {% else %}
+                        <span class="locale-switcher-code">{{ item.code }}</span>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            <span class="sr-only">{{ t('locale.label') }}</span>
         </button>
-    </noscript>
-</form>
+
+        <div class="locale-switcher-menu" data-locale-menu>
+            {% for item in locales %}
+                <button type="submit"
+                        name="locale"
+                        value="{{ item.code }}"
+                        class="locale-switcher-option{% if item.code == locale %} is-current{% endif %}"
+                        title="{{ item.name }}"
+                        {% if item.code == locale %}aria-current="true"{% endif %}>
+                    {% if item.flag %}
+                        <img src="{{ item.flag }}" alt="" width="33" height="20" class="locale-switcher-flag">
+                    {% else %}
+                        <span class="locale-switcher-code">{{ item.code }}</span>
+                    {% endif %}
+                    <span class="sr-only">{{ item.name }}</span>
+                </button>
+            {% endfor %}
+        </div>
+    </form>
+{% endif %}

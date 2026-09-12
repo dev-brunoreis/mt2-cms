@@ -169,7 +169,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->events, $app->eventService, $app->htmlSanitizer,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminCommunityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCommunityController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->serverChannels, $app->settings,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->serverChannels, $app->settings, $app->logoUploads,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminPaymentMethodsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminPaymentMethodsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings,

@@ -9,6 +9,8 @@ namespace Mt2Cms\Game\Proto;
  */
 final class ProtoIndexCache
 {
+    private const FORMAT = 2;
+
     public function __construct(
         private string $cacheDir,
     ) {
@@ -74,6 +76,6 @@ final class ProtoIndexCache
     {
         $safe = preg_replace('/[^a-z0-9_-]+/i', '-', $cacheKey) ?? 'proto';
 
-        return rtrim($this->cacheDir, '/') . '/proto-index-' . $safe . '.json';
+        return rtrim($this->cacheDir, '/') . '/proto-index-v' . self::FORMAT . '-' . $safe . '.json';
     }
 }

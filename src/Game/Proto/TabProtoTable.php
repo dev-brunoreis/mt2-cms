@@ -6,6 +6,8 @@ namespace Mt2Cms\Game\Proto;
 
 class TabProtoTable
 {
+    private const MAX_RANGE_SPAN = 10000;
+
     /**
      * @param list<string> $columns
      */
@@ -28,13 +30,15 @@ class TabProtoTable
         $rows = [];
 
         foreach ($this->readProtoRows() as $row) {
-            $vnum = (int) ($row['vnum'] ?? 0);
+            $range = self::parseVnum((string) ($row['vnum'] ?? ''));
 
-            if ($vnum < 1) {
+            if ($range === null) {
                 continue;
             }
 
-            $row['locale_name'] = $names[$vnum] ?? '';
+            $row['vnum'] = (string) $range['start'];
+            $row['vnum_token'] = $range['token'];
+            $row['locale_name'] = $names[$range['start']] ?? '';
             $rows[] = $row;
         }
 
@@ -51,7 +55,7 @@ class TabProtoTable
         }
 
         foreach ($this->all() as $row) {
-            if ((int) $row['vnum'] === $vnum) {
+            if ($this->rowCoversVnum($row, $vnum)) {
                 return $row;
             }
         }
@@ -101,9 +105,10 @@ class TabProtoTable
         $rows = [];
 
         foreach ($this->all() as $row) {
-            if ((int) $row['vnum'] === $vnum) {
+            if ($this->rowCoversVnum($row, $vnum)) {
                 $merged = $this->normalizeRecord(array_merge($row, $record));
-                $merged['vnum'] = (string) $vnum;
+                $merged['vnum'] = (string) ((int) ($row['vnum'] ?? $vnum));
+                $merged['vnum_token'] = (string) ($row['vnum_token'] ?? $merged['vnum']);
                 $merged['name'] = $row['name'];
                 $rows[] = $merged;
                 $found = true;
@@ -126,7 +131,7 @@ class TabProtoTable
         $found = false;
 
         foreach ($this->all() as $row) {
-            if ((int) $row['vnum'] === $vnum) {
+            if ($this->rowCoversVnum($row, $vnum)) {
                 $found = true;
 
                 continue;
@@ -193,10 +198,20 @@ class TabProtoTable
             }
 
             [$vnum, $name] = array_pad(explode("\t", $line, 2), 2, '');
-            $id = (int) $vnum;
+            $range = self::parseVnum($vnum);
 
-            if ($id > 0) {
-                $names[$id] = $name;
+            if ($range === null) {
+                continue;
+            }
+
+            $end = $range['end'] - $range['start'] > self::MAX_RANGE_SPAN
+                ? $range['start']
+                : $range['end'];
+
+            for ($id = $range['start']; $id <= $end; $id++) {
+                if (!isset($names[$id])) {
+                    $names[$id] = $name;
+                }
             }
         }
 
@@ -215,13 +230,14 @@ class TabProtoTable
 
         foreach ($rows as $row) {
             $cells = [];
+            $vnumToken = (string) ($row['vnum_token'] ?? $row['vnum'] ?? '');
 
             foreach ($this->columns as $key) {
-                $cells[] = $row[$key] ?? '';
+                $cells[] = $key === 'vnum' ? $vnumToken : ($row[$key] ?? '');
             }
 
             $protoLines[] = implode("\t", $cells);
-            $nameLines[] = ($row['vnum'] ?? '') . "\t" . ($row['locale_name'] ?? '');
+            $nameLines[] = $vnumToken . "\t" . ($row['locale_name'] ?? '');
         }
 
         $this->writeFile($this->protoPath, $protoLines);
@@ -297,8 +313,68 @@ class TabProtoTable
         }
 
         $normalized['locale_name'] = $this->sanitizeCell((string) ($record['locale_name'] ?? ''));
+        $normalized['vnum_token'] = $this->sanitizeCell((string) ($record['vnum_token'] ?? $normalized['vnum'] ?? ''));
 
         return $normalized;
+    }
+
+    /**
+     * Metin2 proto dumps group identical items as `start~end` (e.g. dragon soul gems).
+     *
+     * @return array{start: int, end: int, token: string}|null
+     */
+    private static function parseVnum(string $raw): ?array
+    {
+        $raw = trim($raw);
+
+        if ($raw === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\d+)~(\d+)$/', $raw, $matches) === 1) {
+            $start = (int) $matches[1];
+            $end = (int) $matches[2];
+
+            if ($start < 1 || $end < $start) {
+                return null;
+            }
+
+            return [
+                'start' => $start,
+                'end' => $end,
+                'token' => $raw,
+            ];
+        }
+
+        if (!ctype_digit($raw)) {
+            return null;
+        }
+
+        $vnum = (int) $raw;
+
+        if ($vnum < 1) {
+            return null;
+        }
+
+        return [
+            'start' => $vnum,
+            'end' => $vnum,
+            'token' => $raw,
+        ];
+    }
+
+    /**
+     * @param array<string, string> $row
+     */
+    private function rowCoversVnum(array $row, int $vnum): bool
+    {
+        $parsed = self::parseVnum((string) ($row['vnum_token'] ?? $row['vnum'] ?? ''));
+
+        if ($parsed === null) {
+            return false;
+        }
+
+        return $vnum >= $parsed['start'] && $vnum <= $parsed['end'];
     }
 
     private function sanitizeCell(string $value): string

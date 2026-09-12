@@ -45,7 +45,7 @@ final class ProtoGrid
 
         return GridDefinition::create(self::listPath($route), $prefix)
             ->idField('vnum')
-            ->defaultSort('vnum')
+            ->defaultSort('vnum', 'asc')
             ->orderBy($sortMap)
             ->columns($columns)
             ->massActions(self::listPath($route) . '/mass', [

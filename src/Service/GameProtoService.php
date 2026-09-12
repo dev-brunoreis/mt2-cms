@@ -298,6 +298,7 @@ class GameProtoService
         foreach ($rows as $row) {
             $haystack = mb_strtolower(implode(' ', [
                 $row['vnum'] ?? '',
+                $row['vnum_token'] ?? '',
                 $row['locale_name'] ?? '',
                 $row['type'] ?? '',
                 $row['subtype'] ?? '',

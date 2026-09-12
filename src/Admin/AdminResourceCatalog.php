@@ -48,6 +48,10 @@ final class AdminResourceCatalog
                 ]),
                 self::flatModule('admin.nav.tickets', 'tickets', ['view', 'reply', 'close', 'reopen', 'mass']),
                 self::flatModule('admin.nav.downloads', 'downloads', ['view', 'create', 'edit', 'delete', 'mass']),
+                self::subgroup('admin.nav.banners', 'banners', [
+                    self::entity('admin.resources.slides', 'slides', self::CRUD),
+                    self::entity('admin.resources.banner_settings', 'settings', ['view', 'edit']),
+                ]),
                 self::flatModule('admin.nav.events', 'events', self::CRUD),
             ]),
             self::group('admin.nav.store', 'store', [
@@ -138,6 +142,7 @@ final class AdminResourceCatalog
             'store' => 'store/categories/view',
             'logs' => self::firstLogViewResource(),
             'news' => 'content/news/posts/view',
+            'banners' => 'content/banners/slides/view',
             default => self::firstViewUnderPrefix(self::sectionResourcePrefix($sectionId)),
         };
     }
@@ -178,6 +183,14 @@ final class AdminResourceCatalog
 
         if ($sectionId === 'news') {
             return AdminPaths::contentNews();
+        }
+
+        if ($sectionId === 'banners') {
+            if (str_starts_with($resourceId, 'content/banners/settings/')) {
+                return AdminPaths::contentBanners('settings');
+            }
+
+            return AdminPaths::contentBanners('slides');
         }
 
         return AdminPaths::sectionPath($sectionId);
@@ -223,6 +236,10 @@ final class AdminResourceCatalog
 
         if (str_starts_with($resourceId, 'content/downloads/')) {
             return 'downloads';
+        }
+
+        if (str_starts_with($resourceId, 'content/banners/')) {
+            return 'banners';
         }
 
         if (str_starts_with($resourceId, 'content/events/')) {
@@ -291,6 +308,7 @@ final class AdminResourceCatalog
             'news' => 'content/news',
             'tickets' => 'content/tickets',
             'downloads' => 'content/downloads',
+            'banners' => 'content/banners',
             'events' => 'content/events',
             'store' => 'store',
             'packages' => 'store/packages',

@@ -140,6 +140,83 @@ class SettingsService
         $this->settings->set('news_comments_require_approval', $required ? '1' : '0');
     }
 
+    public function bannerIntervalMs(): int
+    {
+        $value = $this->settings->get('banner_interval_ms');
+
+        if ($value === null || $value === '') {
+            return 5500;
+        }
+
+        return max(2000, min(60000, (int) $value));
+    }
+
+    public function setBannerIntervalMs(int $ms): void
+    {
+        $this->settings->set('banner_interval_ms', (string) max(2000, min(60000, $ms)));
+    }
+
+    public function bannerAutoplay(): bool
+    {
+        $value = $this->settings->get('banner_autoplay');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setBannerAutoplay(bool $enabled): void
+    {
+        $this->settings->set('banner_autoplay', $enabled ? '1' : '0');
+    }
+
+    public function bannerShowDots(): bool
+    {
+        $value = $this->settings->get('banner_show_dots');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setBannerShowDots(bool $enabled): void
+    {
+        $this->settings->set('banner_show_dots', $enabled ? '1' : '0');
+    }
+
+    public function bannerShowArrows(): bool
+    {
+        $value = $this->settings->get('banner_show_arrows');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setBannerShowArrows(bool $enabled): void
+    {
+        $this->settings->set('banner_show_arrows', $enabled ? '1' : '0');
+    }
+
+    /**
+     * @return array{interval_ms: int, autoplay: bool, show_dots: bool, show_arrows: bool}
+     */
+    public function bannerSettings(): array
+    {
+        return [
+            'interval_ms' => $this->bannerIntervalMs(),
+            'autoplay' => $this->bannerAutoplay(),
+            'show_dots' => $this->bannerShowDots(),
+            'show_arrows' => $this->bannerShowArrows(),
+        ];
+    }
+
     public function captchaPublicEnabled(): bool
     {
         $value = $this->settings->get('captcha_public');

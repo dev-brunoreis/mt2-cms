@@ -1,0 +1,46 @@
+<form id="{{ formId }}" method="post" action="/admin/content/banners/settings" class="p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.banners.settings_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.banners.settings_lead') }}</span>
+        </legend>
+
+        <div class="space-y-4">
+            <div class="admin-field">
+                <label for="banner-interval-ms">{{ t('admin.banners.interval_ms') }}</label>
+                <input id="banner-interval-ms" type="number" name="banner_interval_ms" min="2000" max="60000" step="100"
+                       value="{{ bannerSettings.interval_ms }}" class="admin-input max-w-xs">
+                <span class="admin-field-help">{{ t('admin.banners.interval_ms_help') }}</span>
+            </div>
+
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="banner_autoplay" value="1"
+                       {% if bannerSettings.autoplay %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.banners.autoplay') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.banners.autoplay_help') }}</span>
+                </span>
+            </label>
+
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="banner_show_dots" value="1"
+                       {% if bannerSettings.show_dots %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.banners.show_dots') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.banners.show_dots_help') }}</span>
+                </span>
+            </label>
+
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="banner_show_arrows" value="1"
+                       {% if bannerSettings.show_arrows %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.banners.show_arrows') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.banners.show_arrows_help') }}</span>
+                </span>
+            </label>
+        </div>
+    </fieldset>
+</form>

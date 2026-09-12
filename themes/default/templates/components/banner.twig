@@ -1,26 +1,138 @@
-<div class="k-banner" aria-hidden="true">
+{% set cmsSlides = site_banners|default([]) %}
+{% set settings = banner_settings|default({interval_ms: 5500, autoplay: true, show_dots: true, show_arrows: true}) %}
+{% set sizes = '(max-width: 1180px) calc(100vw - 2rem), 1180px' %}
+
+{% if cmsSlides|length > 0 %}
+    {% set slides = cmsSlides %}
+    {% set useCms = true %}
+{% else %}
+    {% set slides = [
+      { id: 'warrior', label: t('theme.kingdoms.banner_warrior') },
+      { id: 'ninja', label: t('theme.kingdoms.banner_ninja') },
+      { id: 'shura', label: t('theme.kingdoms.banner_shura') },
+      { id: 'shaman', label: t('theme.kingdoms.banner_shaman') }
+    ] %}
+    {% set useCms = false %}
+{% endif %}
+
+{% if slides|length > 0 %}
+<div class="k-banner"
+     data-k-banner
+     data-interval="{{ settings.interval_ms|default(5500) }}"
+     data-autoplay="{{ settings.autoplay|default(true) ? '1' : '0' }}"
+     data-dots="{{ settings.show_dots|default(true) ? '1' : '0' }}"
+     data-arrows="{{ settings.show_arrows|default(true) ? '1' : '0' }}"
+     role="region"
+     aria-roledescription="carousel"
+     aria-label="{{ t('theme.kingdoms.banner_carousel') }}">
     <div class="k-banner-frame">
-        <picture>
-            <source
-                type="image/webp"
-                srcset="/themes/default/banner-960.webp 960w,
-                        /themes/default/banner-1440.webp 1440w,
-                        /themes/default/banner-1920.webp 1920w"
-                sizes="(max-width: 1180px) calc(100vw - 2rem), 1180px">
-            <source
-                type="image/jpeg"
-                srcset="/themes/default/banner-960.jpg 960w,
-                        /themes/default/banner-1440.jpg 1440w,
-                        /themes/default/banner-1920.jpg 1920w"
-                sizes="(max-width: 1180px) calc(100vw - 2rem), 1180px">
-            <img
-                class="k-banner-img"
-                src="/themes/default/banner.jpg"
-                width="1920"
-                height="1080"
-                alt=""
-                decoding="async"
-                fetchpriority="high">
-        </picture>
+        <div class="k-banner-track">
+            {% for slide in slides %}
+                {% set label = useCms ? (slide.alt|default(slide.title|default(''))) : slide.label %}
+                {% set variants = useCms ? (slide.variants|default({})) : {} %}
+                <div class="k-banner-slide{% if loop.first %} is-active{% endif %}"
+                     data-k-banner-slide
+                     role="group"
+                     aria-roledescription="slide"
+                     aria-label="{{ t('theme.kingdoms.banner_slide', {current: loop.index, total: slides|length}) }}"
+                     {% if not loop.first %}aria-hidden="true"{% endif %}>
+                    {% if useCms and slide.link_url|default('') %}
+                        <a class="k-banner-link" href="{{ slide.link_url }}">
+                    {% endif %}
+                    <picture>
+                        {% if useCms %}
+                            {% if variants['960'].webp is defined %}
+                                <source
+                                    type="image/webp"
+                                    srcset="{{ variants['960'].webp }} 960w,
+                                            {{ variants['1440'].webp|default(variants['960'].webp) }} 1440w,
+                                            {{ variants['1920'].webp|default(variants['1440'].webp|default(variants['960'].webp)) }} 1920w"
+                                    sizes="{{ sizes }}">
+                            {% endif %}
+                            {% if variants['960'].jpg is defined %}
+                                <source
+                                    type="image/jpeg"
+                                    srcset="{{ variants['960'].jpg }} 960w,
+                                            {{ variants['1440'].jpg|default(variants['960'].jpg) }} 1440w,
+                                            {{ variants['1920'].jpg|default(variants['1440'].jpg|default(variants['960'].jpg)) }} 1920w"
+                                    sizes="{{ sizes }}">
+                            {% endif %}
+                            <img
+                                class="k-banner-img"
+                                src="{{ variants.fallback|default(slide.original_path|default('')) }}"
+                                width="1920"
+                                height="1080"
+                                alt="{{ label }}"
+                                decoding="async"
+                                {% if loop.first %}
+                                    fetchpriority="high"
+                                {% else %}
+                                    loading="lazy"
+                                {% endif %}>
+                        {% else %}
+                            <source
+                                type="image/webp"
+                                srcset="{{ theme_asset('img/' ~ slide.id ~ '-960.webp') }} 960w,
+                                        {{ theme_asset('img/' ~ slide.id ~ '-1440.webp') }} 1440w,
+                                        {{ theme_asset('img/' ~ slide.id ~ '-1920.webp') }} 1920w"
+                                sizes="{{ sizes }}">
+                            <source
+                                type="image/jpeg"
+                                srcset="{{ theme_asset('img/' ~ slide.id ~ '-960.jpg') }} 960w,
+                                        {{ theme_asset('img/' ~ slide.id ~ '-1440.jpg') }} 1440w,
+                                        {{ theme_asset('img/' ~ slide.id ~ '-1920.jpg') }} 1920w"
+                                sizes="{{ sizes }}">
+                            <img
+                                class="k-banner-img"
+                                src="{{ theme_asset('img/' ~ slide.id ~ '.jpg') }}"
+                                width="1920"
+                                height="1080"
+                                alt="{{ label }}"
+                                decoding="async"
+                                {% if loop.first %}
+                                    fetchpriority="high"
+                                {% else %}
+                                    loading="lazy"
+                                {% endif %}>
+                        {% endif %}
+                    </picture>
+                    {% if useCms and slide.link_url|default('') %}
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if settings.show_arrows|default(true) and slides|length > 1 %}
+            <button type="button"
+                    class="k-banner-arrow k-banner-arrow-prev"
+                    data-k-banner-prev
+                    aria-label="{{ t('theme.kingdoms.banner_prev') }}">
+                <span aria-hidden="true">‹</span>
+            </button>
+            <button type="button"
+                    class="k-banner-arrow k-banner-arrow-next"
+                    data-k-banner-next
+                    aria-label="{{ t('theme.kingdoms.banner_next') }}">
+                <span aria-hidden="true">›</span>
+            </button>
+        {% endif %}
+
+        {% if settings.show_dots|default(true) and slides|length > 1 %}
+            <div class="k-banner-dots" role="tablist" aria-label="{{ t('theme.kingdoms.banner_dots') }}">
+                {% for slide in slides %}
+                    {% set label = useCms ? (slide.alt|default(slide.title|default(''))) : slide.label %}
+                    <button type="button"
+                            class="k-banner-dot{% if loop.first %} is-active{% endif %}"
+                            data-k-banner-dot
+                            data-index="{{ loop.index0 }}"
+                            role="tab"
+                            aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                            aria-label="{{ label }}">
+                    </button>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 </div>
+{% endif %}

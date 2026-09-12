@@ -28,6 +28,7 @@ use Mt2Cms\Repository\AdminTotpRepository;
 use Mt2Cms\Repository\BanRepository;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\DownloadRepository;
+use Mt2Cms\Repository\BannerRepository;
 use Mt2Cms\Repository\EmailTokenRepository;
 use Mt2Cms\Repository\EventRepository;
 use Mt2Cms\Repository\GmRepository;
@@ -57,6 +58,9 @@ use Mt2Cms\Service\BanService;
 use Mt2Cms\Service\CashCreditService;
 use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Service\DownloadUploadService;
+use Mt2Cms\Service\BannerUploadService;
+use Mt2Cms\Service\BannerSeedService;
+use Mt2Cms\Service\ImageVariantService;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\EventService;
 use Mt2Cms\Service\GameIconService;
@@ -107,6 +111,17 @@ return static function (Application $app): void {
     $app->serverChannels = new ServerChannelRepository($app->cmsDb);
     $app->downloads = new DownloadRepository($app->cmsDb);
     $app->downloadUploads = new DownloadUploadService(BASE_DIR . '/var/downloads');
+    $app->banners = new BannerRepository($app->cmsDb);
+    $app->bannerUploads = new BannerUploadService(
+        BASE_DIR . '/public',
+        new ImageVariantService(),
+    );
+    (new BannerSeedService(
+        $app->banners,
+        $app->bannerUploads,
+        $app->settingsRepo,
+        BASE_DIR . '/themes/default/assets/src',
+    ))->seedIfNeeded();
     $app->cashPackages = new CashPackageRepository($app->cmsDb);
     $app->payments = new PaymentRepository($app->cmsDb);
     $app->mailer = new SymfonyMailer(
@@ -155,6 +170,8 @@ return static function (Application $app): void {
         'theme_top_players' => $app->players->listRanking(1, 10),
         'theme_upcoming_events' => $app->events->upcomingPublished(4),
         'theme_client_download' => $themeDownloads[0] ?? null,
+        'site_banners' => $app->banners->listEnabled(),
+        'banner_settings' => $app->settings->bannerSettings(),
     ]);
 
     $app->gms = new GmRepository($app->db);

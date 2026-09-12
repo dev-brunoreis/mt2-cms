@@ -21,6 +21,7 @@ class TwigExtension extends AbstractExtension
         private Translator $translator,
         private ?GameIconService $icons = null,
         private ?HtmlSanitizer $htmlSanitizer = null,
+        private ?ThemeResolver $themes = null,
     ) {
     }
 
@@ -56,6 +57,9 @@ class TwigExtension extends AbstractExtension
     {
         return [
             new TwigFunction('t', [$this->translator, 'get']),
+            new TwigFunction('theme_asset', function (string $path): string {
+                return $this->themes?->resolveAsset($path) ?? '';
+            }),
             new TwigFunction('item_icon', function (mixed $vnum): ?string {
                 return $this->icons?->itemUrl($vnum);
             }),

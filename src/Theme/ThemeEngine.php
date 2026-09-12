@@ -43,6 +43,7 @@ class ThemeEngine
             $translator,
             $icons,
             new HtmlSanitizer(),
+            $this->resolver,
         ));
         $this->twig->addGlobal('locale', $translator->locale());
         $this->twig->addGlobal('html_lang', $translator->htmlLang());

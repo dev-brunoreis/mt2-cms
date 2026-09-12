@@ -123,4 +123,31 @@ class ThemeResolver
 
         return $merged;
     }
+
+    /**
+     * Resolve a theme asset path (relative to assets/) through the active theme chain.
+     * Returns a public URL under /theme-assets/{theme}/… or empty string if missing.
+     */
+    public function resolveAsset(string $relativePath): string
+    {
+        $relativePath = str_replace('\\', '/', trim($relativePath));
+        $relativePath = ltrim($relativePath, '/');
+
+        if ($relativePath === ''
+            || str_contains($relativePath, '..')
+            || !preg_match('#^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:css|woff2|jpe?g|webp|png|svg|js)$#', $relativePath)
+        ) {
+            return '';
+        }
+
+        foreach ($this->chain() as $theme) {
+            $file = $this->themePath($theme) . '/assets/' . $relativePath;
+
+            if (is_file($file)) {
+                return '/theme-assets/' . rawurlencode($theme) . '/' . implode('/', array_map('rawurlencode', explode('/', $relativePath)));
+            }
+        }
+
+        return '';
+    }
 }

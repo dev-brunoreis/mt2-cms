@@ -77,6 +77,7 @@ Themes live under `themes/{name}/`:
 - `theme.json` — `{ "name", "parent" }`
 - `layouts/*.json` — recursive atomic layout trees (`id`, `template`, `slots`)
 - `templates/` — Twig atoms; child theme paths win over parents
+- `assets/` — theme CSS/images; link with `theme_asset('css/theme.css')` (served as `/theme-assets/{name}/…`)
 
 Example: add a child theme under `themes/{name}/` with `theme.json` `{ "name", "parent": "default" }` and override only the Twig paths you need (e.g. `templates/components/navbar.twig`). Set `THEME={name}` to try it. See [docs/add-theme.md](docs/add-theme.md).
 

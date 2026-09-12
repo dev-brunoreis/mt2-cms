@@ -79,6 +79,11 @@ class AdminSections
                         'label' => 'admin.nav.downloads',
                     ],
                     [
+                        'id' => 'banners',
+                        'path' => AdminPaths::contentBanners(),
+                        'label' => 'admin.nav.banners',
+                    ],
+                    [
                         'id' => 'events',
                         'path' => AdminPaths::contentEvents(),
                         'label' => 'admin.nav.events',

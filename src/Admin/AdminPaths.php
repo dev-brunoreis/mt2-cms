@@ -71,6 +71,21 @@ final class AdminPaths
         return '/admin/content/downloads';
     }
 
+    public static function contentBanners(?string $tab = null): string
+    {
+        return self::withTab('/admin/content/banners', $tab);
+    }
+
+    public static function contentBanner(int $id): string
+    {
+        return '/admin/content/banners/' . $id;
+    }
+
+    public static function contentBannerNew(): string
+    {
+        return '/admin/content/banners/new';
+    }
+
     public static function contentEvents(): string
     {
         return '/admin/content/events';
@@ -251,6 +266,7 @@ final class AdminPaths
             'news' => self::contentNews(),
             'tickets' => self::contentTickets(),
             'downloads' => self::contentDownloads(),
+            'banners' => self::contentBanners(),
             'events' => self::contentEvents(),
             'store' => self::store(),
             'packages' => self::storePackages(),

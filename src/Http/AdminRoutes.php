@@ -13,6 +13,7 @@ use Mt2Cms\Http\Controller\Admin\AdminAuthController;
 use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\Admin\AdminAwardsController;
 use Mt2Cms\Http\Controller\Admin\AdminBansController;
+use Mt2Cms\Http\Controller\Admin\AdminBannersHubController;
 use Mt2Cms\Http\Controller\Admin\AdminCashPackagesController;
 use Mt2Cms\Http\Controller\Admin\AdminCommunityController;
 use Mt2Cms\Http\Controller\Admin\AdminDownloadsController;
@@ -152,6 +153,15 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'edit']);
         $r->addRoute('POST', '/admin/content/downloads/{id:\d+}', [AdminDownloadsController::class, 'update']);
         $r->addRoute('POST', '/admin/content/downloads/mass', [AdminDownloadsController::class, 'mass']);
+
+        $r->addRoute('GET', '/admin/content/banners', [AdminBannersHubController::class, 'index']);
+        $r->addRoute('GET', '/admin/content/banners/new', [AdminBannersHubController::class, 'create']);
+        $r->addRoute('POST', '/admin/content/banners', [AdminBannersHubController::class, 'store']);
+        $r->addRoute('POST', '/admin/content/banners/mass', [AdminBannersHubController::class, 'mass']);
+        $r->addRoute('POST', '/admin/content/banners/settings', [AdminBannersHubController::class, 'saveSettings']);
+        $r->addRoute('GET', '/admin/content/banners/{id:\d+}', [AdminBannersHubController::class, 'edit']);
+        $r->addRoute('POST', '/admin/content/banners/{id:\d+}', [AdminBannersHubController::class, 'update']);
+
         $r->addRoute('GET', '/admin/content/events', [AdminEventsController::class, 'index']);
         $r->addRoute('GET', '/admin/content/events/new', [AdminEventsController::class, 'create']);
         $r->addRoute('POST', '/admin/content/events', [AdminEventsController::class, 'store']);

@@ -1,0 +1,6 @@
+{% if row.preview_url|default('') %}
+    <img src="{{ row.preview_url }}" alt="" width="96" height="40"
+         class="h-10 w-24 rounded border border-slate-200 object-cover">
+{% else %}
+    <span class="text-slate-400">—</span>
+{% endif %}

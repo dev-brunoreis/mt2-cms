@@ -182,10 +182,11 @@ The production PHP image (`docker/php/Dockerfile` target `php`) ships:
 - `docker/php/zz-hardening.ini` — `display_errors=Off`, 512M upload limits
 - `docker/php/zz-opcache-prod.ini` — OPcache with `validate_timestamps=0`
 - PHP-FPM ping endpoint for container healthchecks
+- **GD** with JPEG / PNG / WebP — required for admin banner variant generation
 
-Mirror these in your production `php.ini` if you deploy without the Compose image.
+Mirror these in your production `php.ini` if you deploy without the Compose image. Banner CMS uploads need the GD extension (`jpeg`, `png`, `webp`).
 
-Nginx (`docker/nginx/default.conf`): `client_max_body_size 512m` (aligned with download uploads), static `/uploads/` without FastCGI, denies `*.php` under `/uploads/`. Download files are stored under `var/downloads/`, not `public/`.
+Nginx (`docker/nginx/default.conf`): `client_max_body_size 512m` (aligned with download uploads), static `/uploads/` without FastCGI, denies `*.php` under `/uploads/`. Download files are stored under `var/downloads/`, not `public/`. Banner images live under `public/uploads/banners/`.
 
 PHP sessions are stored in `var/sessions/` (0750). Use sticky sessions if you run more than one PHP worker.
 

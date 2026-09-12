@@ -6,7 +6,9 @@ FROM php:8.3-fpm-alpine AS dev
 ARG PUID=1000
 ARG PGID=1000
 
-RUN docker-php-ext-install pdo_mysql
+RUN apk add --no-cache freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql gd
 
 COPY docker/php/zz-hardening.ini /usr/local/etc/php/conf.d/zz-hardening.ini
 
@@ -54,8 +56,9 @@ FROM php:8.3-fpm-alpine AS php
 ARG PUID=1000
 ARG PGID=1000
 
-RUN docker-php-ext-install pdo_mysql \
-    && apk add --no-cache fcgi
+RUN apk add --no-cache freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev fcgi \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql gd
 
 COPY docker/php/zz-hardening.ini /usr/local/etc/php/conf.d/zz-hardening.ini
 COPY docker/php/zz-opcache-prod.ini /usr/local/etc/php/conf.d/zz-opcache-prod.ini
@@ -92,6 +95,7 @@ FROM nginx:alpine AS nginx
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=assets /app/public /var/www/public
+COPY --from=assets /app/themes /var/www/themes
 
 RUN mkdir -p /var/www/public/uploads
 

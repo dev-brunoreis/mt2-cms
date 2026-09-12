@@ -162,6 +162,9 @@ return [
     \Mt2Cms\Http\Controller\Admin\AdminDownloadsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDownloadsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->downloads, $app->downloadUploads,
     ),
+    \Mt2Cms\Http\Controller\Admin\AdminBannersHubController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminBannersHubController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->banners, $app->bannerUploads, $app->settings,
+    ),
     \Mt2Cms\Http\Controller\Admin\AdminEventsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminEventsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->events, $app->eventService, $app->htmlSanitizer,
     ),

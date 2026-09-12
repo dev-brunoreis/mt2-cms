@@ -74,6 +74,7 @@ final class AdminSectionCatalog
         return [
             'dashboard',
             'news',
+            'banners',
             'store',
             'tickets',
             'registration',

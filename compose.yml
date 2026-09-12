@@ -46,6 +46,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      target: dev
       args:
         PUID: ${PUID:-1000}
         PGID: ${PGID:-1000}

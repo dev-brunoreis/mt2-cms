@@ -1,10 +1,28 @@
 {% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
-<header class="k-nav">
-    <nav class="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-4 py-3">
+<header class="k-nav" data-k-nav>
+    <nav class="k-nav-bar">
         <a href="/" class="k-brand">{{ brand }}</a>
 
-        <div class="flex flex-wrap items-center gap-1 sm:gap-2">
+        <div class="k-nav-toolbar">
             {% include 'components/locale-switcher.twig' %}
+            <button type="button"
+                    class="k-nav-toggle"
+                    data-k-nav-toggle
+                    aria-controls="k-nav-menu"
+                    aria-expanded="false"
+                    aria-label="{{ t('nav.open_menu') }}"
+                    data-label-open="{{ t('nav.open_menu') }}"
+                    data-label-close="{{ t('nav.close_menu') }}">
+                <svg class="k-nav-icon-open h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg class="k-nav-icon-close h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="k-nav-menu" class="k-nav-links" data-k-nav-menu>
             <a href="/" class="{% if current_path == '/' %}k-nav-active{% endif %}">{{ t('nav.home') }}</a>
             {% if has_news %}
                 <a href="/news" class="{% if current_path starts with '/news' %}k-nav-active{% endif %}">{{ t('nav.news') }}</a>
@@ -29,7 +47,7 @@
                     {% endif %}
                 </a>
             {% else %}
-                <a href="/register" class="k-btn k-btn-ember ml-1 !py-1.5 !px-3 text-[0.65rem]">{{ t('nav.register') }}</a>
+                <a href="/register" class="k-btn k-btn-ember k-nav-register">{{ t('nav.register') }}</a>
             {% endif %}
         </div>
     </nav>

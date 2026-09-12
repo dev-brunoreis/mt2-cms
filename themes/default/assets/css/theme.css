@@ -221,9 +221,190 @@
   box-shadow: 0 0 0 2px rgba(196, 163, 90, 0.2);
 }
 
+.theme-kingdoms .k-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #1c1712;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
 .theme-kingdoms .k-nav {
+  position: relative;
   background: linear-gradient(180deg, #1c1712 0%, #120f0c 100%);
   border-bottom: 1px solid var(--k-border);
+}
+
+.theme-kingdoms .k-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.7rem 1rem;
+  gap: 0.5rem 0.75rem;
+}
+
+.theme-kingdoms .k-nav-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.theme-kingdoms .k-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  color: var(--k-bronze);
+  background: rgba(12, 10, 8, 0.55);
+  border: 1px solid var(--k-border-bright);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-kingdoms .k-nav-toggle:hover,
+.theme-kingdoms .k-nav.is-open .k-nav-toggle {
+  background: rgba(28, 22, 16, 0.88);
+  border-color: var(--k-bronze);
+  color: #f3e6c4;
+}
+
+.theme-kingdoms .k-nav-toggle:focus-visible {
+  outline: 2px solid var(--k-bronze);
+  outline-offset: 2px;
+}
+
+.theme-kingdoms .k-nav-icon-close {
+  display: none;
+}
+
+.theme-kingdoms .k-nav.is-open .k-nav-icon-open {
+  display: none;
+}
+
+.theme-kingdoms .k-nav.is-open .k-nav-icon-close {
+  display: block;
+}
+
+.theme-kingdoms .k-nav-links {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.theme-kingdoms .k-nav-links a:not(.k-btn) {
+  color: var(--k-muted);
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.5rem;
+}
+
+.theme-kingdoms .k-nav-links a:not(.k-btn):hover,
+.theme-kingdoms .k-nav-links a.k-nav-active {
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms .k-nav-links .k-nav-register {
+  margin: 0.45rem 1rem 0.25rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.7rem;
+  text-align: center;
+  align-self: stretch;
+}
+
+.theme-kingdoms .k-brand {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--k-bronze);
+  text-shadow: 0 0 18px rgba(196, 163, 90, 0.35);
+  min-width: 0;
+  max-width: min(58vw, 18rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 959px) {
+  .theme-kingdoms .k-nav-links a:not(.k-btn) {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1.15rem;
+    font-size: 0.78rem;
+    border-bottom: 1px solid rgba(61, 52, 38, 0.65);
+  }
+
+  .theme-kingdoms .k-nav-links a:last-child {
+    border-bottom: 0;
+  }
+
+  .theme-kingdoms .k-nav-enhanced .k-nav-toggle {
+    display: inline-flex;
+  }
+
+  .theme-kingdoms .k-nav-enhanced .k-nav-links {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 51;
+    padding: 0.35rem 0 0.6rem;
+    background: linear-gradient(180deg, #16120e 0%, #100d0b 100%);
+    border-bottom: 1px solid var(--k-border);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.45);
+    max-height: min(70vh, 28rem);
+    overflow-y: auto;
+  }
+
+  .theme-kingdoms .k-nav-enhanced.is-open .k-nav-links {
+    display: flex;
+  }
+}
+
+@media (min-width: 960px) {
+  .theme-kingdoms .k-nav-toolbar {
+    margin-left: 0;
+  }
+
+  .theme-kingdoms .k-brand {
+    max-width: none;
+  }
+
+  .theme-kingdoms .k-nav-links,
+  .theme-kingdoms .k-nav-enhanced.is-open .k-nav-links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.15rem 0.25rem;
+    width: auto;
+    flex: 1;
+    position: static;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .theme-kingdoms .k-nav-links .k-nav-register {
+    margin: 0 0 0 0.25rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.65rem;
+    align-self: auto;
+  }
 }
 
 .theme-kingdoms .k-banner {
@@ -405,29 +586,6 @@
   }
 }
 
-.theme-kingdoms .k-nav a {
-  color: var(--k-muted);
-  font-family: "Cinzel", serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.35rem 0.5rem;
-}
-
-.theme-kingdoms .k-nav a:hover,
-.theme-kingdoms .k-nav a.k-nav-active {
-  color: var(--k-bronze);
-}
-
-.theme-kingdoms .k-brand {
-  font-family: "Cinzel", serif;
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--k-bronze);
-  text-shadow: 0 0 18px rgba(196, 163, 90, 0.35);
-}
 
 .theme-kingdoms .k-layout {
   display: grid;

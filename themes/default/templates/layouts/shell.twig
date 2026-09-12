@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/item-tooltip.css">
     <link rel="stylesheet" href="{{ theme_asset('css/theme.css') }}">
     <script src="/js/site/locale-switcher.js" defer></script>
+    <script src="/js/site/nav-menu.js" defer></script>
     <script src="/js/site/shop-category-tree.js" defer></script>
     <script src="/js/site/banner-carousel.js" defer></script>
     <script src="/js/site/confirm-forms.js" defer></script>
@@ -14,8 +15,10 @@
     <title>{{ title|default(brand) }} — {{ brand }}</title>
 </head>
 <body class="theme-kingdoms min-h-screen antialiased flex flex-col">
-    <div class="k-realm-stripe" aria-hidden="true"></div>
-    {{ slots.header|raw }}
+    <div class="k-chrome">
+        <div class="k-realm-stripe" aria-hidden="true"></div>
+        {{ slots.header|raw }}
+    </div>
     {% include 'components/banner.twig' %}
 
     <div class="k-layout flex-1">

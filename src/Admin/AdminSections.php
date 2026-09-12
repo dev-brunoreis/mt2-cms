@@ -277,4 +277,138 @@ class AdminSections
 
         return null;
     }
+
+    /**
+     * @return list<array{label: string, href: string|null, translate: bool}>
+     */
+    public static function breadcrumbs(string $sectionId, string $currentTitle, string $requestUri): array
+    {
+        $path = self::requestPath($requestUri);
+        $onIndex = self::isSectionIndex($sectionId, $path);
+        $crumbs = [
+            ['label' => 'admin.title', 'href' => AdminPaths::DASHBOARD, 'translate' => true],
+        ];
+
+        $group = self::groupById(self::groupForSection($sectionId));
+
+        if ($group !== null && count($group['children']) > 1) {
+            $firstPath = (string) ($group['children'][0]['path'] ?? '');
+            $crumbs[] = [
+                'label' => (string) $group['label'],
+                'href' => $firstPath !== '' ? $firstPath : null,
+                'translate' => true,
+            ];
+        }
+
+        $section = self::sectionById($sectionId);
+
+        if ($section !== null) {
+            $sectionHref = (string) ($section['path'] ?? '');
+            $crumbs[] = [
+                'label' => (string) $section['label'],
+                'href' => ($onIndex || $sectionHref === '') ? null : $sectionHref,
+                'translate' => true,
+            ];
+        }
+
+        if (!$onIndex && $currentTitle !== '') {
+            $crumbs[] = [
+                'label' => $currentTitle,
+                'href' => null,
+                'translate' => false,
+            ];
+        } elseif ($section === null && $currentTitle !== '') {
+            $crumbs[] = [
+                'label' => $currentTitle,
+                'href' => null,
+                'translate' => false,
+            ];
+        }
+
+        $last = array_key_last($crumbs);
+
+        if ($last !== null) {
+            $crumbs[$last]['href'] = null;
+        }
+
+        return array_values($crumbs);
+    }
+
+    public static function backHref(string $sectionId, string $requestUri, ?string $groupId = null): ?string
+    {
+        $path = self::requestPath($requestUri);
+
+        if (self::isSectionIndex($sectionId, $path)) {
+            return null;
+        }
+
+        $href = self::sectionPath($sectionId);
+
+        if ($href !== null) {
+            return $href;
+        }
+
+        $group = self::groupById($groupId ?? self::groupForSection($sectionId));
+        $first = $group['children'][0]['path'] ?? null;
+
+        return is_string($first) && $first !== '' ? $first : AdminPaths::DASHBOARD;
+    }
+
+    public static function isSectionIndex(string $sectionId, string $requestPath): bool
+    {
+        $href = self::sectionPath($sectionId);
+
+        if ($href === null) {
+            return false;
+        }
+
+        $sectionPath = parse_url($href, PHP_URL_PATH);
+
+        return $requestPath === $sectionPath || $requestPath === (string) $href;
+    }
+
+    /**
+     * @return array{id: string, label: string, children: list<array<string, mixed>>}|null
+     */
+    private static function groupById(?string $groupId): ?array
+    {
+        if ($groupId === null || $groupId === '') {
+            return null;
+        }
+
+        foreach (self::all() as $group) {
+            if ($group['id'] === $groupId) {
+                return $group;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{id: string, path: string, label: string}|null
+     */
+    private static function sectionById(string $sectionId): ?array
+    {
+        foreach (self::all() as $group) {
+            foreach ($group['children'] as $child) {
+                if ($child['id'] === $sectionId) {
+                    return $child;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static function requestPath(string $uri): string
+    {
+        if ($uri === '' || $uri[0] !== '/') {
+            return '/';
+        }
+
+        $path = parse_url($uri, PHP_URL_PATH);
+
+        return is_string($path) && $path !== '' ? $path : '/';
+    }
 }

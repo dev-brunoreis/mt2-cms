@@ -548,6 +548,7 @@
     "invalid_site_url": "Site URL must start with http:// or https://",
     "invalid_currency": "Invalid currency code.",
     "save": "Save",
+    "back": "Back",
     "saved": "Settings saved.",
     "yes": "Yes",
     "no": "No",

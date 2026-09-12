@@ -363,6 +363,16 @@
   text-decoration: underline;
 }
 
+.admin-breadcrumb a {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+  color: #ea580c;
+  text-decoration: underline;
+}
+
 .admin-link-danger {
   color: #dc2626;
 }

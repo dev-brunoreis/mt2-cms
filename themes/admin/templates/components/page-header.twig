@@ -1,22 +1,22 @@
 {% if title is defined and title %}
+    {% set crumbs = breadcrumbs is defined ? breadcrumbs : admin_breadcrumbs(activeSection|default(''), title, current_path|default('')) %}
+    {% set backUrl = backHref is defined ? backHref : admin_back_href(activeSection|default(''), current_path|default(''), activeGroup|default(null)) %}
     <div class="admin-page-header sticky top-0 z-20">
         <div class="px-4 py-3 md:px-6">
-            <nav class="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500" aria-label="Breadcrumb">
-                <span>{{ t('admin.title') }}</span>
-                {% if activeGroup is defined and admin_sections is defined %}
-                    {% for group in admin_sections %}
-                        {% if group.id == activeGroup %}
-                            <svg class="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                            <span>{{ t(group.label) }}</span>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-                <svg class="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-                <span class="font-medium text-slate-700">{{ title }}</span>
+            <nav class="admin-breadcrumb mb-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500" aria-label="Breadcrumb">
+                {% for crumb in crumbs %}
+                    {% if not loop.first %}
+                        <svg class="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    {% endif %}
+                    {% set crumbLabel = crumb.translate|default(false) ? t(crumb.label) : crumb.label %}
+                    {% if crumb.href %}
+                        <a href="{{ crumb.href }}">{{ crumbLabel }}</a>
+                    {% else %}
+                        <span class="font-medium text-slate-700">{{ crumbLabel }}</span>
+                    {% endif %}
+                {% endfor %}
             </nav>
 
             <div class="flex flex-wrap items-center justify-between gap-4">
@@ -27,19 +27,25 @@
                     {% endif %}
                 </div>
 
-                {% if headerHref is defined and headerHref %}
+                {% if backUrl or (headerHref is defined and headerHref) or (formId is defined and formId) %}
                     <div class="flex shrink-0 items-center gap-2">
-                        <a href="{{ headerHref }}"
-                           class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-                            {{ headerActionLabel|default(t('admin.accounts.create')) }}
-                        </a>
-                    </div>
-                {% elseif formId is defined and formId %}
-                    <div class="flex shrink-0 items-center gap-2">
-                        <button type="submit" form="{{ formId }}"
-                                class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-                            {{ saveLabel|default(t('admin.save')) }}
-                        </button>
+                        {% if backUrl %}
+                            <a href="{{ backUrl }}"
+                               class="admin-btn-secondary cursor-pointer rounded-md px-4 py-2 text-sm font-medium">
+                                {{ t('admin.back') }}
+                            </a>
+                        {% endif %}
+                        {% if headerHref is defined and headerHref %}
+                            <a href="{{ headerHref }}"
+                               class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400/40">
+                                {{ headerActionLabel|default(t('admin.accounts.create')) }}
+                            </a>
+                        {% elseif formId is defined and formId %}
+                            <button type="submit" form="{{ formId }}"
+                                    class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400/40">
+                                {{ saveLabel|default(t('admin.save')) }}
+                            </button>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>

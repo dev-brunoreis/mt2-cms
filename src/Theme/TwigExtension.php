@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Theme;
 
 use Mt2Cms\Admin\AdminPaths;
+use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Admin\Grid\GridUrl;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
@@ -124,6 +125,20 @@ class TwigExtension extends AbstractExtension
                 }
 
                 return AdminPaths::{$method}(...$args);
+            }),
+            new TwigFunction('admin_breadcrumbs', static function (
+                string $sectionId,
+                string $title = '',
+                string $currentPath = '',
+            ): array {
+                return AdminSections::breadcrumbs($sectionId, $title, $currentPath);
+            }),
+            new TwigFunction('admin_back_href', static function (
+                string $sectionId,
+                string $currentPath = '',
+                ?string $groupId = null,
+            ): ?string {
+                return AdminSections::backHref($sectionId, $currentPath, $groupId);
             }),
         ];
     }

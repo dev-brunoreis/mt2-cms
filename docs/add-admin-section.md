@@ -60,6 +60,8 @@ return $this->adminView('your-section', 'pages/your-section.twig', [
 ]);
 ```
 
+The layout breadcrumb is clickable (`Administration` → dashboard, group → first item, section → list). Nested pages (edit/create/detail) also get a **Back** button to the section list. Override with `'backHref' => '…'` or `'backHref' => null` to hide it.
+
 ## 3. Twig page
 
 - Form gets `id="admin-your-section-form"` matching `formId`

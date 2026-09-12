@@ -48,6 +48,34 @@ final class AdminPathsTest extends TestCase
         self::assertSame('settings', AdminSections::pinnedNavItem(AdminSections::all())['id'] ?? null);
     }
 
+    public function testBreadcrumbsLinkParentsAndKeepCurrentPlain(): void
+    {
+        $list = AdminSections::breadcrumbs('accounts', 'Accounts', '/admin/game/accounts');
+        self::assertSame('admin.title', $list[0]['label']);
+        self::assertSame('/admin', $list[0]['href']);
+        self::assertSame('admin.nav.game', $list[1]['label']);
+        self::assertSame('/admin/game/accounts', $list[1]['href']);
+        self::assertSame('admin.nav.accounts', $list[2]['label']);
+        self::assertNull($list[2]['href']);
+        self::assertNull(AdminSections::backHref('accounts', '/admin/game/accounts'));
+
+        $edit = AdminSections::breadcrumbs('accounts', 'Edit account', '/admin/game/accounts/4');
+        self::assertSame('/admin/game/accounts', $edit[2]['href']);
+        self::assertSame('Edit account', $edit[3]['label']);
+        self::assertFalse($edit[3]['translate']);
+        self::assertNull($edit[3]['href']);
+        self::assertSame('/admin/game/accounts', AdminSections::backHref('accounts', '/admin/game/accounts/4'));
+    }
+
+    public function testBreadcrumbsSkipSingleChildGroups(): void
+    {
+        $crumbs = AdminSections::breadcrumbs('settings', 'Settings', '/admin/settings?tab=locale');
+        self::assertCount(2, $crumbs);
+        self::assertSame('admin.nav.configuration', $crumbs[1]['label']);
+        self::assertNull($crumbs[1]['href']);
+        self::assertNull(AdminSections::backHref('settings', '/admin/settings?tab=locale'));
+    }
+
     public function testLogCatalogHasGroupedTabsIncludingConnections(): void
     {
         $groups = LogCatalog::groupedTabs();

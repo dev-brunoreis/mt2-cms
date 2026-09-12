@@ -1,11 +1,13 @@
 {% set cmsSlides = site_banners|default([]) %}
 {% set settings = banner_settings|default({interval_ms: 5500, autoplay: true, show_dots: true, show_arrows: true}) %}
 {% set sizes = '(max-width: 1180px) calc(100vw - 2rem), 1180px' %}
+{% set seeded = banners_seeded|default(false) %}
 
 {% if cmsSlides|length > 0 %}
     {% set slides = cmsSlides %}
     {% set useCms = true %}
-{% else %}
+{% elseif not seeded %}
+    {# Theme fallback only before CMS seed succeeds — empty admin list must hide the carousel. #}
     {% set slides = [
       { id: 'warrior', label: t('theme.kingdoms.banner_warrior') },
       { id: 'ninja', label: t('theme.kingdoms.banner_ninja') },
@@ -13,6 +15,9 @@
       { id: 'shaman', label: t('theme.kingdoms.banner_shaman') }
     ] %}
     {% set useCms = false %}
+{% else %}
+    {% set slides = [] %}
+    {% set useCms = true %}
 {% endif %}
 
 {% if slides|length > 0 %}

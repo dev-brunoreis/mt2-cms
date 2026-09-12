@@ -172,6 +172,7 @@ return static function (Application $app): void {
         'theme_client_download' => $themeDownloads[0] ?? null,
         'site_banners' => $app->banners->listEnabled(),
         'banner_settings' => $app->settings->bannerSettings(),
+        'banners_seeded' => $app->settingsRepo->get('banners_seeded') === '1',
     ]);
 
     $app->gms = new GmRepository($app->db);

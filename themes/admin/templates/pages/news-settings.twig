@@ -25,6 +25,15 @@
                     <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.news.require_approval_help') }}</span>
                 </span>
             </label>
+
+            <label class="flex items-start gap-3 rounded-md border border-slate-200 p-4">
+                <input type="checkbox" name="news_show_views" value="1"
+                       {% if showViews|default(true) %}checked{% endif %}>
+                <span>
+                    <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.show_views') }}</span>
+                    <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.news.show_views_help') }}</span>
+                </span>
+            </label>
         </div>
     </fieldset>
 </form>

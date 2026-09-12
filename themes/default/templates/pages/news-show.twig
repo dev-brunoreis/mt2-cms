@@ -17,7 +17,9 @@
                 <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs k-muted">
                     <span>{{ t('news.by', {author: post.author_login}) }}</span>
                     <span>{{ (post.published_at|default(post.created_at))|game_date }}</span>
-                    <span>{{ t('news.views', {count: post.views}) }}</span>
+                    {% if news_show_views|default(true) %}
+                        <span>{{ t('news.views', {count: post.views}) }}</span>
+                    {% endif %}
                 </p>
                 <div class="news-body mt-6 max-w-none space-y-4 [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc [&_img]:my-4 [&_img]:max-w-full">
                     {{ post.body|news_html }}

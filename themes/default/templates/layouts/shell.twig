@@ -9,7 +9,9 @@
     <script src="/js/site/locale-switcher.js" defer></script>
     <script src="/js/site/shop-category-tree.js" defer></script>
     <script src="/js/site/banner-carousel.js" defer></script>
-    <title>{{ title|default(t('app.name')) }} — {{ t('app.name') }}</title>
+    <script src="/js/site/confirm-forms.js" defer></script>
+    {% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
+    <title>{{ title|default(brand) }} — {{ brand }}</title>
 </head>
 <body class="theme-kingdoms min-h-screen antialiased flex flex-col">
     <div class="k-realm-stripe" aria-hidden="true"></div>

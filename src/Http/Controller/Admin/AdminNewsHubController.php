@@ -88,6 +88,7 @@ class AdminNewsHubController extends AdminNewsBaseController
                     'formId' => 'admin-news-settings-form',
                     'commentsEnabled' => $this->settings->newsCommentsEnabled(),
                     'commentsRequireApproval' => $this->settings->newsCommentsRequireApproval(),
+                    'showViews' => $this->settings->newsShowViews(),
                 ],
             ],
             default => [

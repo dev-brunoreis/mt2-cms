@@ -16,7 +16,7 @@
         </div>
         {% if ticket.status != 'closed' %}
             <form method="post" action="/account/tickets/{{ ticket.id }}/close"
-                  onsubmit="return confirm('{{ t('tickets.confirm_close')|e('js') }}')">
+                  data-confirm="{{ t('tickets.confirm_close') }}">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
                 <button type="submit"
                         class="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">

@@ -53,6 +53,8 @@ class AdminCommunityController extends AdminController
         $this->settings->setOnlineWindowMinutes((int) ($_POST['online_window_minutes'] ?? 15));
 
         try {
+            $this->settings->setSiteTitle(trim((string) ($_POST['site_title'] ?? '')));
+            $this->settings->setFooterText(trim((string) ($_POST['footer_text'] ?? '')));
             $this->settings->setSiteUrl(trim((string) ($_POST['site_url'] ?? '')));
             $this->settings->setMailFrom(
                 trim((string) ($_POST['mail_from_address'] ?? '')),
@@ -66,6 +68,8 @@ class AdminCommunityController extends AdminController
             $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
             $this->settings->setDiscordInviteUrl(trim((string) ($_POST['discord_invite_url'] ?? '')));
             $this->settings->setDiscordWebhookUrl(trim((string) ($_POST['discord_webhook_url'] ?? '')));
+            $social = $_POST['social'] ?? [];
+            $this->settings->setSocialLinks(is_array($social) ? $social : []);
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 

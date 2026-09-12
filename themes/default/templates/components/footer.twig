@@ -1,9 +1,24 @@
+{% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
+{% set tagline = footer_text is defined and footer_text != '' ? footer_text : t('theme.kingdoms.footer_tagline') %}
 <footer class="k-footer">
-    <p class="k-title !text-sm !tracking-[0.2em]">{{ t('app.name') }}</p>
-    <p class="mt-2 k-muted">{{ t('theme.kingdoms.footer_tagline') }}</p>
-    {% if discord_invite_url %}
-        <p class="mt-3">
-            <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer">{{ t('nav.discord') }}</a>
-        </p>
+    <p class="k-title !text-sm !tracking-[0.2em]">{{ brand }}</p>
+    {% if tagline != '' %}
+        <p class="mt-2 k-muted">{{ tagline }}</p>
+    {% endif %}
+    {% if social_links is defined and social_links is not empty %}
+        <ul class="k-social" aria-label="{{ t('theme.kingdoms.social_links') }}">
+            {% for network, url in social_links %}
+                <li>
+                    <a href="{{ url }}"
+                       class="k-social-link"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="{{ t('nav.social_' ~ network) }}"
+                       aria-label="{{ t('nav.social_' ~ network) }}">
+                        {% include 'components/social-icon.twig' with { network: network } %}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
     {% endif %}
 </footer>

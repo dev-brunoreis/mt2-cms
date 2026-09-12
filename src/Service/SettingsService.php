@@ -140,6 +140,127 @@ class SettingsService
         $this->settings->set('news_comments_require_approval', $required ? '1' : '0');
     }
 
+    public function newsShowViews(): bool
+    {
+        $value = $this->settings->get('news_show_views');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setNewsShowViews(bool $enabled): void
+    {
+        $this->settings->set('news_show_views', $enabled ? '1' : '0');
+    }
+
+    public function siteTitle(): string
+    {
+        return trim((string) ($this->settings->get('site_title') ?? ''));
+    }
+
+    public function setSiteTitle(string $title): void
+    {
+        $title = trim($title);
+
+        if (mb_strlen($title) > 100) {
+            throw new \InvalidArgumentException('admin.community.site_title_invalid');
+        }
+
+        $this->settings->set('site_title', $title);
+    }
+
+    public function footerText(): string
+    {
+        return trim((string) ($this->settings->get('footer_text') ?? ''));
+    }
+
+    public function setFooterText(string $text): void
+    {
+        $text = trim($text);
+
+        if (mb_strlen($text) > 500) {
+            throw new \InvalidArgumentException('admin.community.footer_text_invalid');
+        }
+
+        $this->settings->set('footer_text', $text);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function socialNetworks(): array
+    {
+        return ['facebook', 'instagram', 'youtube', 'twitter', 'tiktok', 'twitch'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function socialLinks(): array
+    {
+        $stored = $this->settings->getJson('social_links', []);
+        $links = [];
+
+        foreach (self::socialNetworks() as $network) {
+            $url = trim((string) ($stored[$network] ?? ''));
+            $links[$network] = $url;
+        }
+
+        return $links;
+    }
+
+    /**
+     * Enabled social links for the public footer (network => url).
+     *
+     * @return array<string, string>
+     */
+    public function socialLinksEnabled(): array
+    {
+        $enabled = [];
+
+        foreach ($this->socialLinks() as $network => $url) {
+            if ($url !== '') {
+                $enabled[$network] = $url;
+            }
+        }
+
+        $discord = $this->discordInviteUrl();
+
+        if ($discord !== '') {
+            $enabled = ['discord' => $discord] + $enabled;
+        }
+
+        return $enabled;
+    }
+
+    /**
+     * @param array<string, mixed> $links
+     */
+    public function setSocialLinks(array $links): void
+    {
+        $normalized = [];
+
+        foreach (self::socialNetworks() as $network) {
+            $url = trim((string) ($links[$network] ?? ''));
+
+            if ($url === '') {
+                $normalized[$network] = '';
+                continue;
+            }
+
+            if (!preg_match('#^https://#i', $url)) {
+                throw new \InvalidArgumentException('admin.community.social_url_invalid');
+            }
+
+            $normalized[$network] = rtrim($url, '/');
+        }
+
+        $this->settings->setJson('social_links', $normalized);
+    }
+
     public function bannerIntervalMs(): int
     {
         $value = $this->settings->get('banner_interval_ms');

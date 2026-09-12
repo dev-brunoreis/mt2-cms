@@ -24,7 +24,9 @@
                             <p class="mt-1 line-clamp-2 text-xs k-muted">{{ post.body|news_excerpt(160) }}</p>
                             <p class="mt-2 flex flex-wrap gap-x-3 text-[0.65rem] k-muted">
                                 <span>{{ post.author_login }}</span>
-                                <span>{{ t('news.views', {count: post.views}) }}</span>
+                                {% if news_show_views|default(true) %}
+                                    <span>{{ t('news.views', {count: post.views}) }}</span>
+                                {% endif %}
                             </p>
                         </div>
                     </a>

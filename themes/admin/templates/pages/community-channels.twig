@@ -3,6 +3,47 @@
 
     <fieldset class="admin-fieldset">
         <legend>
+            {{ t('admin.community.branding') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.branding_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="site-title">{{ t('admin.community.site_title') }}</label>
+                <input id="site-title" type="text" name="site_title" maxlength="100"
+                       value="{{ siteTitle|default('') }}" class="admin-input"
+                       placeholder="{{ t('app.name') }}">
+                <span class="admin-field-help">{{ t('admin.community.site_title_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="footer-text">{{ t('admin.community.footer_text') }}</label>
+                <textarea id="footer-text" name="footer_text" rows="2" maxlength="500"
+                          class="admin-input" placeholder="{{ t('theme.kingdoms.footer_tagline') }}">{{ footerText|default('') }}</textarea>
+                <span class="admin-field-help">{{ t('admin.community.footer_text_help') }}</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.social') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.social_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            {% for network in socialNetworks|default([]) %}
+                <div class="admin-field">
+                    <label for="social-{{ network }}">{{ t('admin.community.social_' ~ network) }}</label>
+                    <input id="social-{{ network }}" type="url" name="social[{{ network }}]"
+                           value="{{ socialLinks[network]|default('') }}" class="admin-input"
+                           placeholder="https://">
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
             {{ t('admin.community.site_settings') }}
             <span class="admin-fieldset-help">{{ t('admin.community.site_settings_help') }}</span>
         </legend>

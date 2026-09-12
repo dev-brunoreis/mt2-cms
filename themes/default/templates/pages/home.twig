@@ -1,27 +1,4 @@
 <section class="space-y-6">
-    <div class="k-panel overflow-hidden">
-        <div class="relative px-5 py-8 sm:px-8 sm:py-10">
-            <div class="pointer-events-none absolute inset-0 opacity-40"
-                 style="background: radial-gradient(ellipse at 80% 20%, rgba(179,58,43,0.25), transparent 55%), radial-gradient(ellipse at 10% 80%, rgba(42,74,122,0.2), transparent 50%);"></div>
-            <div class="relative">
-                <p class="mb-2 font-[Cinzel] text-[0.65rem] uppercase tracking-[0.25em] text-[var(--k-bronze-dim)]">
-                    {{ t('theme.kingdoms.banner_kicker') }}
-                </p>
-                <h1 class="k-title mb-3 text-3xl sm:text-4xl">{{ t('home.title') }}</h1>
-                <p class="mb-6 max-w-xl text-sm leading-relaxed k-muted">{{ t('home.lead') }}</p>
-                <div class="flex flex-wrap gap-2">
-                    <a href="/ranking" class="k-btn">{{ t('home.view_ranking') }}</a>
-                    {% if posts is not empty %}
-                        <a href="/news" class="k-btn k-btn-ghost">{{ t('home.view_news') }}</a>
-                    {% endif %}
-                    {% if not auth.check %}
-                        <a href="/register" class="k-btn k-btn-ember">{{ t('home.create_account') }}</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
     {% if posts is not empty %}
         <div class="k-panel">
             <div class="k-panel-head flex items-center justify-between gap-3">

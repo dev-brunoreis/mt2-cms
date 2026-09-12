@@ -144,7 +144,14 @@ class ThemeResolver
             $file = $this->themePath($theme) . '/assets/' . $relativePath;
 
             if (is_file($file)) {
-                return '/theme-assets/' . rawurlencode($theme) . '/' . implode('/', array_map('rawurlencode', explode('/', $relativePath)));
+                $url = '/theme-assets/' . rawurlencode($theme) . '/' . implode('/', array_map('rawurlencode', explode('/', $relativePath)));
+                $mtime = filemtime($file);
+
+                if ($mtime !== false) {
+                    $url .= '?v=' . $mtime;
+                }
+
+                return $url;
             }
         }
 

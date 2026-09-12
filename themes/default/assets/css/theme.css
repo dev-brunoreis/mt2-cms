@@ -193,6 +193,11 @@
   background: rgba(196, 163, 90, 0.08);
 }
 
+.theme-kingdoms .k-btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.68rem;
+}
+
 .theme-kingdoms .k-input,
 .theme-kingdoms input[type="text"],
 .theme-kingdoms input[type="password"],
@@ -578,16 +583,98 @@
   text-align: left;
   padding: 0.65rem 0.75rem;
   border-bottom: 1px solid var(--k-border);
+  white-space: nowrap;
 }
 
 .theme-kingdoms .k-table td {
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid rgba(61, 52, 38, 0.5);
   color: var(--k-text);
+  white-space: nowrap;
+}
+
+.theme-kingdoms .k-table .k-num {
+  white-space: nowrap;
 }
 
 .theme-kingdoms .k-table tr:hover td {
   background: rgba(196, 163, 90, 0.05);
+}
+
+.theme-kingdoms .k-char-list {
+  list-style: none;
+}
+
+.theme-kingdoms .k-char-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(61, 52, 38, 0.5);
+}
+
+.theme-kingdoms .k-char-row:last-child {
+  border-bottom: none;
+}
+
+.theme-kingdoms .k-char-row:hover {
+  background: rgba(196, 163, 90, 0.05);
+}
+
+.theme-kingdoms .k-char-identity {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 10rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-kingdoms .k-char-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1.25rem;
+  margin: 0;
+}
+
+.theme-kingdoms .k-char-meta div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.theme-kingdoms .k-char-meta dt {
+  font-family: "Cinzel", serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-char-meta dd {
+  margin: 0;
+  white-space: nowrap;
+  color: var(--k-text);
+}
+
+.theme-kingdoms .k-char-row .k-rank-num {
+  width: 1.75rem;
+  flex-shrink: 0;
+}
+
+.theme-kingdoms .k-char-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.theme-kingdoms .k-char-status {
+  font-size: 0.8rem;
+  color: #d4a574;
+  white-space: nowrap;
 }
 
 .theme-kingdoms .k-tabs a {

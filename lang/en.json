@@ -167,6 +167,7 @@
     "unavailable": "Unstuck is not available right now.",
     "player_not_found": "Character not found.",
     "player_online": "Character must be offline (not active in the last {minutes} minutes).",
+    "player_online_short": "Online",
     "cooldown": "Unstuck is on cooldown for this character.",
     "cooldown_active": "On cooldown",
     "spawn_not_configured": "Spawn point is not configured for your empire.",

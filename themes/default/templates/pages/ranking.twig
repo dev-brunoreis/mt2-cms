@@ -1,5 +1,5 @@
 <section class="space-y-5">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="flex flex-col gap-4">
         <div>
             <h1 class="k-title text-2xl">{{ t('ranking.title') }}</h1>
             <p class="mt-1 text-sm k-muted">
@@ -9,11 +9,11 @@
         </div>
 
         {% if tab != 'guilds' %}
-            <form method="get" action="/ranking" class="flex gap-2">
+            <form method="get" action="/ranking" class="flex w-full gap-2">
                 <input type="hidden" name="tab" value="{{ tab }}">
                 <input type="search" name="q" value="{{ query }}" placeholder="{{ t('ranking.search_placeholder') }}"
-                       class="k-input text-sm">
-                <button type="submit" class="k-btn">{{ t('ranking.search') }}</button>
+                       class="k-input min-w-0 flex-1 text-sm">
+                <button type="submit" class="k-btn shrink-0">{{ t('ranking.search') }}</button>
             </form>
         {% endif %}
     </div>
@@ -27,72 +27,78 @@
            class="{% if tab == 'guilds' %}k-tab-active{% endif %}">{{ t('ranking.tab_guilds') }}</a>
     </nav>
 
-    <div class="k-panel overflow-hidden">
+    <div class="k-panel{% if tab == 'guilds' %} overflow-x-auto{% else %} overflow-hidden{% endif %}">
         {% if ranking is empty %}
             <p class="p-8 text-center text-sm k-muted">{{ t('ranking.empty') }}</p>
-        {% else %}
-            <div class="overflow-x-auto">
-                <table class="k-table">
-                    <thead>
+        {% elseif tab == 'guilds' %}
+            <table class="k-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('ranking.rank') }}</th>
+                        <th>{{ t('ranking.guild_name') }}</th>
+                        <th>{{ t('ranking.level') }}</th>
+                        <th>{{ t('ranking.ladder_point') }}</th>
+                        <th>{{ t('ranking.win') }}</th>
+                        <th>{{ t('ranking.draw') }}</th>
+                        <th>{{ t('ranking.loss') }}</th>
+                        <th>{{ t('ranking.members') }}</th>
+                        <th>{{ t('ranking.master') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in ranking %}
                         <tr>
-                            <th>{{ t('ranking.rank') }}</th>
-                            {% if tab == 'guilds' %}
-                                <th>{{ t('ranking.guild_name') }}</th>
-                                <th>{{ t('ranking.level') }}</th>
-                                <th>{{ t('ranking.ladder_point') }}</th>
-                                <th>{{ t('ranking.win') }}</th>
-                                <th>{{ t('ranking.draw') }}</th>
-                                <th>{{ t('ranking.loss') }}</th>
-                                <th>{{ t('ranking.members') }}</th>
-                                <th>{{ t('ranking.master') }}</th>
-                            {% else %}
-                                <th>{{ t('ranking.name') }}</th>
-                                <th>{{ t('ranking.job') }}</th>
-                                <th>{{ t('ranking.level') }}</th>
-                                {% if tab == 'playtime' %}
-                                    <th>{{ t('ranking.playtime') }}</th>
-                                {% else %}
-                                    <th>{{ t('ranking.exp') }}</th>
-                                    <th>{{ t('ranking.playtime') }}</th>
-                                {% endif %}
-                            {% endif %}
+                            <td class="k-rank-num k-num {% if (offset + loop.index) <= 3 %}k-top{% endif %}">{{ offset + loop.index }}</td>
+                            <td class="font-medium">{{ row.name }}</td>
+                            <td class="k-num">{{ row.level }}</td>
+                            <td class="k-num">{{ row.ladder_point }}</td>
+                            <td class="k-num">{{ row.win }}</td>
+                            <td class="k-num">{{ row.draw }}</td>
+                            <td class="k-num">{{ row.loss }}</td>
+                            <td class="k-num">{{ row.member_count }}</td>
+                            <td>{{ row.master_name|default('—') }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in ranking %}
-                            <tr>
-                                <td class="k-rank-num {% if (offset + loop.index) <= 3 %}k-top{% endif %}">{{ offset + loop.index }}</td>
-                                {% if tab == 'guilds' %}
-                                    <td class="font-medium">{{ row.name }}</td>
-                                    <td>{{ row.level }}</td>
-                                    <td>{{ row.ladder_point }}</td>
-                                    <td>{{ row.win }}</td>
-                                    <td>{{ row.draw }}</td>
-                                    <td>{{ row.loss }}</td>
-                                    <td>{{ row.member_count }}</td>
-                                    <td>{{ row.master_name|default('—') }}</td>
-                                {% else %}
-                                    <td>
-                                        <a href="/player/{{ row.name|url_encode }}"
-                                           class="inline-flex items-center gap-2 font-medium !no-underline text-[var(--k-text)] hover:!text-[var(--k-bronze)]">
-                                            <span class="k-face-sm">{% include 'components/face-icon.twig' with { job: row.job } %}</span>
-                                            <span>{{ row.name }}</span>
-                                        </a>
-                                    </td>
-                                    <td class="k-muted">{{ row.job|job_name(row.skill_group) }}</td>
-                                    <td>{{ row.level }}</td>
-                                    {% if tab == 'playtime' %}
-                                        <td>{{ row.playtime|playtime }}</td>
-                                    {% else %}
-                                        <td>{{ row.exp }}</td>
-                                        <td>{{ row.playtime|playtime }}</td>
-                                    {% endif %}
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <ol class="k-char-list">
+                {% for row in ranking %}
+                    {% set skill = row.job|skill_name(row.skill_group) %}
+                    {% set jobLabel = row.job|job_name %}
+                    <li class="k-char-row">
+                        <span class="k-rank-num shrink-0 {% if (offset + loop.index) <= 3 %}k-top{% endif %}">{{ offset + loop.index }}</span>
+                        <div class="k-char-identity">
+                            <span class="k-face-sm shrink-0">{% include 'components/face-icon.twig' with { job: row.job } %}</span>
+                            <div class="min-w-0">
+                                <a href="/player/{{ row.name|url_encode }}"
+                                   class="block truncate font-medium !no-underline text-[var(--k-text)] hover:!text-[var(--k-bronze)]">
+                                    {{ row.name }}
+                                </a>
+                                <p class="truncate text-xs k-muted" title="{{ jobLabel }}{% if skill %} · {{ skill }}{% endif %}">
+                                    {{ jobLabel }}{% if skill %} · {{ skill }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <dl class="k-char-meta">
+                            <div>
+                                <dt>{{ t('ranking.level') }}</dt>
+                                <dd>{{ row.level }}</dd>
+                            </div>
+                            {% if tab != 'playtime' %}
+                                <div>
+                                    <dt>{{ t('ranking.exp') }}</dt>
+                                    <dd>{{ row.exp }}</dd>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <dt>{{ t('ranking.playtime') }}</dt>
+                                <dd>{{ row.playtime|playtime }}</dd>
+                            </div>
+                        </dl>
+                    </li>
+                {% endfor %}
+            </ol>
         {% endif %}
     </div>
 

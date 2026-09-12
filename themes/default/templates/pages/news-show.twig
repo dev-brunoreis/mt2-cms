@@ -17,7 +17,7 @@
                 <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs k-muted">
                     <span>{{ t('news.by', {author: post.author_login}) }}</span>
                     <span>{{ (post.published_at|default(post.created_at))|game_date }}</span>
-                    {% if news_show_views|default(true) %}
+                    {% if news_show_views %}
                         <span>{{ t('news.views', {count: post.views}) }}</span>
                     {% endif %}
                 </p>

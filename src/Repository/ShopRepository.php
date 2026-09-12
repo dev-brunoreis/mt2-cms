@@ -216,6 +216,36 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
+     * Shops that sell the given item proto vnum.
+     *
+     * @return list<array{shop_vnum: int, name: string, npc_vnum: int, count: int}>
+     */
+    public function listByItemVnum(int $itemVnum): array
+    {
+        if ($itemVnum < 1 || !$this->schemaTableExists('shop') || !$this->schemaTableExists('shop_item')) {
+            return [];
+        }
+
+        $rows = $this->db()->fetchAll(
+            'SELECT s.vnum, s.name, s.npc_vnum, si.count
+             FROM `shop_item` si
+             INNER JOIN `shop` s ON s.vnum = si.shop_vnum
+             WHERE si.item_vnum = ?
+             ORDER BY s.vnum ASC, si.count ASC',
+            [$itemVnum],
+        );
+
+        return array_map(static function (array $row): array {
+            return [
+                'shop_vnum' => (int) $row['vnum'],
+                'name' => (string) $row['name'],
+                'npc_vnum' => (int) ($row['npc_vnum'] ?? 0),
+                'count' => (int) ($row['count'] ?? 1),
+            ];
+        }, $rows);
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     private function items(int $shopVnum): array

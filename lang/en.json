@@ -1485,6 +1485,10 @@
       "tab_economy": "Prices / refine",
       "tab_applies": "Limits / applies",
       "tab_values": "Values",
+      "tab_shops": "Shops",
+      "shops_title": "Sold in shops",
+      "shops_help": "NPC shops from player.shop / shop_item that list this item.",
+      "shops_empty": "This item is not sold in any shop.",
       "fields": {
         "vnum": "Vnum",
         "locale_name": "Name",

@@ -94,7 +94,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->referralRepo, $app->settings,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminGameProtoController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminGameProtoController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->gameProto, $app->protoFields, $app->mobDrops, $app->protoEnums,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->gameProto, $app->protoFields, $app->mobDrops, $app->protoEnums, $app->shops,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminLogsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminLogsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->logs,

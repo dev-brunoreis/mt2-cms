@@ -6,7 +6,7 @@
 
 <form id="admin-proto-form"
       method="post"
-      action="{% if isEdit %}/admin/{{ routeKind }}/{{ record.vnum }}{% else %}/admin/{{ routeKind }}{% endif %}"
+      action="{% if isEdit %}{{ protoBase }}/{{ record.vnum }}{% else %}{{ protoBase }}{% endif %}"
       class="admin-panel admin-tabs overflow-hidden"
       data-admin-tabs
       data-default-tab="{{ tabs[0].id }}"
@@ -31,13 +31,17 @@
              role="tabpanel"
              data-tab-panel="{{ tab.id }}"
              aria-labelledby="admin-tab-{{ tab.id }}"
-             {% if tab.kind|default('') == 'drops' and not tab.active %}
-                 data-tab-src="/admin/{{ routeKind }}/{{ record.vnum }}?tab=drops&partial=1"
+             {% if tab.kind|default('') in ['drops', 'shops'] and not tab.active %}
+                 data-tab-src="{{ protoBase }}/{{ record.vnum }}?tab={{ tab.id }}&partial=1"
              {% endif %}
              {% if not tab.active %}hidden{% endif %}>
             {% if tab.kind|default('') == 'drops' %}
                 {% if tab.active %}
                     {% include 'components/mob-drops.twig' %}
+                {% endif %}
+            {% elseif tab.kind|default('') == 'shops' %}
+                {% if tab.active %}
+                    {% include 'components/item-shops.twig' %}
                 {% endif %}
             {% else %}
                 <fieldset class="admin-fieldset">
@@ -91,7 +95,7 @@
         <p class="mt-1 text-sm text-slate-500">{{ t(i18nPrefix ~ '.danger_help') }}</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-            <form method="post" action="/admin/{{ routeKind }}/{{ record.vnum }}/delete"
+            <form method="post" action="{{ protoBase }}/{{ record.vnum }}/delete"
                   data-confirm="{{ t(i18nPrefix ~ '.confirm_delete') }}">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
                 <button type="submit" class="admin-btn-danger cursor-pointer rounded-md px-4 py-2 text-sm font-semibold text-white">

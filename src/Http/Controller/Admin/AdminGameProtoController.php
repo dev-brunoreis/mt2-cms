@@ -16,6 +16,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoSchemas;
+use Mt2Cms\Repository\ShopRepository;
 use Mt2Cms\Service\GameProtoService;
 use Mt2Cms\Service\MobDropService;
 use Mt2Cms\Service\AclService;
@@ -37,6 +38,7 @@ class AdminGameProtoController extends AdminController
         private ProtoFormFields $protoFields,
         private MobDropService $mobDrops,
         private ProtoEnums $protoEnums,
+        private ShopRepository $shops,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -248,6 +250,7 @@ class AdminGameProtoController extends AdminController
             $record,
         );
         $mobDrops = null;
+        $itemShops = null;
 
         if ($isEdit && $internal === ProtoSchemas::KIND_MOB) {
             $tabs[] = [
@@ -256,6 +259,16 @@ class AdminGameProtoController extends AdminController
                 'active' => false,
                 'fields' => [],
                 'kind' => 'drops',
+            ];
+        }
+
+        if ($isEdit && $internal === ProtoSchemas::KIND_ITEM) {
+            $tabs[] = [
+                'id' => 'shops',
+                'label' => $this->t($prefix . '.tab_shops'),
+                'active' => false,
+                'fields' => [],
+                'kind' => 'shops',
             ];
         }
 
@@ -270,18 +283,24 @@ class AdminGameProtoController extends AdminController
             $mobDrops = $this->mobDrops->forMob($record);
         }
 
+        if ($tab === 'shops' && $isEdit && $internal === ProtoSchemas::KIND_ITEM) {
+            $itemShops = $this->shopsSellingItem((int) ($record['vnum'] ?? 0));
+        }
+
         $data = [
             'title' => $this->t($isEdit ? $prefix . '.edit_title' : $prefix . '.create_title'),
             'pageLead' => $this->t($isEdit ? $prefix . '.edit_lead' : $prefix . '.create_lead'),
             'formId' => 'admin-proto-form',
             'saveLabel' => $this->t('admin.save'),
             'routeKind' => $route,
+            'protoBase' => $this->protoPath($route),
             'i18nPrefix' => $prefix,
             'protoKind' => $internal,
             'record' => $record,
             'tabs' => $tabs,
             'activeTab' => $tab,
             'mobDrops' => $mobDrops,
+            'itemShops' => $itemShops,
             'subtypesByType' => $this->protoFields->subtypesJsonMap(),
             'valueLabelsByType' => $this->protoFields->valueLabelsJsonMap(),
             'isEdit' => $isEdit,
@@ -289,11 +308,17 @@ class AdminGameProtoController extends AdminController
         ];
 
         if ($this->wantsTabPartial()) {
-            if ($tab !== 'drops') {
+            $template = match ($tab) {
+                'drops' => 'components/mob-drops.twig',
+                'shops' => 'components/item-shops.twig',
+                default => null,
+            };
+
+            if ($template === null) {
                 return Response::notFound();
             }
 
-            return $this->adminFragment('components/mob-drops.twig', $data);
+            return $this->adminFragment($template, $data);
         }
 
         return $this->adminView($route, 'pages/proto-form.twig', $data, $status);
@@ -341,5 +366,36 @@ class AdminGameProtoController extends AdminController
     private function i18nPrefix(string $route): string
     {
         return $route === GameProtoService::ROUTE_MOBS ? 'admin.mobs' : 'admin.items';
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function shopsSellingItem(int $itemVnum): array
+    {
+        $shops = $this->shops->listByItemVnum($itemVnum);
+
+        foreach ($shops as $index => $shop) {
+            $shops[$index]['npc_name'] = $this->mobLabel((int) ($shop['npc_vnum'] ?? 0));
+        }
+
+        return $shops;
+    }
+
+    private function mobLabel(int $vnum): string
+    {
+        if ($vnum < 1) {
+            return '';
+        }
+
+        $row = $this->protos->find(ProtoSchemas::KIND_MOB, $vnum);
+
+        if ($row === null) {
+            return '';
+        }
+
+        $locale = trim((string) ($row['locale_name'] ?? ''));
+
+        return $locale !== '' ? $locale : trim((string) ($row['name'] ?? ''));
     }
 }

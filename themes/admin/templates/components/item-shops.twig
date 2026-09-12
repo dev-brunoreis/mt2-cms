@@ -1,0 +1,52 @@
+<section class="admin-fieldset">
+    <h2 class="admin-fieldset-title">
+        {{ t('admin.items.shops_title') }}
+        <span class="admin-fieldset-help">{{ t('admin.items.shops_help') }}</span>
+    </h2>
+
+    {% if itemShops is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.items.shops_empty') }}</p>
+    {% else %}
+        <div class="admin-tabs-table">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.shops.vnum') }}</th>
+                        <th>{{ t('admin.shops.name') }}</th>
+                        <th>{{ t('admin.shops.npc') }}</th>
+                        <th>{{ t('admin.shops.item_count') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shop in itemShops %}
+                        <tr>
+                            <td class="text-slate-600">
+                                <a href="/admin/game-data/shops/{{ shop.shop_vnum }}" class="text-indigo-600 hover:underline">{{ shop.shop_vnum }}</a>
+                            </td>
+                            <td>
+                                <a href="/admin/game-data/shops/{{ shop.shop_vnum }}" class="font-medium text-indigo-600 hover:underline">
+                                    {{ shop.name|default('—') }}
+                                </a>
+                            </td>
+                            <td class="text-slate-600">
+                                {% if shop.npc_vnum %}
+                                    <a href="/admin/game-data/mobs/{{ shop.npc_vnum }}" class="text-indigo-600 hover:underline">
+                                        {% if shop.npc_name %}
+                                            {{ shop.npc_name }}
+                                            <span class="text-slate-500">({{ shop.npc_vnum }})</span>
+                                        {% else %}
+                                            {{ shop.npc_vnum }}
+                                        {% endif %}
+                                    </a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="text-slate-600">{{ shop.count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>

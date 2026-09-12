@@ -172,6 +172,12 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
 
     public function superMatchesSearch(GridQuery $query): bool
     {
+        $ops = AdminRolesGrid::definition()->filterOps();
+
+        if (!GridSql::rowMatches($this->superGridRow(), $query->filters, $ops)) {
+            return false;
+        }
+
         if ($query->q === null || $query->q === '') {
             return true;
         }
@@ -441,16 +447,6 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $where = ' WHERE 1=1';
-        $params = [];
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $where .= ' AND (r.label LIKE ? OR r.slug LIKE ?)';
-            $params[] = '%' . $escaped . '%';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        return [$where, $params];
+        return GridSql::where($query, AdminRolesGrid::definition()->filterSql());
     }
 }

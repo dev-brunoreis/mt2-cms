@@ -23,7 +23,13 @@ final class GmsGrid
                 ['key' => 'mID', 'label' => 'admin.gms.id', 'sort' => 'mID', 'type' => 'muted'],
                 ['key' => 'mAccount', 'label' => 'admin.gms.account', 'sort' => 'mAccount', 'type' => 'link', 'href' => '/admin/game-data/gms/{mID}'],
                 ['key' => 'mName', 'label' => 'admin.gms.name', 'sort' => 'mName', 'type' => 'text'],
-                ['key' => 'mAuthority', 'label' => 'admin.gms.authority', 'sort' => 'mAuthority', 'type' => 'text'],
+                ['key' => 'mAuthority', 'label' => 'admin.gms.authority', 'sort' => 'mAuthority', 'type' => 'text', 'filterOptions' => [
+                    'IMPLEMENTOR' => 'IMPLEMENTOR',
+                    'HIGH_WIZARD' => 'HIGH_WIZARD',
+                    'GOD' => 'GOD',
+                    'LOW_WIZARD' => 'LOW_WIZARD',
+                    'PLAYER' => 'PLAYER',
+                ], 'optionKind' => 'raw', 'translateOptions' => false],
             ])
             ->massActions('/admin/game-data/gms/mass', [
                 ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.gms.confirm_mass_delete'],

@@ -273,22 +273,6 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        if ($query->q === null || $query->q === '') {
-            return ['', []];
-        }
-
-        $like = '%' . $query->q . '%';
-
-        if (ctype_digit($query->q)) {
-            return [
-                ' WHERE s.vnum = ? OR s.npc_vnum = ? OR s.name LIKE ?',
-                [(int) $query->q, (int) $query->q, $like],
-            ];
-        }
-
-        return [
-            ' WHERE s.name LIKE ?',
-            [$like],
-        ];
+        return GridSql::where($query, ShopsGrid::definition()->filterSql());
     }
 }

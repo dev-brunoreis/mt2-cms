@@ -142,16 +142,35 @@ final class GridDefinition
         return $this->cloneWith(['filters' => $filters]);
     }
 
+    /**
+     * @return array<string, array{sql: string, op: string}>
+     */
+    public function filterSql(): array
+    {
+        return GridColumnFilters::sqlMap($this->decoratedColumns());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function filterOps(): array
+    {
+        return GridColumnFilters::opsMap($this->decoratedColumns());
+    }
+
     public function spec(): GridSpec
     {
+        $columns = $this->decoratedColumns();
+        $extraFilters = GridColumnFilters::extraFilters($columns, $this->filters);
         $sortWhitelist = $this->sortWhitelist();
 
         return new GridSpec(
             action: $this->action,
             i18nPrefix: $this->i18nPrefix,
-            columns: $this->columns,
+            columns: $columns,
             massActionPath: $this->massActionPath,
-            filters: $this->filters,
+            filters: GridColumnFilters::requestFilters($columns, $extraFilters),
+            extraFilters: $extraFilters,
             massActions: $this->massActions,
             searchable: $this->searchable,
             idField: $this->idField,
@@ -161,6 +180,19 @@ final class GridDefinition
             defaultSort: $this->defaultSort,
             defaultDir: $this->defaultDir,
             sortWhitelist: $sortWhitelist,
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function decoratedColumns(): array
+    {
+        return GridColumnFilters::decorate(
+            $this->columns,
+            $this->filters,
+            $this->sqlSortMap,
+            $this->searchable,
         );
     }
 

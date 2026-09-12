@@ -24,6 +24,14 @@ class Jobs
         8 => ['job' => 8, 'sex' => 'male'],
     ];
 
+    /**
+     * @return list<int>
+     */
+    public static function raceIds(): array
+    {
+        return array_keys(self::RACES);
+    }
+
     public static function localeJobKey(int $race): string
     {
         return (string) (self::RACES[$race]['job'] ?? $race);

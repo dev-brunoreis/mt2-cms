@@ -22,8 +22,8 @@ final class ReferralsGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.referrals.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'referrer_login', 'label' => 'admin.referrals.referrer', 'sort' => 'referrer_login', 'type' => 'text'],
-                ['key' => 'referred_login', 'label' => 'admin.referrals.referred', 'sort' => 'referred_login', 'type' => 'text'],
+                ['key' => 'referrer_login', 'label' => 'admin.referrals.referrer', 'sort' => 'referrer_login', 'type' => 'text', 'filterSql' => false],
+                ['key' => 'referred_login', 'label' => 'admin.referrals.referred', 'sort' => 'referred_login', 'type' => 'text', 'filterSql' => false],
                 ['key' => 'created_at', 'label' => 'admin.referrals.created_at', 'sort' => 'created_at', 'type' => 'date'],
                 ['key' => 'rewarded_at', 'label' => 'admin.referrals.rewarded_at', 'sort' => 'rewarded_at', 'type' => 'date'],
             ]);

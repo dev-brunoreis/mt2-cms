@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller\Admin;
 
 use Mt2Cms\Admin\AdminPaths;
+use Mt2Cms\Admin\Grid\GridColumnFilters;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Admin\LogCatalog;
@@ -184,12 +185,14 @@ class AdminLogsController extends AdminController
         $columns = [];
 
         foreach ($log['columns'] as $column) {
+            $isDate = in_array($column, $dateColumns, true);
             $columns[] = [
                 'key' => $column,
                 'label' => $this->translator->has('admin.logs.columns.' . $column)
                     ? 'admin.logs.columns.' . $column
                     : $column,
                 'type' => 'template',
+                'filterType' => $isDate ? 'date' : 'text',
                 'template' => 'components/log-cell.twig',
                 'itemColumns' => $log['itemColumns'],
                 'dateColumns' => $dateColumns,
@@ -203,35 +206,69 @@ class AdminLogsController extends AdminController
             $filters[] = ['key' => 'to', 'label' => 'admin.logs.to', 'type' => 'date'];
         }
 
-        return new GridSpec(
-            action: AdminPaths::logs($table),
-            i18nPrefix: 'admin.logs',
-            columns: $columns,
-            filters: $filters,
-            searchable: true,
-            defaultSort: $log['columns'][0],
-            sortWhitelist: $log['columns'],
+        return $this->decoratedLogSpec(
+            AdminPaths::logs($table),
+            $columns,
+            $filters,
+            $log['columns'][0],
+            $log['columns'],
         );
     }
 
     private function connectionsGridSpec(): GridSpec
     {
-        return new GridSpec(
-            action: AdminPaths::logs(LogCatalog::CONNECTIONS_ID),
-            i18nPrefix: 'admin.logs',
-            columns: [
+        return $this->decoratedLogSpec(
+            AdminPaths::logs(LogCatalog::CONNECTIONS_ID),
+            [
                 ['key' => 'ip', 'label' => 'admin.logs.columns.ip', 'type' => 'text'],
-                ['key' => 'account_id', 'label' => 'admin.logs.columns.account_id', 'type' => 'template', 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
+                ['key' => 'account_id', 'label' => 'admin.logs.columns.account_id', 'type' => 'template', 'filterType' => 'number', 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
                 ['key' => 'connections', 'label' => 'admin.logs.columns.connections', 'type' => 'number'],
                 ['key' => 'first_seen', 'label' => 'admin.logs.columns.first_seen', 'type' => 'date'],
                 ['key' => 'last_seen', 'label' => 'admin.logs.columns.last_seen', 'type' => 'date'],
             ],
-            filters: [
+            [
                 ['key' => 'from', 'label' => 'admin.logs.from', 'type' => 'date'],
                 ['key' => 'to', 'label' => 'admin.logs.to', 'type' => 'date'],
             ],
-            defaultSort: 'last_seen',
-            sortWhitelist: ['ip', 'account_id', 'connections', 'first_seen', 'last_seen'],
+            'last_seen',
+            ['ip', 'account_id', 'connections', 'first_seen', 'last_seen'],
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $columns
+     * @param list<array<string, mixed>> $filters
+     * @param list<string> $sortWhitelist
+     */
+    private function decoratedLogSpec(
+        string $action,
+        array $columns,
+        array $filters,
+        string $defaultSort,
+        array $sortWhitelist,
+    ): GridSpec {
+        $sqlMap = [];
+
+        foreach ($columns as $column) {
+            $key = (string) ($column['key'] ?? '');
+
+            if ($key !== '') {
+                $sqlMap[$key] = $key;
+            }
+        }
+
+        $columns = GridColumnFilters::decorate($columns, $filters, $sqlMap, true);
+        $extraFilters = GridColumnFilters::extraFilters($columns, $filters);
+
+        return new GridSpec(
+            action: $action,
+            i18nPrefix: 'admin.logs',
+            columns: $columns,
+            filters: GridColumnFilters::requestFilters($columns, $extraFilters),
+            extraFilters: $extraFilters,
+            searchable: true,
+            defaultSort: $defaultSort,
+            sortWhitelist: $sortWhitelist,
         );
     }
 

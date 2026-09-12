@@ -13,7 +13,7 @@ Follow `docs/add-admin-section.md` §6.
 ## Required stack
 
 1. Add `src/Admin/Grid/Definitions/YourSectionGrid.php` with `definition(): GridDefinition` (columns, filters, `orderBy` / sortMap).
-2. Repository implements `ProvidesAdminGrid` with `countForGrid()` / `listForGrid()` only; use `YourSectionGrid::definition()->sortMap()` in `GridSql::orderBy`.
+2. Repository implements `ProvidesAdminGrid` with `countForGrid()` / `listForGrid()` only; use `YourSectionGrid::definition()->sortMap()` in `GridSql::orderBy` and `->filterSql()` in `GridSql::where`.
 3. Controller `index()` uses `YourSectionGrid::definition()->spec()`, `GridRunner::fetch()`, and passes `'grid' => $grid` to Twig.
 4. Twig is only: `{% include 'components/grid.twig' with {grid: grid} %}` (+ optional callouts above the grid).
 

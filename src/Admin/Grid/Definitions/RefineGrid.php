@@ -19,8 +19,8 @@ final class RefineGrid
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.refine.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/game-data/refine/{id}'],
-                ['key' => 'source_label', 'label' => 'admin.refine.source', 'type' => 'text'],
-                ['key' => 'result_label', 'label' => 'admin.refine.result', 'type' => 'text'],
+                ['key' => 'source_label', 'label' => 'admin.refine.source', 'type' => 'text', 'filter' => false],
+                ['key' => 'result_label', 'label' => 'admin.refine.result', 'type' => 'text', 'filter' => false],
                 ['key' => 'cost', 'label' => 'admin.refine.cost', 'sort' => 'cost', 'type' => 'number'],
                 ['key' => 'prob', 'label' => 'admin.refine.prob', 'sort' => 'prob', 'type' => 'number'],
             ])

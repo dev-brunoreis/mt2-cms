@@ -103,7 +103,8 @@ Use the shared Magento-style grid for index/list pages — do not copy table mar
 ### Controller
 
 1. Add `src/Admin/Grid/Definitions/YourSectionGrid.php` with `public static function definition(): GridDefinition` (columns, filters, `orderBy` map).
-2. Repository implements `ProvidesAdminGrid` with `countForGrid()` / `listForGrid()` only. Use `YourSectionGrid::definition()->sortMap()` in `GridSql::orderBy`.
+2. Repository implements `ProvidesAdminGrid` with `countForGrid()` / `listForGrid()` only. Use `YourSectionGrid::definition()->sortMap()` in `GridSql::orderBy` and `->filterSql()` in `GridSql::where`.
+3. Column filters are inferred under each header (Magento 1 style): badges/bools/jobs/empires/proto tokens become selects, dates become date inputs, everything else is text. Extra toolbar filters are only for keys that are not a column (`range`, log `from`/`to`). Set `'filter' => false` or `'filterSql' => false` on computed columns. There is no global search box — `searchable(false)` means “do not auto-filter columns” (dashboard).
 3. In the controller `index()`:
 
 ```php

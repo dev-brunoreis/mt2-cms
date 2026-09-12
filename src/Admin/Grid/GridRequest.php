@@ -53,12 +53,20 @@ final class GridRequest
 
                 $type = (string) ($filter['type'] ?? 'text');
 
+                if ($type === 'date' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+                    continue;
+                }
+
                 if ($type === 'select') {
                     $options = $filter['options'] ?? [];
 
-                    if (is_array($options) && !array_key_exists($value, $options)) {
+                    if (is_array($options) && $options !== [] && !self::optionExists($options, $value)) {
                         continue;
                     }
+                }
+
+                if (strlen($value) > 120) {
+                    continue;
                 }
 
                 $filters[$key] = $value;
@@ -66,6 +74,18 @@ final class GridRequest
         }
 
         return new GridQuery($search, $page, $limit, $sort, $dir, $filters);
+    }
+
+    /**
+     * @param array<array-key, mixed> $options
+     */
+    private static function optionExists(array $options, string $value): bool
+    {
+        if (array_key_exists($value, $options)) {
+            return true;
+        }
+
+        return preg_match('/^-?\d+$/', $value) === 1 && array_key_exists((int) $value, $options);
     }
 
     /**

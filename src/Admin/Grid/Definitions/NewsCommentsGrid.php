@@ -12,11 +12,12 @@ final class NewsCommentsGrid
     {
 
         return GridDefinition::create('/admin/content/news?tab=comments', 'admin.news')
-            ->searchable(false)
             ->defaultSort('created_at')
             ->orderBy([
                 'id' => 'c.id',
+                'news_title' => 'n.title',
                 'author_login' => 'c.account_login',
+                'body' => 'c.body',
                 'created_at' => 'c.created_at',
             ])
             ->columns([

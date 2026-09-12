@@ -17,6 +17,8 @@ final class PaymentsGrid
                 'id' => 'id',
                 'account_login' => 'account_login',
                 'amount_cents' => 'amount_cents',
+                'cash_amount' => 'cash_amount',
+                'provider' => 'provider',
                 'status' => 'status',
                 'created_at' => 'created_at',
             ])

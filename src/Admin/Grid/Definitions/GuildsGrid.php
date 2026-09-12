@@ -23,7 +23,7 @@ final class GuildsGrid
                 ['key' => 'name', 'label' => 'admin.guilds.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game/guilds/{id}'],
                 ['key' => 'level', 'label' => 'admin.guilds.level', 'sort' => 'level', 'type' => 'number'],
                 ['key' => 'member_count', 'label' => 'admin.guilds.members', 'sort' => 'member_count', 'type' => 'number'],
-                ['key' => 'master', 'label' => 'admin.guilds.master', 'type' => 'text'],
+                ['key' => 'master', 'label' => 'admin.guilds.master', 'type' => 'text', 'filterSql' => 'p.name'],
             ]);
         }
 }

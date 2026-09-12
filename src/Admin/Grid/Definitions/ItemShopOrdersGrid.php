@@ -24,7 +24,7 @@ final class ItemShopOrdersGrid
             ->columns([
                 ['key' => 'id', 'label' => 'admin.item_shop.orders.id', 'sort' => 'id', 'type' => 'muted'],
                 ['key' => 'account_login', 'label' => 'admin.item_shop.orders.account', 'sort' => 'account_login', 'type' => 'text'],
-                ['key' => 'item_name', 'label' => 'admin.item_shop.orders.item', 'type' => 'text'],
+                ['key' => 'item_name', 'label' => 'admin.item_shop.orders.item', 'type' => 'text', 'filter' => false],
                 ['key' => 'count', 'label' => 'admin.item_shop.orders.count_label', 'sort' => 'count', 'type' => 'number'],
                 ['key' => 'price', 'label' => 'admin.item_shop.orders.price', 'sort' => 'price', 'type' => 'number'],
                 ['key' => 'status', 'label' => 'admin.item_shop.orders.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [

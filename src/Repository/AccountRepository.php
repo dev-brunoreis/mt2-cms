@@ -518,28 +518,7 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $clauses[] = '(login LIKE ? OR email LIKE ?)';
-            $params[] = '%' . $escaped . '%';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        $status = $query->filter('status');
-
-        if ($status !== '' && in_array($status, ['OK', 'BLOCK'], true)) {
-            $clauses[] = 'status = ?';
-            $params[] = $status;
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, AccountsGrid::definition()->filterSql());
     }
 
     /**

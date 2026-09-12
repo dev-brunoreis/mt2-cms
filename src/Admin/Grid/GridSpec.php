@@ -12,6 +12,7 @@ final class GridSpec
      * @param list<array<string, mixed>> $massActions
      * @param list<int> $perPageOptions
      * @param list<string> $sortWhitelist
+     * @param list<array<string, mixed>> $extraFilters
      */
     public function __construct(
         public readonly string $action,
@@ -28,6 +29,7 @@ final class GridSpec
         public readonly string $defaultSort = 'id',
         public readonly string $defaultDir = 'desc',
         public readonly array $sortWhitelist = [],
+        public readonly array $extraFilters = [],
     ) {
     }
 

@@ -18,6 +18,8 @@ final class BansGrid
                 'account_login' => 'account_login',
                 'created_at' => 'created_at',
                 'expires_at' => 'expires_at',
+                'lifted_at' => 'lifted_at',
+                'reason' => 'reason',
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.bans.id', 'sort' => 'id', 'type' => 'muted'],

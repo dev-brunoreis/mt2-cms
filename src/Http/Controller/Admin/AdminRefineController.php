@@ -39,14 +39,11 @@ class AdminRefineController extends AdminController
     {
         $spec = RefineGrid::definition()->spec();
         $query = $this->gridQuery($spec);
-        $usedByRefineIds = $query->q !== null && ctype_digit($query->q)
-            ? $this->protos->refineIdsForItemVnumPrefix($query->q)
-            : null;
         $grid = GridRunner::fetch(
             $spec,
             $query,
-            fn ($q) => $this->refine->countForGrid($q, $usedByRefineIds),
-            fn ($q) => $this->enrichRecipesForList($this->refine->listForGrid($q, $usedByRefineIds)),
+            fn ($q) => $this->refine->countForGrid($q),
+            fn ($q) => $this->enrichRecipesForList($this->refine->listForGrid($q)),
         );
 
         return $this->adminView('refine', 'pages/refine-list.twig', [

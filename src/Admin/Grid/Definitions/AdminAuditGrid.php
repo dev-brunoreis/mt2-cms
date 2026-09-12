@@ -13,7 +13,6 @@ final class AdminAuditGrid
 
         return GridDefinition::create('/admin/system/audit-log', 'admin.audit_log')
             ->defaultSort('created_at', 'desc')
-            ->searchable(false)
             ->orderBy([
                 'id' => 'id',
                 'login' => 'login',
@@ -31,8 +30,8 @@ final class AdminAuditGrid
                 ['key' => 'target_type', 'label' => 'admin.audit_log.target_type', 'sort' => 'target_type', 'type' => 'text'],
                 ['key' => 'target_id', 'label' => 'admin.audit_log.target_id', 'sort' => 'target_id', 'type' => 'number'],
                 ['key' => 'ip', 'label' => 'admin.audit_log.ip', 'sort' => 'ip', 'type' => 'text'],
-                ['key' => 'before', 'label' => 'admin.audit_log.before', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell'],
-                ['key' => 'after', 'label' => 'admin.audit_log.after', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell'],
+                ['key' => 'before', 'label' => 'admin.audit_log.before', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell', 'filter' => false],
+                ['key' => 'after', 'label' => 'admin.audit_log.after', 'type' => 'template', 'template' => 'components/audit-diff.twig', 'class' => 'admin-audit-diff-cell', 'filter' => false],
             ])
             ->filters([
                 ['key' => 'login', 'label' => 'admin.audit_log.login', 'type' => 'text'],

@@ -250,26 +250,6 @@ class TicketRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        $status = $query->filter('status');
-
-        if ($status !== '' && in_array($status, ['open', 'answered', 'closed'], true)) {
-            $clauses[] = 't.status = ?';
-            $params[] = $status;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            $clauses[] = '(t.subject LIKE ? OR t.account_login LIKE ?)';
-            $params[] = '%' . $query->q . '%';
-            $params[] = '%' . $query->q . '%';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, TicketsGrid::definition()->filterSql());
     }
 }

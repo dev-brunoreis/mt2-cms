@@ -67,6 +67,9 @@ final class ProtoGrid
                 'sort' => 'limit_value0',
                 'type' => 'proto_limit',
                 'tokenKey' => 'limit_type0',
+                'filterKey' => 'limit_type0',
+                'filterOptions' => self::tokenOptions($enums, $kind, 'limit_type0'),
+                'optionKind' => 'proto',
             ];
         }
 
@@ -77,6 +80,9 @@ final class ProtoGrid
                 'sort' => 'apply_value0',
                 'type' => 'proto_apply',
                 'tokenKey' => 'apply_type0',
+                'filterKey' => 'apply_type0',
+                'filterOptions' => self::tokenOptions($enums, $kind, 'apply_type0'),
+                'optionKind' => 'proto',
             ];
         }
 
@@ -91,17 +97,57 @@ final class ProtoGrid
         }
 
         $widget = $enums->widgetForField($kind, $column);
-
-        return [
+        $type = match ($widget) {
+            'select', 'subtype' => 'proto_token',
+            'number' => 'number',
+            default => 'text',
+        };
+        $columnDef = [
             'key' => $column,
             'label' => $prefix . '.fields.' . $column,
             'sort' => $column,
-            'type' => match ($widget) {
-                'select', 'subtype' => 'proto_token',
-                'number' => 'number',
-                default => 'text',
-            },
+            'type' => $type,
         ];
+
+        if ($type === 'proto_token') {
+            $columnDef['filterOptions'] = self::tokenOptions($enums, $kind, $column);
+            $columnDef['optionKind'] = 'proto';
+        }
+
+        return $columnDef;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function tokenOptions(ProtoEnums $enums, string $kind, string $column): array
+    {
+        $tokens = $column === 'subtype'
+            ? self::allSubtypes($enums)
+            : $enums->optionsForField($kind, $column);
+        $options = [];
+
+        foreach ($tokens as $token) {
+            $options[$token] = $token;
+        }
+
+        return $options;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function allSubtypes(ProtoEnums $enums): array
+    {
+        $tokens = [];
+
+        foreach ($enums->itemSubtypesByType() as $subtypes) {
+            foreach ($subtypes as $token) {
+                $tokens[$token] = $token;
+            }
+        }
+
+        return array_values($tokens);
     }
 
     private static function listPath(string $route): string

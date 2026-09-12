@@ -227,26 +227,6 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        $status = $query->filter('status');
-
-        if ($status !== '' && in_array($status, ['draft', 'published'], true)) {
-            $clauses[] = 'status = ?';
-            $params[] = $status;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            $clauses[] = '(title LIKE ? OR author_login LIKE ?)';
-            $params[] = '%' . $query->q . '%';
-            $params[] = '%' . $query->q . '%';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, NewsGrid::definition()->filterSql());
     }
 }

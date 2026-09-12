@@ -30,10 +30,13 @@ final class GridView
             'idField' => $this->spec->idField,
             'columns' => $this->spec->columns,
             'filters' => $this->spec->filters,
+            'extraFilters' => $this->spec->extraFilters,
             'massActions' => $this->spec->massActions,
             'searchable' => $this->spec->searchable,
             'perPageOptions' => $this->spec->perPageOptions,
             'hasMassActions' => $this->spec->hasMassActions(),
+            'hasFilters' => $this->spec->extraFilters !== [] || $this->hasColumnFilters(),
+            'hasColumnFilters' => $this->hasColumnFilters(),
             'query' => $this->query->q ?? '',
             'page' => $this->query->page,
             'perPage' => $this->query->perPage,
@@ -51,6 +54,17 @@ final class GridView
                 'reset' => GridUrl::reset($this->spec->action),
             ],
         ];
+    }
+
+    private function hasColumnFilters(): bool
+    {
+        foreach ($this->spec->columns as $column) {
+            if (isset($column['columnFilter']) && is_array($column['columnFilter'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function paginate(int $total, GridQuery $query): int

@@ -180,33 +180,28 @@ class ReferralRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
+        $where = GridSql::where($query, ReferralsGrid::definition()->filterSql());
 
-        if ($query->q !== null && $query->q !== '') {
-            $accountIds = $this->accounts->findIdsByLoginLike($query->q);
+        foreach ([
+            'referrer_login' => 'r.referrer_id',
+            'referred_login' => 'r.referred_id',
+        ] as $key => $column) {
+            $login = $query->filter($key);
+
+            if ($login === '') {
+                continue;
+            }
+
+            $accountIds = $this->accounts->findIdsByLoginLike($login);
 
             if ($accountIds === []) {
                 return [' WHERE 1 = 0', []];
             }
 
             $placeholders = implode(', ', array_fill(0, count($accountIds), '?'));
-            $clauses[] = '(r.referrer_id IN (' . $placeholders . ') OR r.referred_id IN (' . $placeholders . '))';
-            $params = array_merge($accountIds, $accountIds);
+            $where = GridSql::append($where, $column . ' IN (' . $placeholders . ')', $accountIds);
         }
 
-        $rewarded = $query->filter('rewarded');
-
-        if ($rewarded === '1') {
-            $clauses[] = 'r.rewarded_at IS NOT NULL';
-        } elseif ($rewarded === '0') {
-            $clauses[] = 'r.rewarded_at IS NULL';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return $where;
     }
 }

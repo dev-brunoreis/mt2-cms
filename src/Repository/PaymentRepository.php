@@ -160,25 +160,6 @@ class PaymentRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-        $status = $query->filter('status');
-
-        if ($status !== '' && in_array($status, ['pending', 'paid', 'failed', 'refunded'], true)) {
-            $clauses[] = 'status = ?';
-            $params[] = $status;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $clauses[] = 'account_login LIKE ?';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, PaymentsGrid::definition()->filterSql());
     }
 }

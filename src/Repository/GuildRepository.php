@@ -370,23 +370,7 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        if ($query->q === null || $query->q === '') {
-            return ['', []];
-        }
-
-        $like = '%' . $query->q . '%';
-
-        if (ctype_digit($query->q)) {
-            return [
-                ' WHERE g.id = ? OR g.name LIKE ? OR p.name LIKE ?',
-                [(int) $query->q, $like, $like],
-            ];
-        }
-
-        return [
-            ' WHERE g.name LIKE ? OR p.name LIKE ?',
-            [$like, $like],
-        ];
+        return GridSql::where($query, GuildsGrid::definition()->filterSql());
     }
 
     /**

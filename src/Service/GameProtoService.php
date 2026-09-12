@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Admin\Grid\Definitions\ProtoGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
+use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Game\GameProfile;
+use Mt2Cms\Game\Proto\ProtoEnums;
 use Mt2Cms\Game\Proto\ProtoIndexCache;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Game\Proto\TabProtoTable;
@@ -21,7 +24,7 @@ class GameProtoService
     private TabProtoTable $mobs;
 
     public function __construct(
-        GameProfile $profile,
+        private GameProfile $profile,
         private ProtoSchemas $schemas,
         private ProtoNameRepository $protoNames,
         private ProtoIndexCache $protoIndex,
@@ -57,7 +60,7 @@ class GameProtoService
      */
     public function countForGrid(string $kind, GridQuery $query, array $excludeVnums = []): int
     {
-        return count($this->rowsForGrid($kind, $query->q, $excludeVnums));
+        return count($this->rowsForGrid($kind, $query, $excludeVnums));
     }
 
     /**
@@ -68,7 +71,7 @@ class GameProtoService
     {
         $internal = $this->resolveKind($kind);
         $rows = $this->sortRows(
-            $this->rowsForGrid($kind, $query->q, $excludeVnums),
+            $this->rowsForGrid($kind, $query, $excludeVnums),
             $query,
             $this->listColumns($internal),
         );
@@ -80,9 +83,10 @@ class GameProtoService
      * @param list<int> $excludeVnums
      * @return list<array<string, string>>
      */
-    private function rowsForGrid(string $kind, ?string $q, array $excludeVnums): array
+    private function rowsForGrid(string $kind, GridQuery $query, array $excludeVnums): array
     {
-        $filtered = $this->filter($this->indexedRows($this->resolveKind($kind)), $q);
+        $filtered = $this->filter($this->indexedRows($this->resolveKind($kind)), $query->q);
+        $filtered = $this->filterColumns($kind, $filtered, $query);
 
         if ($excludeVnums === []) {
             return $filtered;
@@ -308,6 +312,31 @@ class GameProtoService
             ]));
 
             if (str_contains($haystack, $needle)) {
+                $matched[] = $row;
+            }
+        }
+
+        return $matched;
+    }
+
+    /**
+     * @param list<array<string, string>> $rows
+     * @return list<array<string, string>>
+     */
+    private function filterColumns(string $kind, array $rows, GridQuery $query): array
+    {
+        if ($query->filters === []) {
+            return $rows;
+        }
+
+        $route = $this->resolveKind($kind) === ProtoSchemas::KIND_ITEM
+            ? self::ROUTE_ITEMS
+            : self::ROUTE_MOBS;
+        $ops = ProtoGrid::definition($this, new ProtoEnums($this->profile), $route)->filterOps();
+        $matched = [];
+
+        foreach ($rows as $row) {
+            if (GridSql::rowMatches($row, $query->filters, $ops)) {
                 $matched[] = $row;
             }
         }

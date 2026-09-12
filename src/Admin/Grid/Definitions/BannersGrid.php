@@ -16,6 +16,7 @@ final class BannersGrid
                 'id' => 'id',
                 'title' => 'title',
                 'sort_order' => 'sort_order',
+                'enabled' => 'enabled',
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.banners.id', 'sort' => 'id', 'type' => 'muted'],
@@ -24,6 +25,7 @@ final class BannersGrid
                     'label' => 'admin.banners.preview',
                     'type' => 'template',
                     'template' => 'components/banner-thumb.twig',
+                    'filter' => false,
                 ],
                 [
                     'key' => 'title',

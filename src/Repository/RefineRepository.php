@@ -197,30 +197,13 @@ class RefineRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query, ?array $usedByRefineIds = null): array
     {
-        $conditions = [];
-        $params = [];
-
-        if ($query->q !== null && $query->q !== '' && ctype_digit($query->q)) {
-            $like = $query->q . '%';
-            $conditions[] = 'CAST(r.id AS CHAR) LIKE ?';
-            $params[] = $like;
-
-            for ($i = 0; $i < 5; $i++) {
-                $conditions[] = 'CAST(r.vnum' . $i . ' AS CHAR) LIKE ?';
-                $params[] = $like;
-            }
-        }
+        $where = GridSql::where($query, RefineGrid::definition()->filterSql());
 
         if ($usedByRefineIds !== null && $usedByRefineIds !== []) {
             $placeholders = implode(', ', array_fill(0, count($usedByRefineIds), '?'));
-            $conditions[] = 'r.id IN (' . $placeholders . ')';
-            array_push($params, ...$usedByRefineIds);
+            $where = GridSql::append($where, 'r.id IN (' . $placeholders . ')', $usedByRefineIds);
         }
 
-        if ($conditions === []) {
-            return ['', []];
-        }
-
-        return [' WHERE (' . implode(' OR ', $conditions) . ')', $params];
+        return $where;
     }
 }

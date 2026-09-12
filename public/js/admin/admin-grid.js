@@ -1,6 +1,14 @@
 (function () {
     'use strict';
 
+    function disableEmptyFilters(form) {
+        var selector = '[form="' + form.id + '"][name^="filter"]';
+
+        document.querySelectorAll(selector).forEach(function (el) {
+            el.disabled = !el.value;
+        });
+    }
+
     document.querySelectorAll('[data-admin-grid]').forEach(function (root) {
         var limitSelect = root.querySelector('[data-grid-limit]');
 
@@ -13,6 +21,23 @@
                 }
             });
         }
+
+        root.querySelectorAll('[data-grid-filter-change]').forEach(function (el) {
+            el.addEventListener('change', function () {
+                var form = el.form;
+
+                if (form) {
+                    disableEmptyFilters(form);
+                    form.submit();
+                }
+            });
+        });
+
+        root.querySelectorAll('form[id^="admin-grid-filter-"]').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                disableEmptyFilters(form);
+            });
+        });
 
         var massForm = root.querySelector('[data-grid-mass-form]');
 

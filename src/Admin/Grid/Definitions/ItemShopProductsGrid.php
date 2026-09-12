@@ -23,8 +23,8 @@ final class ItemShopProductsGrid
             ->columns([
                 ['key' => 'id', 'label' => 'admin.item_shop.products.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/store/products/{id}'],
                 ['key' => 'vnum', 'label' => 'admin.item_shop.products.vnum', 'sort' => 'vnum', 'type' => 'number'],
-                ['key' => 'item_name', 'label' => 'admin.item_shop.products.item', 'type' => 'text'],
-                ['key' => 'category_name', 'label' => 'admin.item_shop.products.category', 'sort' => 'category_name', 'type' => 'text'],
+                ['key' => 'item_name', 'label' => 'admin.item_shop.products.item', 'type' => 'text', 'filter' => false],
+                ['key' => 'category_name', 'label' => 'admin.item_shop.products.category', 'sort' => 'category_name', 'type' => 'text', 'filterKey' => 'category_id', 'filterSql' => 'p.category_id'],
                 ['key' => 'count', 'label' => 'admin.item_shop.products.count_label', 'sort' => 'count', 'type' => 'number'],
                 ['key' => 'price', 'label' => 'admin.item_shop.products.price', 'sort' => 'price', 'type' => 'number'],
                 ['key' => 'enabled', 'label' => 'admin.item_shop.products.enabled', 'sort' => 'enabled', 'type' => 'badge', 'badgeMap' => [

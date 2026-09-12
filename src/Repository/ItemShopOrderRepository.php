@@ -193,32 +193,6 @@ class ItemShopOrderRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        $status = $query->filter('status');
-
-        if ($status !== '' && in_array($status, ['pending', 'completed', 'failed'], true)) {
-            $clauses[] = 'status = ?';
-            $params[] = $status;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            if (ctype_digit($query->q)) {
-                $clauses[] = '(id = ? OR account_id = ? OR product_id = ? OR vnum = ? OR account_login LIKE ?)';
-                $like = '%' . $query->q . '%';
-                array_push($params, (int) $query->q, (int) $query->q, (int) $query->q, (int) $query->q, $like);
-            } else {
-                $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-                $clauses[] = 'account_login LIKE ?';
-                $params[] = '%' . $escaped . '%';
-            }
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, ItemShopOrdersGrid::definition()->filterSql());
     }
 }

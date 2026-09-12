@@ -1,0 +1,47 @@
+{% set filter = column.columnFilter %}
+{% set current = grid.filterValues[filter.key]|default('') %}
+{% set inputId = 'grid-col-filter-' ~ filter.key %}
+{% set formId = filterFormId %}
+
+{% if filter.type == 'select' %}
+    {% set filterOptions = filter.preserveOrder|default(false)
+        ? filter.options
+        : (filter.optionKind|default('i18n') == 'proto'
+            ? filter.options
+            : filter.options|sort_select(filter.translateOptions|default(true))) %}
+    {% if filter.optionKind|default('i18n') == 'proto' %}
+        {% set labeled = [] %}
+        {% for optValue, optLabel in filter.options %}
+            {% set labeled = labeled|merge({(optValue): optLabel|proto_token}) %}
+        {% endfor %}
+        {% set filterOptions = labeled|sort_select(false) %}
+    {% endif %}
+    <select id="{{ inputId }}" name="filter[{{ filter.key }}]" form="{{ formId }}"
+            class="admin-input admin-input-compact admin-grid-col-filter"
+            data-grid-filter-change>
+        <option value=""></option>
+        {% for optValue, optLabel in filterOptions %}
+            <option value="{{ optValue }}" {% if current == optValue %}selected{% endif %}>
+                {% if filter.optionKind|default('i18n') == 'job' %}
+                    {{ optValue|job_name }}
+                {% elseif filter.optionKind|default('i18n') == 'empire' %}
+                    {{ optValue|empire_name }}
+                {% elseif filter.optionKind|default('i18n') == 'proto' %}
+                    {{ optLabel }}
+                {% elseif filter.translateOptions|default(true) %}
+                    {{ t(optLabel) }}
+                {% else %}
+                    {{ optLabel }}
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+{% elseif filter.type == 'date' %}
+    <input id="{{ inputId }}" type="date" name="filter[{{ filter.key }}]" form="{{ formId }}"
+           value="{{ current }}" class="admin-input admin-input-compact admin-grid-col-filter"
+           data-grid-filter-change>
+{% else %}
+    <input id="{{ inputId }}" type="search" name="filter[{{ filter.key }}]" form="{{ formId }}"
+           value="{{ current }}" class="admin-input admin-input-compact admin-grid-col-filter"
+           autocomplete="off">
+{% endif %}

@@ -19,7 +19,9 @@ class DownloadRepository extends Repository implements ProvidesAdminGrid
 
     public function countForGrid(GridQuery $query): int
     {
-        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM cms_downloads');
+        [$where, $params] = GridSql::where($query, DownloadsGrid::definition()->filterSql());
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM cms_downloads' . $where, $params);
     }
 
     /**
@@ -27,12 +29,14 @@ class DownloadRepository extends Repository implements ProvidesAdminGrid
      */
     public function listForGrid(GridQuery $query): array
     {
-        $params = [$query->perPage, $query->offset()];
+        [$where, $params] = GridSql::where($query, DownloadsGrid::definition()->filterSql());
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
         $order = GridSql::orderBy($query, DownloadsGrid::definition()->sortMap(), 'sort_order ASC, id ASC');
 
         $rows = $this->db()->fetchAll(
-            'SELECT id, title, category, sort_order, enabled
-             FROM cms_downloads' . $order . '
+                'SELECT id, title, category, sort_order, enabled
+             FROM cms_downloads' . $where . $order . '
              LIMIT ? OFFSET ?',
             $params,
         );

@@ -280,32 +280,9 @@ class ItemAwardRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [
-            // Item-shop purchases use why = shop:{orderId}[:ok]; those belong under Shop orders.
+        return GridSql::append(
+            GridSql::where($query, AwardsGrid::definition()->filterSql()),
             "(a.why IS NULL OR a.why NOT LIKE 'shop:%')",
-        ];
-        $params = [];
-
-        $status = $query->filter('status');
-
-        if ($status === 'pending') {
-            $clauses[] = 'a.taken_time IS NULL';
-        } elseif ($status === 'taken') {
-            $clauses[] = 'a.taken_time IS NOT NULL';
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            if (ctype_digit($query->q)) {
-                $clauses[] = '(a.id = ? OR a.pid = ? OR a.vnum = ? OR a.login LIKE ? OR a.why LIKE ?)';
-                $like = '%' . $query->q . '%';
-                array_push($params, (int) $query->q, (int) $query->q, (int) $query->q, $like, $like);
-            } else {
-                $clauses[] = '(a.login LIKE ? OR a.why LIKE ?)';
-                $like = '%' . $query->q . '%';
-                array_push($params, $like, $like);
-            }
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        );
     }
 }

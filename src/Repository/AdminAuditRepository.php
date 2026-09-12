@@ -88,26 +88,6 @@ class AdminAuditRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $where = ' WHERE 1=1';
-        $params = [];
-
-        foreach ($query->filters as $key => $value) {
-            if ($value === '') {
-                continue;
-            }
-
-            if ($key === 'login') {
-                $where .= ' AND login LIKE ?';
-                $params[] = '%' . $value . '%';
-            } elseif ($key === 'action') {
-                $where .= ' AND action LIKE ?';
-                $params[] = '%' . $value . '%';
-            } elseif ($key === 'target_type') {
-                $where .= ' AND target_type LIKE ?';
-                $params[] = '%' . $value . '%';
-            }
-        }
-
-        return [$where, $params];
+        return GridSql::where($query, AdminAuditGrid::definition()->filterSql());
     }
 }

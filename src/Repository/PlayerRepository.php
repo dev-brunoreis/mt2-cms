@@ -422,17 +422,7 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        if ($query->q === null || $query->q === '') {
-            return ['', []];
-        }
-
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-        $like = '%' . $escaped . '%';
-
-        return [
-            ' WHERE p.name LIKE ? OR a.login LIKE ?',
-            [$like, $like],
-        ];
+        return GridSql::where($query, PlayersGrid::definition()->filterSql());
     }
 
     /**

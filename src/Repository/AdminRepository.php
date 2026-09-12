@@ -268,22 +268,6 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $where = ' WHERE 1=1';
-        $params = [];
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $where .= ' AND login LIKE ?';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        foreach ($query->filters as $key => $value) {
-            if ($key === 'role' && $value !== '') {
-                $where .= ' AND role = ?';
-                $params[] = $value;
-            }
-        }
-
-        return [$where, $params];
+        return GridSql::where($query, AdminsGrid::definition()->filterSql());
     }
 }

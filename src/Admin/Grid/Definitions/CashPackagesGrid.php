@@ -19,6 +19,8 @@ final class CashPackagesGrid
                 'cash_amount' => 'cash_amount',
                 'price_cents' => 'price_cents',
                 'sort_order' => 'sort_order',
+                'currency' => 'currency',
+                'enabled' => 'enabled',
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.packages.id', 'sort' => 'id', 'type' => 'muted'],

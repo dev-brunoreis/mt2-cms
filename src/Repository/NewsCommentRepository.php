@@ -127,6 +127,10 @@ class NewsCommentRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        return [' WHERE c.status = ?', ['pending']];
+        return GridSql::append(
+            GridSql::where($query, NewsCommentsGrid::definition()->filterSql()),
+            'c.status = ?',
+            ['pending'],
+        );
     }
 }

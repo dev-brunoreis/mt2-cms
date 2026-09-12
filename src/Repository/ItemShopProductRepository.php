@@ -471,32 +471,6 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        $categoryId = $query->filter('category_id');
-
-        if ($categoryId !== '' && ctype_digit($categoryId) && (int) $categoryId > 0) {
-            $clauses[] = 'p.category_id = ?';
-            $params[] = (int) $categoryId;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            if (ctype_digit($query->q)) {
-                $clauses[] = '(p.id = ? OR p.vnum = ? OR c.name LIKE ?)';
-                $like = '%' . $query->q . '%';
-                array_push($params, (int) $query->q, (int) $query->q, $like);
-            } else {
-                $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-                $clauses[] = 'c.name LIKE ?';
-                $params[] = '%' . $escaped . '%';
-            }
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, ItemShopProductsGrid::definition()->filterSql());
     }
 }

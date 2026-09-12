@@ -226,17 +226,7 @@ class GmRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        if ($query->q === null || $query->q === '') {
-            return ['', []];
-        }
-
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-        $like = '%' . $escaped . '%';
-
-        return [
-            ' WHERE mAccount LIKE ? OR mName LIKE ?',
-            [$like, $like],
-        ];
+        return GridSql::where($query, GmsGrid::definition()->filterSql());
     }
 
     /**

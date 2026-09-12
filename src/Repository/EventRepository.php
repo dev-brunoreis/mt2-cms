@@ -198,26 +198,6 @@ class EventRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        $published = $query->filter('published');
-
-        if ($published === '1' || $published === '0') {
-            $clauses[] = 'published = ?';
-            $params[] = (int) $published;
-        }
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $clauses[] = 'title LIKE ?';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, EventsGrid::definition()->filterSql());
     }
 }

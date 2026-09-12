@@ -155,7 +155,7 @@ class LogRepository extends Repository
 
     public function countForGrid(string $id, GridQuery $query): int
     {
-        return $this->countLogTable($id, $this->filtersFromGrid($query));
+        return $this->countLogTable($id, $query);
     }
 
     /**
@@ -163,12 +163,12 @@ class LogRepository extends Repository
      */
     public function listForGrid(string $id, GridQuery $query): array
     {
-        return $this->listLogTable($id, $query->page, $query->perPage, $this->filtersFromGrid($query));
+        return $this->listLogTable($id, $query);
     }
 
     public function countConnectionsForGrid(GridQuery $query): int
     {
-        return $this->countConnectionIps($this->filtersFromGrid($query));
+        return $this->countConnectionIps($query);
     }
 
     /**
@@ -176,25 +176,16 @@ class LogRepository extends Repository
      */
     public function listConnectionsForGrid(GridQuery $query): array
     {
-        return $this->listConnectionIps($query->page, $query->perPage, $this->filtersFromGrid($query));
+        return $this->listConnectionIps($query);
     }
 
     /**
-     * @return array{q: string, from: string, to: string}
+     * @param array{
+     *   columns: list<string>,
+     *   dateColumn: string|null
+     * } $log
      */
-    private function filtersFromGrid(GridQuery $query): array
-    {
-        return [
-            'q' => $query->q ?? '',
-            'from' => $query->filter('from'),
-            'to' => $query->filter('to'),
-        ];
-    }
-
-    /**
-     * @param array{q?: string, from?: string, to?: string} $filters
-     */
-    private function countLogTable(string $id, array $filters): int
+    private function countLogTable(string $id, GridQuery $query): int
     {
         $log = $this->requireLog($id);
 
@@ -202,7 +193,7 @@ class LogRepository extends Repository
             return 0;
         }
 
-        [$where, $params] = $this->adminWhere($log, $filters);
+        [$where, $params] = $this->adminWhere($log, $query);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM `' . Database::quoteIdentifier($log['table']) . '`' . $where,
@@ -211,10 +202,9 @@ class LogRepository extends Repository
     }
 
     /**
-     * @param array{q?: string, from?: string, to?: string} $filters
      * @return list<array<string, mixed>>
      */
-    private function listLogTable(string $id, int $page, int $perPage, array $filters): array
+    private function listLogTable(string $id, GridQuery $query): array
     {
         $log = $this->requireLog($id);
 
@@ -222,11 +212,11 @@ class LogRepository extends Repository
             return [];
         }
 
-        $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
+        $page = max(1, $query->page);
+        $perPage = max(1, min(100, $query->perPage));
         $offset = ($page - 1) * $perPage;
 
-        [$where, $params] = $this->adminWhere($log, $filters);
+        [$where, $params] = $this->adminWhere($log, $query);
         $params[] = $perPage;
         $params[] = $offset;
 
@@ -267,16 +257,14 @@ class LogRepository extends Repository
         );
     }
 
-    /**
-     * @param array{q?: string, from?: string, to?: string} $filters
-     */
-    public function countConnectionIps(array $filters): int
+    public function countConnectionIps(GridQuery $query): int
     {
         if (!$this->tableExists('loginlog2')) {
             return 0;
         }
 
-        [$where, $params] = $this->connectionWhere($filters);
+        [$where, $params, $having, $havingParams] = $this->connectionFilters($query);
+        $params = array_merge($params, $havingParams);
 
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM (
@@ -285,26 +273,27 @@ class LogRepository extends Repository
                 LEFT JOIN `account`.`account` a ON a.id = l.account_id
                 ' . $where . '
                 GROUP BY l.ip, l.account_id
+                ' . $having . '
              ) AS ip_rows',
             $params,
         );
     }
 
     /**
-     * @param array{q?: string, from?: string, to?: string} $filters
      * @return list<array<string, mixed>>
      */
-    public function listConnectionIps(int $page, int $perPage, array $filters): array
+    public function listConnectionIps(GridQuery $query): array
     {
         if (!$this->tableExists('loginlog2')) {
             return [];
         }
 
-        $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
+        $page = max(1, $query->page);
+        $perPage = max(1, min(100, $query->perPage));
         $offset = ($page - 1) * $perPage;
 
-        [$where, $params] = $this->connectionWhere($filters);
+        [$where, $params, $having, $havingParams] = $this->connectionFilters($query);
+        $params = array_merge($params, $havingParams);
         $params[] = $perPage;
         $params[] = $offset;
 
@@ -320,6 +309,7 @@ class LogRepository extends Repository
                  LEFT JOIN `account`.`account` a ON a.id = l.account_id
                  ' . $where . '
                  GROUP BY l.ip, l.account_id, a.login
+                 ' . $having . '
                  ORDER BY last_seen DESC
                  LIMIT ? OFFSET ?',
                 $params,
@@ -403,33 +393,40 @@ class LogRepository extends Repository
     /**
      * @param array{
      *   columns: list<string>,
-     *   search: list<string>,
      *   dateColumn: string|null
      * } $log
-     * @param array{q?: string, from?: string, to?: string} $filters
      * @return array{0: string, 1: list<mixed>}
      */
-    private function adminWhere(array $log, array $filters): array
+    private function adminWhere(array $log, GridQuery $query): array
     {
         $clauses = [];
         $params = [];
+        $dateColumns = array_intersect($log['columns'], [
+            'time', 'date', 'login_time', 'logout_time', 'start_time', 'end_time', 'first_seen', 'last_seen',
+        ]);
 
-        $q = trim((string) ($filters['q'] ?? ''));
-
-        if ($q !== '' && $log['search'] !== []) {
-            $escaped = $this->escapeLike($q);
-            $ors = [];
-
-            foreach ($log['search'] as $column) {
-                $quoted = '`' . Database::quoteIdentifier($column) . '`';
-                $ors[] = 'CAST(' . $quoted . ' AS CHAR) LIKE ?';
-                $params[] = '%' . $escaped . '%';
-            }
-
-            $clauses[] = '(' . implode(' OR ', $ors) . ')';
+        if (is_string($log['dateColumn']) && $log['dateColumn'] !== '') {
+            $dateColumns[] = $log['dateColumn'];
         }
 
-        $this->appendDateRange($clauses, $params, $log['dateColumn'], $filters);
+        foreach ($query->filters as $key => $value) {
+            if ($value === '' || $key === 'from' || $key === 'to' || !in_array($key, $log['columns'], true)) {
+                continue;
+            }
+
+            $quoted = '`' . Database::quoteIdentifier($key) . '`';
+
+            if (in_array($key, $dateColumns, true)) {
+                $clauses[] = 'DATE(' . $quoted . ') = ?';
+                $params[] = $value;
+                continue;
+            }
+
+            $clauses[] = 'CAST(' . $quoted . ' AS CHAR) LIKE ?';
+            $params[] = '%' . $this->escapeLike($value) . '%';
+        }
+
+        $this->appendDateRange($clauses, $params, $log['dateColumn'], $query);
 
         if ($clauses === []) {
             return ['', []];
@@ -439,43 +436,85 @@ class LogRepository extends Repository
     }
 
     /**
-     * @param array{q?: string, from?: string, to?: string} $filters
-     * @return array{0: string, 1: list<mixed>}
+     * @return array{0: string, 1: list<mixed>, 2: string, 3: list<mixed>}
      */
-    private function connectionWhere(array $filters): array
+    private function connectionFilters(GridQuery $query): array
     {
         $clauses = ['l.ip IS NOT NULL', 'TRIM(l.ip) <> \'\''];
         $params = [];
 
-        $q = trim((string) ($filters['q'] ?? ''));
+        $ip = $query->filter('ip');
 
-        if ($q !== '') {
-            $escaped = $this->escapeLike($q);
-            $clauses[] = '(l.ip LIKE ? OR CAST(l.account_id AS CHAR) LIKE ? OR a.login LIKE ?)';
-            $params[] = '%' . $escaped . '%';
-            $params[] = '%' . $escaped . '%';
-            $params[] = '%' . $escaped . '%';
+        if ($ip !== '') {
+            $clauses[] = 'l.ip LIKE ?';
+            $params[] = '%' . $this->escapeLike($ip) . '%';
         }
 
-        $this->appendDateRange($clauses, $params, 'l.login_time', $filters);
+        $accountId = $query->filter('account_id');
 
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        if ($accountId !== '') {
+            if (preg_match('/^-?\d+$/', $accountId) === 1) {
+                $clauses[] = 'l.account_id = ?';
+                $params[] = (int) $accountId;
+            } else {
+                $clauses[] = '(CAST(l.account_id AS CHAR) LIKE ? OR a.login LIKE ?)';
+                $like = '%' . $this->escapeLike($accountId) . '%';
+                $params[] = $like;
+                $params[] = $like;
+            }
+        }
+
+        $this->appendDateRange($clauses, $params, 'l.login_time', $query);
+
+        $having = [];
+        $havingParams = [];
+        $connections = $query->filter('connections');
+
+        if ($connections !== '') {
+            if (preg_match('/^-?\d+$/', $connections) === 1) {
+                $having[] = 'COUNT(*) = ?';
+                $havingParams[] = (int) $connections;
+            } else {
+                $having[] = 'CAST(COUNT(*) AS CHAR) LIKE ?';
+                $havingParams[] = '%' . $this->escapeLike($connections) . '%';
+            }
+        }
+
+        $firstSeen = $query->filter('first_seen');
+
+        if ($firstSeen !== '') {
+            $having[] = 'DATE(MIN(l.login_time)) = ?';
+            $havingParams[] = $firstSeen;
+        }
+
+        $lastSeen = $query->filter('last_seen');
+
+        if ($lastSeen !== '') {
+            $having[] = 'DATE(MAX(l.login_time)) = ?';
+            $havingParams[] = $lastSeen;
+        }
+
+        return [
+            ' WHERE ' . implode(' AND ', $clauses),
+            $params,
+            $having === [] ? '' : ' HAVING ' . implode(' AND ', $having),
+            $havingParams,
+        ];
     }
 
     /**
      * @param list<string> $clauses
      * @param list<mixed> $params
-     * @param array{from?: string, to?: string} $filters
      */
-    private function appendDateRange(array &$clauses, array &$params, ?string $column, array $filters): void
+    private function appendDateRange(array &$clauses, array &$params, ?string $column, GridQuery $query): void
     {
         if ($column === null || $column === '') {
             return;
         }
 
         $quoted = $this->qualifyColumn($column);
-        $from = $this->normalizeDate((string) ($filters['from'] ?? ''), false);
-        $to = $this->normalizeDate((string) ($filters['to'] ?? ''), true);
+        $from = $this->normalizeDate($query->filter('from'), false);
+        $to = $this->normalizeDate($query->filter('to'), true);
 
         if ($from !== null) {
             $clauses[] = $quoted . ' >= ?';

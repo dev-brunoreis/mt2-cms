@@ -18,7 +18,9 @@ class BannerRepository extends Repository implements ProvidesAdminGrid
 
     public function countForGrid(GridQuery $query): int
     {
-        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM cms_banners');
+        [$where, $params] = GridSql::where($query, BannersGrid::definition()->filterSql());
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM cms_banners' . $where, $params);
     }
 
     /**
@@ -26,12 +28,14 @@ class BannerRepository extends Repository implements ProvidesAdminGrid
      */
     public function listForGrid(GridQuery $query): array
     {
-        $params = [$query->perPage, $query->offset()];
+        [$where, $params] = GridSql::where($query, BannersGrid::definition()->filterSql());
+        $params[] = $query->perPage;
+        $params[] = $query->offset();
         $order = GridSql::orderBy($query, BannersGrid::definition()->sortMap(), 'sort_order ASC, id ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT id, title, alt, link_url, original_path, variants_json, sort_order, enabled
-             FROM cms_banners' . $order . '
+             FROM cms_banners' . $where . $order . '
              LIMIT ? OFFSET ?',
             $params,
         );

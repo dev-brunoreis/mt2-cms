@@ -17,14 +17,14 @@ final class AwardsGrid
                 'login' => 'a.login',
                 'vnum' => 'a.vnum',
                 'count' => 'a.count',
-                'status' => '(CASE WHEN a.taken_time IS NULL THEN 0 ELSE 1 END)',
+                'status' => "(CASE WHEN a.taken_time IS NULL THEN 'pending' ELSE 'taken' END)",
                 'given_time' => 'a.given_time',
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.awards.id', 'sort' => 'id', 'type' => 'muted'],
                 ['key' => 'login', 'label' => 'admin.awards.login', 'sort' => 'login', 'type' => 'text'],
                 ['key' => 'vnum', 'label' => 'admin.awards.vnum', 'sort' => 'vnum', 'type' => 'number'],
-                ['key' => 'item_name', 'label' => 'admin.awards.item', 'type' => 'text'],
+                ['key' => 'item_name', 'label' => 'admin.awards.item', 'type' => 'text', 'filter' => false],
                 ['key' => 'count', 'label' => 'admin.awards.count_label', 'sort' => 'count', 'type' => 'number'],
                 ['key' => 'status', 'label' => 'admin.awards.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
                     'pending' => ['class' => 'admin-badge-warn', 'label' => 'admin.awards.status_pending'],

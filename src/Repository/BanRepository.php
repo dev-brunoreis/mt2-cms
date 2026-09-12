@@ -113,28 +113,6 @@ class BanRepository extends Repository implements ProvidesAdminGrid
      */
     private function gridWhere(GridQuery $query): array
     {
-        $clauses = [];
-        $params = [];
-
-        if ($query->q !== null && $query->q !== '') {
-            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query->q);
-            $clauses[] = '(account_login LIKE ? OR reason LIKE ?)';
-            $params[] = '%' . $escaped . '%';
-            $params[] = '%' . $escaped . '%';
-        }
-
-        $active = $query->filter('active');
-
-        if ($active === '1') {
-            $clauses[] = 'lifted_at IS NULL';
-        } elseif ($active === '0') {
-            $clauses[] = 'lifted_at IS NOT NULL';
-        }
-
-        if ($clauses === []) {
-            return ['', []];
-        }
-
-        return [' WHERE ' . implode(' AND ', $clauses), $params];
+        return GridSql::where($query, BansGrid::definition()->filterSql());
     }
 }

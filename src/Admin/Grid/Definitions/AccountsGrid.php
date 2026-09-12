@@ -20,6 +20,8 @@ final class AccountsGrid
                 'cash' => 'cash',
                 'mileage' => 'mileage',
                 'last_play' => 'last_play',
+                'empire' => 'empire',
+                'ip' => 'ip',
             ])
             ->columns([
                 ['key' => 'id', 'label' => 'admin.accounts.id', 'sort' => 'id', 'type' => 'muted'],

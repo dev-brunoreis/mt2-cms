@@ -13,6 +13,7 @@ use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 use Mt2Cms\Admin\RoleSlug;
 use Mt2Cms\Admin\RoleSlugExistsException;
+use Mt2Cms\Support\SelectOptions;
 
 class AdminRoleRepository extends Repository implements ProvidesAdminGrid
 {
@@ -50,7 +51,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
             'label' => 'Super',
         ];
 
-        return $roles;
+        return SelectOptions::sortBy($roles, 'label');
     }
 
     /**

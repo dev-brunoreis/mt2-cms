@@ -19,6 +19,7 @@ use Mt2Cms\Repository\ItemShopProductRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\GameProtoService;
+use Mt2Cms\Support\SelectOptions;
 use Mt2Cms\Theme\ThemeEngine;
 
 abstract class AdminItemShopBaseController extends AdminController
@@ -67,6 +68,8 @@ abstract class AdminItemShopBaseController extends AdminController
         foreach ($this->categories->listAllForSelect() as $category) {
             $categoryOptions[(string) $category['id']] = (string) $category['name'];
         }
+
+        $categoryOptions = SelectOptions::sortMap($categoryOptions);
 
         return ItemShopProductsGrid::definition()
             ->filterOptions('category_id', $categoryOptions, false)

@@ -54,9 +54,12 @@
                     <div class="admin-field admin-grid-filter-field">
                         <label for="grid-filter-{{ filter.key }}">{{ t(filter.label) }}</label>
                         {% if filter.type == 'select' %}
+                            {% set filterOptions = filter.preserveOrder|default(false)
+                                ? filter.options
+                                : filter.options|sort_select(filter.translateOptions|default(true)) %}
                             <select id="grid-filter-{{ filter.key }}" name="filter[{{ filter.key }}]" class="admin-input admin-input-compact">
                                 <option value=""></option>
-                                {% for optValue, optLabel in filter.options %}
+                                {% for optValue, optLabel in filterOptions %}
                                     <option value="{{ optValue }}"
                                         {% if grid.filterValues[filter.key]|default('') == optValue %}selected{% endif %}>
                                         {% if filter.translateOptions|default(true) %}{{ t(optLabel) }}{% else %}{{ optLabel }}{% endif %}
@@ -96,7 +99,7 @@
                 <div class="admin-grid-mass-bar">
                     <select name="mass_action" class="admin-input admin-input-compact" data-grid-mass-action required>
                         <option value="">{{ t('admin.grid.mass_actions') }}</option>
-                        {% for action in grid.massActions %}
+                        {% for action in grid.massActions|sort_by_t %}
                             <option value="{{ action.id }}"
                                     {% if action.confirm is defined %}data-confirm="{{ t(action.confirm) }}"{% endif %}>
                                 {{ t(action.label) }}

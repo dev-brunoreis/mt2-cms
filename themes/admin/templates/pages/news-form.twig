@@ -24,12 +24,14 @@
             <div class="admin-field">
                 <label for="news-status">{{ t('admin.news.status') }}</label>
                 <select id="news-status" name="status" class="admin-select">
-                    <option value="draft" {% if post.status|default('draft') == 'draft' %}selected{% endif %}>
-                        {{ t('admin.news.status_draft') }}
-                    </option>
-                    <option value="published" {% if post.status|default('draft') == 'published' %}selected{% endif %}>
-                        {{ t('admin.news.status_published') }}
-                    </option>
+                    {% for value, labelKey in {
+                        'draft': 'admin.news.status_draft',
+                        'published': 'admin.news.status_published'
+                    }|sort_select %}
+                        <option value="{{ value }}" {% if post.status|default('draft') == value %}selected{% endif %}>
+                            {{ t(labelKey) }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
 

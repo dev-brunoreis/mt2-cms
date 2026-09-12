@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Support\SelectOptions;
+
 class ItemShopCategoryRepository extends Repository
 {
     public const MAX_DEPTH = 6;
@@ -46,7 +48,7 @@ class ItemShopCategoryRepository extends Repository
     public function listAllForSelect(): array
     {
         $flat = [];
-        $this->flattenTree($this->treeForAdmin(), $flat, 0);
+        $this->flattenTree($this->sortTreeByName($this->treeForAdmin()), $flat, 0);
 
         return $flat;
     }
@@ -389,6 +391,29 @@ class ItemShopCategoryRepository extends Repository
         unset($node);
 
         return $roots;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $nodes
+     * @return list<array<string, mixed>>
+     */
+    private function sortTreeByName(array $nodes): array
+    {
+        foreach ($nodes as &$node) {
+            $children = $node['children'] ?? [];
+
+            if ($children !== []) {
+                $node['children'] = $this->sortTreeByName($children);
+            }
+        }
+
+        unset($node);
+
+        usort($nodes, static function (array $left, array $right): int {
+            return SelectOptions::compare((string) ($left['name'] ?? ''), (string) ($right['name'] ?? ''));
+        });
+
+        return $nodes;
     }
 
     /**

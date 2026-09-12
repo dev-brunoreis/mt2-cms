@@ -51,8 +51,14 @@
             <div class="admin-field">
                 <label for="award-mall">{{ t('admin.awards.mall') }}</label>
                 <select id="award-mall" name="mall" class="admin-input">
-                    <option value="0" {% if not award.mall|default(false) %}selected{% endif %}>{{ t('admin.awards.mall_no') }}</option>
-                    <option value="1" {% if award.mall|default(false) %}selected{% endif %}>{{ t('admin.awards.mall_yes') }}</option>
+                    {% for value, labelKey in {
+                        '0': 'admin.awards.mall_no',
+                        '1': 'admin.awards.mall_yes'
+                    }|sort_select %}
+                        <option value="{{ value }}" {% if (award.mall|default(false) ? '1' : '0') == value %}selected{% endif %}>
+                            {{ t(labelKey) }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="admin-field sm:col-span-2">

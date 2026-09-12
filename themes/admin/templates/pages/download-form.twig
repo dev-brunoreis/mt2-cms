@@ -23,10 +23,16 @@
             <div class="admin-field">
                 <label for="download-category">{{ t('admin.downloads.category') }}</label>
                 <select id="download-category" name="category" class="admin-input">
-                    <option value="client" {% if download.category|default('client') == 'client' %}selected{% endif %}>{{ t('admin.downloads.category_client') }}</option>
-                    <option value="patch" {% if download.category|default('') == 'patch' %}selected{% endif %}>{{ t('admin.downloads.category_patch') }}</option>
-                    <option value="tools" {% if download.category|default('') == 'tools' %}selected{% endif %}>{{ t('admin.downloads.category_tools') }}</option>
-                    <option value="other" {% if download.category|default('') == 'other' %}selected{% endif %}>{{ t('admin.downloads.category_other') }}</option>
+                    {% for value, labelKey in {
+                        'client': 'admin.downloads.category_client',
+                        'patch': 'admin.downloads.category_patch',
+                        'tools': 'admin.downloads.category_tools',
+                        'other': 'admin.downloads.category_other'
+                    }|sort_select %}
+                        <option value="{{ value }}" {% if download.category|default('client') == value %}selected{% endif %}>
+                            {{ t(labelKey) }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="admin-field">

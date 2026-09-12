@@ -18,6 +18,14 @@
   const typeSelect = form.querySelector('[data-proto-item-type]')
   const subtypeSelect = form.querySelector('[data-proto-subtype]')
 
+  const labeledEntries = (type) => {
+    const raw = subtypesByType[type] || []
+
+    return raw.map((entry) => (
+      typeof entry === 'string' ? { value: entry, label: entry } : entry
+    ))
+  }
+
   const labelFor = (type, subtype, key) => {
     const subtypeKey = subtype ? `${type}:${subtype}` : ''
     const fromSubtype = subtypeKey && valueLabelsByType[subtypeKey]?.[key]
@@ -33,18 +41,19 @@
 
     const type = typeSelect.value
     const current = subtypeSelect.value
-    const options = subtypesByType[type] || []
+    const entries = labeledEntries(type)
+    const values = entries.map((entry) => entry.value)
 
     subtypeSelect.innerHTML = ''
 
-    if (options.length === 0) {
+    if (entries.length === 0) {
       const opt = document.createElement('option')
       opt.value = current === '' ? '0' : current
       opt.textContent = current === '' ? '0' : current
       opt.selected = true
       subtypeSelect.appendChild(opt)
     } else {
-      if (current !== '' && !options.includes(current)) {
+      if (current !== '' && current !== '0' && !values.includes(current)) {
         const currentOption = document.createElement('option')
         currentOption.value = current
         currentOption.textContent = current
@@ -52,11 +61,11 @@
         subtypeSelect.appendChild(currentOption)
       }
 
-      options.forEach((value) => {
+      entries.forEach((entry) => {
         const opt = document.createElement('option')
-        opt.value = value
-        opt.textContent = value
-        if (value === current) {
+        opt.value = entry.value
+        opt.textContent = entry.label
+        if (entry.value === current) {
           opt.selected = true
         }
         subtypeSelect.appendChild(opt)

@@ -215,7 +215,10 @@ class GmRepository extends Repository implements ProvidesAdminGrid
      */
     public static function authorities(): array
     {
-        return self::AUTHORITIES;
+        $authorities = self::AUTHORITIES;
+        natcasesort($authorities);
+
+        return array_values($authorities);
     }
 
     /**

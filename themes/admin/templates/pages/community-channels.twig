@@ -51,8 +51,14 @@
             <div class="admin-field">
                 <label for="paypal-mode">{{ t('admin.community.paypal_mode') }}</label>
                 <select id="paypal-mode" name="paypal_mode" class="admin-input">
-                    <option value="sandbox" {% if paypalMode|default('sandbox') == 'sandbox' %}selected{% endif %}>{{ t('admin.community.paypal_sandbox') }}</option>
-                    <option value="live" {% if paypalMode|default('') == 'live' %}selected{% endif %}>{{ t('admin.community.paypal_live') }}</option>
+                    {% for value, labelKey in {
+                        'sandbox': 'admin.community.paypal_sandbox',
+                        'live': 'admin.community.paypal_live'
+                    }|sort_select %}
+                        <option value="{{ value }}" {% if paypalMode|default('sandbox') == value %}selected{% endif %}>
+                            {{ t(labelKey) }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="admin-field">

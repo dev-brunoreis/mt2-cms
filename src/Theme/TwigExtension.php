@@ -10,6 +10,7 @@ use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Support\SelectOptions;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -49,6 +50,50 @@ class TwigExtension extends AbstractExtension
                 $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
 
                 return $sanitizer->excerpt((string) $html, $max);
+            }),
+            new TwigFilter('sort_select', function (mixed $options, bool $translate = true): array {
+                if (!is_array($options)) {
+                    return [];
+                }
+
+                $labeled = [];
+
+                foreach ($options as $value => $label) {
+                    $text = $translate
+                        ? $this->translator->get((string) $label)
+                        : (string) $label;
+                    $labeled[] = ['value' => $value, 'label' => $label, 'text' => $text];
+                }
+
+                usort($labeled, static fn (array $a, array $b): int => SelectOptions::compare(
+                    (string) $a['text'],
+                    (string) $b['text'],
+                ));
+
+                $sorted = [];
+
+                foreach ($labeled as $row) {
+                    $sorted[$row['value']] = $row['label'];
+                }
+
+                return $sorted;
+            }),
+            new TwigFilter('sort_by_t', function (mixed $items, string $key = 'label'): array {
+                if (!is_array($items)) {
+                    return [];
+                }
+
+                usort($items, function (mixed $left, mixed $right) use ($key): int {
+                    $leftLabel = is_array($left) ? (string) ($left[$key] ?? '') : '';
+                    $rightLabel = is_array($right) ? (string) ($right[$key] ?? '') : '';
+
+                    return SelectOptions::compare(
+                        $this->translator->get($leftLabel),
+                        $this->translator->get($rightLabel),
+                    );
+                });
+
+                return $items;
             }),
         ];
     }

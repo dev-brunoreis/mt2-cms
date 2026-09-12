@@ -10,6 +10,7 @@ use Mt2Cms\Support\Database;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
+use Mt2Cms\Support\SelectOptions;
 
 class AdminRepository extends Repository implements ProvidesAdminGrid
 {
@@ -162,7 +163,7 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
             $options[(string) $role['slug']] = (string) $role['label'];
         }
 
-        return $options;
+        return SelectOptions::sortMap($options);
     }
 
     public function update(int $id, string $login, string $role, bool $useCustomAcl, ?string $password = null): void

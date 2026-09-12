@@ -76,12 +76,14 @@
                 <div class="admin-field">
                     <label for="account-status">{{ t('admin.accounts.status') }}</label>
                     <select id="account-status" name="status" class="admin-select">
-                        <option value="OK" {% if account.status|default('OK') == 'OK' %}selected{% endif %}>
-                            {{ t('admin.accounts.status_ok') }}
-                        </option>
-                        <option value="BLOCK" {% if account.status|default('') == 'BLOCK' %}selected{% endif %}>
-                            {{ t('admin.accounts.status_block') }}
-                        </option>
+                        {% for value, labelKey in {
+                            'OK': 'admin.accounts.status_ok',
+                            'BLOCK': 'admin.accounts.status_block'
+                        }|sort_select %}
+                            <option value="{{ value }}" {% if account.status|default('OK') == value %}selected{% endif %}>
+                                {{ t(labelKey) }}
+                            </option>
+                        {% endfor %}
                     </select>
                 </div>
 

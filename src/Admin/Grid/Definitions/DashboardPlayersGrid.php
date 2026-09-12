@@ -30,7 +30,7 @@ final class DashboardPlayersGrid
                 ['key' => 'last_play', 'label' => 'admin.characters.last_play', 'sort' => 'last_play', 'type' => 'date'],
             ])
             ->filters([
-                ['key' => 'range', 'label' => 'admin.dashboard.range_label', 'type' => 'select', 'options' => [
+                ['key' => 'range', 'label' => 'admin.dashboard.range_label', 'type' => 'select', 'preserveOrder' => true, 'options' => [
                     '5m' => 'admin.dashboard.range.5m',
                     '1h' => 'admin.dashboard.range.1h',
                     '12h' => 'admin.dashboard.range.12h',

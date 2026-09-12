@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\I18n;
 
+use Mt2Cms\Support\SelectOptions;
+
 class Locales
 {
     public const COOKIE = 'locale';
@@ -42,19 +44,7 @@ class Locales
             ];
         }
 
-        usort($list, static function (array $a, array $b): int {
-            if ($a['code'] === 'en') {
-                return -1;
-            }
-
-            if ($b['code'] === 'en') {
-                return 1;
-            }
-
-            return strcmp($a['code'], $b['code']);
-        });
-
-        return $list;
+        return SelectOptions::sortBy($list, 'name');
     }
 
     public function isSupported(string $locale): bool

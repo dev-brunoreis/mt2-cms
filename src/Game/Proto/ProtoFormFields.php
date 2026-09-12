@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Game\Proto;
 
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Support\SelectOptions;
 
 class ProtoFormFields
 {
@@ -90,10 +91,7 @@ class ProtoFormFields
                 ? $this->enums->subtypesForItemType($itemType)
                 : $this->enums->optionsForField($kind, $fieldKey);
             $options = $this->enums->ensureOption($options, $current);
-            $config['options'] = array_map(fn (string $token): array => [
-                'value' => $token,
-                'label' => $this->tokenLabel($token),
-            ], $options);
+            $config['options'] = $this->labeledOptions($options);
 
             if ($current === '' && in_array($fieldKey, ['size'], true)) {
                 array_unshift($config['options'], ['value' => '', 'label' => '—']);
@@ -103,11 +101,10 @@ class ProtoFormFields
         if ($widget === 'bitmask') {
             $selected = $this->enums->parseBitmask($current, $fieldKey, $kind);
             $config['selected'] = $selected;
-            $config['flags'] = array_map(fn (string $token): array => [
-                'value' => $token,
-                'label' => $this->tokenLabel($token),
-                'checked' => in_array($token, $selected, true),
-            ], $this->enums->bitmaskTokens($fieldKey, $kind));
+            $config['flags'] = $this->labeledFlags(
+                $this->enums->bitmaskTokens($fieldKey, $kind),
+                $selected,
+            );
         }
 
         if ($fieldKey === 'wear' && $kind === ProtoEnums::KIND_ITEM) {
@@ -132,11 +129,43 @@ class ProtoFormFields
     }
 
     /**
-     * @return array<string, list<string>>
+     * @param list<string> $tokens
+     * @return list<array{value: string, label: string}>
+     */
+    private function labeledOptions(array $tokens): array
+    {
+        return SelectOptions::sortBy(array_map(fn (string $token): array => [
+            'value' => $token,
+            'label' => $this->tokenLabel($token),
+        ], $tokens));
+    }
+
+    /**
+     * @param list<string> $tokens
+     * @param list<string> $selected
+     * @return list<array{value: string, label: string, checked: bool}>
+     */
+    private function labeledFlags(array $tokens, array $selected): array
+    {
+        return SelectOptions::sortBy(array_map(fn (string $token): array => [
+            'value' => $token,
+            'label' => $this->tokenLabel($token),
+            'checked' => in_array($token, $selected, true),
+        ], $tokens));
+    }
+
+    /**
+     * @return array<string, list<array{value: string, label: string}>>
      */
     public function subtypesJsonMap(): array
     {
-        return $this->enums->itemSubtypesByType();
+        $map = [];
+
+        foreach ($this->enums->itemTypes() as $type) {
+            $map[$type] = $this->labeledOptions($this->enums->subtypesForItemType($type));
+        }
+
+        return $map;
     }
 
     /**

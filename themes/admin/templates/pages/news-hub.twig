@@ -11,12 +11,9 @@
         {% if acl_allowed('content/news/comments/view') %}
             {% include 'components/tab.twig' with { id: 'comments', label: t('admin.news.tab_comments'), active: activeTab == 'comments' } %}
         {% endif %}
-        {% if acl_allowed('content/news/settings/view') %}
-            {% include 'components/tab.twig' with { id: 'settings', label: t('admin.news.tab_settings'), active: activeTab == 'settings' } %}
-        {% endif %}
     </div>
 
-    {% for tab in ['posts', 'comments', 'settings'] %}
+    {% for tab in ['posts', 'comments'] %}
         {% if activeTab == tab %}
             <div id="admin-tab-panel-{{ tab }}"
                  class="admin-tabs-panel"

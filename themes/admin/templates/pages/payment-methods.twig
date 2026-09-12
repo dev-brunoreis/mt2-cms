@@ -1,0 +1,51 @@
+{% set methods = paymentMethods|default([]) %}
+{% set activeMethod = activeMethod|default(methods[0].id|default('paypal')) %}
+<div class="admin-payment-methods"
+     data-admin-tabs
+     data-default-tab="{{ activeMethod }}"
+     {% for method in methods %}data-header-form-{{ method.id }}="{{ method.formId }}" {% endfor %}>
+    <aside class="admin-payment-methods-nav">
+        <p class="admin-payment-methods-nav-title">{{ t('admin.payment_methods.list_title') }}</p>
+        <p class="admin-payment-methods-nav-lead">{{ t('admin.payment_methods.lead') }}</p>
+        <div class="admin-payment-methods-list" role="tablist" aria-label="{{ t('admin.payment_methods.list_title') }}">
+            {% for method in methods %}
+                <button type="button"
+                        role="tab"
+                        id="admin-tab-{{ method.id }}"
+                        class="admin-payment-method{% if activeMethod == method.id %} is-active{% endif %}"
+                        data-tab="{{ method.id }}"
+                        aria-controls="admin-tab-panel-{{ method.id }}"
+                        aria-selected="{{ activeMethod == method.id ? 'true' : 'false' }}"
+                        tabindex="{{ activeMethod == method.id ? '0' : '-1' }}">
+                    <span class="admin-payment-method-copy">
+                        <span class="admin-payment-method-name">
+                            {{ method.label }}
+                            <span class="admin-tab-dirty" hidden title="{{ t('admin.tabs.unsaved') }}"></span>
+                        </span>
+                        {% if method.meta|default('') %}
+                            <span class="admin-payment-method-meta">{{ method.meta }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="admin-badge {{ method.configured ? 'admin-badge-ok' : 'admin-badge-warn' }}">
+                        {{ method.configured ? t('admin.payment_methods.status_ready') : t('admin.payment_methods.status_setup') }}
+                    </span>
+                </button>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <div class="admin-payment-methods-detail">
+        {% for method in methods %}
+            <div id="admin-tab-panel-{{ method.id }}"
+                 class="admin-payment-method-panel"
+                 role="tabpanel"
+                 data-tab-panel="{{ method.id }}"
+                 aria-labelledby="admin-tab-{{ method.id }}"
+                 {% if activeMethod != method.id %}hidden{% endif %}>
+                {% if method.id == 'paypal' %}
+                    {% include 'pages/payment-method-paypal.twig' with { formId: method.formId } %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>

@@ -61,11 +61,6 @@ class AdminCommunityController extends AdminController
                 trim((string) ($_POST['mail_from_name'] ?? '')),
             );
             $this->settings->setRequireVerifiedEmail(isset($_POST['require_verified_email']));
-            $this->settings->setPaypalMode(trim((string) ($_POST['paypal_mode'] ?? 'sandbox')));
-            $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
-            $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
-            $this->settings->setPaypalClientSecret(trim((string) ($_POST['paypal_client_secret'] ?? '')));
-            $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
             $this->settings->setDiscordInviteUrl(trim((string) ($_POST['discord_invite_url'] ?? '')));
             $this->settings->setDiscordWebhookUrl(trim((string) ($_POST['discord_webhook_url'] ?? '')));
             $social = $_POST['social'] ?? [];

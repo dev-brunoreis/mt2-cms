@@ -33,6 +33,9 @@
 {% elseif type == 'number' %}
     <span class="text-slate-600">{{ value|default(0) }}</span>
 
+{% elseif type == 'money' %}
+    <span class="text-slate-600">{{ value|money }} {{ attribute(row, column.currencyKey|default('currency'))|default('') }}</span>
+
 {% elseif type == 'date' %}
     <span class="text-slate-600">{{ value ? value|game_date : '—' }}</span>
 

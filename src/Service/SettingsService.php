@@ -8,6 +8,7 @@ use Mt2Cms\Support\Env;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\AppCrypto;
+use Mt2Cms\Support\Money;
 
 class SettingsService
 {
@@ -106,6 +107,20 @@ class SettingsService
     public function setDefaultLocale(string $locale): void
     {
         $this->settings->set('default_locale', $locale);
+    }
+
+    public function moneyFormat(): string
+    {
+        return Money::normalizeFormat((string) ($this->settings->get('money_format') ?? Money::FORMAT_DOT));
+    }
+
+    public function setMoneyFormat(string $format): void
+    {
+        if (!in_array($format, Money::FORMATS, true)) {
+            throw new \InvalidArgumentException('admin.locale.money_format_invalid');
+        }
+
+        $this->settings->set('money_format', $format);
     }
 
     public function newsCommentsEnabled(): bool

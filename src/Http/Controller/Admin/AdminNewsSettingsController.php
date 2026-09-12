@@ -11,14 +11,7 @@ class AdminNewsSettingsController extends AdminNewsBaseController
 {
     public function settings(): Response
     {
-        return $this->adminView('news', 'pages/news-settings.twig', [
-            'title' => $this->t('admin.news.settings_title'),
-            'pageLead' => $this->t('admin.news.settings_lead'),
-            'formId' => 'admin-news-settings-form',
-            'commentsEnabled' => $this->settings->newsCommentsEnabled(),
-            'commentsRequireApproval' => $this->settings->newsCommentsRequireApproval(),
-            'showViews' => $this->settings->newsShowViews(),
-        ]);
+        return $this->redirect(AdminPaths::settingsNews());
     }
 
     public function saveSettings(): Response
@@ -30,7 +23,7 @@ class AdminNewsSettingsController extends AdminNewsBaseController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect(AdminPaths::contentNews('settings'));
+            return $this->redirect(AdminPaths::settingsNews());
         }
 
         $before = [
@@ -49,6 +42,6 @@ class AdminNewsSettingsController extends AdminNewsBaseController
         $this->auditChange('news.settings_save', 'news_settings', null, $before, $after);
         $this->flash('success', $this->t('admin.saved'));
 
-        return $this->redirect(AdminPaths::contentNews('settings'));
+        return $this->redirect(AdminPaths::settingsNews());
     }
 }

@@ -84,55 +84,6 @@
 
     <fieldset class="admin-fieldset">
         <legend>
-            {{ t('admin.community.paypal') }}
-            <span class="admin-fieldset-help">{{ t('admin.community.paypal_help') }}</span>
-        </legend>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field">
-                <label for="paypal-mode">{{ t('admin.community.paypal_mode') }}</label>
-                <select id="paypal-mode" name="paypal_mode" class="admin-input">
-                    {% for value, labelKey in {
-                        'sandbox': 'admin.community.paypal_sandbox',
-                        'live': 'admin.community.paypal_live'
-                    }|sort_select %}
-                        <option value="{{ value }}" {% if paypalMode|default('sandbox') == value %}selected{% endif %}>
-                            {{ t(labelKey) }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="admin-field">
-                <label for="paypal-currency">{{ t('admin.community.paypal_currency') }}</label>
-                <input id="paypal-currency" type="text" name="paypal_currency" maxlength="3"
-                       value="{{ paypalCurrency|default('USD') }}" class="admin-input uppercase">
-            </div>
-            <div class="admin-field">
-                <label for="paypal-client-id">{{ t('admin.community.paypal_client_id') }}</label>
-                <input id="paypal-client-id" type="text" name="paypal_client_id" autocomplete="off"
-                       value="{{ paypalClientId|default('') }}" class="admin-input">
-            </div>
-            <div class="admin-field">
-                <label for="paypal-client-secret">{{ t('admin.community.paypal_client_secret') }}</label>
-                <input id="paypal-client-secret" type="password" name="paypal_client_secret" autocomplete="new-password"
-                       value="" class="admin-input">
-                {% if paypalConfigured|default(false) %}
-                    <span class="admin-field-help">{{ t('admin.community.paypal_secret_keep') }}</span>
-                {% else %}
-                    <span class="admin-field-help">{{ t('admin.community.paypal_not_configured') }}</span>
-                {% endif %}
-            </div>
-            <div class="admin-field sm:col-span-2">
-                <label for="paypal-webhook-id">{{ t('admin.community.paypal_webhook_id') }}</label>
-                <input id="paypal-webhook-id" type="text" name="paypal_webhook_id" autocomplete="off"
-                       value="{{ paypalWebhookId|default('') }}" class="admin-input">
-                <span class="admin-field-help">{{ t('admin.community.paypal_webhook_id_help') }}</span>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="admin-fieldset">
-        <legend>
             {{ t('admin.community.discord') }}
             <span class="admin-fieldset-help">{{ t('admin.community.discord_help') }}</span>
         </legend>

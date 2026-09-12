@@ -36,7 +36,7 @@ Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
 6. **Confirm `APP_KEY`** is present in `.env` (64 hex chars). Setup and migrate generate it; the app returns a generic 503 without it (details are logged server-side only).
 7. **`APP_TRUST_PROXY=1`** is set in `compose.prod.yml`. Keep it when TLS terminates at a reverse proxy so session cookies get the `Secure` flag.
 8. **Enroll admin 2FA** on first login (`/admin/account/security`) when the require-2FA policy is enabled (off by default on new installs; enable under **Settings → Security**).
-9. Configure **Settings → Community**: PayPal client id/secret, **PayPal webhook id** (required for `/donate`), site URL, mail, Discord.
+9. Configure **Settings → Community** (site URL, mail, Discord) and **Settings → Payment methods** (PayPal client id/secret, **PayPal webhook id** required for `/donate`).
 
 ## Production Compose
 
@@ -127,7 +127,7 @@ server {
 
 See `.env-example` for the full list.
 
-Configure **Settings → Community** after deploy: site URL, mail from name/address, online window, PayPal mode/currency, **PayPal webhook id** (required when donate is enabled), Discord invite/webhook URLs, and server channel labels.
+Configure **Settings → Community** after deploy: site URL, mail from name/address, online window, Discord invite/webhook URLs, and server channel labels. Configure **Settings → Payment methods** for PayPal mode/currency and **PayPal webhook id** (required when donate is enabled).
 
 Register PayPal webhook URL: `POST /payments/webhook/paypal` (HTTPS, public site URL). Webhook signature verification is **fail-closed** — without a webhook id, `/donate` stays disabled and unsigned webhooks are rejected.
 

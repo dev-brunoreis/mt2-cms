@@ -171,6 +171,9 @@ return [
     \Mt2Cms\Http\Controller\Admin\AdminCommunityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCommunityController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->serverChannels, $app->settings,
     ),
+    \Mt2Cms\Http\Controller\Admin\AdminPaymentMethodsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminPaymentMethodsController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings,
+    ),
     \Mt2Cms\Http\Controller\Admin\AdminCashPackagesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCashPackagesController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->cashPackages, $app->settings,
     ),

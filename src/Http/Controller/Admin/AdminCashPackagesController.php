@@ -15,6 +15,7 @@ use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\SettingsService;
+use Mt2Cms\Support\Money;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminCashPackagesController extends AdminController
@@ -107,14 +108,38 @@ class AdminCashPackagesController extends AdminController
             return $this->redirect($id === null ? '/admin/store/packages/new' : '/admin/store/packages/' . $id);
         }
 
+        $priceInput = trim((string) ($_POST['price'] ?? ''));
+
+        try {
+            $priceCents = Money::centsFromInput($priceInput);
+        } catch (\InvalidArgumentException $e) {
+            return $this->formView(
+                [
+                    'id' => $id,
+                    'title' => trim((string) ($_POST['title'] ?? '')),
+                    'cash_amount' => (int) ($_POST['cash_amount'] ?? 0),
+                    'price' => $priceInput,
+                    'currency' => strtoupper(trim((string) ($_POST['currency'] ?? $this->settings->paypalCurrency()))),
+                    'sort_order' => max(0, (int) ($_POST['sort_order'] ?? 0)),
+                    'enabled' => isset($_POST['enabled']),
+                ],
+                $this->t($e->getMessage()),
+                422,
+            );
+        }
+
         $data = [
             'title' => trim((string) ($_POST['title'] ?? '')),
             'cash_amount' => max(1, (int) ($_POST['cash_amount'] ?? 0)),
-            'price_cents' => max(1, (int) ($_POST['price_cents'] ?? 0)),
+            'price_cents' => $priceCents,
             'currency' => strtoupper(trim((string) ($_POST['currency'] ?? $this->settings->paypalCurrency()))),
             'sort_order' => max(0, (int) ($_POST['sort_order'] ?? 0)),
             'enabled' => isset($_POST['enabled']),
         ];
+
+        if ($id !== null) {
+            $data['id'] = $id;
+        }
 
         if ($data['title'] === '') {
             return $this->formView($data, $this->t('admin.packages.title_required'), 422);
@@ -141,11 +166,18 @@ class AdminCashPackagesController extends AdminController
         $values ??= [
             'title' => '',
             'cash_amount' => '',
-            'price_cents' => '',
+            'price' => '',
             'currency' => $this->settings->paypalCurrency(),
             'sort_order' => 0,
             'enabled' => true,
         ];
+
+        $format = $this->settings->moneyFormat();
+        $separators = Money::separators($format);
+
+        if (!isset($values['price']) && isset($values['price_cents']) && $values['price_cents'] !== '') {
+            $values['price'] = Money::formatDecimal((int) $values['price_cents'], $format);
+        }
 
         return $this->adminView('packages', 'pages/package-form.twig', [
             'title' => isset($values['id']) ? $this->t('admin.packages.edit') : $this->t('admin.packages.create'),
@@ -155,6 +187,9 @@ class AdminCashPackagesController extends AdminController
             'package' => $values,
             'error' => $error,
             'defaultCurrency' => $this->settings->paypalCurrency(),
+            'moneyPlaceholder' => Money::formatDecimal(0, $format),
+            'moneyDecimal' => $separators['decimal'],
+            'moneyThousands' => $separators['thousands'],
         ], $status);
     }
 }

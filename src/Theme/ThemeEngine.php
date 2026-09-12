@@ -8,6 +8,7 @@ use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Support\Money;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\Loader\FilesystemLoader;
@@ -26,6 +27,7 @@ class ThemeEngine
         Translator $translator,
         array $locales = [],
         ?GameIconService $icons = null,
+        string $moneyFormat = Money::FORMAT_DOT,
     ) {
         $this->resolver = new ThemeResolver($themesPath, $activeTheme);
         $paths = $this->resolver->templatePaths();
@@ -44,6 +46,7 @@ class ThemeEngine
             $icons,
             new HtmlSanitizer(),
             $this->resolver,
+            $moneyFormat,
         ));
         $this->twig->addGlobal('locale', $translator->locale());
         $this->twig->addGlobal('html_lang', $translator->htmlLang());

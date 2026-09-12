@@ -2123,3 +2123,124 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   word-break: break-word;
 }
 
+.admin-payment-methods {
+  display: grid;
+  min-height: 28rem;
+  margin: -1.5rem;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .admin-payment-methods {
+    grid-template-columns: minmax(15rem, 18.5rem) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+.admin-payment-methods-nav {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+@media (min-width: 768px) {
+  .admin-payment-methods-nav {
+    border-bottom: 0;
+    border-right: 1px solid #e2e8f0;
+  }
+}
+
+.admin-payment-methods-nav-title {
+  margin: 0;
+  padding: 1rem 1rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.admin-payment-methods-nav-lead {
+  margin: 0;
+  padding: 0 1rem 0.875rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.admin-payment-methods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.5rem 0.75rem;
+}
+
+.admin-payment-method {
+  appearance: none;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.7rem 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: #334155;
+}
+
+.admin-payment-method:hover {
+  background: #fff;
+}
+
+.admin-payment-method:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35);
+}
+
+.admin-payment-method.is-active {
+  background: #fff;
+  box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.admin-payment-method-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-payment-method-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.admin-payment-method-meta {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.admin-payment-method .admin-badge {
+  flex-shrink: 0;
+}
+
+.admin-payment-method-name .admin-tab-dirty {
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.admin-payment-methods-detail {
+  min-width: 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.admin-payment-method-panel[hidden] {
+  display: none;
+}
+

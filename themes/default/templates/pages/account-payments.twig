@@ -28,7 +28,7 @@
                             <td class="px-4 py-3 font-medium text-slate-900">{{ payment.cash_amount }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 {{ t('donate.price', {
-                                    price: (payment.amount_cents / 100)|number_format(2, '.', ','),
+                                    price: payment.amount_cents|money,
                                     currency: payment.currency
                                 }) }}
                             </td>

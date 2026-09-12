@@ -11,6 +11,7 @@ use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
 use Mt2Cms\Support\HtmlSanitizer;
+use Mt2Cms\Support\Money;
 use Mt2Cms\Support\SelectOptions;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
@@ -24,6 +25,7 @@ class TwigExtension extends AbstractExtension
         private ?GameIconService $icons = null,
         private ?HtmlSanitizer $htmlSanitizer = null,
         private ?ThemeResolver $themes = null,
+        private string $moneyFormat = Money::FORMAT_DOT,
     ) {
     }
 
@@ -39,6 +41,7 @@ class TwigExtension extends AbstractExtension
             new TwigFilter('unix_date', [$this->display, 'unixDate']),
             new TwigFilter('game_date', [$this->display, 'datetime']),
             new TwigFilter('proto_token', [$this->display, 'protoToken']),
+            new TwigFilter('money', [$this, 'formatMoney']),
             new TwigFilter('news_html', function (mixed $html): string {
                 $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
 
@@ -142,5 +145,10 @@ class TwigExtension extends AbstractExtension
                 return AdminSections::backHref($sectionId, $currentPath, $groupId);
             }),
         ];
+    }
+
+    public function formatMoney(mixed $cents): string
+    {
+        return Money::formatDecimal((int) $cents, $this->moneyFormat);
     }
 }

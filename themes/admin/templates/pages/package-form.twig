@@ -26,10 +26,14 @@
                        value="{{ package.cash_amount|default('') }}" class="admin-input">
             </div>
             <div class="admin-field">
-                <label for="package-price">{{ t('admin.packages.price_cents') }}</label>
-                <input id="package-price" type="number" name="price_cents" min="1" required
-                       value="{{ package.price_cents|default('') }}" class="admin-input">
-                <span class="admin-field-help">{{ t('admin.packages.price_cents_help') }}</span>
+                <label for="package-price">{{ t('admin.packages.price') }}</label>
+                <input id="package-price" type="text" name="price" inputmode="numeric" required
+                       value="{{ package.price|default('') }}" class="admin-input"
+                       placeholder="{{ moneyPlaceholder|default('0.00') }}"
+                       autocomplete="off" data-money-mask
+                       data-money-decimal="{{ moneyDecimal|default('.') }}"
+                       data-money-thousands="{{ moneyThousands|default(',') }}">
+                <span class="admin-field-help">{{ t('admin.packages.price_help') }}</span>
             </div>
             <div class="admin-field">
                 <label for="package-currency">{{ t('admin.packages.currency') }}</label>

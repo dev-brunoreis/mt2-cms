@@ -26,7 +26,7 @@ final class PaymentsGrid
                 ['key' => 'id', 'label' => 'admin.payments.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/store/payments/{id}'],
                 ['key' => 'account_login', 'label' => 'admin.payments.account', 'sort' => 'account_login', 'type' => 'text'],
                 ['key' => 'cash_amount', 'label' => 'admin.payments.cash', 'type' => 'number'],
-                ['key' => 'amount_cents', 'label' => 'admin.payments.amount', 'sort' => 'amount_cents', 'type' => 'number'],
+                ['key' => 'amount_cents', 'label' => 'admin.payments.amount', 'sort' => 'amount_cents', 'type' => 'money', 'filter' => false],
                 ['key' => 'provider', 'label' => 'admin.payments.provider', 'type' => 'text'],
                 ['key' => 'status', 'label' => 'admin.payments.status', 'sort' => 'status', 'type' => 'badge', 'badgeMap' => [
                     'pending' => ['class' => 'admin-badge-warn', 'label' => 'admin.payments.status_pending'],

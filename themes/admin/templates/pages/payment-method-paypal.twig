@@ -1,0 +1,52 @@
+<form id="{{ formId }}" method="post" action="/admin/settings/payment-methods" class="space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.payment_methods.paypal') }}
+            <span class="admin-fieldset-help">{{ t('admin.payment_methods.paypal_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="paypal-mode">{{ t('admin.payment_methods.paypal_mode') }}</label>
+                <select id="paypal-mode" name="paypal_mode" class="admin-input">
+                    {% for value, labelKey in {
+                        'sandbox': 'admin.payment_methods.paypal_sandbox',
+                        'live': 'admin.payment_methods.paypal_live'
+                    }|sort_select %}
+                        <option value="{{ value }}" {% if paypalMode|default('sandbox') == value %}selected{% endif %}>
+                            {{ t(labelKey) }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="admin-field">
+                <label for="paypal-currency">{{ t('admin.payment_methods.paypal_currency') }}</label>
+                <input id="paypal-currency" type="text" name="paypal_currency" maxlength="3"
+                       value="{{ paypalCurrency|default('USD') }}" class="admin-input uppercase">
+            </div>
+            <div class="admin-field">
+                <label for="paypal-client-id">{{ t('admin.payment_methods.paypal_client_id') }}</label>
+                <input id="paypal-client-id" type="text" name="paypal_client_id" autocomplete="off"
+                       value="{{ paypalClientId|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="paypal-client-secret">{{ t('admin.payment_methods.paypal_client_secret') }}</label>
+                <input id="paypal-client-secret" type="password" name="paypal_client_secret" autocomplete="new-password"
+                       value="" class="admin-input">
+                {% if paypalSecretSet|default(false) %}
+                    <span class="admin-field-help">{{ t('admin.payment_methods.paypal_secret_keep') }}</span>
+                {% else %}
+                    <span class="admin-field-help">{{ t('admin.payment_methods.paypal_not_configured') }}</span>
+                {% endif %}
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="paypal-webhook-id">{{ t('admin.payment_methods.paypal_webhook_id') }}</label>
+                <input id="paypal-webhook-id" type="text" name="paypal_webhook_id" autocomplete="off"
+                       value="{{ paypalWebhookId|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.payment_methods.paypal_webhook_id_help') }}</span>
+            </div>
+        </div>
+    </fieldset>
+</form>

@@ -17,11 +17,12 @@ use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\UnstuckService;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Support\Money;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminSettingsController extends AdminController
 {
-    private const TABS = ['registration', 'themes', 'locale', 'security', 'community', 'unstuck', 'banners'];
+    private const TABS = ['registration', 'themes', 'locale', 'security', 'community', 'payment-methods', 'unstuck', 'news', 'banners'];
 
     /** @var array<string, string> */
     private const TAB_VIEW_RESOURCES = [
@@ -30,7 +31,9 @@ class AdminSettingsController extends AdminController
         'locale' => 'settings/locale/view',
         'security' => 'settings/security/view',
         'community' => 'settings/community/view',
+        'payment-methods' => 'settings/payment-methods/view',
         'unstuck' => 'settings/unstuck/view',
+        'news' => 'content/news/settings/view',
         'banners' => 'content/banners/settings/view',
     ];
 
@@ -41,7 +44,9 @@ class AdminSettingsController extends AdminController
         'locale' => 'admin-locale-form',
         'security' => 'admin-security-form',
         'community' => 'admin-community-form',
+        'payment-methods' => 'admin-paypal-form',
         'unstuck' => 'admin-unstuck-form',
+        'news' => 'admin-news-settings-form',
         'banners' => 'admin-banner-settings-form',
     ];
 
@@ -52,7 +57,9 @@ class AdminSettingsController extends AdminController
         'locale' => 'admin.nav.locale',
         'security' => 'admin.nav.security',
         'community' => 'admin.nav.community',
+        'payment-methods' => 'admin.nav.payment_methods',
         'unstuck' => 'admin.nav.unstuck',
+        'news' => 'admin.nav.news',
         'banners' => 'admin.nav.banners',
     ];
 
@@ -201,6 +208,7 @@ class AdminSettingsController extends AdminController
         }
 
         $locale = trim((string) ($_POST['default_locale'] ?? ''));
+        $moneyFormat = trim((string) ($_POST['money_format'] ?? Money::FORMAT_DOT));
 
         if (!$this->locales->isSupported($locale)) {
             $this->flash('error', $this->t('admin.invalid_locale'));
@@ -208,12 +216,21 @@ class AdminSettingsController extends AdminController
             return $this->redirect(AdminPaths::settingsLocale());
         }
 
-        $before = ['default_locale' => $this->settings->defaultLocale()];
-        $this->settings->setDefaultLocale($locale);
-        $this->auditChange('settings.locale_save', 'settings', null, $before, [
-            'default_locale' => $locale,
-        ]);
-        $this->flash('success', $this->t('admin.saved'));
+        try {
+            $before = [
+                'default_locale' => $this->settings->defaultLocale(),
+                'money_format' => $this->settings->moneyFormat(),
+            ];
+            $this->settings->setDefaultLocale($locale);
+            $this->settings->setMoneyFormat($moneyFormat);
+            $this->auditChange('settings.locale_save', 'settings', null, $before, [
+                'default_locale' => $locale,
+                'money_format' => $this->settings->moneyFormat(),
+            ]);
+            $this->flash('success', $this->t('admin.saved'));
+        } catch (\InvalidArgumentException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        }
 
         return $this->redirect(AdminPaths::settingsLocale());
     }
@@ -339,6 +356,8 @@ class AdminSettingsController extends AdminController
                     'formId' => $formId,
                     'availableLocales' => $this->locales->available(),
                     'defaultLocale' => $this->settings->defaultLocale(),
+                    'moneyFormat' => $this->settings->moneyFormat(),
+                    'moneyFormats' => $this->moneyFormatOptions(),
                 ],
             ],
             'security' => [
@@ -349,6 +368,10 @@ class AdminSettingsController extends AdminController
                     'captchaAdminEnabled' => $this->settings->captchaAdminEnabled(),
                     'adminTwoFactorRequired' => $this->settings->adminTwoFactorRequired(),
                 ],
+            ],
+            'payment-methods' => [
+                'template' => 'pages/payment-methods.twig',
+                'data' => $this->paymentMethodsPartialData($formId),
             ],
             'community' => [
                 'template' => 'pages/community-channels.twig',
@@ -364,11 +387,6 @@ class AdminSettingsController extends AdminController
                     'mailFromAddress' => $this->settings->mailFromAddress(),
                     'mailFromName' => $this->settings->mailFromName(),
                     'requireVerifiedEmail' => $this->settings->requireVerifiedEmail(),
-                    'paypalMode' => $this->settings->paypalMode(),
-                    'paypalCurrency' => $this->settings->paypalCurrency(),
-                    'paypalClientId' => $this->settings->paypalClientId(),
-                    'paypalConfigured' => $this->settings->paypalConfigured(),
-                    'paypalWebhookId' => $this->settings->paypalWebhookId(),
                     'discordInviteUrl' => $this->settings->discordInviteUrl(),
                     'discordWebhookConfigured' => $this->settings->discordWebhookConfigured(),
                 ],
@@ -381,6 +399,15 @@ class AdminSettingsController extends AdminController
                     'cooldownMinutes' => $this->settings->unstuckCooldownMinutes(),
                     'spawns' => $this->settings->unstuckSpawns(),
                     'positionColumnsAvailable' => $this->unstuck->hasPositionColumns(),
+                ],
+            ],
+            'news' => [
+                'template' => 'pages/news-settings-partial.twig',
+                'data' => [
+                    'formId' => $formId,
+                    'commentsEnabled' => $this->settings->newsCommentsEnabled(),
+                    'commentsRequireApproval' => $this->settings->newsCommentsRequireApproval(),
+                    'showViews' => $this->settings->newsShowViews(),
                 ],
             ],
             'banners' => [
@@ -398,5 +425,53 @@ class AdminSettingsController extends AdminController
                 ],
             ],
         };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function paymentMethodsPartialData(string $formId): array
+    {
+        $paypalConfigured = $this->settings->paypalConfigured();
+
+        return [
+            'formId' => $formId,
+            'activeMethod' => 'paypal',
+            'paymentMethods' => [
+                [
+                    'id' => 'paypal',
+                    'label' => $this->t('admin.payment_methods.paypal'),
+                    'formId' => $formId,
+                    'configured' => $paypalConfigured,
+                    'meta' => $this->t($this->settings->paypalMode() === 'live'
+                        ? 'admin.payment_methods.paypal_live'
+                        : 'admin.payment_methods.paypal_sandbox'),
+                ],
+            ],
+            'paypalMode' => $this->settings->paypalMode(),
+            'paypalCurrency' => $this->settings->paypalCurrency(),
+            'paypalClientId' => $this->settings->paypalClientId(),
+            'paypalConfigured' => $paypalConfigured,
+            'paypalSecretSet' => $this->settings->paypalClientSecret() !== '',
+            'paypalWebhookId' => $this->settings->paypalWebhookId(),
+        ];
+    }
+
+    /**
+     * @return list<array{id: string, example: string, label: string}>
+     */
+    private function moneyFormatOptions(): array
+    {
+        $options = [];
+
+        foreach (Money::FORMATS as $id) {
+            $options[] = [
+                'id' => $id,
+                'example' => Money::example($id),
+                'label' => 'admin.locale.money_format_' . $id,
+            ];
+        }
+
+        return $options;
     }
 }

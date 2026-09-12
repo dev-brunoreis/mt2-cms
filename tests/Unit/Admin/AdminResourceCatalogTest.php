@@ -75,6 +75,37 @@ final class AdminResourceCatalogTest extends TestCase
             AdminResourceCatalog::pathForResource('settings/locale/edit'),
         );
         self::assertSame(
+            '/admin/settings?tab=payment-methods',
+            AdminResourceCatalog::pathForResource('settings/payment-methods/view'),
+        );
+        self::assertContains('settings/payment-methods/edit', AdminResourceCatalog::allResourceIds());
+        self::assertSame('settings', AdminResourceCatalog::sectionIdForResource('content/news/settings/edit'));
+        self::assertSame('news', AdminResourceCatalog::sectionIdForResource('content/news/posts/view'));
+        self::assertSame(
+            '/admin/settings?tab=news',
+            AdminResourceCatalog::pathForResource('content/news/settings/view'),
+        );
+        self::assertSame(
+            '/admin/content/news',
+            AdminResourceCatalog::pathForResource('content/news/posts/view'),
+        );
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'settings',
+            ['content/news/settings/view'],
+        ));
+        self::assertFalse(AdminResourceCatalog::hasAnyResourceForSection(
+            'news',
+            ['content/news/settings/view'],
+        ));
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'news',
+            ['content/news/posts/view'],
+        ));
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'settings',
+            ['content/news'],
+        ));
+        self::assertSame(
             '/admin/settings?tab=banners',
             AdminResourceCatalog::pathForResource('content/banners/settings/view'),
         );

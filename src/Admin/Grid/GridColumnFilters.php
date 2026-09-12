@@ -265,7 +265,7 @@ final class GridColumnFilters
                 'type' => 'date',
                 'op' => $columnType === 'unix_date' ? 'unix_date' : 'date',
             ],
-            'number', 'muted', 'playtime', 'range' => [
+            'number', 'money', 'muted', 'playtime', 'range' => [
                 ...$filter,
                 'type' => 'text',
                 'op' => 'eq_or_like',
@@ -314,7 +314,7 @@ final class GridColumnFilters
             'select' => 'eq',
             'date' => $columnType === 'unix_date' ? 'unix_date' : 'date',
             default => match ($columnType) {
-                'number', 'muted', 'playtime', 'range' => 'eq_or_like',
+                'number', 'money', 'muted', 'playtime', 'range' => 'eq_or_like',
                 default => 'like',
             },
         };

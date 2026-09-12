@@ -69,6 +69,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.locale', 'locale', ['view', 'edit']),
                 self::flatModule('admin.nav.security', 'security', ['view', 'edit']),
                 self::flatModule('admin.nav.community', 'community', ['view', 'edit']),
+                self::flatModule('admin.nav.payment_methods', 'payment-methods', ['view', 'edit']),
                 self::flatModule('admin.nav.unstuck', 'unstuck', ['view', 'edit']),
             ]),
         ];
@@ -195,6 +196,10 @@ final class AdminResourceCatalog
                 return AdminPaths::settingsBanners();
             }
 
+            if (str_starts_with($resourceId, 'content/news/settings/')) {
+                return AdminPaths::settingsNews();
+            }
+
             $parts = explode('/', $resourceId);
             $tab = $parts[1] ?? '';
 
@@ -232,6 +237,10 @@ final class AdminResourceCatalog
 
         if (str_starts_with($resourceId, 'game/referrals/')) {
             return 'referrals';
+        }
+
+        if (str_starts_with($resourceId, 'content/news/settings/')) {
+            return 'settings';
         }
 
         if (str_starts_with($resourceId, 'content/news/')) {
@@ -312,6 +321,7 @@ final class AdminResourceCatalog
             'locale' => 'settings/locale',
             'security' => 'settings/security',
             'community' => 'settings/community',
+            'payment-methods' => 'settings/payment-methods',
             'unstuck' => 'settings/unstuck',
             'shops', 'refine', 'drops', 'items', 'mobs', 'gms' => 'game-data/' . $sectionId,
             default => null,
@@ -365,6 +375,17 @@ final class AdminResourceCatalog
                 continue;
             }
 
+            if ($sectionId === 'news') {
+                if ($entry === 'content/news'
+                    || str_starts_with($entry, 'content/news/posts')
+                    || str_starts_with($entry, 'content/news/comments')
+                ) {
+                    return true;
+                }
+
+                continue;
+            }
+
             if ($entry === $prefix || str_starts_with($entry, $prefix . '/')) {
                 return true;
             }
@@ -373,6 +394,9 @@ final class AdminResourceCatalog
                 $entry === 'content/banners'
                 || $entry === 'content/banners/settings'
                 || str_starts_with($entry, 'content/banners/settings/')
+                || $entry === 'content/news'
+                || $entry === 'content/news/settings'
+                || str_starts_with($entry, 'content/news/settings/')
             )) {
                 return true;
             }
@@ -542,6 +566,7 @@ final class AdminResourceCatalog
             'settings' => array_merge(
                 self::resourcesUnderPrefix('settings'),
                 self::resourcesUnderPrefix('content/banners/settings'),
+                self::resourcesUnderPrefix('content/news/settings'),
             ),
         ];
 

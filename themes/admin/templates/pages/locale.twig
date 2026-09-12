@@ -1,4 +1,4 @@
-<form id="{{ formId }}" method="post" action="/admin/settings/locale" class="p-6">
+<form id="{{ formId }}" method="post" action="/admin/settings/locale" class="p-6 space-y-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <fieldset class="admin-fieldset">
@@ -14,6 +14,24 @@
             {% for locale in availableLocales %}
                 <option value="{{ locale.code }}" {% if defaultLocale == locale.code %}selected{% endif %}>
                     {{ locale.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.locale.money_format') }}
+            <span class="admin-fieldset-help">{{ t('admin.locale.money_format_help') }}</span>
+        </legend>
+
+        <label for="money_format" class="mb-2 block text-sm font-medium text-slate-700">
+            {{ t('admin.locale.money_format_label') }}
+        </label>
+        <select id="money_format" name="money_format" required class="admin-select">
+            {% for format in moneyFormats|default([]) %}
+                <option value="{{ format.id }}" {% if moneyFormat|default('dot') == format.id %}selected{% endif %}>
+                    {{ format.example }} — {{ t(format.label) }}
                 </option>
             {% endfor %}
         </select>

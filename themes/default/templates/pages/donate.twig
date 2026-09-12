@@ -25,7 +25,7 @@
                         </p>
                         <p class="mt-1 text-sm text-slate-500">
                             {{ t('donate.price', {
-                                price: (package.price_cents / 100)|number_format(2, '.', ','),
+                                price: package.price_cents|money,
                                 currency: package.currency|default(currency)
                             }) }}
                         </p>

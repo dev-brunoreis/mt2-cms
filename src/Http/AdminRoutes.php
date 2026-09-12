@@ -16,6 +16,7 @@ use Mt2Cms\Http\Controller\Admin\AdminBansController;
 use Mt2Cms\Http\Controller\Admin\AdminBannersHubController;
 use Mt2Cms\Http\Controller\Admin\AdminCashPackagesController;
 use Mt2Cms\Http\Controller\Admin\AdminCommunityController;
+use Mt2Cms\Http\Controller\Admin\AdminPaymentMethodsController;
 use Mt2Cms\Http\Controller\Admin\AdminDownloadsController;
 use Mt2Cms\Http\Controller\Admin\AdminEventsController;
 use Mt2Cms\Http\Controller\Admin\AdminPaymentsController;
@@ -71,8 +72,12 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/settings/community', [AdminCommunityController::class, 'channels']);
         $r->addRoute('POST', '/admin/settings/community', [AdminCommunityController::class, 'saveChannels']);
         $r->addRoute('POST', '/admin/settings/community/channels/{id:\d+}/delete', [AdminCommunityController::class, 'deleteChannel']);
+        $r->addRoute('GET', '/admin/settings/payment-methods', [AdminPaymentMethodsController::class, 'index']);
+        $r->addRoute('POST', '/admin/settings/payment-methods', [AdminPaymentMethodsController::class, 'save']);
         $r->addRoute('GET', '/admin/settings/unstuck', [AdminUnstuckController::class, 'settings']);
         $r->addRoute('POST', '/admin/settings/unstuck', [AdminUnstuckController::class, 'saveSettings']);
+        $r->addRoute('GET', '/admin/settings/news', [AdminNewsSettingsController::class, 'settings']);
+        $r->addRoute('POST', '/admin/settings/news', [AdminNewsSettingsController::class, 'saveSettings']);
         $r->addRoute('POST', '/admin/settings/banners', [AdminSettingsController::class, 'saveBanners']);
 
         // System
@@ -139,7 +144,6 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/content/news/comments/{id:\d+}/reject', [AdminNewsCommentsController::class, 'rejectComment']);
         $r->addRoute('POST', '/admin/content/news/comments/{id:\d+}/delete', [AdminNewsCommentsController::class, 'deleteComment']);
         $r->addRoute('POST', '/admin/content/news/comments/mass', [AdminNewsCommentsController::class, 'massComments']);
-        $r->addRoute('POST', '/admin/content/news/settings', [AdminNewsSettingsController::class, 'saveSettings']);
 
         // Content — tickets
         $r->addRoute('GET', '/admin/content/tickets', [AdminTicketsController::class, 'index']);

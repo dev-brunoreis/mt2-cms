@@ -12,19 +12,22 @@ use Mt2Cms\Http\Response;
 
 class AdminNewsHubController extends AdminNewsBaseController
 {
-    private const TABS = ['posts', 'comments', 'settings'];
+    private const TABS = ['posts', 'comments'];
 
     /** @var array<string, string> */
     private const TAB_VIEW_RESOURCES = [
         'posts' => 'content/news/posts/view',
         'comments' => 'content/news/comments/view',
-        'settings' => 'content/news/settings/view',
     ];
 
     public function index(): Response
     {
         if ($redirect = $this->requireAdmin()) {
             return $redirect;
+        }
+
+        if ((string) ($_GET['tab'] ?? '') === 'settings') {
+            return $this->redirect(AdminPaths::settingsNews());
         }
 
         $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'posts');
@@ -37,16 +40,12 @@ class AdminNewsHubController extends AdminNewsBaseController
             return $this->renderTabPartial($tab);
         }
 
-        $header = match ($tab) {
-            'posts' => [
+        $header = $tab === 'posts'
+            ? [
                 'headerHref' => AdminPaths::contentNewsPostNew(),
                 'headerActionLabel' => $this->t('admin.news.create'),
-            ],
-            'settings' => [
-                'formId' => 'admin-news-settings-form',
-            ],
-            default => [],
-        };
+            ]
+            : [];
 
         return $this->adminView('news', 'pages/news-hub.twig', array_merge([
             'title' => $this->t('admin.news.hub_title'),
@@ -81,15 +80,6 @@ class AdminNewsHubController extends AdminNewsBaseController
             'comments' => [
                 'template' => 'pages/news-comments-partial.twig',
                 'data' => ['grid' => $this->commentsGrid()],
-            ],
-            'settings' => [
-                'template' => 'pages/news-settings-partial.twig',
-                'data' => [
-                    'formId' => 'admin-news-settings-form',
-                    'commentsEnabled' => $this->settings->newsCommentsEnabled(),
-                    'commentsRequireApproval' => $this->settings->newsCommentsRequireApproval(),
-                    'showViews' => $this->settings->newsShowViews(),
-                ],
             ],
             default => [
                 'template' => 'pages/news-posts-partial.twig',

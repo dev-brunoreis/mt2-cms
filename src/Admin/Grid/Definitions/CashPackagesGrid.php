@@ -26,7 +26,7 @@ final class CashPackagesGrid
                 ['key' => 'id', 'label' => 'admin.packages.id', 'sort' => 'id', 'type' => 'muted'],
                 ['key' => 'title', 'label' => 'admin.packages.title_field', 'sort' => 'title', 'type' => 'link', 'href' => '/admin/store/packages/{id}'],
                 ['key' => 'cash_amount', 'label' => 'admin.packages.cash', 'sort' => 'cash_amount', 'type' => 'number'],
-                ['key' => 'price_cents', 'label' => 'admin.packages.price', 'sort' => 'price_cents', 'type' => 'number'],
+                ['key' => 'price_cents', 'label' => 'admin.packages.price', 'sort' => 'price_cents', 'type' => 'money', 'filter' => false],
                 ['key' => 'currency', 'label' => 'admin.packages.currency', 'type' => 'text'],
                 ['key' => 'enabled', 'label' => 'admin.packages.enabled', 'type' => 'badge', 'badgeMap' => [
                     '1' => ['class' => 'admin-badge-ok', 'label' => 'admin.yes'],

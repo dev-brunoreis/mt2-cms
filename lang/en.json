@@ -829,6 +829,7 @@
       "events": "Events",
       "packages": "Cash packages",
       "payments": "Payments",
+      "payment_methods": "Payment methods",
       "community": "Community",
       "news": "News",
       "news_comments": "News comments",
@@ -2275,7 +2276,7 @@
     },
     "community": {
       "channels_title": "Community settings",
-      "channels_lead": "Site URL, mail, PayPal, online window, and channel labels.",
+      "channels_lead": "Site URL, mail, online window, and channel labels.",
       "branding": "Branding & footer",
       "branding_help": "Public site title, footer text, and social icons.",
       "site_title": "Site title",
@@ -2300,18 +2301,6 @@
       "mail_from_name": "Mail from name",
       "online_window": "Online window (minutes)",
       "online_window_help": "Characters with last_play within this window count as online.",
-      "paypal_mode": "PayPal mode",
-      "paypal_sandbox": "Sandbox",
-      "paypal_live": "Live",
-      "paypal_currency": "Default currency",
-      "paypal": "PayPal",
-      "paypal_help": "Used for /donate checkout. Client ID and secret can also come from PAYPAL_* in .env.",
-      "paypal_client_id": "Client ID",
-      "paypal_client_secret": "Client secret",
-      "paypal_secret_keep": "Leave blank to keep the current secret.",
-      "paypal_not_configured": "Not set. Paste credentials from developer.paypal.com, or use PAYPAL_* in .env.",
-      "paypal_webhook_id": "Webhook ID",
-      "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal.",
       "require_verified_email": "Require verified email",
       "require_verified_email_help": "Block login, shop, and donations until email is verified.",
       "channels": "Server channels",
@@ -2336,6 +2325,24 @@
       "discord_webhook_help": "Discord channel webhook for news, tickets, payments, and events.",
       "discord_webhook_keep": "Leave blank to keep the current webhook URL.",
       "discord_webhook_invalid": "Webhook URL must be a Discord API webhook (https://discord.com/api/webhooks/…)."
+    },
+    "payment_methods": {
+      "lead": "Checkout providers used on /donate. Select a method to configure it.",
+      "list_title": "Methods",
+      "status_ready": "Ready",
+      "status_setup": "Setup needed",
+      "paypal": "PayPal",
+      "paypal_help": "Used for /donate checkout. Client ID and secret can also come from PAYPAL_* in .env.",
+      "paypal_mode": "PayPal mode",
+      "paypal_sandbox": "Sandbox",
+      "paypal_live": "Live",
+      "paypal_currency": "Default currency",
+      "paypal_client_id": "Client ID",
+      "paypal_client_secret": "Client secret",
+      "paypal_secret_keep": "Leave blank to keep the current secret.",
+      "paypal_not_configured": "Not set. Paste credentials from developer.paypal.com, or use PAYPAL_* in .env.",
+      "paypal_webhook_id": "Webhook ID",
+      "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal."
     },
     "events": {
       "title": "Events",
@@ -2375,9 +2382,10 @@
       "lead": "Packages sold on /donate via PayPal.",
       "create": "Add package",
       "edit": "Edit package",
-      "form_lead": "Price is in cents (e.g. 999 = 9.99).",
+      "form_lead": "Cash granted in-game and the checkout price in major currency units.",
       "not_found": "Package not found.",
       "title_required": "Title is required.",
+      "price_invalid": "Enter a valid price greater than zero (e.g. 500.00 or 500,00).",
       "confirm_mass_delete": "Delete selected packages?",
       "mass_done": "{count} packages updated.",
       "id": "ID",
@@ -2385,8 +2393,7 @@
       "cash": "Cash amount",
       "cash_amount": "Cash amount",
       "price": "Price",
-      "price_cents": "Price (cents)",
-      "price_cents_help": "Amount in smallest currency unit.",
+      "price_help": "Type the amount; it formats as you type using Settings → Locale.",
       "currency": "Currency",
       "sort": "Sort order",
       "enabled": "Enabled",
@@ -2577,7 +2584,7 @@
     },
     "settings": {
       "hub_title": "Configuration",
-      "hub_lead": "Site, security, appearance, and content settings."
+      "hub_lead": "Site, security, payments, appearance, and content settings."
     },
     "registration": {
       "title": "Registrations",
@@ -2595,9 +2602,16 @@
       "active_help": "The theme shown to visitors by default."
     },
     "locale": {
-      "title": "Default language",
-      "lead": "Default language for visitors without a saved preference.",
-      "default": "Default locale"
+      "title": "Language & numbers",
+      "lead": "Default language and how prices are written on the site.",
+      "default": "Default locale",
+      "money_format": "Currency format",
+      "money_format_label": "Number format",
+      "money_format_help": "Used for donate prices and admin money fields. PayPal checkout still sends 1234.56.",
+      "money_format_dot": "US, UK, Mexico, Japan",
+      "money_format_comma": "Brazil, Germany, Spain, Italy",
+      "money_format_space": "France, Russia, Nordics",
+      "money_format_invalid": "Choose a valid currency format."
     },
     "security": {
       "title": "Security",
@@ -2656,7 +2670,7 @@
     "news": {
       "title": "News",
       "hub_title": "News",
-      "hub_lead": "Posts, comment moderation, and news settings.",
+      "hub_lead": "Posts and comment moderation.",
       "tab_posts": "Posts",
       "tab_comments": "Comments",
       "tab_settings": "Settings",

@@ -20,6 +20,7 @@ use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Support\Database;
 use Mt2Cms\Support\Env;
+use Mt2Cms\Support\Money;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\AdminAuditRepository;
 use Mt2Cms\Repository\AdminRepository;
@@ -325,6 +326,7 @@ class Application
             $this->translator,
             $this->locales->available(),
             $this->icons ?? null,
+            isset($this->settings) ? $this->settings->moneyFormat() : Money::FORMAT_DOT,
         );
 
         $globals = ['registration_enabled' => $registrationEnabled];

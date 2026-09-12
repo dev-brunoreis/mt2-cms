@@ -23,7 +23,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Admin audit | Mutating admin POSTs write to `admin_audit_log`; super admins can browse `/admin/audit-log` |
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only) |
 | Config | `DB_PASSWORD` and `APP_KEY` required in `.env` when installed (no hardcoded runtime default) |
-| PayPal webhooks | Signature verification is fail-closed; webhook id required in **Settings → Community** for `/donate` and webhook acceptance |
+| PayPal webhooks | Signature verification is fail-closed; webhook id required in **Settings → Payment methods** for `/donate` and webhook acceptance |
 | Operational errors | Schema drift and missing `APP_KEY` return generic HTTP 503; details logged server-side only |
 
 ## Password hashing

@@ -248,6 +248,11 @@ final class AdminPaths
         return self::settings('community');
     }
 
+    public static function settingsPaymentMethods(): string
+    {
+        return self::settings('payment-methods');
+    }
+
     public static function settingsUnstuck(): string
     {
         return self::settings('unstuck');
@@ -256,6 +261,11 @@ final class AdminPaths
     public static function settingsBanners(): string
     {
         return self::settings('banners');
+    }
+
+    public static function settingsNews(): string
+    {
+        return self::settings('news');
     }
 
     public static function accountSecurity(): string
@@ -297,6 +307,7 @@ final class AdminPaths
             'locale' => self::settingsLocale(),
             'security' => self::settingsSecurity(),
             'community' => self::settingsCommunity(),
+            'payment-methods' => self::settingsPaymentMethods(),
             'unstuck' => self::settingsUnstuck(),
             default => null,
         };

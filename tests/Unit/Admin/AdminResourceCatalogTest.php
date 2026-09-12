@@ -13,6 +13,7 @@ final class AdminResourceCatalogTest extends TestCase
     public function testResourceIdsFollowConvention(): void
     {
         self::assertContains('game/accounts/view', AdminResourceCatalog::allResourceIds());
+        self::assertContains('game/economy/view', AdminResourceCatalog::allResourceIds());
         self::assertContains('store/products/create', AdminResourceCatalog::allResourceIds());
         self::assertContains('content/news/posts/mass', AdminResourceCatalog::allResourceIds());
         self::assertContains('store/products/view', AdminResourceCatalog::allResourceIds());

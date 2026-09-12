@@ -39,6 +39,7 @@ final class AdminResourceCatalog
                 self::flatModule('admin.nav.awards', 'awards', ['view', 'create', 'delete', 'mass']),
                 self::flatModule('admin.nav.bans', 'bans', ['view', 'create', 'mass']),
                 self::flatModule('admin.nav.referrals', 'referrals', ['view', 'edit']),
+                self::flatModule('admin.nav.economy', 'economy', ['view', 'edit', 'mass']),
             ]),
             self::group('admin.nav.content', 'content', [
                 self::subgroup('admin.nav.news', 'news', [
@@ -239,6 +240,10 @@ final class AdminResourceCatalog
             return 'referrals';
         }
 
+        if (str_starts_with($resourceId, 'game/economy/')) {
+            return 'economy';
+        }
+
         if (str_starts_with($resourceId, 'content/news/settings/')) {
             return 'settings';
         }
@@ -306,6 +311,7 @@ final class AdminResourceCatalog
             'awards' => 'game/awards',
             'bans' => 'game/bans',
             'referrals' => 'game/referrals',
+            'economy' => 'game/economy',
             'news' => 'content/news',
             'tickets' => 'content/tickets',
             'downloads' => 'content/downloads',

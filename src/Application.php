@@ -67,6 +67,8 @@ use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
 use Mt2Cms\Repository\BanRepository;
 use Mt2Cms\Service\BanService;
+use Mt2Cms\Repository\EconomyRepository;
+use Mt2Cms\Repository\GameEconomyScanRepository;
 use Mt2Cms\Repository\ReferralRepository;
 use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Repository\UnstuckRepository;
@@ -184,6 +186,8 @@ class Application
     public EventRepository $events;
     public EventService $eventService;
     public DiscordWebhookService $discord;
+    public EconomyRepository $economy;
+    public GameEconomyScanRepository $gameEconomyScan;
 
     public function __construct()
     {

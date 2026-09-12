@@ -241,6 +241,68 @@ class DropFileService
     }
 
     /**
+     * Read-only: which drop groups mention this item vnum.
+     *
+     * @return list<array{source: string, group: string, mob_vnum: int|null, chance: string}>
+     */
+    public function sourcesForItemVnum(int $itemVnum): array
+    {
+        if ($itemVnum < 1) {
+            return [];
+        }
+
+        $found = [];
+
+        foreach (['mob_drop_item', 'drop_item_group'] as $fileKey) {
+            foreach ($this->loadGroupFile($fileKey) as $group) {
+                $mobVnum = (int) ($group['attrs']['mob'][0] ?? 0);
+
+                foreach ($group['items'] as $row) {
+                    $candidate = (int) ($row[0] ?? 0);
+
+                    if ($candidate !== $itemVnum) {
+                        // drop_item_group sometimes puts vnum in a later column
+                        $candidate = (int) ($row[1] ?? 0);
+                    }
+
+                    if ($candidate !== $itemVnum) {
+                        continue;
+                    }
+
+                    $chance = (string) ($row[2] ?? ($row[3] ?? ''));
+                    $found[] = [
+                        'source' => $fileKey,
+                        'group' => (string) ($group['name'] ?? ''),
+                        'mob_vnum' => $mobVnum > 0 ? $mobVnum : null,
+                        'chance' => $chance,
+                    ];
+                }
+            }
+        }
+
+        $common = $this->commonDrops();
+
+        foreach ($common['ranks'] as $rank => $rows) {
+            foreach ($rows as $row) {
+                $ref = trim((string) ($row['item_ref'] ?? ''));
+
+                if ($ref === '' || (int) $ref !== $itemVnum) {
+                    continue;
+                }
+
+                $found[] = [
+                    'source' => 'common_drop_item:' . $rank,
+                    'group' => (string) ($row['label'] ?? $rank),
+                    'mob_vnum' => null,
+                    'chance' => (string) ($row['chance'] ?? ''),
+                ];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
      * @return list<array{name: string, attrs: array<string, list<string>>, items: list<list<string>>}>
      */
     private function loadGroupFile(string $key): array

@@ -58,6 +58,41 @@ class DiscordWebhookService
     }
 
     /**
+     * Digest of new economy alerts (one webhook, not per item).
+     *
+     * @param list<array{vnum: int, kind: string, change: float}> $alerts
+     */
+    public function notifyEconomyAlerts(array $alerts): void
+    {
+        if ($alerts === []) {
+            return;
+        }
+
+        $lines = [];
+        $max = min(15, count($alerts));
+
+        for ($i = 0; $i < $max; $i++) {
+            $a = $alerts[$i];
+            $pct = round(((float) $a['change']) * 100.0, 1);
+            $sign = $pct >= 0 ? '+' : '';
+            $lines[] = '• vnum `' . (int) $a['vnum'] . '` **' . (string) $a['kind'] . '** (' . $sign . $pct . '%)';
+        }
+
+        if (count($alerts) > $max) {
+            $lines[] = '… and ' . (count($alerts) - $max) . ' more';
+        }
+
+        $this->send(
+            '**Economy alerts** (' . count($alerts) . ')',
+            [
+                'title' => 'Economy health',
+                'url' => rtrim($this->settings->siteUrl(), '/') . '/admin/game/economy',
+                'description' => implode("\n", $lines),
+            ],
+        );
+    }
+
+    /**
      * @param array{title?: string, url?: string, description?: string}|null $embed
      */
     private function send(string $content, ?array $embed = null): void

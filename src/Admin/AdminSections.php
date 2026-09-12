@@ -57,6 +57,11 @@ class AdminSections
                         'path' => AdminPaths::gameReferrals(),
                         'label' => 'admin.nav.referrals',
                     ],
+                    [
+                        'id' => 'economy',
+                        'path' => AdminPaths::gameEconomy(),
+                        'label' => 'admin.nav.economy',
+                    ],
                 ],
             ],
             [

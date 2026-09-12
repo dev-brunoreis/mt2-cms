@@ -205,6 +205,16 @@ Example cron (daily at 03:00, from the project root on the host). Set `BACKUP_DI
 0 3 * * * cd /path/to/mt2-cms && BACKUP_DIR=/mnt/backups/mt2-cms ./bin/backup-dbs.sh >> /var/log/mt2-cms-backup.log 2>&1
 ```
 
+### Economy tick (item census / market snapshots)
+
+Admin **Game → Economy** reads CMS snapshot tables only. Refresh them every 15 minutes (do **not** run this on the HTTP request path):
+
+```cron
+*/15 * * * * cd /path/to/mt2-cms && docker compose exec -T php php bin/economy-tick.php >> /var/log/mt2-cms-economy.log 2>&1
+```
+
+The tick takes a file lock under `var/economy-tick.lock` so overlapping runs skip. First run after deploy may take longer (full `GROUP BY` on `player.item`).
+
 Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
 
 ## Post-deploy checklist

@@ -45,6 +45,16 @@ final class AdminPaths
         return '/admin/game/referrals';
     }
 
+    public static function gameEconomy(): string
+    {
+        return '/admin/game/economy';
+    }
+
+    public static function gameEconomyItem(int $vnum): string
+    {
+        return '/admin/game/economy/' . $vnum;
+    }
+
     // Content
     public static function contentNews(?string $tab = null): string
     {
@@ -283,6 +293,7 @@ final class AdminPaths
             'awards' => self::gameAwards(),
             'bans' => self::gameBans(),
             'referrals' => self::gameReferrals(),
+            'economy' => self::gameEconomy(),
             'news' => self::contentNews(),
             'tickets' => self::contentTickets(),
             'downloads' => self::contentDownloads(),

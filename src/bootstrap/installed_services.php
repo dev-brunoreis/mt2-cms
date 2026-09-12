@@ -26,6 +26,8 @@ use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Repository\AdminRoleRepository;
 use Mt2Cms\Repository\AdminTotpRepository;
 use Mt2Cms\Repository\BanRepository;
+use Mt2Cms\Repository\EconomyRepository;
+use Mt2Cms\Repository\GameEconomyScanRepository;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\DownloadRepository;
 use Mt2Cms\Repository\BannerRepository;
@@ -112,6 +114,7 @@ return static function (Application $app): void {
     $app->accountEmails = new AccountEmailRepository($app->cmsDb);
     $app->emailTokens = new EmailTokenRepository($app->cmsDb);
     $app->banRepo = new BanRepository($app->cmsDb);
+    $app->economy = new EconomyRepository($app->cmsDb);
     $app->unstuckRepo = new UnstuckRepository($app->cmsDb);
     $app->events = new EventRepository($app->cmsDb);
     $app->serverChannels = new ServerChannelRepository($app->cmsDb);
@@ -157,6 +160,7 @@ return static function (Application $app): void {
     $app->adminTheme = $app->createThemeEngine('admin', true, true);
 
     $app->db = new Database();
+    $app->gameEconomyScan = new GameEconomyScanRepository($app->db);
     $app->accounts = new AccountRepository($app->db);
     $app->referralRepo = new ReferralRepository($app->cmsDb, $app->accounts);
     $app->players = new PlayerRepository($app->db);

@@ -13,6 +13,7 @@ use Mt2Cms\Http\Controller\Admin\AdminAuthController;
 use Mt2Cms\Http\Controller\CaptchaController;
 use Mt2Cms\Http\Controller\Admin\AdminAwardsController;
 use Mt2Cms\Http\Controller\Admin\AdminBansController;
+use Mt2Cms\Http\Controller\Admin\AdminEconomyController;
 use Mt2Cms\Http\Controller\Admin\AdminBannersHubController;
 use Mt2Cms\Http\Controller\Admin\AdminCashPackagesController;
 use Mt2Cms\Http\Controller\Admin\AdminCommunityController;
@@ -130,6 +131,12 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/game/bans/new', [AdminBansController::class, 'create']);
         $r->addRoute('POST', '/admin/game/bans', [AdminBansController::class, 'store']);
         $r->addRoute('POST', '/admin/game/bans/mass', [AdminBansController::class, 'mass']);
+
+        $r->addRoute('GET', '/admin/game/economy', [AdminEconomyController::class, 'index']);
+        $r->addRoute('POST', '/admin/game/economy/mass', [AdminEconomyController::class, 'mass']);
+        $r->addRoute('GET', '/admin/game/economy/{id:\d+}', [AdminEconomyController::class, 'show']);
+        $r->addRoute('POST', '/admin/game/economy/{id:\d+}/watch', [AdminEconomyController::class, 'saveWatch']);
+        $r->addRoute('POST', '/admin/game/economy/alerts/{id:\d+}/ack', [AdminEconomyController::class, 'ackAlert']);
 
         // Content — news hub
         $r->addRoute('GET', '/admin/content/news', [AdminNewsHubController::class, 'index']);

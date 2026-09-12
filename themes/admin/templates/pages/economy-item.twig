@@ -1,0 +1,209 @@
+<div class="space-y-4">
+    {% if census is null %}
+    <div class="admin-panel rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <p>{{ t('admin.economy.no_census') }}</p>
+    </div>
+    {% else %}
+    <div class="admin-panel p-4 md:p-6">
+        <dl class="admin-stat-grid">
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.economy.units') }}</dt>
+                <dd>{{ census.units|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.stacks') }}</dt>
+                <dd>{{ census.stacks|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.units_player') }}</dt>
+                <dd>{{ census.units_player|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.units_safebox') }}</dt>
+                <dd>{{ census.units_safebox|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.units_mall') }}</dt>
+                <dd>{{ census.units_mall|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.units_pending') }}</dt>
+                <dd>{{ census.units_pending|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.holders_players') }}</dt>
+                <dd>{{ census.holders_players|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.holders_accounts') }}</dt>
+                <dd>{{ census.holders_accounts|number_format }}</dd>
+            </div>
+        </dl>
+        <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.captured_at', {at: census.captured_at}) }}</p>
+    </div>
+    {% endif %}
+
+    {% if npc %}
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.npc_anchor') }}</h2>
+        <dl class="admin-stat-grid mt-3">
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.npc_sell') }}</dt>
+                <dd>{{ npc.gold|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.npc_buy') }}</dt>
+                <dd>{{ npc.shop_buy_price|number_format }}</dd>
+            </div>
+        </dl>
+    </div>
+    {% endif %}
+
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.advice_title') }}</h2>
+        <p class="mt-2 text-sm text-slate-700">{{ t('admin.economy.advice.' ~ adviceKey) }}</p>
+        {% if supplyChange is not null or priceChange is not null %}
+        <p class="mt-2 text-sm text-slate-500">
+            {% if supplyChange is not null %}{{ t('admin.economy.supply_change', {pct: (supplyChange * 100)|number_format(1)}) }}{% endif %}
+            {% if priceChange is not null %} · {{ t('admin.economy.price_change', {pct: (priceChange * 100)|number_format(1)}) }}{% endif %}
+        </p>
+        {% endif %}
+        <p class="mt-2 text-sm">
+            <a class="font-medium text-indigo-600 hover:underline" href="{{ admin_path('gameDataDrops') }}">{{ t('admin.economy.open_drops') }}</a>
+        </p>
+    </div>
+
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.watchlist') }}</h2>
+        <form id="{{ formId }}" method="post" action="/admin/game/economy/{{ vnum }}/watch" class="mt-3 space-y-3">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="admin-field">
+                    <label for="crash_pct">{{ t('admin.economy.crash_pct') }}</label>
+                    <input id="crash_pct" type="number" name="crash_pct" min="1" max="200" value="{{ watchCfg.crash_pct|default('') }}" placeholder="30">
+                </div>
+                <div class="admin-field">
+                    <label for="spike_pct">{{ t('admin.economy.spike_pct') }}</label>
+                    <input id="spike_pct" type="number" name="spike_pct" min="1" max="200" value="{{ watchCfg.spike_pct|default('') }}" placeholder="30">
+                </div>
+                <div class="admin-field">
+                    <label for="min_sample">{{ t('admin.economy.min_sample') }}</label>
+                    <input id="min_sample" type="number" name="min_sample" min="1" max="100" value="{{ watchCfg.min_sample|default('') }}" placeholder="3">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button type="submit" name="watch_action" value="watch" class="admin-btn-primary rounded-md px-3 py-1.5 text-sm font-medium">{{ watched ? t('admin.economy.update_watch') : t('admin.economy.watch') }}</button>
+                {% if watched %}
+                <button type="submit" name="watch_action" value="unwatch" class="admin-btn-secondary rounded-md px-3 py-1.5 text-sm font-medium">{{ t('admin.economy.unwatch') }}</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if drops|length > 0 %}
+    <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.drop_sources') }}</h2>
+        <table class="admin-table mt-3">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.economy.drop_source') }}</th>
+                    <th>{{ t('admin.economy.drop_group') }}</th>
+                    <th>{{ t('admin.economy.drop_mob') }}</th>
+                    <th>{{ t('admin.economy.drop_chance') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drop in drops %}
+                <tr>
+                    <td>{{ drop.source }}</td>
+                    <td>{{ drop.group }}</td>
+                    <td>{% if drop.mob_vnum %}{{ drop.mob_vnum }}{% else %}—{% endif %}</td>
+                    <td>{{ drop.chance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.history_supply') }}</h2>
+        {% if history|length == 0 %}
+        <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.history_empty') }}</p>
+        {% else %}
+        <table class="admin-table mt-3">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.economy.day') }}</th>
+                    <th>{{ t('admin.economy.units') }}</th>
+                    <th>{{ t('admin.economy.stacks') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in history %}
+                <tr>
+                    <td>{{ row.day }}</td>
+                    <td>{{ row.units|number_format }}</td>
+                    <td>{{ row.stacks|number_format }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.history_price') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.price_caveat') }}</p>
+        {% if market|length == 0 %}
+        <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.history_empty') }}</p>
+        {% else %}
+        <table class="admin-table mt-3">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.economy.day') }}</th>
+                    <th>{{ t('admin.economy.trades') }}</th>
+                    <th>{{ t('admin.economy.median_price') }}</th>
+                    <th>{{ t('admin.economy.p25') }}</th>
+                    <th>{{ t('admin.economy.p75') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in market %}
+                <tr>
+                    <td>{{ row.day }}</td>
+                    <td>{{ row.trades|number_format }}</td>
+                    <td>{% if row.median_price is not null %}{{ row.median_price|number_format }}{% else %}—{% endif %}</td>
+                    <td>{% if row.p25_price is not null %}{{ row.p25_price|number_format }}{% else %}—{% endif %}</td>
+                    <td>{% if row.p75_price is not null %}{{ row.p75_price|number_format }}{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    {% if alerts|length > 0 %}
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.alerts_title') }}</h2>
+        <ul class="mt-3 space-y-2">
+            {% for alert in alerts %}
+            <li class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
+                <div>
+                    <span class="admin-badge admin-badge-muted">{{ t('admin.economy.alert_kind.' ~ alert.kind) }}</span>
+                    <span class="text-sm text-slate-500">{{ alert.created_at }}</span>
+                    {% if alert.acked_at %}<span class="text-sm text-slate-400">{{ t('admin.economy.acked') }}</span>{% endif %}
+                </div>
+                {% if not alert.acked_at %}
+                <form method="post" action="/admin/game/economy/alerts/{{ alert.id }}/ack" class="inline">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <input type="hidden" name="back" value="/admin/game/economy/{{ vnum }}">
+                    <button type="submit" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">{{ t('admin.economy.ack') }}</button>
+                </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

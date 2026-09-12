@@ -221,6 +221,56 @@
   border-bottom: 1px solid var(--k-border);
 }
 
+.theme-kingdoms .k-banner {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0.85rem auto 0;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+.theme-kingdoms .k-banner-frame {
+  position: relative;
+  width: 100%;
+  max-height: min(32vh, 360px);
+  overflow: hidden;
+  border: 1px solid var(--k-border);
+  border-radius: 2px;
+  background: #0a0806;
+  box-shadow:
+    inset 0 1px 0 rgba(196, 163, 90, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  aspect-ratio: 21 / 7;
+}
+
+.theme-kingdoms .k-banner picture,
+.theme-kingdoms .k-banner-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.theme-kingdoms .k-banner-img {
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+@media (max-width: 640px) {
+  .theme-kingdoms .k-banner {
+    margin-top: 0.65rem;
+  }
+
+  .theme-kingdoms .k-banner-frame {
+    aspect-ratio: 16 / 7;
+    max-height: min(26vh, 200px);
+  }
+
+  .theme-kingdoms .k-banner-img {
+    object-position: center 30%;
+  }
+}
+
 .theme-kingdoms .k-nav a {
   color: var(--k-muted);
   font-family: "Cinzel", serif;

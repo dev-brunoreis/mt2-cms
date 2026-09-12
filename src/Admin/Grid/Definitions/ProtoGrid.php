@@ -17,14 +17,20 @@ final class ProtoGrid
 
         foreach ($protos->listColumns($kind) as $column) {
             if ($column === 'locale_name') {
-                $columns[] = [
+                $nameColumn = [
                     'key' => 'locale_name',
                     'label' => $prefix . '.fields.locale_name',
                     'sort' => 'locale_name',
-                    'type' => 'icon_link',
-                    'icon' => $route === GameProtoService::ROUTE_ITEMS ? 'item' : 'face',
+                    'type' => 'link',
                     'href' => self::listPath($route) . '/{id}',
                 ];
+
+                if ($route === GameProtoService::ROUTE_ITEMS) {
+                    $nameColumn['type'] = 'icon_link';
+                    $nameColumn['icon'] = 'item';
+                }
+
+                $columns[] = $nameColumn;
 
                 continue;
             }

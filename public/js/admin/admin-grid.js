@@ -22,14 +22,29 @@
             });
         }
 
+        function submitFilters(form) {
+            if (!form) {
+                return;
+            }
+
+            disableEmptyFilters(form);
+            form.requestSubmit ? form.requestSubmit() : form.submit();
+        }
+
         root.querySelectorAll('[data-grid-filter-change]').forEach(function (el) {
             el.addEventListener('change', function () {
-                var form = el.form;
+                submitFilters(el.form);
+            });
+        });
 
-                if (form) {
-                    disableEmptyFilters(form);
-                    form.submit();
+        root.querySelectorAll('[data-grid-filter-enter]').forEach(function (el) {
+            el.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter') {
+                    return;
                 }
+
+                event.preventDefault();
+                submitFilters(el.form);
             });
         });
 

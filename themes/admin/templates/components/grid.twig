@@ -10,6 +10,7 @@
         {% if grid.sort != grid.defaultSort|default('') %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
         {% if grid.dir != grid.defaultDir|default('desc') %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
         {% if grid.perPage != grid.defaultPerPage|default(20) %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}
+        <button type="submit">{{ t('admin.grid.filter') }}</button>
     </form>
 
     <div class="admin-grid-toolbar">

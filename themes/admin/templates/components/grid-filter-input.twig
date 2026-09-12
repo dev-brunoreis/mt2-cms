@@ -41,7 +41,7 @@
            value="{{ current }}" class="admin-input admin-input-compact admin-grid-col-filter"
            data-grid-filter-change>
 {% else %}
-    <input id="{{ inputId }}" type="search" name="filter[{{ filter.key }}]" form="{{ formId }}"
+    <input id="{{ inputId }}" type="text" name="filter[{{ filter.key }}]" form="{{ formId }}"
            value="{{ current }}" class="admin-input admin-input-compact admin-grid-col-filter"
-           autocomplete="off">
+           autocomplete="off" data-grid-filter-enter>
 {% endif %}

@@ -37,14 +37,13 @@ final class SourceScan
     public static function twigFiles(): array
     {
         $files = [];
+        $themesRoot = BASE_DIR . '/themes';
 
-        foreach (['themes/admin', 'themes/default'] as $relative) {
-            $directory = BASE_DIR . '/' . $relative;
+        if (!is_dir($themesRoot)) {
+            return [];
+        }
 
-            if (!is_dir($directory)) {
-                continue;
-            }
-
+        foreach (glob($themesRoot . '/*', GLOB_ONLYDIR) ?: [] as $directory) {
             $iterator = new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
             );

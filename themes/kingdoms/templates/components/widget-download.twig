@@ -1,0 +1,25 @@
+<div class="k-panel">
+    <div class="k-panel-head">{{ t('theme.kingdoms.download_title') }}</div>
+    <div class="p-3">
+        <p class="mb-3 text-xs k-muted">{{ t('theme.kingdoms.download_lead') }}</p>
+        {% set dl = theme_client_download|default(null) %}
+        {% if dl %}
+            {% if dl.external_url %}
+                <a href="{{ dl.external_url }}" target="_blank" rel="noopener noreferrer" class="k-btn k-btn-ember w-full">
+                    {{ t('theme.kingdoms.download_client') }}
+                </a>
+            {% elseif dl.stored_name %}
+                <a href="/downloads/{{ dl.id }}/file" class="k-btn k-btn-ember w-full">
+                    {{ t('theme.kingdoms.download_client') }}
+                </a>
+            {% else %}
+                <a href="/downloads" class="k-btn k-btn-ember w-full">{{ t('theme.kingdoms.download_client') }}</a>
+            {% endif %}
+            {% if dl.title %}
+                <p class="mt-2 text-center text-[0.65rem] k-muted truncate">{{ dl.title }}</p>
+            {% endif %}
+        {% else %}
+            <a href="/downloads" class="k-btn k-btn-ember w-full">{{ t('theme.kingdoms.download_client') }}</a>
+        {% endif %}
+    </div>
+</div>

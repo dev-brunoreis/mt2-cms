@@ -1,0 +1,113 @@
+<div class="mx-auto max-w-md">
+    <div class="k-panel p-6 sm:p-8">
+        <h1 class="k-title mb-6 text-center text-2xl">
+            {% if form == 'login' %}{{ t('auth.login_title') }}{% else %}{{ t('auth.register_title') }}{% endif %}
+        </h1>
+
+        {% if form == 'login' %}
+            <form method="post" action="/login" class="flex flex-col gap-4">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="username" class="text-sm text-[var(--k-muted)]">{{ t('auth.username') }}</label>
+                    <input id="username" type="text" name="username" required value="{{ username }}" class="k-input">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label for="password" class="text-sm text-[var(--k-muted)]">{{ t('auth.password') }}</label>
+                        <a href="/forgot-password" class="text-xs">{{ t('auth.forgot_link') }}</a>
+                    </div>
+                    <input id="password" type="password" name="password" required class="k-input">
+                </div>
+
+                {% if error %}
+                    <p class="k-flash-err !mb-0">{{ error }}</p>
+                {% endif %}
+
+                {% if captchaEnabled|default(false) %}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="captcha" class="text-sm text-[var(--k-muted)]">{{ t('auth.captcha') }}</label>
+                        <div class="flex items-center gap-3">
+                            <img src="/captcha.svg" alt="" width="160" height="48" class="rounded border border-[var(--k-border)]">
+                            <input id="captcha" type="text" name="captcha" required autocomplete="off" maxlength="5"
+                                   class="k-input w-full uppercase tracking-widest">
+                        </div>
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="k-btn mt-1 w-full">{{ t('auth.submit_login') }}</button>
+            </form>
+
+            <p class="mt-5 text-center text-sm k-muted">
+                {{ t('auth.no_account') }}
+                <a href="/register">{{ t('auth.register_link') }}</a>
+            </p>
+        {% elseif registrationBlocked|default(false) %}
+            <div class="border border-amber-800/50 bg-amber-950/30 px-4 py-4 text-center">
+                <p class="font-medium text-amber-200">{{ t('auth.registration_disabled_title') }}</p>
+                <p class="mt-2 text-sm text-amber-200/70">{{ t('auth.registration_disabled') }}</p>
+            </div>
+
+            <p class="mt-5 text-center text-sm k-muted">
+                {{ t('auth.have_account') }}
+                <a href="/login">{{ t('auth.login_link') }}</a>
+            </p>
+        {% else %}
+            <form method="post" action="/register" class="flex flex-col gap-4">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="username" class="text-sm text-[var(--k-muted)]">{{ t('auth.username') }}</label>
+                    <input id="username" type="text" name="username" required value="{{ username }}" class="k-input">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="email" class="text-sm text-[var(--k-muted)]">{{ t('auth.email') }}</label>
+                    <input id="email" type="email" name="email" required value="{{ email }}" class="k-input">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="social_id" class="text-sm text-[var(--k-muted)]">{{ t('auth.social_id') }}</label>
+                    <input id="social_id" type="text" name="social_id" required value="{{ socialId }}" class="k-input">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="password" class="text-sm text-[var(--k-muted)]">{{ t('auth.password') }}</label>
+                    <input id="password" type="password" name="password" required class="k-input">
+                </div>
+
+                {% if referralEnabled|default(false) %}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="referral_code" class="text-sm text-[var(--k-muted)]">{{ t('auth.referral_code') }}</label>
+                        <input id="referral_code" type="text" name="referral_code" value="{{ referralCode|default('') }}"
+                               autocomplete="off" maxlength="32" class="k-input uppercase tracking-widest">
+                        <p class="text-xs k-muted">{{ t('auth.referral_code_help') }}</p>
+                    </div>
+                {% endif %}
+
+                {% if error %}
+                    <p class="k-flash-err !mb-0">{{ error }}</p>
+                {% endif %}
+
+                {% if captchaEnabled|default(false) %}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="captcha" class="text-sm text-[var(--k-muted)]">{{ t('auth.captcha') }}</label>
+                        <div class="flex items-center gap-3">
+                            <img src="/captcha.svg" alt="" width="160" height="48" class="rounded border border-[var(--k-border)]">
+                            <input id="captcha" type="text" name="captcha" required autocomplete="off" maxlength="5"
+                                   class="k-input w-full uppercase tracking-widest">
+                        </div>
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="k-btn k-btn-ember mt-1 w-full">{{ t('auth.submit_register') }}</button>
+            </form>
+
+            <p class="mt-5 text-center text-sm k-muted">
+                {{ t('auth.have_account') }}
+                <a href="/login">{{ t('auth.login_link') }}</a>
+            </p>
+        {% endif %}
+    </div>
+</div>

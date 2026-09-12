@@ -131,10 +131,6 @@ return static function (Application $app): void {
     $app->theme = $app->createThemeEngine($activeTheme, $app->settings->registrationEnabled(), false);
     $app->discord = new DiscordWebhookService($app->settings);
     $app->eventService = new EventService($app->events, $app->discord);
-    $app->theme->setGlobals([
-        'has_news' => $app->news->countPublished() > 0,
-        'discord_invite_url' => $app->settings->discordInviteUrl(),
-    ]);
     $app->adminTheme = $app->createThemeEngine('admin', true, true);
 
     $app->db = new Database();
@@ -147,6 +143,20 @@ return static function (Application $app): void {
         $app->itemStats,
     );
     $app->guilds = new GuildRepository($app->db);
+
+    $themeWindowMinutes = $app->settings->onlineWindowMinutes();
+    $themeDownloads = $app->downloads->listPublic();
+    $app->theme->setGlobals([
+        'has_news' => $app->news->countPublished() > 0,
+        'discord_invite_url' => $app->settings->discordInviteUrl(),
+        'theme_players_online' => $app->players->countActiveSinceMinutes($themeWindowMinutes),
+        'theme_accounts_online' => $app->players->countAccountsActiveSinceMinutes($themeWindowMinutes),
+        'theme_window_minutes' => $themeWindowMinutes,
+        'theme_top_players' => $app->players->listRanking(1, 10),
+        'theme_upcoming_events' => $app->events->upcomingPublished(4),
+        'theme_client_download' => $themeDownloads[0] ?? null,
+    ]);
+
     $app->gms = new GmRepository($app->db);
     $app->awards = new ItemAwardRepository($app->db);
     $app->shops = new ShopRepository($app->db);

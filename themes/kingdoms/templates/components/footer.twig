@@ -1,0 +1,9 @@
+<footer class="k-footer">
+    <p class="k-title !text-sm !tracking-[0.2em]">{{ t('app.name') }}</p>
+    <p class="mt-2 k-muted">{{ t('theme.kingdoms.footer_tagline') }}</p>
+    {% if discord_invite_url %}
+        <p class="mt-3">
+            <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer">{{ t('nav.discord') }}</a>
+        </p>
+    {% endif %}
+</footer>

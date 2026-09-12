@@ -1,0 +1,20 @@
+<div class="k-panel">
+    <div class="k-panel-head">{{ t('theme.kingdoms.events_title') }}</div>
+    <div class="p-3">
+        {% if theme_upcoming_events is empty %}
+            <p class="text-xs k-muted">{{ t('events.empty') }}</p>
+        {% else %}
+            <ul class="space-y-3">
+                {% for event in theme_upcoming_events %}
+                    <li>
+                        <a href="/events/{{ event.id }}" class="block !no-underline">
+                            <span class="k-title !text-xs !tracking-wide block">{{ event.title }}</span>
+                            <span class="text-[0.65rem] k-muted">{{ t('events.starts', {date: event.starts_at|game_date}) }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="/events" class="k-btn k-btn-ghost mt-3 w-full text-[0.65rem]">{{ t('home.events_all') }}</a>
+        {% endif %}
+    </div>
+</div>

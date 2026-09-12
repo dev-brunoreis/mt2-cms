@@ -1,0 +1,26 @@
+<div class="k-panel">
+    <div class="k-panel-head">{{ t('theme.kingdoms.ranking_title') }}</div>
+    <div class="p-3">
+        {% if theme_top_players is empty %}
+            <p class="text-xs k-muted">{{ t('ranking.empty') }}</p>
+        {% else %}
+            <ol class="list-none">
+                {% for row in theme_top_players %}
+                    <li class="k-rank-row">
+                        <span class="k-rank-num {% if loop.index <= 3 %}k-top{% endif %}">{{ loop.index }}</span>
+                        {% include 'components/face-icon.twig' with { job: row.job } %}
+                        <div class="min-w-0 flex-1">
+                            <a href="/player/{{ row.name|url_encode }}" class="block truncate text-sm font-medium !no-underline text-[var(--k-text)] hover:!text-[var(--k-bronze)]">
+                                {{ row.name }}
+                            </a>
+                            <p class="truncate text-[0.65rem] k-muted">
+                                {{ row.job|job_name(row.skill_group) }} · Lv {{ row.level }}
+                            </p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+            <a href="/ranking" class="k-btn k-btn-ghost mt-3 w-full text-[0.65rem]">{{ t('home.view_ranking') }}</a>
+        {% endif %}
+    </div>
+</div>

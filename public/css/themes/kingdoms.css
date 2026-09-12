@@ -1,0 +1,500 @@
+/* Kingdoms — Metin2-style public chrome (self-hosted fonts) */
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cinzel-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cinzel-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/cinzel-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/cinzel-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/source-serif-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/source-serif-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/source-serif-ext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/source-serif-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.theme-kingdoms {
+  --k-bg: #0c0a08;
+  --k-bg-panel: #14110d;
+  --k-bg-raised: #1a1611;
+  --k-bronze: #c4a35a;
+  --k-bronze-dim: #8a7340;
+  --k-ember: #b33a2b;
+  --k-ember-hot: #d4503f;
+  --k-crimson: #8b1e2d;
+  --k-cobalt: #2a4a7a;
+  --k-text: #e8dfc8;
+  --k-muted: #9a8f78;
+  --k-border: #3d3426;
+  --k-border-bright: #5c4d35;
+  color: var(--k-text);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  background-color: var(--k-bg);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(179, 58, 43, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 10% 90%, rgba(42, 74, 122, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(139, 30, 45, 0.1), transparent 45%),
+    linear-gradient(180deg, #12100c 0%, var(--k-bg) 40%, #080706 100%);
+  background-attachment: fixed;
+}
+
+.theme-kingdoms h1,
+.theme-kingdoms h2,
+.theme-kingdoms h3,
+.theme-kingdoms .k-title {
+  font-family: "Cinzel", "Palatino Linotype", Palatino, serif;
+  letter-spacing: 0.04em;
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms a {
+  color: var(--k-bronze);
+  transition: color 0.15s ease;
+}
+
+.theme-kingdoms a:hover {
+  color: #e0c878;
+}
+
+.theme-kingdoms .k-realm-stripe {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--k-crimson) 0%,
+    var(--k-crimson) 33.33%,
+    var(--k-bronze) 33.33%,
+    var(--k-bronze) 66.66%,
+    var(--k-cobalt) 66.66%,
+    var(--k-cobalt) 100%
+  );
+  box-shadow: 0 0 12px rgba(196, 163, 90, 0.35);
+}
+
+.theme-kingdoms .k-panel {
+  background: linear-gradient(165deg, var(--k-bg-raised) 0%, var(--k-bg-panel) 100%);
+  border: 1px solid var(--k-border);
+  box-shadow:
+    inset 0 1px 0 rgba(196, 163, 90, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+}
+
+.theme-kingdoms .k-panel-head {
+  border-bottom: 1px solid var(--k-border);
+  padding: 0.65rem 0.9rem;
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-bronze);
+  background: linear-gradient(90deg, rgba(196, 163, 90, 0.12), transparent 70%);
+}
+
+.theme-kingdoms .k-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1.1rem;
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1208;
+  background: linear-gradient(180deg, #e0c878 0%, var(--k-bronze) 45%, var(--k-bronze-dim) 100%);
+  border: 1px solid #a8893f;
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.theme-kingdoms .k-btn:hover {
+  filter: brightness(1.08);
+  color: #1a1208;
+}
+
+.theme-kingdoms .k-btn-ember {
+  color: #f5e6d8;
+  background: linear-gradient(180deg, var(--k-ember-hot) 0%, var(--k-ember) 50%, #7a281e 100%);
+  border-color: #8a2e22;
+}
+
+.theme-kingdoms .k-btn-ghost {
+  color: var(--k-bronze);
+  background: transparent;
+  border: 1px solid var(--k-border-bright);
+  box-shadow: none;
+}
+
+.theme-kingdoms .k-btn-ghost:hover {
+  color: #e0c878;
+  border-color: var(--k-bronze);
+  background: rgba(196, 163, 90, 0.08);
+}
+
+.theme-kingdoms .k-input,
+.theme-kingdoms input[type="text"],
+.theme-kingdoms input[type="password"],
+.theme-kingdoms input[type="email"],
+.theme-kingdoms input[type="search"],
+.theme-kingdoms textarea,
+.theme-kingdoms select {
+  background: #0a0806;
+  border: 1px solid var(--k-border);
+  color: var(--k-text);
+  border-radius: 2px;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+}
+
+.theme-kingdoms .k-input:focus,
+.theme-kingdoms input:focus,
+.theme-kingdoms textarea:focus,
+.theme-kingdoms select:focus {
+  border-color: var(--k-bronze-dim);
+  box-shadow: 0 0 0 2px rgba(196, 163, 90, 0.2);
+}
+
+.theme-kingdoms .k-nav {
+  background: linear-gradient(180deg, #1c1712 0%, #120f0c 100%);
+  border-bottom: 1px solid var(--k-border);
+}
+
+.theme-kingdoms .k-nav a {
+  color: var(--k-muted);
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.5rem;
+}
+
+.theme-kingdoms .k-nav a:hover,
+.theme-kingdoms .k-nav a.k-nav-active {
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms .k-brand {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--k-bronze);
+  text-shadow: 0 0 18px rgba(196, 163, 90, 0.35);
+}
+
+.theme-kingdoms .k-layout {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 960px) {
+  .theme-kingdoms .k-layout {
+    grid-template-columns: 260px minmax(0, 1fr) 280px;
+    align-items: start;
+  }
+}
+
+.theme-kingdoms .k-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.theme-kingdoms .k-main-surface {
+  min-width: 0;
+}
+
+.theme-kingdoms .k-flash-ok {
+  border: 1px solid #3d6b4a;
+  background: rgba(30, 80, 50, 0.35);
+  color: #b8e0c0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 2px;
+  font-size: 0.875rem;
+}
+
+.theme-kingdoms .k-flash-err {
+  border: 1px solid #7a3030;
+  background: rgba(100, 30, 30, 0.4);
+  color: #f0c0b8;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 2px;
+  font-size: 0.875rem;
+}
+
+.theme-kingdoms .k-news-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--k-border);
+  align-items: baseline;
+}
+
+.theme-kingdoms .k-news-row:last-child {
+  border-bottom: none;
+}
+
+.theme-kingdoms .k-news-date {
+  font-family: "Cinzel", serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--k-bronze-dim);
+  text-transform: uppercase;
+}
+
+.theme-kingdoms .k-news-title {
+  font-family: "Cinzel", serif;
+  font-size: 0.95rem;
+  color: var(--k-text);
+  text-decoration: none;
+}
+
+.theme-kingdoms .k-news-title:hover {
+  color: var(--k-bronze);
+}
+
+.theme-kingdoms .k-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(61, 52, 38, 0.6);
+  font-size: 0.85rem;
+}
+
+.theme-kingdoms .k-rank-row:last-child {
+  border-bottom: none;
+}
+
+.theme-kingdoms .k-rank-num {
+  font-family: "Cinzel", serif;
+  width: 1.4rem;
+  color: var(--k-bronze-dim);
+  font-size: 0.75rem;
+}
+
+.theme-kingdoms .k-rank-num.k-top {
+  color: var(--k-bronze);
+  font-weight: 700;
+}
+
+.theme-kingdoms .k-rank-row img,
+.theme-kingdoms .k-face-sm img {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.theme-kingdoms .k-online-pulse {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+  animation: k-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes k-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.theme-kingdoms .k-footer {
+  border-top: 1px solid var(--k-border);
+  background: #0a0806;
+  color: var(--k-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1.25rem 1rem;
+}
+
+.theme-kingdoms .k-muted {
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.theme-kingdoms .k-table th {
+  font-family: "Cinzel", serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k-bronze-dim);
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--k-border);
+}
+
+.theme-kingdoms .k-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(61, 52, 38, 0.5);
+  color: var(--k-text);
+}
+
+.theme-kingdoms .k-table tr:hover td {
+  background: rgba(196, 163, 90, 0.05);
+}
+
+.theme-kingdoms .k-tabs a {
+  font-family: "Cinzel", serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  color: var(--k-muted);
+}
+
+.theme-kingdoms .k-tabs a.k-tab-active {
+  color: var(--k-bronze);
+  border-color: var(--k-border-bright);
+  background: rgba(196, 163, 90, 0.1);
+}
+
+.theme-kingdoms .news-body {
+  color: var(--k-text);
+  line-height: 1.7;
+}
+
+.theme-kingdoms .news-body a {
+  color: var(--k-bronze);
+  text-decoration: underline;
+}
+
+.theme-kingdoms .news-body h2,
+.theme-kingdoms .news-body h3,
+.theme-kingdoms .news-body h4 {
+  color: var(--k-bronze);
+  margin-top: 1.25rem;
+}
+
+/* Soften default Tailwind light cards when left unstyled inside chrome */
+.theme-kingdoms main .rounded-xl.border.border-slate-200,
+.theme-kingdoms main .rounded-2xl.border.border-slate-200,
+.theme-kingdoms main .rounded-lg.border.border-slate-200,
+.theme-kingdoms main .rounded-xl.border.border-slate-300,
+.theme-kingdoms main .bg-white {
+  background: var(--k-bg-panel) !important;
+  border-color: var(--k-border) !important;
+  color: var(--k-text);
+  box-shadow: inset 0 1px 0 rgba(196, 163, 90, 0.08);
+}
+
+.theme-kingdoms main .text-slate-900,
+.theme-kingdoms main .text-slate-800,
+.theme-kingdoms main .text-slate-700 {
+  color: var(--k-text) !important;
+}
+
+.theme-kingdoms main .text-slate-600,
+.theme-kingdoms main .text-slate-500,
+.theme-kingdoms main .text-slate-400 {
+  color: var(--k-muted) !important;
+}
+
+.theme-kingdoms main .bg-indigo-600,
+.theme-kingdoms main .bg-indigo-500 {
+  background: linear-gradient(180deg, var(--k-ember-hot), var(--k-ember)) !important;
+}
+
+.theme-kingdoms main .text-indigo-600,
+.theme-kingdoms main .text-indigo-500,
+.theme-kingdoms main .text-indigo-700 {
+  color: var(--k-bronze) !important;
+}
+
+.theme-kingdoms main .border-slate-200,
+.theme-kingdoms main .border-slate-300,
+.theme-kingdoms main .divide-slate-100 > :not(:last-child) {
+  border-color: var(--k-border) !important;
+}
+
+.theme-kingdoms main .bg-slate-50,
+.theme-kingdoms main .bg-slate-100,
+.theme-kingdoms main .hover\:bg-slate-50:hover {
+  background: rgba(196, 163, 90, 0.06) !important;
+}
+
+.theme-kingdoms main input,
+.theme-kingdoms main textarea,
+.theme-kingdoms main select {
+  background: #0a0806 !important;
+  border-color: var(--k-border) !important;
+  color: var(--k-text) !important;
+}

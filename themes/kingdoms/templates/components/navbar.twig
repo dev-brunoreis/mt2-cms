@@ -1,0 +1,28 @@
+<header class="k-nav">
+    <nav class="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <a href="/" class="k-brand">{{ t('app.name') }}</a>
+
+        <div class="flex flex-wrap items-center gap-1 sm:gap-2">
+            {% include 'components/locale-switcher.twig' %}
+            <a href="/" class="{% if current_path == '/' %}k-nav-active{% endif %}">{{ t('nav.home') }}</a>
+            {% if has_news %}
+                <a href="/news" class="{% if current_path starts with '/news' %}k-nav-active{% endif %}">{{ t('nav.news') }}</a>
+            {% endif %}
+            {% if auth.check %}
+                <a href="/shop" class="{% if current_path starts with '/shop' %}k-nav-active{% endif %}">{{ t('nav.shop') }}</a>
+            {% endif %}
+            <a href="/ranking" class="{% if current_path starts with '/ranking' %}k-nav-active{% endif %}">{{ t('nav.ranking') }}</a>
+            <a href="/status" class="{% if current_path starts with '/status' %}k-nav-active{% endif %}">{{ t('nav.status') }}</a>
+            <a href="/downloads" class="{% if current_path starts with '/downloads' %}k-nav-active{% endif %}">{{ t('nav.downloads') }}</a>
+            <a href="/donate" class="{% if current_path starts with '/donate' %}k-nav-active{% endif %}">{{ t('nav.donate') }}</a>
+            {% if discord_invite_url %}
+                <a href="{{ discord_invite_url }}" target="_blank" rel="noopener noreferrer">{{ t('nav.discord') }}</a>
+            {% endif %}
+            {% if auth.check %}
+                <a href="/account" class="{% if current_path starts with '/account' %}k-nav-active{% endif %}">{{ t('nav.account') }}</a>
+            {% else %}
+                <a href="/register" class="k-btn k-btn-ember ml-1 !py-1.5 !px-3 text-[0.65rem]">{{ t('nav.register') }}</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>

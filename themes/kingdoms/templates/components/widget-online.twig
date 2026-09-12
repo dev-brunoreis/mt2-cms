@@ -1,0 +1,18 @@
+<div class="k-panel">
+    <div class="k-panel-head">{{ t('theme.kingdoms.online_title') }}</div>
+    <div class="space-y-2 p-3 text-sm">
+        <div class="flex items-center justify-between gap-2">
+            <span class="k-muted flex items-center gap-2">
+                <span class="k-online-pulse" aria-hidden="true"></span>
+                {{ t('status.players_online') }}
+            </span>
+            <strong class="text-[var(--k-bronze)]">{{ theme_players_online|default(0) }}</strong>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+            <span class="k-muted">{{ t('status.accounts_online') }}</span>
+            <strong class="text-[var(--k-text)]">{{ theme_accounts_online|default(0) }}</strong>
+        </div>
+        <p class="text-xs k-muted">{{ t('status.window_hint', {minutes: theme_window_minutes|default(15)}) }}</p>
+        <a href="/status" class="k-btn k-btn-ghost w-full text-[0.65rem]">{{ t('home.view_status') }}</a>
+    </div>
+</div>

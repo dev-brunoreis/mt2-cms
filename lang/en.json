@@ -35,6 +35,22 @@
     "events_lead": "Scheduled in-game and community events.",
     "events_all": "View all events"
   },
+  "theme": {
+    "kingdoms": {
+      "banner_kicker": "Three kingdoms · one battlefield",
+      "login_title": "Enter the realm",
+      "welcome": "Welcome, {login}",
+      "online_title": "Realm pulse",
+      "download_title": "Client",
+      "download_lead": "Install the client and join the fight.",
+      "download_client": "Download client",
+      "ranking_title": "Top warriors",
+      "events_title": "Upcoming events",
+      "discord_lead": "Recruit, trade, and call for wars.",
+      "discord_join": "Join Discord",
+      "footer_tagline": "May your blade stay sharp."
+    }
+  },
   "events": {
     "title": "Events",
     "lead": "Scheduled server and community events.",

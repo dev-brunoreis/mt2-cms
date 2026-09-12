@@ -40,4 +40,19 @@ final class CaptchaTest extends TestCase
 
         self::assertFalse($captcha->verify('WRONG'));
     }
+
+    public function testSvgReusesUnexpiredChallenge(): void
+    {
+        $captcha = new Captcha('public');
+        $first = $captcha->svg();
+        $second = $captcha->svg();
+
+        self::assertSame($first, $second);
+
+        preg_match_all('/>([23456789ABCDEFGHJKLMNPQRSTUVWXYZ])</', $first, $matches);
+        $code = implode('', $matches[1] ?? []);
+
+        self::assertTrue($captcha->verify($code));
+        self::assertNotSame($first, $captcha->svg());
+    }
 }

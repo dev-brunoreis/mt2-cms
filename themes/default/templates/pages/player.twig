@@ -12,10 +12,27 @@
                 <span class="mx-2">/</span>
                 {{ player.name }}
             </p>
-            <h1 class="mb-6 flex items-center gap-3 text-3xl font-bold text-slate-900">
-                {% include 'components/face-icon.twig' with { job: player.job } %}
-                <span>{{ player.name }}</span>
-            </h1>
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h1 class="flex items-center gap-3 text-3xl font-bold text-slate-900">
+                    {% include 'components/face-icon.twig' with { job: player.job } %}
+                    <span>{{ player.name }}</span>
+                </h1>
+                {% if unstuckAvailable|default(false) %}
+                    {% set state = unstuckState|default(null) %}
+                    {% if state and state.offline and state.cooldown_seconds == 0 %}
+                        <form method="post" action="/account/characters/unstuck">
+                            <input type="hidden" name="_csrf" value="{{ csrf }}">
+                            <input type="hidden" name="player_id" value="{{ player.id }}">
+                            <input type="hidden" name="return_to" value="player">
+                            <button type="submit" class="k-btn">{{ t('unstuck.button') }}</button>
+                        </form>
+                    {% elseif state and not state.offline %}
+                        <p class="text-sm text-amber-700">{{ t('unstuck.player_online', {minutes: onlineWindowMinutes}) }}</p>
+                    {% elseif state and state.cooldown_seconds > 0 %}
+                        <p class="text-sm text-slate-500">{{ t('unstuck.cooldown_active') }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
 
             <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">

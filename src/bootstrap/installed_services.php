@@ -163,6 +163,7 @@ return static function (Application $app): void {
     $themeDownloads = $app->downloads->listPublic();
     $app->theme->setGlobals([
         'has_news' => $app->news->countPublished() > 0,
+        'captchaEnabled' => $app->settings->captchaPublicEnabled(),
         'discord_invite_url' => $app->settings->discordInviteUrl(),
         'theme_players_online' => $app->players->countActiveSinceMinutes($themeWindowMinutes),
         'theme_accounts_online' => $app->players->countAccountsActiveSinceMinutes($themeWindowMinutes),

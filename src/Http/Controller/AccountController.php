@@ -125,7 +125,7 @@ class AccountController extends Controller
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/account/characters');
+            return $this->redirect($this->unstuckRedirect((int) ($_POST['player_id'] ?? 0), $this->auth->id()));
         }
 
         $accountId = $this->auth->id();
@@ -135,16 +135,15 @@ class AccountController extends Controller
         }
 
         $bucket = 'account-unstuck:' . $accountId;
+        $playerId = (int) ($_POST['player_id'] ?? 0);
 
         if ($this->rateLimiter->tooManyAttempts($bucket)) {
             $this->flash('error', $this->t('unstuck.rate_limited'));
 
-            return $this->redirect('/account/characters');
+            return $this->redirect($this->unstuckRedirect($playerId, $accountId));
         }
 
         $this->rateLimiter->hit($bucket);
-
-        $playerId = (int) ($_POST['player_id'] ?? 0);
 
         try {
             $this->unstuck->unstuck($playerId, $accountId);
@@ -156,7 +155,28 @@ class AccountController extends Controller
             $this->flash('error', $this->t($e->getMessage()));
         }
 
-        return $this->redirect('/account/characters');
+        return $this->redirect($this->unstuckRedirect($playerId, $accountId));
+    }
+
+    private function unstuckRedirect(int $playerId, ?int $accountId): string
+    {
+        if (($_POST['return_to'] ?? '') !== 'player' || $playerId < 1 || $accountId === null) {
+            return '/account/characters';
+        }
+
+        $player = $this->players->findById($playerId);
+
+        if ($player === null || (int) ($player['account_id'] ?? 0) !== $accountId) {
+            return '/account/characters';
+        }
+
+        $name = (string) ($player['name'] ?? '');
+
+        if ($name === '') {
+            return '/account/characters';
+        }
+
+        return '/player/' . rawurlencode($name);
     }
 
     public function showPassword(): Response

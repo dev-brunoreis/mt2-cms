@@ -21,6 +21,14 @@
                 <label class="sr-only" for="k-side-pass">{{ t('auth.password') }}</label>
                 <input id="k-side-pass" type="password" name="password" required autocomplete="current-password"
                        placeholder="{{ t('auth.password') }}" class="k-input w-full text-sm">
+                {% if captchaEnabled|default(false) %}
+                    <label class="sr-only" for="k-side-captcha">{{ t('auth.captcha') }}</label>
+                    <img src="/captcha.svg" alt="" width="160" height="48"
+                         class="w-full rounded border border-[var(--k-border)]">
+                    <input id="k-side-captcha" type="text" name="captcha" required autocomplete="off" maxlength="5"
+                           placeholder="{{ t('auth.captcha') }}"
+                           class="k-input w-full text-sm uppercase tracking-widest">
+                {% endif %}
                 <button type="submit" class="k-btn w-full">{{ t('auth.submit_login') }}</button>
             </form>
             <p class="mt-3 text-center text-xs k-muted">

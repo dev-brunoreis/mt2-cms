@@ -55,7 +55,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->players, $app->guilds,
     ),
     \Mt2Cms\Http\Controller\PlayerController::class => static fn ($app) => new \Mt2Cms\Http\Controller\PlayerController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->players,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->players, $app->unstuckService, $app->settings,
     ),
     \Mt2Cms\Http\Controller\GameIconController::class => static fn ($app) => new \Mt2Cms\Http\Controller\GameIconController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->icons,

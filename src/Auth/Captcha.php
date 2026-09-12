@@ -19,14 +19,28 @@ final class Captcha
 
     public function svg(): string
     {
+        $key = $this->sessionKey();
+        $stored = $_SESSION[$key] ?? null;
+
+        if (is_array($stored)) {
+            $expires = (int) ($stored['expires'] ?? 0);
+            $svg = (string) ($stored['svg'] ?? '');
+
+            if ($expires >= time() && $svg !== '') {
+                return $svg;
+            }
+        }
+
         $code = $this->generateCode();
         $expires = time() + self::TTL_SECONDS;
-        $_SESSION[$this->sessionKey()] = [
+        $svg = $this->renderSvg($code);
+        $_SESSION[$key] = [
             'hash' => $this->hashAnswer(strtolower($code), $expires),
             'expires' => $expires,
+            'svg' => $svg,
         ];
 
-        return $this->renderSvg($code);
+        return $svg;
     }
 
     public function verify(?string $answer): bool

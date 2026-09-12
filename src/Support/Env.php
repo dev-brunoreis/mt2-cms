@@ -33,12 +33,12 @@ class Env
 
     public function get(string $key, $default = null)
     {
-        if (array_key_exists($key, $this->values)) {
-            return $this->values[$key];
-        }
-
         if (array_key_exists($key, $_ENV)) {
             return $_ENV[$key];
+        }
+
+        if (array_key_exists($key, $this->values)) {
+            return $this->values[$key];
         }
 
         return $default;

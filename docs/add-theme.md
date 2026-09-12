@@ -20,7 +20,7 @@ themes/my-theme/
 }
 ```
 
-See `themes/overlay-demo/` for a minimal navbar-only override.
+See [README Themes](../README.md#themes) and create a minimal child as above (override only the Twig paths you need).
 
 ## 2. Override a Twig template
 

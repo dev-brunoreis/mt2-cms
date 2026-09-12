@@ -142,18 +142,9 @@ Register routes in the route list, not by editing a 300-line `addRoute` block. M
 
 Form helpers: [`FormInput`](../src/Http/FormInput.php) (`string()`, `int()`, `postArray()`). Prefer over raw `$_POST` in new code.
 
-### Mass-action dispatcher
+### ~~Mass-action dispatcher~~ — done
 
-Seven `mass()` methods are the same shape: CSRF, ids, `match`, flash, redirect. Collapse to something like:
-
-```php
-return $this->runMassActions($spec, [
-    'block' => fn (int $id) => $this->accounts->block($id),
-    'delete' => fn (int $id) => $this->accounts->delete($id),
-]);
-```
-
-Action whitelist comes from the spec.
+Admin list mass POSTs use [`AdminController::runMassActions()`](../src/Http/Controller/Admin/AdminController.php): CSRF, ID parsing, handler map, audit, flash. Action ids must match the grid spec (`GridSpec::allowsMassAction()`).
 
 ### Detail pages are a second UI
 

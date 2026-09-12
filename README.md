@@ -31,8 +31,8 @@ src/
   Support/                Env, PDO Database, crypto, sanitizer
   Repository/             account / player / common / log / CMS tables
 themes/
-  default/                Base theme (layouts + Twig atoms)
-  overlay-demo/           Example child theme (navbar override)
+  default/                Base public theme (layouts + Twig atoms)
+  admin/                  Admin panel theme
 lang/                     Locale JSON (`en`, `pt-BR`, …)
 docs/                     How-to guides for new features
 ```
@@ -78,7 +78,7 @@ Themes live under `themes/{name}/`:
 - `layouts/*.json` — recursive atomic layout trees (`id`, `template`, `slots`)
 - `templates/` — Twig atoms; child theme paths win over parents
 
-Example child theme `overlay-demo` only overrides `components/navbar.twig`. Set `THEME=overlay-demo` to try it.
+Example: add a child theme under `themes/{name}/` with `theme.json` `{ "name", "parent": "default" }` and override only the Twig paths you need (e.g. `templates/components/navbar.twig`). Set `THEME={name}` to try it. See [docs/add-theme.md](docs/add-theme.md).
 
 Layout merge is deep **by node `id`**, so a child can replace only the navbar without copying the full layout.
 

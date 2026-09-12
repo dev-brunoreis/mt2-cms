@@ -1,49 +1,21 @@
-<section>
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-12">
-        <div class="relative">
-            <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-100/80 blur-2xl"></div>
+<section class="space-y-6">
+    <div class="k-panel overflow-hidden">
+        <div class="relative px-5 py-8 sm:px-8 sm:py-10">
+            <div class="pointer-events-none absolute inset-0 opacity-40"
+                 style="background: radial-gradient(ellipse at 80% 20%, rgba(179,58,43,0.25), transparent 55%), radial-gradient(ellipse at 10% 80%, rgba(42,74,122,0.2), transparent 50%);"></div>
             <div class="relative">
-                <h1 class="mb-3 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-                    {{ t('home.title') }}
-                </h1>
-                <p class="mb-6 max-w-xl text-slate-600">
-                    {{ t('home.lead') }}
+                <p class="mb-2 font-[Cinzel] text-[0.65rem] uppercase tracking-[0.25em] text-[var(--k-bronze-dim)]">
+                    {{ t('theme.kingdoms.banner_kicker') }}
                 </p>
-
-                <div class="mb-8 flex flex-wrap items-center gap-4 rounded-xl border border-indigo-100 bg-indigo-50/80 px-5 py-4 text-sm">
-                    <div>
-                        <span class="text-indigo-700">{{ t('status.players_online') }}:</span>
-                        <span class="ml-1 font-semibold text-indigo-900">{{ playersOnline }}</span>
-                    </div>
-                    <div>
-                        <span class="text-indigo-700">{{ t('status.accounts_online') }}:</span>
-                        <span class="ml-1 font-semibold text-indigo-900">{{ accountsOnline }}</span>
-                    </div>
-                    <span class="text-indigo-600/70">{{ t('status.window_hint', {minutes: windowMinutes}) }}</span>
-                    <a href="/status" class="font-medium text-indigo-600 hover:underline">{{ t('home.view_status') }}</a>
-                </div>
-
-                <div class="flex flex-wrap gap-3">
-                    <a href="/ranking"
-                       class="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
-                        {{ t('home.view_ranking') }}
-                    </a>
+                <h1 class="k-title mb-3 text-3xl sm:text-4xl">{{ t('home.title') }}</h1>
+                <p class="mb-6 max-w-xl text-sm leading-relaxed k-muted">{{ t('home.lead') }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <a href="/ranking" class="k-btn">{{ t('home.view_ranking') }}</a>
                     {% if posts is not empty %}
-                        <a href="/news"
-                           class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
-                            {{ t('home.view_news') }}
-                        </a>
+                        <a href="/news" class="k-btn k-btn-ghost">{{ t('home.view_news') }}</a>
                     {% endif %}
                     {% if not auth.check %}
-                        <a href="/register"
-                           class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
-                            {{ t('home.create_account') }}
-                        </a>
-                    {% else %}
-                        <a href="/account"
-                           class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition">
-                            {{ t('nav.account') }}
-                        </a>
+                        <a href="/register" class="k-btn k-btn-ember">{{ t('home.create_account') }}</a>
                     {% endif %}
                 </div>
             </div>
@@ -51,71 +23,40 @@
     </div>
 
     {% if posts is not empty %}
-        <div class="mt-10">
-            <div class="mb-4 flex items-end justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-semibold text-slate-900">{{ t('home.news_title') }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">{{ t('home.news_lead') }}</p>
-                </div>
-                <a href="/news" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">{{ t('home.news_all') }}</a>
+        <div class="k-panel">
+            <div class="k-panel-head flex items-center justify-between gap-3">
+                <span>{{ t('home.news_title') }}</span>
+                <a href="/news" class="!text-[0.65rem] !normal-case !tracking-normal font-normal">{{ t('home.news_all') }}</a>
             </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="px-4 py-1">
                 {% for post in posts %}
-                    <a href="/news/{{ post.id }}"
-                       class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-200 hover:shadow-md">
-                        {% if post.cover_image %}
-                            <div class="aspect-[16/7] overflow-hidden bg-slate-100">
-                                <img src="{{ post.cover_image }}" alt=""
-                                     class="h-full w-full object-cover transition group-hover:scale-[1.02]">
-                            </div>
-                        {% endif %}
-                        <div class="p-5">
-                            <h3 class="text-lg font-semibold text-slate-900 group-hover:text-indigo-600">
-                                {{ post.title }}
-                            </h3>
-                            <p class="mt-2 line-clamp-3 text-sm text-slate-600">
-                                {{ post.body|news_excerpt(140) }}
-                            </p>
-                            <p class="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                                <span>{{ post.author_login }}</span>
-                                <span>{{ (post.published_at|default(post.created_at))|game_date }}</span>
-                                <span>{{ t('news.views', {count: post.views}) }}</span>
-                            </p>
+                    <div class="k-news-row">
+                        <time class="k-news-date">{{ (post.published_at|default(post.created_at))|game_date }}</time>
+                        <div>
+                            <a href="/news/{{ post.id }}" class="k-news-title">{{ post.title }}</a>
+                            <p class="mt-1 line-clamp-2 text-xs k-muted">{{ post.body|news_excerpt(120) }}</p>
                         </div>
-                    </a>
+                    </div>
                 {% endfor %}
             </div>
         </div>
     {% endif %}
 
     {% if events is not empty %}
-        <div class="mt-10">
-            <div class="mb-4 flex items-end justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-semibold text-slate-900">{{ t('home.events_title') }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">{{ t('home.events_lead') }}</p>
-                </div>
-                <a href="/events" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">{{ t('home.events_all') }}</a>
+        <div class="k-panel">
+            <div class="k-panel-head flex items-center justify-between gap-3">
+                <span>{{ t('home.events_title') }}</span>
+                <a href="/events" class="!text-[0.65rem] !normal-case !tracking-normal font-normal">{{ t('home.events_all') }}</a>
             </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="px-4 py-1">
                 {% for event in events %}
-                    <a href="/events/{{ event.id }}"
-                       class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
-                        <h3 class="text-lg font-semibold text-slate-900 group-hover:text-indigo-600">
-                            {{ event.title }}
-                        </h3>
-                        <p class="mt-2 line-clamp-3 text-sm text-slate-600">
-                            {{ event.body|news_excerpt(140) }}
-                        </p>
-                        <p class="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                            <span>{{ t('events.starts', {date: event.starts_at|game_date}) }}</span>
-                            {% if event.ends_at %}
-                                <span>{{ t('events.ends', {date: event.ends_at|game_date}) }}</span>
-                            {% endif %}
-                        </p>
-                    </a>
+                    <div class="k-news-row">
+                        <time class="k-news-date">{{ event.starts_at|game_date }}</time>
+                        <div>
+                            <a href="/events/{{ event.id }}" class="k-news-title">{{ event.title }}</a>
+                            <p class="mt-1 line-clamp-2 text-xs k-muted">{{ event.body|news_excerpt(100) }}</p>
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
         </div>

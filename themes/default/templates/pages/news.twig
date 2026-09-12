@@ -1,59 +1,48 @@
-<section class="space-y-6">
+<section class="space-y-5">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">{{ t('news.title') }}</h1>
-            <p class="mt-1 text-slate-500">{{ t('news.lead') }}</p>
+            <h1 class="k-title text-2xl">{{ t('news.title') }}</h1>
+            <p class="mt-1 text-sm k-muted">{{ t('news.lead') }}</p>
         </div>
         <form method="get" action="/news" class="flex gap-2">
             <input type="search" name="q" value="{{ query }}" placeholder="{{ t('news.search_placeholder') }}"
-                   class="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
-            <button type="submit"
-                    class="cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
-                {{ t('news.search') }}
-            </button>
+                   class="k-input text-sm">
+            <button type="submit" class="k-btn">{{ t('news.search') }}</button>
         </form>
     </div>
 
-    {% if posts is empty %}
-        <p class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-            {{ t('news.empty') }}
-        </p>
-    {% else %}
-        <div class="space-y-4">
-            {% for post in posts %}
-                <a href="/news/{{ post.id }}"
-                   class="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-200 hover:shadow-md sm:flex-row">
-                    {% if post.cover_image %}
-                        <div class="h-40 w-full shrink-0 bg-slate-100 sm:h-auto sm:w-56">
-                            <img src="{{ post.cover_image }}" alt="" class="h-full w-full object-cover">
+    <div class="k-panel">
+        {% if posts is empty %}
+            <p class="p-8 text-center text-sm k-muted">{{ t('news.empty') }}</p>
+        {% else %}
+            <div class="px-4 py-1">
+                {% for post in posts %}
+                    <a href="/news/{{ post.id }}" class="k-news-row !no-underline hover:bg-[rgba(196,163,90,0.04)]">
+                        <time class="k-news-date">{{ (post.published_at|default(post.created_at))|game_date }}</time>
+                        <div>
+                            <span class="k-news-title">{{ post.title }}</span>
+                            <p class="mt-1 line-clamp-2 text-xs k-muted">{{ post.body|news_excerpt(160) }}</p>
+                            <p class="mt-2 flex flex-wrap gap-x-3 text-[0.65rem] k-muted">
+                                <span>{{ post.author_login }}</span>
+                                <span>{{ t('news.views', {count: post.views}) }}</span>
+                            </p>
                         </div>
-                    {% endif %}
-                    <div class="flex flex-1 flex-col p-5">
-                        <h2 class="text-lg font-semibold text-slate-900">{{ post.title }}</h2>
-                        <p class="mt-2 flex-1 text-sm text-slate-600">{{ post.body|news_excerpt(180) }}</p>
-                        <p class="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                            <span>{{ post.author_login }}</span>
-                            <span>{{ (post.published_at|default(post.created_at))|game_date }}</span>
-                            <span>{{ t('news.views', {count: post.views}) }}</span>
-                        </p>
-                    </div>
-                </a>
-            {% endfor %}
-        </div>
-    {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
 
     {% if totalPages > 1 %}
         <nav class="flex items-center justify-center gap-2 text-sm">
             {% if page > 1 %}
-                <a href="/news?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
-                   class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50">
+                <a href="/news?page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}" class="k-btn k-btn-ghost">
                     {{ t('news.previous') }}
                 </a>
             {% endif %}
-            <span class="px-2 text-slate-500">{{ t('news.page_of', {page: page, total: totalPages}) }}</span>
+            <span class="px-2 k-muted">{{ t('news.page_of', {page: page, total: totalPages}) }}</span>
             {% if page < totalPages %}
-                <a href="/news?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
-                   class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50">
+                <a href="/news?page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}" class="k-btn k-btn-ghost">
                     {{ t('news.next') }}
                 </a>
             {% endif %}

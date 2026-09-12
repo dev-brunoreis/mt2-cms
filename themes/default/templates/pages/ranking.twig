@@ -1,8 +1,8 @@
-<section class="space-y-6">
+<section class="space-y-5">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">{{ t('ranking.title') }}</h1>
-            <p class="mt-1 text-sm text-slate-500">
+            <h1 class="k-title text-2xl">{{ t('ranking.title') }}</h1>
+            <p class="mt-1 text-sm k-muted">
                 {{ t('ranking.player_count', {count: total}) }}
                 {% if query %} {{ t('ranking.matching', {query: query}) }}{% endif %}
             </p>
@@ -12,121 +12,101 @@
             <form method="get" action="/ranking" class="flex gap-2">
                 <input type="hidden" name="tab" value="{{ tab }}">
                 <input type="search" name="q" value="{{ query }}" placeholder="{{ t('ranking.search_placeholder') }}"
-                       class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
-                <button type="submit"
-                        class="cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
-                    {{ t('ranking.search') }}
-                </button>
+                       class="k-input text-sm">
+                <button type="submit" class="k-btn">{{ t('ranking.search') }}</button>
             </form>
         {% endif %}
     </div>
 
-    <nav class="flex flex-wrap gap-2 border-b border-slate-200 pb-3 text-sm">
+    <nav class="k-tabs flex flex-wrap gap-1 border-b border-[var(--k-border)] pb-3">
         <a href="/ranking?tab=level{% if query %}&q={{ query|url_encode }}{% endif %}"
-           class="rounded-lg px-3 py-1.5 font-medium transition
-           {% if tab == 'level' %}bg-indigo-600 text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-            {{ t('ranking.tab_level') }}
-        </a>
+           class="{% if tab == 'level' %}k-tab-active{% endif %}">{{ t('ranking.tab_level') }}</a>
         <a href="/ranking?tab=playtime{% if query %}&q={{ query|url_encode }}{% endif %}"
-           class="rounded-lg px-3 py-1.5 font-medium transition
-           {% if tab == 'playtime' %}bg-indigo-600 text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-            {{ t('ranking.tab_playtime') }}
-        </a>
+           class="{% if tab == 'playtime' %}k-tab-active{% endif %}">{{ t('ranking.tab_playtime') }}</a>
         <a href="/ranking?tab=guilds"
-           class="rounded-lg px-3 py-1.5 font-medium transition
-           {% if tab == 'guilds' %}bg-indigo-600 text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-            {{ t('ranking.tab_guilds') }}
-        </a>
+           class="{% if tab == 'guilds' %}k-tab-active{% endif %}">{{ t('ranking.tab_guilds') }}</a>
     </nav>
 
-    {% if ranking is empty %}
-        <p class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-            {{ t('ranking.empty') }}
-        </p>
-    {% else %}
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-slate-500">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">{{ t('ranking.rank') }}</th>
-                        {% if tab == 'guilds' %}
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.guild_name') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.level') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.ladder_point') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.win') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.draw') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.loss') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.members') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.master') }}</th>
-                        {% else %}
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.name') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.job') }}</th>
-                            <th class="px-4 py-3 font-medium">{{ t('ranking.level') }}</th>
-                            {% if tab == 'playtime' %}
-                                <th class="px-4 py-3 font-medium">{{ t('ranking.playtime') }}</th>
-                            {% else %}
-                                <th class="px-4 py-3 font-medium">{{ t('ranking.exp') }}</th>
-                                <th class="px-4 py-3 font-medium">{{ t('ranking.playtime') }}</th>
-                            {% endif %}
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for row in ranking %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-4 py-3 text-slate-400">{{ offset + loop.index }}</td>
+    <div class="k-panel overflow-hidden">
+        {% if ranking is empty %}
+            <p class="p-8 text-center text-sm k-muted">{{ t('ranking.empty') }}</p>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="k-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t('ranking.rank') }}</th>
                             {% if tab == 'guilds' %}
-                                <td class="px-4 py-3 font-medium text-slate-900">{{ row.name }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.level }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.ladder_point }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.win }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.draw }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.loss }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.member_count }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.master_name|default('—') }}</td>
+                                <th>{{ t('ranking.guild_name') }}</th>
+                                <th>{{ t('ranking.level') }}</th>
+                                <th>{{ t('ranking.ladder_point') }}</th>
+                                <th>{{ t('ranking.win') }}</th>
+                                <th>{{ t('ranking.draw') }}</th>
+                                <th>{{ t('ranking.loss') }}</th>
+                                <th>{{ t('ranking.members') }}</th>
+                                <th>{{ t('ranking.master') }}</th>
                             {% else %}
-                                <td class="px-4 py-3">
-                                    <a href="/player/{{ row.name|url_encode }}"
-                                       class="inline-flex items-center gap-2 font-medium text-indigo-600 hover:underline">
-                                        {% include 'components/face-icon.twig' with { job: row.job } %}
-                                        <span>{{ row.name }}</span>
-                                    </a>
-                                </td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.job|job_name(row.skill_group) }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ row.level }}</td>
+                                <th>{{ t('ranking.name') }}</th>
+                                <th>{{ t('ranking.job') }}</th>
+                                <th>{{ t('ranking.level') }}</th>
                                 {% if tab == 'playtime' %}
-                                    <td class="px-4 py-3 text-slate-600">{{ row.playtime|playtime }}</td>
+                                    <th>{{ t('ranking.playtime') }}</th>
                                 {% else %}
-                                    <td class="px-4 py-3 text-slate-600">{{ row.exp }}</td>
-                                    <td class="px-4 py-3 text-slate-600">{{ row.playtime|playtime }}</td>
+                                    <th>{{ t('ranking.exp') }}</th>
+                                    <th>{{ t('ranking.playtime') }}</th>
                                 {% endif %}
                             {% endif %}
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        {% if totalPages > 1 %}
-            <nav class="flex items-center justify-center gap-2 text-sm">
-                {% if page > 1 %}
-                    <a href="/ranking?tab={{ tab|url_encode }}&page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
-                       class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-600 hover:border-slate-400 transition">
-                        {{ t('ranking.previous') }}
-                    </a>
-                {% endif %}
-
-                <span class="px-3 py-1.5 text-slate-500">
-                    {{ t('ranking.page_of', {page: page, total: totalPages}) }}
-                </span>
-
-                {% if page < totalPages %}
-                    <a href="/ranking?tab={{ tab|url_encode }}&page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
-                       class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-600 hover:border-slate-400 transition">
-                        {{ t('ranking.next') }}
-                    </a>
-                {% endif %}
-            </nav>
+                    </thead>
+                    <tbody>
+                        {% for row in ranking %}
+                            <tr>
+                                <td class="k-rank-num {% if (offset + loop.index) <= 3 %}k-top{% endif %}">{{ offset + loop.index }}</td>
+                                {% if tab == 'guilds' %}
+                                    <td class="font-medium">{{ row.name }}</td>
+                                    <td>{{ row.level }}</td>
+                                    <td>{{ row.ladder_point }}</td>
+                                    <td>{{ row.win }}</td>
+                                    <td>{{ row.draw }}</td>
+                                    <td>{{ row.loss }}</td>
+                                    <td>{{ row.member_count }}</td>
+                                    <td>{{ row.master_name|default('—') }}</td>
+                                {% else %}
+                                    <td>
+                                        <a href="/player/{{ row.name|url_encode }}"
+                                           class="inline-flex items-center gap-2 font-medium !no-underline text-[var(--k-text)] hover:!text-[var(--k-bronze)]">
+                                            <span class="k-face-sm">{% include 'components/face-icon.twig' with { job: row.job } %}</span>
+                                            <span>{{ row.name }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="k-muted">{{ row.job|job_name(row.skill_group) }}</td>
+                                    <td>{{ row.level }}</td>
+                                    {% if tab == 'playtime' %}
+                                        <td>{{ row.playtime|playtime }}</td>
+                                    {% else %}
+                                        <td>{{ row.exp }}</td>
+                                        <td>{{ row.playtime|playtime }}</td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
+    </div>
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 text-sm">
+            {% if page > 1 %}
+                <a href="/ranking?tab={{ tab|url_encode }}&page={{ page - 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="k-btn k-btn-ghost">{{ t('ranking.previous') }}</a>
+            {% endif %}
+            <span class="px-3 k-muted">{{ t('ranking.page_of', {page: page, total: totalPages}) }}</span>
+            {% if page < totalPages %}
+                <a href="/ranking?tab={{ tab|url_encode }}&page={{ page + 1 }}{% if query %}&q={{ query|url_encode }}{% endif %}"
+                   class="k-btn k-btn-ghost">{{ t('ranking.next') }}</a>
+            {% endif %}
+        </nav>
     {% endif %}
 </section>

@@ -5,31 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/item-tooltip.css">
+    <link rel="stylesheet" href="/css/themes/kingdoms.css">
     <script src="/js/site/locale-switcher.js" defer></script>
     <script src="/js/site/shop-category-tree.js" defer></script>
     <title>{{ title|default(t('app.name')) }} — {{ t('app.name') }}</title>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col">
+<body class="theme-kingdoms min-h-screen antialiased flex flex-col">
+    <div class="k-realm-stripe" aria-hidden="true"></div>
     {{ slots.header|raw }}
 
-    <div class="flex-1 w-full max-w-6xl mx-auto px-4 py-8 {% if slots.sidebar %}flex gap-8{% endif %}">
-        {% if slots.sidebar %}
-            <aside class="w-56 shrink-0">
+    <div class="k-layout flex-1">
+        <aside class="k-col">
+            {% if slots.sidebar %}
                 {{ slots.sidebar|raw }}
-            </aside>
-        {% endif %}
+            {% else %}
+                {% include 'components/sidebar-auth.twig' %}
+            {% endif %}
+            {% include 'components/widget-online.twig' %}
+            {% include 'components/widget-download.twig' %}
+        </aside>
 
-        <main class="flex-1 min-w-0">
+        <main class="k-main-surface min-w-0">
             {% if flash %}
-                <div class="mb-6 rounded-lg border px-4 py-3 text-sm
-                    {% if flash.type == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
-                    {% else %}border-red-200 bg-red-50 text-red-800{% endif %}">
+                <div class="{% if flash.type == 'success' %}k-flash-ok{% else %}k-flash-err{% endif %}">
                     {{ flash.message }}
                 </div>
             {% endif %}
 
             {{ slots.main|raw }}
         </main>
+
+        <aside class="k-col">
+            {% include 'components/widget-ranking.twig' %}
+            {% include 'components/widget-events.twig' %}
+            {% if discord_invite_url %}
+                {% include 'components/widget-discord.twig' %}
+            {% endif %}
+        </aside>
     </div>
 
     {{ slots.footer|raw }}

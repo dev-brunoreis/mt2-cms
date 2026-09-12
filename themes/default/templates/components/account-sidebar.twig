@@ -1,57 +1,57 @@
-<nav class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-1">
-    <p class="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-        {{ t('account.sidebar') }}
-    </p>
-    <a href="/account"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path == '/account' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.dashboard') }}
-    </a>
-    <a href="/account/characters"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/characters' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.characters') }}
-    </a>
-    <a href="/account/tickets"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/tickets' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.tickets') }}
-    </a>
-    <a href="/account/password"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/password' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.password') }}
-    </a>
-    <a href="/account/email"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/email' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.email') }}
-    </a>
-    <a href="/account/pin"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/pin' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.pin') }}
-    </a>
-    <a href="/account/orders"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/orders' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.orders') }}
-    </a>
-    <a href="/account/payments"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/account/payments' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('account.payments') }}
-    </a>
-    <a href="/donate"
-       class="block rounded-lg px-3 py-2 text-sm transition
-       {% if current_path starts with '/donate' %}bg-indigo-50 font-medium text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-        {{ t('nav.donate') }}
-    </a>
-    <form method="post" action="/logout" class="pt-2">
-        <input type="hidden" name="_csrf" value="{{ csrf }}">
-        <button type="submit"
-                class="w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition">
-            {{ t('nav.logout') }}
-        </button>
-    </form>
+<nav class="k-panel">
+    <div class="k-panel-head">{{ t('account.sidebar') }}</div>
+    <div class="space-y-0.5 p-3">
+        <a href="/account"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path == '/account' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.dashboard') }}
+        </a>
+        <a href="/account/characters"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/characters' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.characters') }}
+        </a>
+        <a href="/account/tickets"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/tickets' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.tickets') }}
+        </a>
+        <a href="/account/password"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/password' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.password') }}
+        </a>
+        <a href="/account/email"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/email' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.email') }}
+        </a>
+        <a href="/account/pin"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/pin' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.pin') }}
+        </a>
+        <a href="/account/orders"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/orders' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.orders') }}
+        </a>
+        <a href="/account/payments"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/account/payments' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('account.payments') }}
+        </a>
+        <a href="/donate"
+           class="block rounded-sm px-3 py-2 text-sm transition
+           {% if current_path starts with '/donate' %}bg-[rgba(196,163,90,0.15)] font-medium text-[var(--k-bronze)]{% else %}text-[var(--k-muted)] hover:bg-[rgba(196,163,90,0.08)] hover:text-[var(--k-text)]{% endif %}">
+            {{ t('nav.donate') }}
+        </a>
+        <form method="post" action="/logout" class="pt-2">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit"
+                    class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm text-[var(--k-ember-hot)] hover:bg-[rgba(179,58,43,0.15)] transition">
+                {{ t('nav.logout') }}
+            </button>
+        </form>
+    </div>
 </nav>

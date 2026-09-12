@@ -1,51 +1,52 @@
-<section class="space-y-6">
+<section class="space-y-5">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900">{{ t('status.title') }}</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ t('status.lead', {minutes: windowMinutes}) }}</p>
+        <h1 class="k-title text-2xl">{{ t('status.title') }}</h1>
+        <p class="mt-1 text-sm k-muted">{{ t('status.lead', {minutes: windowMinutes}) }}</p>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('status.players_online') }}</p>
-            <p class="mt-2 text-3xl font-bold text-indigo-600">{{ playersOnline }}</p>
+        <div class="k-panel p-5">
+            <p class="font-[Cinzel] text-[0.65rem] uppercase tracking-[0.15em] k-muted">{{ t('status.players_online') }}</p>
+            <p class="mt-2 flex items-center gap-2 text-3xl font-bold text-[var(--k-bronze)]">
+                <span class="k-online-pulse" aria-hidden="true"></span>
+                {{ playersOnline }}
+            </p>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-xs uppercase tracking-wider text-slate-500">{{ t('status.accounts_online') }}</p>
-            <p class="mt-2 text-3xl font-bold text-indigo-600">{{ accountsOnline }}</p>
+        <div class="k-panel p-5">
+            <p class="font-[Cinzel] text-[0.65rem] uppercase tracking-[0.15em] k-muted">{{ t('status.accounts_online') }}</p>
+            <p class="mt-2 text-3xl font-bold text-[var(--k-text)]">{{ accountsOnline }}</p>
         </div>
     </div>
 
     <div>
-        <h2 class="text-lg font-semibold text-slate-900">{{ t('status.channels_title') }}</h2>
-        <p class="mt-1 text-sm text-slate-500">{{ t('status.channels_lead') }}</p>
+        <h2 class="k-title text-lg">{{ t('status.channels_title') }}</h2>
+        <p class="mt-1 text-sm k-muted">{{ t('status.channels_lead') }}</p>
     </div>
 
-    {% if channels is empty %}
-        <p class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-            {{ t('status.channels_empty') }}
-        </p>
-    {% else %}
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-slate-500">
+    <div class="k-panel overflow-hidden">
+        {% if channels is empty %}
+            <p class="p-8 text-center text-sm k-muted">{{ t('status.channels_empty') }}</p>
+        {% else %}
+            <table class="k-table">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 font-medium">{{ t('status.channel_name') }}</th>
-                        <th class="px-4 py-3 font-medium">{{ t('status.channel_label') }}</th>
-                        <th class="px-4 py-3 font-medium">{{ t('status.channel_host') }}</th>
-                        <th class="px-4 py-3 font-medium">{{ t('status.channel_port') }}</th>
+                        <th>{{ t('status.channel_name') }}</th>
+                        <th>{{ t('status.channel_label') }}</th>
+                        <th>{{ t('status.channel_host') }}</th>
+                        <th>{{ t('status.channel_port') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     {% for channel in channels %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-4 py-3 font-medium text-slate-900">{{ channel.name }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ channel.label }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ channel.host|default('—') }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ channel.port|default('—') }}</td>
+                        <tr>
+                            <td class="font-medium">{{ channel.name }}</td>
+                            <td class="k-muted">{{ channel.label }}</td>
+                            <td class="k-muted">{{ channel.host|default('—') }}</td>
+                            <td class="k-muted">{{ channel.port|default('—') }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </section>

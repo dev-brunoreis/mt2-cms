@@ -7,7 +7,7 @@ namespace Mt2Cms\Admin;
 class AdminSections
 {
     /**
-     * @return list<array{id: string, label: string, collapsible?: bool, children: list<array{id: string, path: string, label: string}>}>
+     * @return list<array{id: string, label: string, collapsible?: bool, pinned?: bool, children: list<array{id: string, path: string, label: string}>}>
      */
     public static function all(): array
     {
@@ -181,41 +181,54 @@ class AdminSections
             ],
             [
                 'id' => 'settings',
-                'label' => 'admin.nav.settings',
+                'label' => 'admin.nav.configuration',
+                'pinned' => true,
                 'children' => [
                     [
-                        'id' => 'registration',
-                        'path' => AdminPaths::settingsRegistration(),
-                        'label' => 'admin.nav.registration',
-                    ],
-                    [
-                        'id' => 'themes',
-                        'path' => AdminPaths::settingsThemes(),
-                        'label' => 'admin.nav.themes',
-                    ],
-                    [
-                        'id' => 'locale',
-                        'path' => AdminPaths::settingsLocale(),
-                        'label' => 'admin.nav.locale',
-                    ],
-                    [
-                        'id' => 'security',
-                        'path' => AdminPaths::settingsSecurity(),
-                        'label' => 'admin.nav.security',
-                    ],
-                    [
-                        'id' => 'community',
-                        'path' => AdminPaths::settingsCommunity(),
-                        'label' => 'admin.nav.community',
-                    ],
-                    [
-                        'id' => 'unstuck',
-                        'path' => AdminPaths::settingsUnstuck(),
-                        'label' => 'admin.nav.unstuck',
+                        'id' => 'settings',
+                        'path' => AdminPaths::settings(),
+                        'label' => 'admin.nav.configuration',
                     ],
                 ],
             ],
         ];
+    }
+
+    /**
+     * First child of a pinned sidebar group (ACL-filtered tree).
+     *
+     * @param list<array<string, mixed>> $sections
+     * @return array{id: string, path: string, label: string}|null
+     */
+    public static function pinnedNavItem(array $sections): ?array
+    {
+        foreach ($sections as $group) {
+            if (($group['pinned'] ?? false) !== true) {
+                continue;
+            }
+
+            $child = $group['children'][0] ?? null;
+
+            if (!is_array($child)) {
+                return null;
+            }
+
+            $id = (string) ($child['id'] ?? '');
+            $path = (string) ($child['path'] ?? '');
+            $label = (string) ($child['label'] ?? '');
+
+            if ($id === '' || $path === '' || $label === '') {
+                return null;
+            }
+
+            return [
+                'id' => $id,
+                'path' => $path,
+                'label' => $label,
+            ];
+        }
+
+        return null;
     }
 
     public static function firstPath(): string
@@ -228,7 +241,7 @@ class AdminSections
             }
         }
 
-        return AdminPaths::settingsRegistration();
+        return AdminPaths::settings();
     }
 
     /**

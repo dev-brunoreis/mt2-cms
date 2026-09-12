@@ -27,6 +27,25 @@ final class AdminPathsTest extends TestCase
         self::assertSame('/admin/logs?tab=connections', AdminSections::sectionPath('logs'));
         self::assertSame('/admin/store', AdminSections::sectionPath('store'));
         self::assertSame('/admin/game-data/shops', AdminSections::sectionPath('shops'));
+        self::assertSame('/admin/settings', AdminSections::sectionPath('settings'));
+        self::assertSame('/admin/settings?tab=registration', AdminPaths::settingsRegistration());
+        self::assertSame('/admin/settings?tab=banners', AdminPaths::settingsBanners());
+    }
+
+    public function testSettingsGroupIsPinnedToSidebarFooter(): void
+    {
+        $settings = null;
+
+        foreach (AdminSections::all() as $group) {
+            if ($group['id'] === 'settings') {
+                $settings = $group;
+                break;
+            }
+        }
+
+        self::assertNotNull($settings);
+        self::assertTrue($settings['pinned'] ?? false);
+        self::assertSame('settings', AdminSections::pinnedNavItem(AdminSections::all())['id'] ?? null);
     }
 
     public function testLogCatalogHasGroupedTabsIncludingConnections(): void

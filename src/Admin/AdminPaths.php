@@ -217,35 +217,45 @@ final class AdminPaths
         return '/admin/system/audit-log';
     }
 
-    // Settings
+    // Settings hub
+    public static function settings(?string $tab = null): string
+    {
+        return self::withTab('/admin/settings', $tab);
+    }
+
     public static function settingsRegistration(): string
     {
-        return '/admin/settings/registration';
+        return self::settings('registration');
     }
 
     public static function settingsThemes(): string
     {
-        return '/admin/settings/themes';
+        return self::settings('themes');
     }
 
     public static function settingsLocale(): string
     {
-        return '/admin/settings/locale';
+        return self::settings('locale');
     }
 
     public static function settingsSecurity(): string
     {
-        return '/admin/settings/security';
+        return self::settings('security');
     }
 
     public static function settingsCommunity(): string
     {
-        return '/admin/settings/community';
+        return self::settings('community');
     }
 
     public static function settingsUnstuck(): string
     {
-        return '/admin/settings/unstuck';
+        return self::settings('unstuck');
+    }
+
+    public static function settingsBanners(): string
+    {
+        return self::settings('banners');
     }
 
     public static function accountSecurity(): string
@@ -281,6 +291,7 @@ final class AdminPaths
             'admins' => self::systemAdmins(),
             'roles' => self::systemRoles(),
             'audit-log' => self::systemAuditLog(),
+            'settings' => self::settings(),
             'registration' => self::settingsRegistration(),
             'themes' => self::settingsThemes(),
             'locale' => self::settingsLocale(),

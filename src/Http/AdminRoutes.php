@@ -58,7 +58,8 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/account/security/confirm', [AdminAccountSecurityController::class, 'confirmEnroll']);
         $r->addRoute('GET', '/admin', [AdminDashboardController::class, 'index']);
 
-        // Settings
+        // Settings hub
+        $r->addRoute('GET', '/admin/settings', [AdminSettingsController::class, 'index']);
         $r->addRoute('GET', '/admin/settings/registration', [AdminSettingsController::class, 'registration']);
         $r->addRoute('POST', '/admin/settings/registration', [AdminSettingsController::class, 'saveRegistration']);
         $r->addRoute('GET', '/admin/settings/themes', [AdminSettingsController::class, 'themes']);
@@ -72,6 +73,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/settings/community/channels/{id:\d+}/delete', [AdminCommunityController::class, 'deleteChannel']);
         $r->addRoute('GET', '/admin/settings/unstuck', [AdminUnstuckController::class, 'settings']);
         $r->addRoute('POST', '/admin/settings/unstuck', [AdminUnstuckController::class, 'saveSettings']);
+        $r->addRoute('POST', '/admin/settings/banners', [AdminSettingsController::class, 'saveBanners']);
 
         // System
         $r->addRoute('GET', '/admin/system/admins', [AdminAdminsController::class, 'index']);
@@ -158,7 +160,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/content/banners/new', [AdminBannersHubController::class, 'create']);
         $r->addRoute('POST', '/admin/content/banners', [AdminBannersHubController::class, 'store']);
         $r->addRoute('POST', '/admin/content/banners/mass', [AdminBannersHubController::class, 'mass']);
-        $r->addRoute('POST', '/admin/content/banners/settings', [AdminBannersHubController::class, 'saveSettings']);
+        $r->addRoute('POST', '/admin/content/banners/settings', [AdminSettingsController::class, 'saveBanners']);
         $r->addRoute('GET', '/admin/content/banners/{id:\d+}', [AdminBannersHubController::class, 'edit']);
         $r->addRoute('POST', '/admin/content/banners/{id:\d+}', [AdminBannersHubController::class, 'update']);
 

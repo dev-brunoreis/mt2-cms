@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -34,25 +35,7 @@ class AdminCommunityController extends AdminController
 
     public function channels(): Response
     {
-        return $this->adminView('community', 'pages/community-channels.twig', [
-            'title' => $this->t('admin.community.channels_title'),
-            'pageLead' => $this->t('admin.community.channels_lead'),
-            'channels' => $this->channels->allForAdmin(),
-            'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
-            'siteUrl' => $this->settings->siteUrl(),
-            'mailFromAddress' => $this->settings->mailFromAddress(),
-            'mailFromName' => $this->settings->mailFromName(),
-            'requireVerifiedEmail' => $this->settings->requireVerifiedEmail(),
-            'paypalMode' => $this->settings->paypalMode(),
-            'paypalCurrency' => $this->settings->paypalCurrency(),
-            'paypalClientId' => $this->settings->paypalClientId(),
-            'paypalConfigured' => $this->settings->paypalConfigured(),
-            'paypalWebhookId' => $this->settings->paypalWebhookId(),
-            'discordInviteUrl' => $this->settings->discordInviteUrl(),
-            'discordWebhookConfigured' => $this->settings->discordWebhookConfigured(),
-            'formId' => 'admin-community-form',
-            'saveLabel' => $this->t('admin.save'),
-        ]);
+        return $this->redirect(AdminPaths::settingsCommunity());
     }
 
     public function saveChannels(): Response
@@ -64,7 +47,7 @@ class AdminCommunityController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/settings/community');
+            return $this->redirect(AdminPaths::settingsCommunity());
         }
 
         $this->settings->setOnlineWindowMinutes((int) ($_POST['online_window_minutes'] ?? 15));
@@ -86,7 +69,7 @@ class AdminCommunityController extends AdminController
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 
-            return $this->redirect('/admin/settings/community');
+            return $this->redirect(AdminPaths::settingsCommunity());
         }
 
         $names = $_POST['channel_name'] ?? [];
@@ -144,7 +127,7 @@ class AdminCommunityController extends AdminController
         $this->audit('settings.community_save', 'settings', null);
         $this->flash('success', $this->t('admin.saved'));
 
-        return $this->redirect('/admin/settings/community');
+        return $this->redirect(AdminPaths::settingsCommunity());
     }
 
     public function deleteChannel(string $id): Response
@@ -156,7 +139,7 @@ class AdminCommunityController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/settings/community');
+            return $this->redirect(AdminPaths::settingsCommunity());
         }
 
         $channelId = (int) $id;
@@ -165,7 +148,7 @@ class AdminCommunityController extends AdminController
         if ($channel === null) {
             $this->flash('error', $this->t('admin.community.channel_not_found'));
 
-            return $this->redirect('/admin/settings/community');
+            return $this->redirect(AdminPaths::settingsCommunity());
         }
 
         $this->channels->delete($channelId);
@@ -174,6 +157,6 @@ class AdminCommunityController extends AdminController
         ]);
         $this->flash('success', $this->t('admin.community.channel_removed'));
 
-        return $this->redirect('/admin/settings/community');
+        return $this->redirect(AdminPaths::settingsCommunity());
     }
 }

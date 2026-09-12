@@ -143,6 +143,7 @@ final class AdminResourceCatalog
             'logs' => self::firstLogViewResource(),
             'news' => 'content/news/posts/view',
             'banners' => 'content/banners/slides/view',
+            'settings' => 'settings/registration/view',
             default => self::firstViewUnderPrefix(self::sectionResourcePrefix($sectionId)),
         };
     }
@@ -186,11 +187,18 @@ final class AdminResourceCatalog
         }
 
         if ($sectionId === 'banners') {
+            return AdminPaths::contentBanners();
+        }
+
+        if ($sectionId === 'settings') {
             if (str_starts_with($resourceId, 'content/banners/settings/')) {
-                return AdminPaths::contentBanners('settings');
+                return AdminPaths::settingsBanners();
             }
 
-            return AdminPaths::contentBanners('slides');
+            $parts = explode('/', $resourceId);
+            $tab = $parts[1] ?? '';
+
+            return $tab !== '' ? AdminPaths::settings($tab) : AdminPaths::settings();
         }
 
         return AdminPaths::sectionPath($sectionId);
@@ -238,6 +246,10 @@ final class AdminResourceCatalog
             return 'downloads';
         }
 
+        if (str_starts_with($resourceId, 'content/banners/settings/')) {
+            return 'settings';
+        }
+
         if (str_starts_with($resourceId, 'content/banners/')) {
             return 'banners';
         }
@@ -262,28 +274,8 @@ final class AdminResourceCatalog
             return 'logs';
         }
 
-        if (str_starts_with($resourceId, 'settings/registration/')) {
-            return 'registration';
-        }
-
-        if (str_starts_with($resourceId, 'settings/themes/')) {
-            return 'themes';
-        }
-
-        if (str_starts_with($resourceId, 'settings/locale/')) {
-            return 'locale';
-        }
-
-        if (str_starts_with($resourceId, 'settings/security/')) {
-            return 'security';
-        }
-
-        if (str_starts_with($resourceId, 'settings/community/')) {
-            return 'community';
-        }
-
-        if (str_starts_with($resourceId, 'settings/unstuck/')) {
-            return 'unstuck';
+        if (str_starts_with($resourceId, 'settings/')) {
+            return 'settings';
         }
 
         foreach (['shops', 'refine', 'drops', 'items', 'mobs', 'gms'] as $sectionId) {
@@ -308,12 +300,13 @@ final class AdminResourceCatalog
             'news' => 'content/news',
             'tickets' => 'content/tickets',
             'downloads' => 'content/downloads',
-            'banners' => 'content/banners',
+            'banners' => 'content/banners/slides',
             'events' => 'content/events',
             'store' => 'store',
             'packages' => 'store/packages',
             'payments' => 'store/payments',
             'logs' => 'logs',
+            'settings' => 'settings',
             'registration' => 'settings/registration',
             'themes' => 'settings/themes',
             'locale' => 'settings/locale',
@@ -364,7 +357,23 @@ final class AdminResourceCatalog
         }
 
         foreach ($granted as $entry) {
+            if ($sectionId === 'banners') {
+                if ($entry === 'content/banners' || str_starts_with($entry, 'content/banners/slides')) {
+                    return true;
+                }
+
+                continue;
+            }
+
             if ($entry === $prefix || str_starts_with($entry, $prefix . '/')) {
+                return true;
+            }
+
+            if ($sectionId === 'settings' && (
+                $entry === 'content/banners'
+                || $entry === 'content/banners/settings'
+                || str_starts_with($entry, 'content/banners/settings/')
+            )) {
                 return true;
             }
         }
@@ -529,6 +538,11 @@ final class AdminResourceCatalog
             'logs' => self::resourcesUnderPrefix('logs'),
             'store' => self::resourcesUnderPrefix('store'),
             'news' => self::resourcesUnderPrefix('content/news'),
+            'banners' => self::resourcesUnderPrefix('content/banners'),
+            'settings' => array_merge(
+                self::resourcesUnderPrefix('settings'),
+                self::resourcesUnderPrefix('content/banners/settings'),
+            ),
         ];
 
         foreach (['shops', 'refine', 'drops', 'items', 'mobs', 'gms'] as $sectionId) {

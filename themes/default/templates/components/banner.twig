@@ -7,7 +7,6 @@
     {% set slides = cmsSlides %}
     {% set useCms = true %}
 {% elseif not seeded %}
-    {# Theme fallback only before CMS seed succeeds — empty admin list must hide the carousel. #}
     {% set slides = [
       { id: 'warrior', label: t('theme.kingdoms.banner_warrior') },
       { id: 'ninja', label: t('theme.kingdoms.banner_ninja') },

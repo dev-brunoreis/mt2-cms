@@ -1,0 +1,33 @@
+{% set activeTab = activeTab|default('registration') %}
+<div class="admin-panel admin-tabs overflow-hidden"
+     data-admin-tabs
+     data-default-tab="{{ defaultTab|default('registration') }}"
+     data-tab-loading="{{ t('admin.tabs.loading') }}"
+     data-tab-load-error="{{ t('admin.tabs.load_error') }}"
+     {% for tab in tabs %}data-header-form-{{ tab.id }}="{{ tab.formId }}" {% endfor %}>
+    <div class="admin-tabs-nav border-b border-slate-200 px-4 pt-4 md:px-6" role="tablist" aria-label="{{ t('admin.settings.hub_title') }}">
+        {% for tab in tabs %}
+            {% if acl_allowed(tab.resource) %}
+                {% include 'components/tab.twig' with { id: tab.id, label: tab.label, active: activeTab == tab.id } %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% for tab in tabs %}
+        {% if activeTab == tab.id %}
+            <div id="admin-tab-panel-{{ tab.id }}"
+                 class="admin-tabs-panel"
+                 role="tabpanel"
+                 data-tab-panel="{{ tab.id }}"
+                 aria-labelledby="admin-tab-{{ tab.id }}">
+                {% include initialPartial.template with initialPartial.data %}
+            </div>
+        {% else %}
+            {% include 'components/tab-panel.twig' with {
+                id: tab.id,
+                visible: false,
+                src: settingsBaseUrl ~ '?tab=' ~ tab.id ~ '&partial=1'
+            } %}
+        {% endif %}
+    {% endfor %}
+</div>

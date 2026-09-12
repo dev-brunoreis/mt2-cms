@@ -64,4 +64,39 @@ final class AdminResourceCatalogTest extends TestCase
             AdminResourceCatalog::pathForResource('store/orders/view'),
         );
     }
+
+    public function testSettingsHubPaths(): void
+    {
+        self::assertSame('settings', AdminResourceCatalog::sectionIdForResource('settings/security/view'));
+        self::assertSame('settings', AdminResourceCatalog::sectionIdForResource('content/banners/settings/edit'));
+        self::assertSame('banners', AdminResourceCatalog::sectionIdForResource('content/banners/slides/view'));
+        self::assertSame(
+            '/admin/settings?tab=locale',
+            AdminResourceCatalog::pathForResource('settings/locale/edit'),
+        );
+        self::assertSame(
+            '/admin/settings?tab=banners',
+            AdminResourceCatalog::pathForResource('content/banners/settings/view'),
+        );
+        self::assertSame(
+            '/admin/content/banners',
+            AdminResourceCatalog::pathForResource('content/banners/slides/view'),
+        );
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'settings',
+            ['content/banners/settings/view'],
+        ));
+        self::assertFalse(AdminResourceCatalog::hasAnyResourceForSection(
+            'banners',
+            ['content/banners/settings/view'],
+        ));
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'banners',
+            ['content/banners'],
+        ));
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'settings',
+            ['content/banners'],
+        ));
+    }
 }

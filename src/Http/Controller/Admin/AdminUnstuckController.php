@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -34,16 +35,7 @@ class AdminUnstuckController extends AdminController
 
     public function settings(): Response
     {
-        return $this->adminView('unstuck', 'pages/unstuck-settings.twig', [
-            'title' => $this->t('admin.unstuck.title'),
-            'pageLead' => $this->t('admin.unstuck.lead'),
-            'unstuckEnabled' => $this->settings->unstuckEnabled(),
-            'cooldownMinutes' => $this->settings->unstuckCooldownMinutes(),
-            'spawns' => $this->settings->unstuckSpawns(),
-            'positionColumnsAvailable' => $this->unstuck->hasPositionColumns(),
-            'formId' => 'admin-unstuck-form',
-            'saveLabel' => $this->t('admin.save'),
-        ]);
+        return $this->redirect(AdminPaths::settingsUnstuck());
     }
 
     public function saveSettings(): Response
@@ -55,7 +47,7 @@ class AdminUnstuckController extends AdminController
         if (!$this->assertCsrf()) {
             $this->flash('error', $this->t('auth.invalid_csrf'));
 
-            return $this->redirect('/admin/settings/unstuck');
+            return $this->redirect(AdminPaths::settingsUnstuck());
         }
 
         $before = [
@@ -88,6 +80,6 @@ class AdminUnstuckController extends AdminController
         $this->auditChange('settings.unstuck_save', 'settings', null, $before, $after);
         $this->flash('success', $this->t('admin.saved'));
 
-        return $this->redirect('/admin/settings/unstuck');
+        return $this->redirect(AdminPaths::settingsUnstuck());
     }
 }

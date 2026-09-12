@@ -1,4 +1,4 @@
-<form id="admin-unstuck-form" method="post" action="/admin/settings/unstuck" class="admin-panel p-6 space-y-6">
+<form id="{{ formId }}" method="post" action="/admin/settings/unstuck" class="p-6 space-y-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     {% if not positionColumnsAvailable %}

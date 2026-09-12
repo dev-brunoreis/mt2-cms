@@ -14,7 +14,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Cookies | Locale cookie: `HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS |
 | Session | Hardened cookie params; separate admin cookie (`MT2ADMIN`, path `/admin`) vs public (`MT2CMS`); `session_regenerate_id(true)` on successful login; idle timeout (admin 30 min, public 2 h) via `SessionGuard` |
 | Brute force | File-backed IP + action rate limit on login/register/admin login, password change, and other sensitive POSTs (`var/rate-limit/`); fail-closed when storage is unavailable |
-| Captcha | Self-hosted SVG captcha on public login/register and admin login (toggle in `/admin/settings/security`; on by default on new installs) |
+| Captcha | Self-hosted SVG captcha on public login/register and admin login (toggle in `/admin/settings?tab=security`; on by default on new installs) |
 | Admin 2FA | TOTP + one-time recovery codes; enrollment at `/admin/account/security`; optional policy requiring 2FA for all admins (off by default on new installs); TOTP secrets encrypted at rest with `APP_KEY` |
 | Player password | Self-service change at `/account/password` (current password required, CSRF, rate limited); Metin2-compatible hash unchanged |
 | Errors | Unhandled exceptions logged via `Log`; generic HTTP 500 to clients (no stack traces) |

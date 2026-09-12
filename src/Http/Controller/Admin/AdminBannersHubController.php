@@ -16,19 +16,10 @@ use Mt2Cms\Repository\BannerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\BannerUploadService;
-use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminBannersHubController extends AdminController
 {
-    private const TABS = ['slides', 'settings'];
-
-    /** @var array<string, string> */
-    private const TAB_VIEW_RESOURCES = [
-        'slides' => 'content/banners/slides/view',
-        'settings' => 'content/banners/settings/view',
-    ];
-
     public function __construct(
         ThemeEngine $theme,
         Auth $auth,
@@ -40,45 +31,35 @@ class AdminBannersHubController extends AdminController
         AdminAuditService $auditLog,
         private BannerRepository $banners,
         private BannerUploadService $uploads,
-        private SettingsService $settings,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
 
     public function index(): Response
     {
-        if ($redirect = $this->requireAdmin()) {
-            return $redirect;
+        if ((string) ($_GET['tab'] ?? '') === 'settings') {
+            if ($redirect = $this->requireAdmin()) {
+                return $redirect;
+            }
+
+            return $this->redirect(AdminPaths::settingsBanners());
         }
 
-        $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'slides');
+        $spec = BannersGrid::definition()->spec();
+        $grid = GridRunner::fetch(
+            $spec,
+            $this->gridQuery($spec),
+            fn ($q) => $this->banners->countForGrid($q),
+            fn ($q) => $this->banners->listForGrid($q),
+        );
 
-        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
-            return $deny;
-        }
-
-        if ($this->wantsTabPartial()) {
-            return $this->renderTabPartial($tab);
-        }
-
-        $header = match ($tab) {
-            'slides' => [
-                'headerHref' => AdminPaths::contentBannerNew(),
-                'headerActionLabel' => $this->t('admin.banners.create'),
-            ],
-            'settings' => [
-                'formId' => 'admin-banner-settings-form',
-            ],
-            default => [],
-        };
-
-        return $this->adminView('banners', 'pages/banners-hub.twig', array_merge([
-            'title' => $this->t('admin.banners.hub_title'),
-            'pageLead' => $this->t('admin.banners.hub_lead'),
-            'activeTab' => $tab,
-            'bannersBaseUrl' => AdminPaths::contentBanners(),
-            'initialPartial' => $this->partialPayload($tab),
-        ], $header));
+        return $this->adminView('banners', 'pages/banners.twig', [
+            'title' => $this->t('admin.banners.title'),
+            'pageLead' => $this->t('admin.banners.lead'),
+            'headerHref' => AdminPaths::contentBannerNew(),
+            'headerActionLabel' => $this->t('admin.banners.create'),
+            'grid' => $grid,
+        ]);
     }
 
     public function create(): Response
@@ -101,7 +82,7 @@ class AdminBannersHubController extends AdminController
         if ($row === null) {
             $this->flash('error', $this->t('admin.banners.not_found'));
 
-            return $this->redirect(AdminPaths::contentBanners('slides'));
+            return $this->redirect(AdminPaths::contentBanners());
         }
 
         return $this->formView($row);
@@ -121,7 +102,7 @@ class AdminBannersHubController extends AdminController
     {
         return $this->runMassActions(
             BannersGrid::definition()->spec(),
-            AdminPaths::contentBanners('slides'),
+            AdminPaths::contentBanners(),
             [
                 'enable' => function (int $id): bool {
                     return $this->banners->findById($id) !== null && $this->banners->setEnabled($id, true);
@@ -145,36 +126,6 @@ class AdminBannersHubController extends AdminController
             'admin.banners.mass_done',
             'content/banners/slides/mass',
         );
-    }
-
-    public function saveSettings(): Response
-    {
-        if ($redirect = $this->requireAdminResource('content/banners/settings/edit')) {
-            return $redirect;
-        }
-
-        if (!$this->assertCsrf()) {
-            $this->flash('error', $this->t('auth.invalid_csrf'));
-
-            return $this->redirect(AdminPaths::contentBanners('settings'));
-        }
-
-        $before = $this->settings->bannerSettings();
-        $after = [
-            'interval_ms' => max(2000, min(60000, (int) ($_POST['banner_interval_ms'] ?? 5500))),
-            'autoplay' => isset($_POST['banner_autoplay']),
-            'show_dots' => isset($_POST['banner_show_dots']),
-            'show_arrows' => isset($_POST['banner_show_arrows']),
-        ];
-
-        $this->settings->setBannerIntervalMs($after['interval_ms']);
-        $this->settings->setBannerAutoplay($after['autoplay']);
-        $this->settings->setBannerShowDots($after['show_dots']);
-        $this->settings->setBannerShowArrows($after['show_arrows']);
-        $this->auditChange('banner.settings_save', 'banner_settings', null, $before, $after);
-        $this->flash('success', $this->t('admin.saved'));
-
-        return $this->redirect(AdminPaths::contentBanners('settings'));
     }
 
     private function save(?int $id): Response
@@ -217,7 +168,7 @@ class AdminBannersHubController extends AdminController
                 if ($existing === null) {
                     $this->flash('error', $this->t('admin.banners.not_found'));
 
-                    return $this->redirect(AdminPaths::contentBanners('slides'));
+                    return $this->redirect(AdminPaths::contentBanners());
                 }
 
                 if (!isset($data['original_path'])) {
@@ -233,7 +184,7 @@ class AdminBannersHubController extends AdminController
 
             $this->flash('success', $this->t('admin.saved'));
 
-            return $this->redirect(AdminPaths::contentBanners('slides'));
+            return $this->redirect(AdminPaths::contentBanners());
         } catch (\InvalidArgumentException | \RuntimeException | \JsonException $e) {
             $message = $this->t($e->getMessage());
 
@@ -273,56 +224,6 @@ class AdminBannersHubController extends AdminController
             'sort_order' => max(0, (int) ($_POST['sort_order'] ?? 0)),
             'enabled' => isset($_POST['enabled']),
         ];
-    }
-
-    private function renderTabPartial(string $tab): Response
-    {
-        if (!in_array($tab, self::TABS, true)) {
-            return new Response('', 404);
-        }
-
-        if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
-            return $deny;
-        }
-
-        $payload = $this->partialPayload($tab);
-
-        return $this->adminFragment($payload['template'], $payload['data']);
-    }
-
-    /**
-     * @return array{template: string, data: array<string, mixed>}
-     */
-    private function partialPayload(string $tab): array
-    {
-        return match ($tab) {
-            'settings' => [
-                'template' => 'pages/banner-settings-partial.twig',
-                'data' => [
-                    'formId' => 'admin-banner-settings-form',
-                    'bannerSettings' => $this->settings->bannerSettings(),
-                ],
-            ],
-            default => [
-                'template' => 'pages/banner-slides-partial.twig',
-                'data' => ['grid' => $this->slidesGrid()],
-            ],
-        };
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function slidesGrid(): array
-    {
-        $spec = BannersGrid::definition()->spec();
-
-        return GridRunner::fetch(
-            $spec,
-            $this->gridQuery($spec),
-            fn ($q) => $this->banners->countForGrid($q),
-            fn ($q) => $this->banners->listForGrid($q),
-        );
     }
 
     /**

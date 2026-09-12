@@ -331,7 +331,9 @@ class Application
 
         if ($isAdmin) {
             $admin = $this->adminAuth->check() ? $this->adminAuth->user() : null;
-            $globals['admin_sections'] = $this->acl->filterSections($admin, AdminSections::all());
+            $sections = $this->acl->filterSections($admin, AdminSections::all());
+            $globals['admin_sections'] = $sections;
+            $globals['admin_pinned_nav'] = AdminSections::pinnedNavItem($sections);
             $engine->addExtension(new AdminAclTwigExtension($this->acl, $this->adminAuth));
         }
 

@@ -1941,7 +1941,7 @@
     },
     "banners": {
       "hub_title": "Banners",
-      "hub_lead": "Home carousel slides and playback settings.",
+      "hub_lead": "Home carousel slides.",
       "tab_slides": "Slides",
       "tab_settings": "Settings",
       "title": "Banners",
@@ -2277,6 +2277,10 @@
       "item_ref": "Item vnum/name",
       "one_in": "1 in",
       "edit_mob_drops": "Edit drop file"
+    },
+    "settings": {
+      "hub_title": "Configuration",
+      "hub_lead": "Site, security, appearance, and content settings."
     },
     "registration": {
       "title": "Registrations",

@@ -62,7 +62,7 @@ Mass actions are whitelisted via `AdminController::runMassActions()` + `isAllowe
 - WAF
 - Replacing the game-compatible password hash
 
-Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/settings/security` and `/admin/account/security`.
+Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/settings?tab=security` and `/admin/account/security`.
 
 ### 9. ~~Production runtime gaps~~ — done
 

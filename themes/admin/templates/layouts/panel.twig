@@ -40,6 +40,14 @@
                 {% include 'components/locale-switcher.twig' %}
             </div>
 
+            {% if admin_pinned_nav is defined and admin_pinned_nav %}
+                <div class="border-t border-white/10 px-3 py-2">
+                    <ul>
+                        {% include 'components/nav-item.twig' with { item: admin_pinned_nav, pad: 'py-2.5' } %}
+                    </ul>
+                </div>
+            {% endif %}
+
             {% if adminUser %}
                 <div class="border-t border-white/10 p-4">
                     <div class="flex items-center gap-3">

@@ -1,4 +1,4 @@
-<form id="admin-community-form" method="post" action="/admin/settings/community" class="admin-panel p-6 space-y-6">
+<form id="{{ formId }}" method="post" action="/admin/settings/community" class="p-6 space-y-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <fieldset class="admin-fieldset">
@@ -192,12 +192,6 @@
             </div>
         </div>
     </fieldset>
-
-    <div class="flex justify-end">
-        <button type="submit" class="admin-btn-primary cursor-pointer rounded-md px-5 py-2 text-sm font-semibold text-white">
-            {{ t('admin.save') }}
-        </button>
-    </div>
 </form>
 
 {% for channel in channels %}

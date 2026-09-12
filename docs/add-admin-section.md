@@ -15,11 +15,11 @@ Admin routes use area prefixes:
 | Game data | `/admin/game-data/` | shops, refine, drops, items, mobs, gms |
 | Logs | `/admin/logs` | Hub with `?tab={logId}` |
 | System | `/admin/system/` | admins, roles, audit-log |
-| Settings | `/admin/settings/` | registration, themes, locale |
+| Settings | `/admin/settings` | Hub with `?tab=` for registration, themes, locale, security, community, unstuck, banners |
 
 Use [`AdminPaths.php`](../src/Admin/AdminPaths.php) for paths (and `admin_path()` in Twig).
 
-Hub pages (news, store, logs) use `[data-admin-tabs]` with lazy `?partial=1` fragments — see §5.
+Hub pages (news, store, logs, settings) use `[data-admin-tabs]` with lazy `?partial=1` fragments — see §5.
 
 ## 1. Register menu + submenu
 
@@ -34,7 +34,7 @@ Admin navigation and ACL use related but separate catalogs:
 | [`AdminPermissions`](../src/Admin/AdminPermissions.php) | Super role constant only |
 | [`AdminRuntime`](../src/Admin/AdminRuntime.php) | Settings bind for Twig/helpers (not a catalog) |
 
-In [`AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`.
+In [`AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`. Set `'pinned' => true` on a group to keep it fixed in the sidebar footer (next to the admin user) instead of the scrollable menu.
 
 ```php
 [
@@ -94,7 +94,7 @@ Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<fo
 
 Read-only panels that are expensive to build (inventory, logs, drops) can stay empty until opened: set `data-tab-src="/admin/…?tab=items&partial=1"` and only query that data when `tab` matches. The script fetches the fragment on first click. Keep editable form fields in the DOM so Save still posts every tab.
 
-Hub examples: [`AdminLogsController`](../src/Http/Controller/Admin/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/Admin/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/Admin/AdminStoreHubController.php).
+Hub examples: [`AdminLogsController`](../src/Http/Controller/Admin/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/Admin/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/Admin/AdminStoreHubController.php), [`AdminSettingsController`](../src/Http/Controller/Admin/AdminSettingsController.php).
 
 ## 6. List pages (admin grid)
 

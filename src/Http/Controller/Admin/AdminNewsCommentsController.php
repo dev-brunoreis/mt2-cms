@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\NewsCommentsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Http\Response;
 
@@ -11,7 +12,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
 {
     public function comments(): Response
     {
-        $spec = $this->comments->gridDefinition()->spec();
+        $spec = NewsCommentsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -30,7 +31,7 @@ class AdminNewsCommentsController extends AdminNewsBaseController
     public function massComments(): Response
     {
         return $this->runMassActions(
-            $this->comments->gridDefinition()->spec(),
+            NewsCommentsGrid::definition()->spec(),
             '/admin/content/news?tab=comments',
             [
                 'approve' => fn (int $id): bool => $this->comments->setStatus($id, 'approved'),

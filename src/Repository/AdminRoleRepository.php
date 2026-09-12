@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
+use Mt2Cms\Admin\Grid\Definitions\AdminRolesGrid;
 use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\AdminSectionCatalog;
-use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
@@ -21,30 +21,6 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
         return 'cms';
     }
 
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/system/roles', 'admin.roles')
-            ->defaultSort('label', 'asc')
-            ->idField('slug')
-            ->massIdType('string')
-            ->massActions('/admin/system/roles/mass', [
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.roles.confirm_mass_delete'],
-            ])
-            ->orderBy([
-                'slug' => 'r.slug',
-                'label' => 'r.label',
-                'admin_count' => 'admin_count',
-                'section_count' => 'resource_count',
-                'created_at' => 'r.created_at',
-            ])
-            ->columns([
-                ['key' => 'label', 'label' => 'admin.roles.label', 'sort' => 'label', 'type' => 'link', 'href' => '/admin/system/roles/{id}'],
-                ['key' => 'slug', 'label' => 'admin.roles.slug', 'sort' => 'slug', 'type' => 'muted'],
-                ['key' => 'admin_count', 'label' => 'admin.roles.admin_count', 'sort' => 'admin_count', 'type' => 'number'],
-                ['key' => 'section_count', 'label' => 'admin.roles.resource_count', 'sort' => 'section_count', 'type' => 'number'],
-                ['key' => 'created_at', 'label' => 'admin.roles.created_at', 'sort' => 'created_at', 'type' => 'date'],
-            ]);
-    }
 
     public function hasAny(): bool
     {
@@ -404,7 +380,7 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'r.label ASC');
+        $order = GridSql::orderBy($query, AdminRolesGrid::definition()->sortMap(), 'r.label ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT r.slug, r.label, r.created_at,

@@ -7,6 +7,7 @@ namespace Mt2Cms\Http\Controller\Admin;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Http\Response;
@@ -43,8 +44,8 @@ class AdminDropsController extends AdminController
         $mobResults = [];
 
         if ($mobQuery !== '') {
-            $page = $this->protos->page(GameProtoService::ROUTE_MOBS, 1, 15, $mobQuery);
-            $mobResults = $page['rows'];
+            $gridQuery = new GridQuery($mobQuery, 1, 15, 'vnum', 'asc', []);
+            $mobResults = $this->protos->listForGrid(GameProtoService::ROUTE_MOBS, $gridQuery);
         }
 
         return $this->adminView('drops', 'pages/drops-index.twig', [

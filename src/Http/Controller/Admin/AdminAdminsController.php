@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AdminsGrid;
 use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\Grid\GridRunner;
@@ -39,7 +40,7 @@ class AdminAdminsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->admins->gridDefinition()
+        $spec = AdminsGrid::definition()
             ->filterOptions('role', $this->admins->roleFilterOptions(), false)
             ->spec();
         $query = $this->gridQuery($spec);
@@ -64,7 +65,7 @@ class AdminAdminsController extends AdminController
         $selfId = (int) ($this->adminAuth->id() ?? 0);
 
         return $this->runMassActions(
-            $this->admins->gridDefinition()->spec(),
+            AdminsGrid::definition()->spec(),
             '/admin/system/admins',
             [
                 'delete' => function (int $id) use ($selfId): bool {

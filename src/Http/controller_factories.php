@@ -132,6 +132,9 @@ return [
     \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoriesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoriesController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),
+    \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoryProductsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoryProductsController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
+    ),
     \Mt2Cms\Http\Controller\Admin\AdminItemShopOrdersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopOrdersController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),

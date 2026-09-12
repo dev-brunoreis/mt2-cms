@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\NewsCommentsGrid;
+use Mt2Cms\Admin\Grid\Definitions\NewsGrid;
 use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Http\Response;
@@ -100,7 +102,7 @@ class AdminNewsHubController extends AdminNewsBaseController
      */
     private function postsGrid(): array
     {
-        $spec = $this->news->gridDefinition()->spec();
+        $spec = NewsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
 
         return GridRunner::fetch(
@@ -116,7 +118,7 @@ class AdminNewsHubController extends AdminNewsBaseController
      */
     private function commentsGrid(): array
     {
-        $spec = $this->comments->gridDefinition()->spec();
+        $spec = NewsCommentsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
 
         return GridRunner::fetch(

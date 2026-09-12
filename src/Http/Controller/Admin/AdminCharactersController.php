@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\PlayersGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -54,7 +55,7 @@ class AdminCharactersController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->players->gridDefinition()->spec();
+        $spec = PlayersGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,

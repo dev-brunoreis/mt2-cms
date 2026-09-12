@@ -302,9 +302,7 @@ class Application
 
     private function bootstrapSetup(): void
     {
-        $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve('en'));
-        $this->theme = $this->createThemeEngine('default', true, false);
-        $this->auth = new Auth(new AccountRepository(new Database(['requirePassword' => false])));
+        (require __DIR__ . '/bootstrap/setup_services.php')($this);
     }
 
     private function bootstrapInstalled(): void
@@ -312,139 +310,10 @@ class Application
         $this->assertAppKey();
         $this->cmsDb = Database::forCms();
         $this->assertSchemaCurrent();
-        $adminRepo = new AdminRepository($this->cmsDb);
-        $this->needsAdminRecovery = $adminRepo->count() === 0;
-        $this->adminAuth = new AdminAuth($adminRepo);
-        $this->adminRoles = new AdminRoleRepository($this->cmsDb);
-        $this->adminTotp = new AdminTotpRepository($this->cmsDb);
-        $this->acl = new AclService(new AclRepository($this->cmsDb), $this->adminRoles);
-
-        $this->settingsRepo = new SettingsRepository($this->cmsDb);
-        $this->settings = new SettingsService($this->settingsRepo, $this->themeCatalog);
-        $this->htmlSanitizer = new HtmlSanitizer();
-        $this->newsUploads = new NewsUploadService(BASE_DIR . '/public');
-        $this->ticketUploads = new TicketUploadService(BASE_DIR . '/var/uploads/tickets');
-        $this->news = new NewsRepository($this->cmsDb);
-        $this->newsComments = new NewsCommentRepository($this->cmsDb);
-        $this->tickets = new TicketRepository($this->cmsDb);
-        $this->itemShopCategories = new ItemShopCategoryRepository($this->cmsDb);
-        $this->itemShopProducts = new ItemShopProductRepository($this->cmsDb);
-        $this->itemShopOrders = new ItemShopOrderRepository($this->cmsDb);
-        $this->accountEmails = new AccountEmailRepository($this->cmsDb);
-        $this->emailTokens = new EmailTokenRepository($this->cmsDb);
-        $this->banRepo = new BanRepository($this->cmsDb);
-        $this->unstuckRepo = new UnstuckRepository($this->cmsDb);
-        $this->events = new EventRepository($this->cmsDb);
-        $this->serverChannels = new ServerChannelRepository($this->cmsDb);
-        $this->downloads = new DownloadRepository($this->cmsDb);
-        $this->downloadUploads = new DownloadUploadService(BASE_DIR . '/var/downloads');
-        $this->cashPackages = new CashPackageRepository($this->cmsDb);
-        $this->payments = new PaymentRepository($this->cmsDb);
-        $this->mailer = new SymfonyMailer(
-            $this->settings->mailFromAddress(),
-            $this->settings->mailFromName(),
-        );
-        $this->paypal = new PayPalGateway($this->settings);
-
-        $defaultLocale = $this->settings->defaultLocale();
-        $this->translator = new Translator(BASE_DIR . '/lang', $this->locales->resolve($defaultLocale));
-        $this->gameProfile = GameProfile::load();
-        $this->protoSchemas = new ProtoSchemas($this->gameProfile);
-        $this->protoEnums = new ProtoEnums($this->gameProfile);
-        $this->itemStats = new ItemStats($this->protoEnums);
-        $this->icons = new GameIconService(
-            $this->gameProfile->path('icon_root'),
-            BASE_DIR . '/var/cache/icons',
-            $this->gameProfile,
-            new ItemIconCatalog($this->gameProfile->path('item_list')),
-        );
-        $activeTheme = $this->settings->activeTheme();
-        $this->theme = $this->createThemeEngine($activeTheme, $this->settings->registrationEnabled(), false);
-        $this->discord = new DiscordWebhookService($this->settings);
-        $this->eventService = new EventService($this->events, $this->discord);
-        $this->theme->setGlobals([
-            'has_news' => $this->news->countPublished() > 0,
-            'discord_invite_url' => $this->settings->discordInviteUrl(),
-        ]);
-        $this->adminTheme = $this->createThemeEngine('admin', true, true);
-
-        $this->db = new Database();
-        $this->accounts = new AccountRepository($this->db);
-        $this->referralRepo = new ReferralRepository($this->cmsDb, $this->accounts);
-        $this->players = new PlayerRepository($this->db);
-        $this->items = new ItemRepository(
-            $this->db,
-            new ItemDescCatalog($this->gameProfile->path('itemdesc')),
-            $this->itemStats,
-        );
-        $this->guilds = new GuildRepository($this->db);
-        $this->gms = new GmRepository($this->db);
-        $this->awards = new ItemAwardRepository($this->db);
-        $this->shops = new ShopRepository($this->db);
-        $this->refine = new RefineRepository($this->db);
-        $this->logs = new LogRepository($this->db);
-        $this->gameProto = new GameProtoService(
-            $this->gameProfile,
-            $this->protoSchemas,
-            new ProtoNameRepository($this->db),
-            new ProtoIndexCache(dirname(__DIR__) . '/var/cache'),
-        );
-        $groupParser = new GroupTextParser();
-        $this->mobDrops = new MobDropService(
-            $this->gameProfile,
-            $this->gameProto,
-            $groupParser,
-        );
-        $this->dropFiles = new DropFileService(
-            $this->gameProfile,
-            $groupParser,
-            new GroupTextWriter(),
-        );
-        $this->protoFields = new ProtoFormFields($this->translator, $this->protoEnums);
-        $this->auth = new Auth($this->accounts);
-        $this->banService = new BanService($this->banRepo, $this->accounts);
-        $this->unstuckService = new UnstuckService($this->unstuckRepo, $this->players, $this->settings);
-        $this->referralService = new ReferralService(
-            $this->referralRepo,
-            $this->accounts,
-            $this->players,
-            $this->settings,
-        );
-        $this->accountEmailService = new AccountEmailService(
-            $this->accounts,
-            $this->accountEmails,
-            $this->emailTokens,
-            $this->mailer,
-            $this->settings,
-        );
-        $this->cashCredits = new CashCreditService($this->payments, $this->accounts, $this->discord);
-        $this->paymentCheckout = new PaymentCheckoutService(
-            $this->cashPackages,
-            $this->payments,
-            $this->paypal,
-            $this->settings,
-        );
-        $this->adminAudit = new AdminAuditService(
-            new AdminAuditRepository($this->cmsDb),
-            $this->adminAuth,
-        );
-        $this->itemShopPurchases = new ItemShopPurchaseService(
-            $this->itemShopProducts,
-            $this->itemShopOrders,
-            $this->accounts,
-            $this->awards,
-        );
-        $this->itemTooltips = new ItemTooltipBuilder(
-            $this->gameProto,
-            $this->itemStats,
-            $this->protoEnums,
-            new ItemDescCatalog($this->gameProfile->path('itemdesc')),
-        );
-        $this->attachAdminNavCounts();
-        \Mt2Cms\Admin\AdminRuntime::bind($this->settings);
+        (require __DIR__ . '/bootstrap/installed_services.php')($this);
     }
 
-    private function createThemeEngine(string $activeTheme, bool $registrationEnabled, bool $isAdmin): ThemeEngine
+    public function createThemeEngine(string $activeTheme, bool $registrationEnabled, bool $isAdmin): ThemeEngine
     {
         $engine = new ThemeEngine(
             BASE_DIR . '/themes',
@@ -467,7 +336,7 @@ class Application
         return $engine;
     }
 
-    private function attachAdminNavCounts(): void
+    public function attachAdminNavCounts(): void
     {
         if (!$this->adminAuth->check()) {
             return;

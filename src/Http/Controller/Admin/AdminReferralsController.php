@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\ReferralsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -35,7 +36,7 @@ class AdminReferralsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->referrals->gridDefinition()->spec();
+        $spec = ReferralsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,

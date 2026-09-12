@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
-use Mt2Cms\Admin\AdminPaths;
-use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Game\GameProfile;
 use Mt2Cms\Game\Proto\ProtoIndexCache;
@@ -55,54 +53,51 @@ class GameProtoService
     }
 
     /**
-     * @return array{rows: list<array<string, string>>, total: int}
      * @param list<int> $excludeVnums
      */
-    public function page(string $kind, int $page, int $perPage, ?string $query, array $excludeVnums = []): array
+    public function countForGrid(string $kind, GridQuery $query, array $excludeVnums = []): int
     {
-        $filtered = $this->filter($this->indexedRows($this->resolveKind($kind)), $query);
-
-        if ($excludeVnums !== []) {
-            $exclude = [];
-
-            foreach ($excludeVnums as $vnum) {
-                $exclude[(int) $vnum] = true;
-            }
-
-            $filtered = array_values(array_filter(
-                $filtered,
-                static fn (array $row): bool => !isset($exclude[(int) ($row['vnum'] ?? 0)]),
-            ));
-        }
-        $total = count($filtered);
-        $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
-        $offset = ($page - 1) * $perPage;
-
-        return [
-            'rows' => array_slice($filtered, $offset, $perPage),
-            'total' => $total,
-        ];
-    }
-
-    public function countForGrid(string $kind, GridQuery $query): int
-    {
-        return count($this->filter($this->indexedRows($this->resolveKind($kind)), $query->q));
+        return count($this->rowsForGrid($kind, $query->q, $excludeVnums));
     }
 
     /**
+     * @param list<int> $excludeVnums
      * @return list<array<string, string>>
      */
-    public function listForGrid(string $kind, GridQuery $query): array
+    public function listForGrid(string $kind, GridQuery $query, array $excludeVnums = []): array
     {
         $internal = $this->resolveKind($kind);
         $rows = $this->sortRows(
-            $this->filter($this->indexedRows($internal), $query->q),
+            $this->rowsForGrid($kind, $query->q, $excludeVnums),
             $query,
             $this->listColumns($internal),
         );
 
         return array_slice($rows, $query->offset(), $query->perPage);
+    }
+
+    /**
+     * @param list<int> $excludeVnums
+     * @return list<array<string, string>>
+     */
+    private function rowsForGrid(string $kind, ?string $q, array $excludeVnums): array
+    {
+        $filtered = $this->filter($this->indexedRows($this->resolveKind($kind)), $q);
+
+        if ($excludeVnums === []) {
+            return $filtered;
+        }
+
+        $exclude = [];
+
+        foreach ($excludeVnums as $vnum) {
+            $exclude[(int) $vnum] = true;
+        }
+
+        return array_values(array_filter(
+            $filtered,
+            static fn (array $row): bool => !isset($exclude[(int) ($row['vnum'] ?? 0)]),
+        ));
     }
 
     /**
@@ -226,50 +221,6 @@ class GameProtoService
     public function listColumns(string $kind): array
     {
         return $this->schemas->listColumns($kind);
-    }
-
-    public function adminGridDefinition(string $route): GridDefinition
-    {
-        $kind = $this->kindFromRoute($route);
-        $prefix = $route === self::ROUTE_ITEMS ? 'admin.items' : 'admin.mobs';
-        $columns = [];
-
-        foreach ($this->listColumns($kind) as $column) {
-            if ($column === 'locale_name') {
-                $columns[] = [
-                    'key' => 'locale_name',
-                    'label' => $prefix . '.fields.locale_name',
-                    'sort' => 'locale_name',
-                    'type' => 'icon_link',
-                    'icon' => $route === self::ROUTE_ITEMS ? 'item' : 'face',
-                    'href' => $this->adminListPath($route) . '/{id}',
-                ];
-
-                continue;
-            }
-
-            $columns[] = [
-                'key' => $column,
-                'label' => $prefix . '.fields.' . $column,
-                'sort' => $column,
-                'type' => in_array($column, ['vnum', 'level', 'rank'], true) ? 'number' : 'text',
-            ];
-        }
-
-        $sortMap = [];
-
-        foreach ($this->listColumns($kind) as $column) {
-            $sortMap[$column] = $column;
-        }
-
-        return GridDefinition::create($this->adminListPath($route), $prefix)
-            ->idField('vnum')
-            ->defaultSort('vnum')
-            ->orderBy($sortMap)
-            ->columns($columns)
-            ->massActions($this->adminListPath($route) . '/mass', [
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => $prefix . '.confirm_mass_delete'],
-            ]);
     }
 
     /**
@@ -436,10 +387,5 @@ class GameProtoService
         } catch (\Throwable $exception) {
             Log::error('proto-db', 'Failed to sync proto names to player schema', $exception);
         }
-    }
-
-    private function adminListPath(string $route): string
-    {
-        return $route === self::ROUTE_MOBS ? AdminPaths::gameDataMobs() : AdminPaths::gameDataItems();
     }
 }

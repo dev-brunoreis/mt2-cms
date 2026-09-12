@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\PaymentsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -35,7 +36,7 @@ class AdminPaymentsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->payments->gridDefinition()->spec();
+        $spec = PaymentsGrid::definition()->spec();
         $grid = GridRunner::fetch(
             $spec,
             $this->gridQuery($spec),

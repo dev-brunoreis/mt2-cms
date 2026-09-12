@@ -271,6 +271,23 @@ final class SourceScan
             throw new \RuntimeException('Could not resolve grid class from ' . $expr);
         }
 
+        if (preg_match('/\\\\?([A-Za-z0-9_]+Grid)::definition\s*\(/', $expr, $match)) {
+            $short = $match[1];
+            $fqcn = 'Mt2Cms\\Admin\\Grid\\Definitions\\' . $short;
+
+            if (class_exists($fqcn)) {
+                return $fqcn;
+            }
+
+            $aliases = self::useAliases(self::read((new ReflectionClass($class))->getFileName()));
+
+            if (isset($aliases[$short]) && class_exists($aliases[$short])) {
+                return $aliases[$short];
+            }
+
+            throw new \RuntimeException('Unknown grid definition class ' . $short . ' from ' . $expr);
+        }
+
         if (preg_match('/\$this->(\w+)->(?:gridDefinition|adminGridDefinition)\s*\(/', $expr, $match)) {
             $ref = new ReflectionClass($class);
 

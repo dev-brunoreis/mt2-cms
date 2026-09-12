@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Http\Controller\Admin;
 
 use Mt2Cms\Admin\AdminPaths;
+use Mt2Cms\Admin\Grid\Definitions\ProtoGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
@@ -221,7 +222,7 @@ class AdminGameProtoController extends AdminController
 
     private function protoGridSpec(string $route): GridSpec
     {
-        return $this->protos->adminGridDefinition($route)->spec();
+        return ProtoGrid::definition($this->protos, $route)->spec();
     }
 
     /**

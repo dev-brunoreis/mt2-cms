@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\BansGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
@@ -12,28 +12,6 @@ use Mt2Cms\Repository\Repository;
 
 class BanRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game/bans', 'admin.bans')
-            ->defaultSort('created_at')
-            ->orderBy([
-                'id' => 'id',
-                'account_login' => 'account_login',
-                'created_at' => 'created_at',
-                'expires_at' => 'expires_at',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.bans.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'account_login', 'label' => 'admin.bans.account', 'sort' => 'account_login', 'type' => 'text'],
-                ['key' => 'reason', 'label' => 'admin.bans.reason', 'type' => 'text'],
-                ['key' => 'expires_at', 'label' => 'admin.bans.expires', 'sort' => 'expires_at', 'type' => 'date'],
-                ['key' => 'created_at', 'label' => 'admin.bans.created_at', 'sort' => 'created_at', 'type' => 'date'],
-                ['key' => 'lifted_at', 'label' => 'admin.bans.lifted', 'type' => 'date'],
-            ])
-            ->massActions('/admin/game/bans/mass', [
-                ['id' => 'lift', 'label' => 'admin.bans.lift', 'confirm' => 'admin.bans.confirm_mass_lift'],
-            ]);
-    }
 
     protected function database(): string
     {
@@ -58,7 +36,7 @@ class BanRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'id DESC');
+        $order = GridSql::orderBy($query, BansGrid::definition()->sortMap(), 'id DESC');
 
         return $this->db()->fetchAll(
             'SELECT id, account_id, account_login, reason, expires_at, created_by_admin_id, created_at, lifted_at

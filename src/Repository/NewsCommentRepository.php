@@ -4,36 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\NewsCommentsGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class NewsCommentRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/content/news?tab=comments', 'admin.news')
-            ->searchable(false)
-            ->defaultSort('created_at')
-            ->orderBy([
-                'id' => 'c.id',
-                'author_login' => 'c.account_login',
-                'created_at' => 'c.created_at',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.news.comment_id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'news_title', 'label' => 'admin.news.post_title', 'type' => 'text'],
-                ['key' => 'author_login', 'label' => 'admin.news.comment_author', 'sort' => 'author_login', 'type' => 'text'],
-                ['key' => 'body', 'label' => 'admin.news.comment_body', 'type' => 'text'],
-                ['key' => 'created_at', 'label' => 'admin.news.comment_date', 'sort' => 'created_at', 'type' => 'date'],
-            ])
-            ->massActions('/admin/content/news/comments/mass', [
-                ['id' => 'approve', 'label' => 'admin.grid.approve'],
-                ['id' => 'reject', 'label' => 'admin.grid.reject'],
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.news.confirm_mass_delete_comments'],
-            ]);
-    }
 
     protected function database(): string
     {
@@ -98,7 +75,7 @@ class NewsCommentRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'c.created_at ASC, c.id ASC');
+        $order = GridSql::orderBy($query, NewsCommentsGrid::definition()->sortMap(), 'c.created_at ASC, c.id ASC');
 
         return $this->db()->fetchAll(
             'SELECT c.id, c.news_id, c.account_id, c.account_login, c.body, c.status, c.created_at,

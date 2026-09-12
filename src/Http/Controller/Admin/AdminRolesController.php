@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AdminRolesGrid;
 use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminResourceCatalog;
 use Mt2Cms\Admin\RoleSlugExistsException;
@@ -37,7 +38,7 @@ class AdminRolesController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->roles->gridDefinition()->spec(),
+            AdminRolesGrid::definition()->spec(),
             '/admin/system/roles',
             [
                 'delete' => fn (string $slug): bool => $this->roles->delete($slug),
@@ -50,7 +51,7 @@ class AdminRolesController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->roles->gridDefinition()->spec();
+        $spec = AdminRolesGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,

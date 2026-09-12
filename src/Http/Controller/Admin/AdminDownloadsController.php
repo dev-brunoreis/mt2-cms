@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\DownloadsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -35,7 +36,7 @@ class AdminDownloadsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->downloads->gridDefinition()->spec();
+        $spec = DownloadsGrid::definition()->spec();
         $grid = GridRunner::fetch(
             $spec,
             $this->gridQuery($spec),
@@ -55,7 +56,7 @@ class AdminDownloadsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->downloads->gridDefinition()->spec(),
+            DownloadsGrid::definition()->spec(),
             '/admin/content/downloads',
             [
                 'delete' => function (int $id): bool {

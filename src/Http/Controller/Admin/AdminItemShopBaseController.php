@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\ItemShopProductsGrid;
 use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridSpec;
 use Mt2Cms\Auth\AdminAuth;
@@ -67,7 +68,7 @@ abstract class AdminItemShopBaseController extends AdminController
             $categoryOptions[(string) $category['id']] = (string) $category['name'];
         }
 
-        return $this->products->gridDefinition()
+        return ItemShopProductsGrid::definition()
             ->filterOptions('category_id', $categoryOptions, false)
             ->spec();
     }

@@ -23,7 +23,18 @@ Hub pages (news, store, logs) use `[data-admin-tabs]` with lazy `?partial=1` fra
 
 ## 1. Register menu + submenu
 
-In [`src/Admin/AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`.
+Admin navigation and ACL use related but separate catalogs:
+
+| Class | Edit when |
+|---|---|
+| [`AdminSections`](../src/Admin/AdminSections.php) | Sidebar menu item (id, path, label) |
+| [`AdminPaths`](../src/Admin/AdminPaths.php) | URL helpers (`admin_path()` / PHP) |
+| [`AdminResourceCatalog`](../src/Admin/AdminResourceCatalog.php) | Assignable ACL permissions (role form tree) |
+| [`AdminSectionCatalog`](../src/Admin/AdminSectionCatalog.php) | Role seeds, super-only section ids, legacy section→resource bridge |
+| [`AdminPermissions`](../src/Admin/AdminPermissions.php) | Super role constant only |
+| [`AdminRuntime`](../src/Admin/AdminRuntime.php) | Settings bind for Twig/helpers (not a catalog) |
+
+In [`AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`.
 
 ```php
 [
@@ -91,12 +102,12 @@ Use the shared Magento-style grid for index/list pages — do not copy table mar
 
 ### Controller
 
-1. Implement `ProvidesAdminGrid` on the repository and add `gridDefinition(): GridDefinition` next to `listForGrid()` — columns, filters, and `orderBy()` map stay in one place.
-2. Add `countForGrid()` / `listForGrid()` (accept `GridQuery`; use `GridSql::orderBy($query, $this->gridDefinition()->sortMap(), …)`).
+1. Add `src/Admin/Grid/Definitions/YourSectionGrid.php` with `public static function definition(): GridDefinition` (columns, filters, `orderBy` map).
+2. Repository implements `ProvidesAdminGrid` with `countForGrid()` / `listForGrid()` only. Use `YourSectionGrid::definition()->sortMap()` in `GridSql::orderBy`.
 3. In the controller `index()`:
 
 ```php
-$spec = $this->repo->gridDefinition()->spec();
+$spec = YourSectionGrid::definition()->spec();
 $query = $this->gridQuery($spec);
 $grid = GridRunner::fetch(
     $spec,
@@ -114,13 +125,13 @@ return $this->adminView('your-section', 'pages/your-section.twig', [
 ]);
 ```
 
-4. For mass actions: set `massActionPath` on the spec, register `POST /admin/…/mass`, and delegate to `runMassActions()` on `AdminController` — it handles CSRF, ID/action parsing, per-row handlers, audit logging, and the success flash. Example:
+4. For mass actions: set `massActionPath` on the definition, register `POST /admin/…/mass`, and delegate to `runMassActions()` on `AdminController` — it handles CSRF, ID/action parsing, per-row handlers, audit logging, and the success flash. Example:
 
 ```php
 public function mass(): Response
 {
     return $this->runMassActions(
-        $this->repo->gridDefinition()->spec(),
+        YourSectionGrid::definition()->spec(),
         AdminPaths::yourSection(),
         [
             'delete' => fn (int $id): bool => $this->repo->delete($id),

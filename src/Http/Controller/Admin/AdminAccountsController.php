@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AccountsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -37,7 +38,7 @@ class AdminAccountsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->accounts->gridDefinition()->spec();
+        $spec = AccountsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -58,7 +59,7 @@ class AdminAccountsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->accounts->gridDefinition()->spec(),
+            AccountsGrid::definition()->spec(),
             '/admin/game/accounts',
             [
                 'block' => fn (int $id): bool => $this->accounts->block($id),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\GmsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -35,7 +36,7 @@ class AdminGmsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->gms->gridDefinition()->spec();
+        $spec = GmsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -57,7 +58,7 @@ class AdminGmsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->gms->gridDefinition()->spec(),
+            GmsGrid::definition()->spec(),
             '/admin/game-data/gms',
             [
                 'delete' => fn (int $id): bool => $this->gms->deleteGm($id),

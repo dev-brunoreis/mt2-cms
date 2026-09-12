@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\EventsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -37,7 +38,7 @@ class AdminEventsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->events->gridDefinition()->spec();
+        $spec = EventsGrid::definition()->spec();
         $grid = GridRunner::fetch(
             $spec,
             $this->gridQuery($spec),
@@ -57,7 +58,7 @@ class AdminEventsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->events->gridDefinition()->spec(),
+            EventsGrid::definition()->spec(),
             '/admin/content/events',
             [
                 'publish' => fn (int $id): bool => $this->massPublish($id),

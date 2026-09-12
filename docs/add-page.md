@@ -58,7 +58,7 @@ Add `themes/default/templates/pages/your-page.twig`.
 ## PR checklist
 
 - [ ] Route registered
-- [ ] Controller wired in `resolveController` (if new)
+- [ ] Controller wired in `controller_factories.php` (if new)
 - [ ] Layout JSON + Twig page
 - [ ] `en` + `pt-BR` keys
 - [ ] CSRF on POST / `requireAuth` when needed

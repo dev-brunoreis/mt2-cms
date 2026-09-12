@@ -6,8 +6,6 @@ namespace Mt2Cms\Admin\Grid;
 
 interface ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition;
-
     public function countForGrid(GridQuery $query): int;
 
     /**

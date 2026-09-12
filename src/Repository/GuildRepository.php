@@ -4,30 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\GuildsGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class GuildRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game/guilds', 'admin.guilds')
-            ->orderBy([
-                'id' => 'g.id',
-                'name' => 'g.name',
-                'level' => 'g.level',
-                'member_count' => 'member_count',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.guilds.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.guilds.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game/guilds/{id}'],
-                ['key' => 'level', 'label' => 'admin.guilds.level', 'sort' => 'level', 'type' => 'number'],
-                ['key' => 'member_count', 'label' => 'admin.guilds.members', 'sort' => 'member_count', 'type' => 'number'],
-                ['key' => 'master', 'label' => 'admin.guilds.master', 'type' => 'text'],
-            ]);
-    }
 
     protected function database(): string
     {
@@ -66,7 +49,7 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
             ? 'LEFT JOIN (SELECT guild_id, COUNT(*) AS member_count FROM `guild_member` GROUP BY guild_id) mc ON mc.guild_id = g.id'
             : '';
         $memberSelect = $this->schemaTableExists('guild_member') ? ', COALESCE(mc.member_count, 0) AS member_count' : ', 0 AS member_count';
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'g.id ASC');
+        $order = GridSql::orderBy($query, GuildsGrid::definition()->sortMap(), 'g.id ASC');
 
         $rows = $this->revealAll(
             $this->db()->fetchAll(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\ReferralsGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
@@ -25,25 +25,6 @@ class ReferralRepository extends Repository implements ProvidesAdminGrid
         return 'cms';
     }
 
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game/referrals', 'admin.referrals')
-            ->defaultSort('created_at')
-            ->orderBy([
-                'id' => 'r.id',
-                'referrer_login' => 'r.referrer_id',
-                'referred_login' => 'r.referred_id',
-                'created_at' => 'r.created_at',
-                'rewarded_at' => 'r.rewarded_at',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.referrals.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'referrer_login', 'label' => 'admin.referrals.referrer', 'sort' => 'referrer_login', 'type' => 'text'],
-                ['key' => 'referred_login', 'label' => 'admin.referrals.referred', 'sort' => 'referred_login', 'type' => 'text'],
-                ['key' => 'created_at', 'label' => 'admin.referrals.created_at', 'sort' => 'created_at', 'type' => 'date'],
-                ['key' => 'rewarded_at', 'label' => 'admin.referrals.rewarded_at', 'sort' => 'rewarded_at', 'type' => 'date'],
-            ]);
-    }
 
     public function countForGrid(GridQuery $query): int
     {
@@ -63,7 +44,7 @@ class ReferralRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'r.id DESC');
+        $order = GridSql::orderBy($query, ReferralsGrid::definition()->sortMap(), 'r.id DESC');
 
         $rows = $this->db()->fetchAll(
             'SELECT r.id, r.referrer_id, r.referred_id, r.rewarded_at, r.created_at

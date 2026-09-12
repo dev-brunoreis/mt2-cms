@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\RefineGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -36,7 +37,7 @@ class AdminRefineController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->refine->gridDefinition()->spec();
+        $spec = RefineGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $usedByRefineIds = $query->q !== null && ctype_digit($query->q)
             ? $this->protos->refineIdsForItemVnumPrefix($query->q)
@@ -60,7 +61,7 @@ class AdminRefineController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->refine->gridDefinition()->spec(),
+            RefineGrid::definition()->spec(),
             '/admin/game-data/refine',
             [
                 'delete' => fn (int $id): bool => $this->refine->delete($id),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\ItemShopOrdersGrid;
 use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Http\Response;
@@ -133,7 +134,7 @@ class AdminStoreHubController extends AdminItemShopBaseController
      */
     private function ordersGrid(): array
     {
-        $spec = $this->orders->gridDefinition()->spec();
+        $spec = ItemShopOrdersGrid::definition()->spec();
         $query = $this->gridQuery($spec);
 
         return GridRunner::fetch(

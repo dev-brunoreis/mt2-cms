@@ -79,49 +79,31 @@ Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/set
 
 ## Organization, files, naming
 
-### ~~`Application.php` is the bottleneck~~ — routes + factories done
+### ~~`Application.php` is the bottleneck~~ — done
 
-Routes live in [`PublicRoutes.php`](../src/Http/PublicRoutes.php) / [`AdminRoutes.php`](../src/Http/AdminRoutes.php). Controllers are wired via [`controller_factories.php`](../src/Http/controller_factories.php) (one line per new controller).
+Routes: [`PublicRoutes.php`](../src/Http/PublicRoutes.php) / [`AdminRoutes.php`](../src/Http/AdminRoutes.php). Controllers: [`controller_factories.php`](../src/Http/controller_factories.php). Service wiring: [`src/bootstrap/`](../src/bootstrap/).
 
 ### ~~Controllers mixed in one folder~~ — done
 
 Public controllers live in [`src/Http/Controller/`](../src/Http/Controller/); admin panel controllers in [`src/Http/Controller/Admin/`](../src/Http/Controller/Admin/).
 
-### Fat controllers
+### ~~Fat controllers~~ — done
 
-- `AdminItemShopController` (~770 lines): products + categories + orders + item search
-- `AdminNewsController`: posts + comments + settings + upload
-- `AdminSettingsController`: registration + themes + locale
+Item shop split into Products / Categories / CategoryProducts / Orders (+ Base). News split into Posts / Comments / Settings / Hub. `AdminSettingsController` (~214 lines) stays as one screen.
 
-Split by resource when those screens are next touched (`AdminItemShopProductsController`, `…Categories`, `…Orders`).
+### ~~Grid UI lives in repositories~~ — done
 
-### Grid UI lives in repositories
-
-`gridDefinition()` on `AccountRepository`, `NewsRepository`, etc. mixes hrefs, badge CSS, and i18n keys with SQL.
-
-Better split:
-
-- Repository: `countForGrid` / `listForGrid` + SQL `sortMap()`
-- Definition: `src/Admin/Grid/Definitions/AccountsGrid.php` (or the controller)
-
-`ProvidesAdminGrid` requires `gridDefinition()`, `countForGrid`, and `listForGrid`.
-
-Two ways to build a spec today:
-
-- News/accounts: definition on the repository
-- Logs, proto, item-shop products: spec built in the controller (`logGridSpec`, `protoGridSpec`, `productsGridSpec` for dynamic filter options)
-
-Padronize: same place for the definition; use `GridDefinition::filterOptions()` for dynamic selects (already exists).
+Definitions live in [`src/Admin/Grid/Definitions/`](../src/Admin/Grid/Definitions/). Repositories implement `countForGrid` / `listForGrid` only. Controllers call `XxxGrid::definition()`. Exception: dynamic log specs in `AdminLogsController`. Proto uses `ProtoGrid`.
 
 ### Dead or misleading names
 
 | Current | Issue |
 | --- | --- |
-| `countForAdmin` / `listForAdmin` | Wrappers around `*ForGrid`. Callers are gone except `LogRepository` and one awards lookup. Remove. |
-| `GameProtoService::page()` | Overlaps `countForGrid` / `listForGrid`. Still used by item-shop category item search. |
-| `AdminController::gridView()` | Dead — `GridRunner` already builds the view. |
+| ~~`countForAdmin` / `listForAdmin`~~ | Removed — use `*ForGrid` only. |
+| ~~`AdminController::gridView()`~~ | Removed — `GridRunner` builds the view. |
 | ~~`CommonRepository`~~ | Renamed to `GmRepository`. |
-| `GridUrl` | Hardcoded `limit !== 20` and `sort !== 'id'`. Tickets/logs use other defaults, so URLs are noisy or drop sort. Use `spec->defaultPerPage` / `defaultSort`. |
+| ~~`GridUrl` defaults~~ | Uses `spec->defaultPerPage` / `defaultSort` / `defaultDir`. |
+| ~~`GameProtoService::page()`~~ | Removed — use `countForGrid` / `listForGrid`. |
 
 ### Front-end JS is a flat folder
 
@@ -129,12 +111,11 @@ Padronize: same place for the definition; use `GridDefinition::filterOptions()` 
 
 ### i18n
 
-Only `lang/en.json`. `implementing.mdc` still says “both `lang/en.json`” (leftover). When PT-BR lands, split by namespace (`admin.json`, `auth.json`) or `lang/en/*.json`.
+Only `lang/en.json`. When PT-BR lands, split by namespace (`admin.json`, `auth.json`) or `lang/en/*.json` and extend `Translator` / `Locales` (single-file today).
 
-### Schema as inline SQL
+### ~~Schema as inline SQL~~ — done
 
-[`src/Setup/CmsSchema.php`](../src/Setup/CmsSchema.php) has all `CREATE TABLE` inline and no schema version table. Required before any `ALTER` (roles, audit log).
-
+[`CmsSchema.php`](../src/Setup/CmsSchema.php) orchestrates; SQL lives in [`src/Setup/migrations/`](../src/Setup/migrations/).
 ---
 
 ## Expanding systems
@@ -201,26 +182,26 @@ Everything is a concrete class in `resolveController()`. An event dispatcher (`A
 
 ## Suggested order
 
-Do these as separate changes. Do not mix a rename pass with a security change.
+Organization backlog below is largely done (DI bootstrap, proto `page()` removal, grid Definitions, Categories split, catalog docs). Remaining opportunistic work:
 
-1. **Grid leftovers** — delete unused `*ForAdmin` / `gridView()`, fix `GridUrl` defaults, keep definitions in one pattern. Update [add-admin-section.md](add-admin-section.md).
-2. **Split `Application.php`** (routes + DI factories) before the next large section.
-3. **Split fat controllers** (item shop, news) when those screens are edited anyway.
+1. Nested read-only admin tables → `grid.twig` fragments
+2. i18n multi-file when PT-BR lands (`Translator` / `Locales`)
+3. Optionally fold `AdminSectionCatalog` helpers into Sections/ResourceCatalog (do not merge ACL catalogs casually)
 
 Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path, exception handler, idle sessions, `APP_KEY`/encrypted TOTP, 2FA defaults, player password change. See [deploy.md](deploy.md).
 
-Done: `GmRepository` rename, JS split, proto index cache, `FormInput`, controller factories, game-data nav, PayPal hardening, production Compose/CI/backups. Still opportunistic: nested read-only tables → `grid.twig` fragments, i18n file split, split `AdminItemShopCategoriesController`.
+Done: `GmRepository` rename, JS split, proto index cache, `FormInput`, controller factories, public vs Admin controller folders, Model→Support, feature folders→Repository/Service, Application DI bootstrap, grid Definitions, Categories/CategoryProducts split, game-data nav, PayPal hardening, production Compose/CI/backups.
 
 ---
 
 ## Checklist for a new admin list (today)
 
-Until phase 2 lands, still follow [add-admin-section.md](add-admin-section.md):
+Follow [add-admin-section.md](add-admin-section.md):
 
-- [ ] `gridDefinition()` + `countForGrid` / `listForGrid` (do **not** add new `countForAdmin` / `listForAdmin`)
-- [ ] `GridSql::orderBy` with a hardcoded `sortMap`
+- [ ] `src/Admin/Grid/Definitions/YourSectionGrid.php` + `countForGrid` / `listForGrid` on the repository
+- [ ] `GridSql::orderBy` with `YourSectionGrid::definition()->sortMap()`
 - [ ] `GridRunner::fetch` in the controller
-- [ ] Mass POST: `assertCsrf()`, ids via `gridMassIds()`, action in a `match` that only allows spec actions
-- [ ] Audit write once the log table exists (phase 1)
+- [ ] Mass POST: `runMassActions()` (or `assertCsrf()` + whitelist from the spec)
+- [ ] Audit via `audit()` / `auditChange()` / `runMassActions()`
 - [ ] Translation keys in `lang/en.json`
-- [ ] Route + DI in `Application.php` (until phase 3)
+- [ ] Route in `AdminRoutes.php` + factory in `controller_factories.php`

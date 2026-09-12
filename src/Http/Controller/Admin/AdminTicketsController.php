@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\TicketsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -40,7 +41,7 @@ class AdminTicketsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->tickets->gridDefinition()->spec();
+        $spec = TicketsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -59,7 +60,7 @@ class AdminTicketsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->tickets->gridDefinition()->spec(),
+            TicketsGrid::definition()->spec(),
             '/admin/content/tickets',
             [
                 'close' => function (int $id): bool {

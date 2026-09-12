@@ -4,32 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\ShopsGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class ShopRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game-data/shops', 'admin.shops')
-            ->idField('vnum')
-            ->orderBy([
-                'vnum' => 's.vnum',
-                'name' => 's.name',
-                'npc_vnum' => 's.npc_vnum',
-            ])
-            ->columns([
-                ['key' => 'vnum', 'label' => 'admin.shops.vnum', 'sort' => 'vnum', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.shops.name', 'sort' => 'name', 'type' => 'link', 'href' => '/admin/game-data/shops/{vnum}'],
-                ['key' => 'npc_vnum', 'label' => 'admin.shops.npc', 'sort' => 'npc_vnum', 'type' => 'number'],
-                ['key' => 'item_count', 'label' => 'admin.shops.items', 'type' => 'number'],
-            ])
-            ->massActions('/admin/game-data/shops/mass', [
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.shops.confirm_mass_delete'],
-            ]);
-    }
 
     protected function database(): string
     {
@@ -66,7 +47,7 @@ class ShopRepository extends Repository implements ProvidesAdminGrid
             ? 'LEFT JOIN (SELECT shop_vnum, COUNT(*) AS item_count FROM `shop_item` GROUP BY shop_vnum) ic ON ic.shop_vnum = s.vnum'
             : '';
         $itemSelect = $this->schemaTableExists('shop_item') ? ', COALESCE(ic.item_count, 0) AS item_count' : ', 0 AS item_count';
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 's.vnum ASC');
+        $order = GridSql::orderBy($query, ShopsGrid::definition()->sortMap(), 's.vnum ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT s.vnum, s.name, s.npc_vnum' . $itemSelect . '

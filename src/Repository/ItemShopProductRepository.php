@@ -4,45 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\ItemShopProductsGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/store/products', 'admin.item_shop.products')
-            ->orderBy([
-                'id' => 'p.id',
-                'vnum' => 'p.vnum',
-                'category_name' => 'c.name',
-                'count' => 'p.count',
-                'price' => 'p.price',
-                'enabled' => 'p.enabled',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.item_shop.products.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/store/products/{id}'],
-                ['key' => 'vnum', 'label' => 'admin.item_shop.products.vnum', 'sort' => 'vnum', 'type' => 'number'],
-                ['key' => 'item_name', 'label' => 'admin.item_shop.products.item', 'type' => 'text'],
-                ['key' => 'category_name', 'label' => 'admin.item_shop.products.category', 'sort' => 'category_name', 'type' => 'text'],
-                ['key' => 'count', 'label' => 'admin.item_shop.products.count_label', 'sort' => 'count', 'type' => 'number'],
-                ['key' => 'price', 'label' => 'admin.item_shop.products.price', 'sort' => 'price', 'type' => 'number'],
-                ['key' => 'enabled', 'label' => 'admin.item_shop.products.enabled', 'sort' => 'enabled', 'type' => 'badge', 'badgeMap' => [
-                    '1' => ['class' => 'admin-badge-ok', 'label' => 'admin.item_shop.enabled_yes'],
-                    '0' => ['class' => 'admin-badge-muted', 'label' => 'admin.item_shop.enabled_no'],
-                ]],
-            ])
-            ->filters([
-                ['key' => 'category_id', 'label' => 'admin.item_shop.products.category', 'type' => 'select', 'options' => []],
-            ])
-            ->massActions('/admin/store/products/mass', [
-                ['id' => 'enable', 'label' => 'admin.grid.enable'],
-                ['id' => 'disable', 'label' => 'admin.grid.disable'],
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.item_shop.products.confirm_mass_delete'],
-            ]);
-    }
 
     private const MAX_COUNT = 200;
 
@@ -71,7 +39,7 @@ class ItemShopProductRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'p.sort_order ASC, p.id ASC');
+        $order = GridSql::orderBy($query, ItemShopProductsGrid::definition()->sortMap(), 'p.sort_order ASC, p.id ASC');
 
         return $this->db()->fetchAll(
             'SELECT p.id, p.category_id, p.vnum, p.count, p.price, p.socket0, p.socket1, p.socket2,

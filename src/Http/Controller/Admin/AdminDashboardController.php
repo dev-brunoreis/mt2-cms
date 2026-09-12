@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\DashboardPlayersGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -45,7 +46,7 @@ class AdminDashboardController extends AdminController
         ];
 
         if ($canStats) {
-            $spec = $this->players->dashboardGridDefinition()->spec();
+            $spec = DashboardPlayersGrid::definition()->spec();
             $query = $this->gridQuery($spec);
             $range = $query->filter('range', '5m');
             $minutes = PlayerRepository::rangeMinutes($range);
@@ -54,7 +55,7 @@ class AdminDashboardController extends AdminController
         }
 
         if ($canPlayers) {
-            $spec = $this->players->dashboardGridDefinition()->spec();
+            $spec = DashboardPlayersGrid::definition()->spec();
             $query = $this->gridQuery($spec);
             $data['grid'] = GridRunner::fetch(
                 $spec,

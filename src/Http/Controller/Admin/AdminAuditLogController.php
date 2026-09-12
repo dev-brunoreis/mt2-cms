@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AdminAuditGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -33,7 +34,7 @@ class AdminAuditLogController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->auditEntries->gridDefinition()->spec();
+        $spec = AdminAuditGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,

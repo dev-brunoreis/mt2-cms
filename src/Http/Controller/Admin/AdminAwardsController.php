@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AwardsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -40,7 +41,7 @@ class AdminAwardsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->awards->gridDefinition()->spec();
+        $spec = AwardsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -61,7 +62,7 @@ class AdminAwardsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->awards->gridDefinition()->spec(),
+            AwardsGrid::definition()->spec(),
             '/admin/game/awards',
             [
                 'delete' => fn (int $id): bool => $this->awards->deletePending($id),

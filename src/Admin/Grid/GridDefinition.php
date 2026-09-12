@@ -6,7 +6,7 @@ namespace Mt2Cms\Admin\Grid;
 
 /**
  * Colocated grid config: columns, filters, sort map, and mass actions in one place.
- * Repositories expose this via ProvidesAdminGrid; sortMap() should match listForGrid SQL.
+ * Live under Admin/Grid/Definitions; repositories use sortMap() in listForGrid SQL.
  */
 final class GridDefinition
 {

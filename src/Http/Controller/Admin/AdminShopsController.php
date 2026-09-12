@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\ShopsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
@@ -41,7 +42,7 @@ class AdminShopsController extends AdminController
 
     public function index(): Response
     {
-        $spec = $this->shops->gridDefinition()->spec();
+        $spec = ShopsGrid::definition()->spec();
         $query = $this->gridQuery($spec);
         $grid = GridRunner::fetch(
             $spec,
@@ -62,7 +63,7 @@ class AdminShopsController extends AdminController
     public function mass(): Response
     {
         return $this->runMassActions(
-            $this->shops->gridDefinition()->spec(),
+            ShopsGrid::definition()->spec(),
             '/admin/game-data/shops',
             [
                 'delete' => fn (int $id): bool => $this->shops->delete($id),

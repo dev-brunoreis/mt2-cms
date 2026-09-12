@@ -4,66 +4,15 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\DashboardPlayersGrid;
+use Mt2Cms\Admin\Grid\Definitions\PlayersGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class PlayerRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game/characters', 'admin.characters')
-            ->orderBy([
-                'id' => 'p.id',
-                'name' => 'p.name',
-                'account_id' => 'p.account_id',
-                'job' => 'p.job',
-                'level' => 'p.level',
-                'playtime' => 'p.playtime',
-                'last_play' => 'p.last_play',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.characters.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.characters.name', 'sort' => 'name', 'type' => 'icon_link', 'icon' => 'face', 'href' => '/admin/game/characters/{id}'],
-                ['key' => 'account_id', 'label' => 'admin.characters.account', 'sort' => 'account_id', 'type' => 'muted'],
-                ['key' => 'job', 'label' => 'admin.characters.job', 'sort' => 'job', 'type' => 'job'],
-                ['key' => 'level', 'label' => 'admin.characters.level', 'sort' => 'level', 'type' => 'number'],
-                ['key' => 'playtime', 'label' => 'admin.characters.playtime', 'sort' => 'playtime', 'type' => 'playtime'],
-                ['key' => 'last_play', 'label' => 'admin.characters.last_play', 'sort' => 'last_play', 'type' => 'date'],
-            ]);
-    }
 
-    public function dashboardGridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin', 'admin.dashboard')
-            ->searchable(false)
-            ->defaultSort('last_play')
-            ->orderBy([
-                'id' => 'p.id',
-                'name' => 'p.name',
-                'job' => 'p.job',
-                'level' => 'p.level',
-                'last_play' => 'p.last_play',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.characters.id', 'sort' => 'id', 'type' => 'muted'],
-                ['key' => 'name', 'label' => 'admin.characters.name', 'sort' => 'name', 'type' => 'icon_link', 'icon' => 'face', 'href' => '/admin/game/characters/{id}'],
-                ['key' => 'account_login', 'label' => 'admin.characters.account', 'type' => 'text'],
-                ['key' => 'job', 'label' => 'admin.characters.job', 'sort' => 'job', 'type' => 'job'],
-                ['key' => 'level', 'label' => 'admin.characters.level', 'sort' => 'level', 'type' => 'number'],
-                ['key' => 'last_play', 'label' => 'admin.characters.last_play', 'sort' => 'last_play', 'type' => 'date'],
-            ])
-            ->filters([
-                ['key' => 'range', 'label' => 'admin.dashboard.range_label', 'type' => 'select', 'options' => [
-                    '5m' => 'admin.dashboard.range.5m',
-                    '1h' => 'admin.dashboard.range.1h',
-                    '12h' => 'admin.dashboard.range.12h',
-                    '24h' => 'admin.dashboard.range.24h',
-                    '7d' => 'admin.dashboard.range.7d',
-                ]],
-            ]);
-    }
 
     private const PUBLIC_COLUMNS = 'id, name, job, skill_group, level, exp, playtime, last_play, map_index';
     private const DETAIL_COLUMNS = 'id, account_id, name, job, skill_group, level, exp, gold, playtime, map_index, last_play';
@@ -331,7 +280,7 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->activeWhere($minutes);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->dashboardGridDefinition()->sortMap(), 'p.last_play DESC, p.id DESC');
+        $order = GridSql::orderBy($query, DashboardPlayersGrid::definition()->sortMap(), 'p.last_play DESC, p.id DESC');
 
         return $this->revealAll(
             $this->db()->fetchAll(
@@ -376,7 +325,7 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'p.id DESC');
+        $order = GridSql::orderBy($query, PlayersGrid::definition()->sortMap(), 'p.id DESC');
 
         return $this->revealAll(
             $this->db()->fetchAll(

@@ -4,32 +4,13 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Repository;
 
-use Mt2Cms\Admin\Grid\GridDefinition;
+use Mt2Cms\Admin\Grid\Definitions\RefineGrid;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
 
 class RefineRepository extends Repository implements ProvidesAdminGrid
 {
-    public function gridDefinition(): GridDefinition
-    {
-        return GridDefinition::create('/admin/game-data/refine', 'admin.refine')
-            ->orderBy([
-                'id' => 'r.id',
-                'cost' => 'r.cost',
-                'prob' => 'r.prob',
-            ])
-            ->columns([
-                ['key' => 'id', 'label' => 'admin.refine.id', 'sort' => 'id', 'type' => 'link', 'href' => '/admin/game-data/refine/{id}'],
-                ['key' => 'source_label', 'label' => 'admin.refine.source', 'type' => 'text'],
-                ['key' => 'result_label', 'label' => 'admin.refine.result', 'type' => 'text'],
-                ['key' => 'cost', 'label' => 'admin.refine.cost', 'sort' => 'cost', 'type' => 'number'],
-                ['key' => 'prob', 'label' => 'admin.refine.prob', 'sort' => 'prob', 'type' => 'number'],
-            ])
-            ->massActions('/admin/game-data/refine/mass', [
-                ['id' => 'delete', 'label' => 'admin.grid.delete', 'confirm' => 'admin.refine.confirm_mass_delete'],
-            ]);
-    }
 
     protected function database(): string
     {
@@ -66,7 +47,7 @@ class RefineRepository extends Repository implements ProvidesAdminGrid
         [$where, $params] = $this->gridWhere($query, $usedByRefineIds);
         $params[] = $query->perPage;
         $params[] = $query->offset();
-        $order = GridSql::orderBy($query, $this->gridDefinition()->sortMap(), 'r.id ASC');
+        $order = GridSql::orderBy($query, RefineGrid::definition()->sortMap(), 'r.id ASC');
 
         $rows = $this->db()->fetchAll(
             'SELECT id, vnum0, count0, vnum1, count1, vnum2, count2, vnum3, count3, vnum4, count4,

@@ -303,6 +303,7 @@ class GameProtoService
                 $row['type'] ?? '',
                 $row['subtype'] ?? '',
                 $row['rank'] ?? '',
+                $row['battle_type'] ?? '',
                 $row['level'] ?? '',
             ]));
 

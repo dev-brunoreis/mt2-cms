@@ -201,4 +201,20 @@ class Display
             'calendar' => $calendar,
         ]);
     }
+
+    /**
+     * Proto enum token (ITEM_WEAPON, MONSTER, S_KNIGHT, …) using form labels.
+     */
+    public function protoToken(mixed $token): string
+    {
+        $token = trim((string) $token);
+
+        if ($token === '') {
+            return '—';
+        }
+
+        $key = 'admin.proto.tokens.' . $token;
+
+        return $this->translator->has($key) ? $this->translator->get($key) : $token;
+    }
 }

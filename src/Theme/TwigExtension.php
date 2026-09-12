@@ -36,6 +36,7 @@ class TwigExtension extends AbstractExtension
             new TwigFilter('duration', [$this->display, 'duration']),
             new TwigFilter('unix_date', [$this->display, 'unixDate']),
             new TwigFilter('game_date', [$this->display, 'datetime']),
+            new TwigFilter('proto_token', [$this->display, 'protoToken']),
             new TwigFilter('news_html', function (mixed $html): string {
                 $sanitizer = $this->htmlSanitizer ?? new HtmlSanitizer();
 

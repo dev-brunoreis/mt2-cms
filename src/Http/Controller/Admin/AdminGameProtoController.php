@@ -224,7 +224,7 @@ class AdminGameProtoController extends AdminController
 
     private function protoGridSpec(string $route): GridSpec
     {
-        return ProtoGrid::definition($this->protos, $route)->spec();
+        return ProtoGrid::definition($this->protos, $this->protoEnums, $route)->spec();
     }
 
     /**

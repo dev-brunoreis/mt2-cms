@@ -5,6 +5,28 @@
 {% if type == 'text' %}
     <span class="text-slate-600">{{ value|default('—') }}</span>
 
+{% elseif type == 'proto_token' %}
+    <span class="text-slate-600">{{ value|proto_token }}</span>
+
+{% elseif type == 'proto_limit' %}
+    {% set token = attribute(row, column.tokenKey)|default('') %}
+    {% if token == '' or token == '0' or token == 'LIMIT_NONE' %}
+        <span class="text-slate-400">—</span>
+    {% else %}
+        <span class="text-slate-600">{{ token|proto_token }} {{ value }}</span>
+    {% endif %}
+
+{% elseif type == 'proto_apply' %}
+    {% set token = attribute(row, column.tokenKey)|default('') %}
+    {% if token == '' or token == '0' or token == 'APPLY_NONE' %}
+        <span class="text-slate-400">—</span>
+    {% else %}
+        <span class="text-slate-600">{{ token|proto_token }} {{ value }}</span>
+    {% endif %}
+
+{% elseif type == 'range' %}
+    <span class="text-slate-600">{{ value|default(0) }}–{{ attribute(row, column.endKey)|default(0) }}</span>
+
 {% elseif type == 'muted' %}
     <span class="text-slate-400">{{ value|default('—') }}</span>
 

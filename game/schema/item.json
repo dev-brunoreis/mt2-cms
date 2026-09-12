@@ -39,8 +39,10 @@
         "locale_name",
         "type",
         "subtype",
-        "size",
-        "gold"
+        "limit_value0",
+        "apply_value0",
+        "gold",
+        "shop_buy_price"
     ],
     "form_tabs": [
         {

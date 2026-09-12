@@ -19,7 +19,7 @@ try {
         echo "Generated APP_KEY in .env\n";
     }
 
-    $db = Mt2Cms\Model\Database::forCms();
+    $db = Mt2Cms\Support\Database::forCms();
     $runner = new Mt2Cms\Setup\MigrationRunner($db);
     $before = $runner->currentVersion();
     $schema = new Mt2Cms\Setup\CmsSchema($db);

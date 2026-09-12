@@ -75,7 +75,7 @@ class EmailTokenRepository extends Repository
 
     public static function hashToken(string $plain): string
     {
-        $key = (string) (\Mt2Cms\Model\Env::getInstance()->get('APP_KEY') ?? '');
+        $key = (string) (\Mt2Cms\Support\Env::getInstance()->get('APP_KEY') ?? '');
 
         return hash('sha256', $plain . $key);
     }

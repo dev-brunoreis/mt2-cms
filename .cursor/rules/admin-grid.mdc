@@ -1,6 +1,6 @@
 ---
 description: Admin list/grid pages must use the shared GridDefinition + grid.twig system
-globs: src/Repository/**/*,src/Http/Controller/Admin*.php,themes/admin/templates/pages/*.twig,docs/add-admin-section.md
+globs: src/Repository/**/*,src/Http/Controller/Admin/**/*.php,themes/admin/templates/pages/*.twig,docs/add-admin-section.md
 alwaysApply: false
 ---
 

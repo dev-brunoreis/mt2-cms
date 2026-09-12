@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Repository;
 
 use Mt2Cms\Admin\AdminPermissions;
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 use Mt2Cms\Admin\Grid\GridDefinition;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;

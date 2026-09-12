@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Repository;
 
 use Mt2Cms\Auth\Totp;
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 
 class AdminTotpRepository extends Repository
 {

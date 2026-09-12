@@ -8,7 +8,7 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\ThemeEngine;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 use Mt2Cms\Repository\SettingsRepository;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\AppCrypto;

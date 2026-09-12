@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Tests\Unit\Http;
 
 use Mt2Cms\Http\Request;
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 use PHPUnit\Framework\TestCase;
 
 final class RequestClientIpTest extends TestCase

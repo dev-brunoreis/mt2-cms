@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Mail;
 
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 use Mt2Cms\Support\Log;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;

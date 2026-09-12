@@ -18,6 +18,8 @@ Follow the project guides — do not invent a parallel stack:
 ## Must not skip
 
 - Register routes in `src/Http/PublicRoutes.php` or `src/Http/AdminRoutes.php`; wire controllers in `src/Http/controller_factories.php`
+- Admin controllers live in `src/Http/Controller/Admin/`; public controllers in `src/Http/Controller/`
+- New repositories go in `src/Repository/`; application services in `src/Service/`
 - POST handlers call `assertCsrf()` (or `runMassActions()`)
 - Admin mutating POSTs call `audit()` / `auditChange()` / `runMassActions()`
 - Sensitive auth POSTs stay behind `RateLimiter`

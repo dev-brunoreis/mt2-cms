@@ -6,7 +6,7 @@ namespace Mt2Cms\Repository;
 
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\LogCatalog;
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 
 class LogRepository extends Repository
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Auth;
 
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 
 /**
  * Derives PHP session cookie name and path from the request URI.

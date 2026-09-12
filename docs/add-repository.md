@@ -2,6 +2,8 @@
 
 Checklist for reading/writing Metin2 game schemas.
 
+Put new repositories in `src/Repository/` (`Mt2Cms\Repository`) and application services in `src/Service/` (`Mt2Cms\Service`). Do not create top-level feature folders under `src/`.
+
 ## 1. Class
 
 Extend `Mt2Cms\Repository\Repository` and implement `database()`:

@@ -14,11 +14,11 @@ use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\ItemShopOrderRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Repository\PlayerRepository;
-use Mt2Cms\Referral\ReferralService;
+use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Service\AccountEmailService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
-use Mt2Cms\Unstuck\UnstuckService;
+use Mt2Cms\Service\UnstuckService;
 
 class AccountController extends Controller
 {

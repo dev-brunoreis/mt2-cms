@@ -17,7 +17,7 @@ final class EmailTokenRepositoryTest extends TestCase
         $this->previousKey = (string) ($_ENV['APP_KEY'] ?? '');
         $_ENV['APP_KEY'] = AppCrypto::generateKey();
         putenv('APP_KEY=' . $_ENV['APP_KEY']);
-        \Mt2Cms\Model\Env::$instance = null;
+        \Mt2Cms\Support\Env::$instance = null;
     }
 
     protected function tearDown(): void
@@ -30,7 +30,7 @@ final class EmailTokenRepositoryTest extends TestCase
             putenv('APP_KEY');
         }
 
-        \Mt2Cms\Model\Env::$instance = null;
+        \Mt2Cms\Support\Env::$instance = null;
     }
 
     public function testHashTokenIsDeterministic(): void

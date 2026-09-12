@@ -7,7 +7,7 @@ namespace Mt2Cms\Http\Controller;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Auth\RateLimiter;
-use Mt2Cms\Discord\DiscordWebhookService;
+use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;

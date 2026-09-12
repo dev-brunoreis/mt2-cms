@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Setup;
 
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 use Mt2Cms\Repository\AdminRoleRepository;
 
 class CmsSchema

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Tests\Unit\Contract;
 
-use Mt2Cms\Http\Controller\AdminAccountSecurityController;
-use Mt2Cms\Http\Controller\AdminAuthController;
+use Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController;
+use Mt2Cms\Http\Controller\Admin\AdminAuthController;
 use Mt2Cms\Http\Controller\PaymentWebhookController;
 use Mt2Cms\Http\Controller\SetupController;
 use PHPUnit\Framework\TestCase;
@@ -35,8 +35,8 @@ final class SecurityContractTest extends TestCase
         'Mt2Cms\\Http\\Controller\\PasswordController::reset',
         'Mt2Cms\\Http\\Controller\\AccountController::updatePassword',
         'Mt2Cms\\Http\\Controller\\AccountController::unstuck',
-        'Mt2Cms\\Http\\Controller\\AdminAuthController::login',
-        'Mt2Cms\\Http\\Controller\\AdminAuthController::verifyTwoFactor',
+        'Mt2Cms\\Http\\Controller\\Admin\\AdminAuthController::login',
+        'Mt2Cms\\Http\\Controller\\Admin\\AdminAuthController::verifyTwoFactor',
         'Mt2Cms\\Http\\Controller\\NewsController::comment',
         'Mt2Cms\\Http\\Controller\\TicketController::store',
         'Mt2Cms\\Http\\Controller\\ItemShopController::buy',
@@ -46,7 +46,7 @@ final class SecurityContractTest extends TestCase
 
     public function testDatabaseAlwaysPreparesStatements(): void
     {
-        $source = SourceScan::read(BASE_DIR . '/src/Model/Database.php');
+        $source = SourceScan::read(BASE_DIR . '/src/Support/Database.php');
 
         self::assertStringContainsString('ATTR_EMULATE_PREPARES => false', $source);
         self::assertMatchesRegularExpression('/function query\(.*\$stmt = \$this->conn->prepare\(\$sql\);/s', $source);
@@ -89,7 +89,7 @@ final class SecurityContractTest extends TestCase
             $relative = substr($file, strlen(BASE_DIR) + 1);
             $source = SourceScan::read($file);
 
-            if ($relative === 'src/Model/Database.php') {
+            if ($relative === 'src/Support/Database.php') {
                 continue;
             }
 
@@ -264,7 +264,7 @@ final class SecurityContractTest extends TestCase
         self::assertNotSame([], $calls);
 
         $runMass = SourceScan::methodSource(
-            new \ReflectionMethod(\Mt2Cms\Http\Controller\AdminController::class, 'runMassActions'),
+            new \ReflectionMethod(\Mt2Cms\Http\Controller\Admin\AdminController::class, 'runMassActions'),
         );
         self::assertStringContainsString('allowsMassAction($action)', $runMass);
         self::assertStringContainsString('!isset($handlers[$action])', $runMass);

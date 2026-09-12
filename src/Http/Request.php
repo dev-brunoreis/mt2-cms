@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http;
 
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 
 /**
  * Request helpers (client IP behind reverse proxy).

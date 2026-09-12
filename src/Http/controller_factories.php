@@ -69,106 +69,106 @@ return [
     \Mt2Cms\Http\Controller\SetupController::class => static fn ($app) => new \Mt2Cms\Http\Controller\SetupController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->themeCatalog, new EnvWriter(), $app->needsAdminRecovery,
     ),
-    \Mt2Cms\Http\Controller\AdminAuthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAuthController(
+    \Mt2Cms\Http\Controller\Admin\AdminAuthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAuthController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->settings, $app->adminTotp,
     ),
-    \Mt2Cms\Http\Controller\AdminAccountSecurityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAccountSecurityController(
+    \Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->adminTotp, $app->settings,
     ),
-    \Mt2Cms\Http\Controller\AdminDashboardController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminDashboardController(
+    \Mt2Cms\Http\Controller\Admin\AdminDashboardController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDashboardController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players,
     ),
-    \Mt2Cms\Http\Controller\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminSettingsController(
+    \Mt2Cms\Http\Controller\Admin\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminSettingsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales,
     ),
-    \Mt2Cms\Http\Controller\AdminAccountsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAccountsController(
+    \Mt2Cms\Http\Controller\Admin\AdminAccountsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAccountsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->accounts, $app->players, $app->logs,
     ),
-    \Mt2Cms\Http\Controller\AdminCharactersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminCharactersController(
+    \Mt2Cms\Http\Controller\Admin\AdminCharactersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCharactersController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->items, $app->guilds, $app->logs, $app->accounts, $app->settings, $app->unstuckService,
     ),
-    \Mt2Cms\Http\Controller\AdminUnstuckController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminUnstuckController(
+    \Mt2Cms\Http\Controller\Admin\AdminUnstuckController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminUnstuckController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->unstuckService,
     ),
-    \Mt2Cms\Http\Controller\AdminReferralsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminReferralsController(
+    \Mt2Cms\Http\Controller\Admin\AdminReferralsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminReferralsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->referralRepo, $app->settings,
     ),
-    \Mt2Cms\Http\Controller\AdminGameProtoController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminGameProtoController(
+    \Mt2Cms\Http\Controller\Admin\AdminGameProtoController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminGameProtoController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->gameProto, $app->protoFields, $app->mobDrops, $app->protoEnums,
     ),
-    \Mt2Cms\Http\Controller\AdminLogsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminLogsController(
+    \Mt2Cms\Http\Controller\Admin\AdminLogsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminLogsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->logs,
     ),
-    \Mt2Cms\Http\Controller\AdminGuildsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminGuildsController(
+    \Mt2Cms\Http\Controller\Admin\AdminGuildsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminGuildsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->guilds,
     ),
-    \Mt2Cms\Http\Controller\AdminGmsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminGmsController(
+    \Mt2Cms\Http\Controller\Admin\AdminGmsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminGmsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->gms, $app->accounts,
     ),
-    \Mt2Cms\Http\Controller\AdminAwardsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAwardsController(
+    \Mt2Cms\Http\Controller\Admin\AdminAwardsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAwardsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->awards, $app->accounts, $app->players, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminNewsHubController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminNewsHubController(
+    \Mt2Cms\Http\Controller\Admin\AdminNewsHubController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminNewsHubController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->news, $app->newsComments, $app->settings, $app->htmlSanitizer, $app->newsUploads,
     ),
-    \Mt2Cms\Http\Controller\AdminStoreHubController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminStoreHubController(
+    \Mt2Cms\Http\Controller\Admin\AdminStoreHubController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminStoreHubController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminNewsPostsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminNewsPostsController(
+    \Mt2Cms\Http\Controller\Admin\AdminNewsPostsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminNewsPostsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->news, $app->newsComments, $app->settings, $app->htmlSanitizer, $app->newsUploads, $app->discord,
     ),
-    \Mt2Cms\Http\Controller\AdminNewsCommentsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminNewsCommentsController(
+    \Mt2Cms\Http\Controller\Admin\AdminNewsCommentsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminNewsCommentsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->news, $app->newsComments, $app->settings, $app->htmlSanitizer, $app->newsUploads,
     ),
-    \Mt2Cms\Http\Controller\AdminNewsSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminNewsSettingsController(
+    \Mt2Cms\Http\Controller\Admin\AdminNewsSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminNewsSettingsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->news, $app->newsComments, $app->settings, $app->htmlSanitizer, $app->newsUploads,
     ),
-    \Mt2Cms\Http\Controller\AdminTicketsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminTicketsController(
+    \Mt2Cms\Http\Controller\Admin\AdminTicketsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminTicketsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->tickets, $app->ticketUploads, $app->htmlSanitizer,
     ),
-    \Mt2Cms\Http\Controller\AdminItemShopProductsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminItemShopProductsController(
+    \Mt2Cms\Http\Controller\Admin\AdminItemShopProductsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopProductsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminItemShopCategoriesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminItemShopCategoriesController(
+    \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoriesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopCategoriesController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminItemShopOrdersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminItemShopOrdersController(
+    \Mt2Cms\Http\Controller\Admin\AdminItemShopOrdersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminItemShopOrdersController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopOrders, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminShopsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminShopsController(
+    \Mt2Cms\Http\Controller\Admin\AdminShopsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminShopsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->shops, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminRefineController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminRefineController(
+    \Mt2Cms\Http\Controller\Admin\AdminRefineController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminRefineController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->refine, $app->gameProto,
     ),
-    \Mt2Cms\Http\Controller\AdminDropsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminDropsController(
+    \Mt2Cms\Http\Controller\Admin\AdminDropsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDropsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->dropFiles, $app->mobDrops, $app->gameProto, $app->gameProfile,
     ),
-    \Mt2Cms\Http\Controller\AdminAdminsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAdminsController(
+    \Mt2Cms\Http\Controller\Admin\AdminAdminsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAdminsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, new \Mt2Cms\Repository\AdminRepository($app->cmsDb, $app->adminRoles), $app->adminRoles, $app->adminTotp,
     ),
-    \Mt2Cms\Http\Controller\AdminRolesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminRolesController(
+    \Mt2Cms\Http\Controller\Admin\AdminRolesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminRolesController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->adminRoles,
     ),
-    \Mt2Cms\Http\Controller\AdminAuditLogController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminAuditLogController(
+    \Mt2Cms\Http\Controller\Admin\AdminAuditLogController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAuditLogController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, new \Mt2Cms\Repository\AdminAuditRepository($app->cmsDb),
     ),
-    \Mt2Cms\Http\Controller\AdminBansController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminBansController(
+    \Mt2Cms\Http\Controller\Admin\AdminBansController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminBansController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->banRepo, $app->banService, $app->accounts,
     ),
-    \Mt2Cms\Http\Controller\AdminDownloadsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminDownloadsController(
+    \Mt2Cms\Http\Controller\Admin\AdminDownloadsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDownloadsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->downloads, $app->downloadUploads,
     ),
-    \Mt2Cms\Http\Controller\AdminEventsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminEventsController(
+    \Mt2Cms\Http\Controller\Admin\AdminEventsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminEventsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->events, $app->eventService, $app->htmlSanitizer,
     ),
-    \Mt2Cms\Http\Controller\AdminCommunityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminCommunityController(
+    \Mt2Cms\Http\Controller\Admin\AdminCommunityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCommunityController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->serverChannels, $app->settings,
     ),
-    \Mt2Cms\Http\Controller\AdminCashPackagesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminCashPackagesController(
+    \Mt2Cms\Http\Controller\Admin\AdminCashPackagesController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCashPackagesController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->cashPackages, $app->settings,
     ),
-    \Mt2Cms\Http\Controller\AdminPaymentsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\AdminPaymentsController(
+    \Mt2Cms\Http\Controller\Admin\AdminPaymentsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminPaymentsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->payments, $app->cashCredits,
     ),
 ];

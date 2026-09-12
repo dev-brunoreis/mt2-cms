@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
-use Mt2Cms\Discord\DiscordWebhookService;
+use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Repository\AccountRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Support\Log;

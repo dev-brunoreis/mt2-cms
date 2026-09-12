@@ -16,8 +16,8 @@ final class AppCryptoTest extends TestCase
         $this->previousKey = (string) ($_ENV['APP_KEY'] ?? '');
         $_ENV['APP_KEY'] = AppCrypto::generateKey();
         putenv('APP_KEY=' . $_ENV['APP_KEY']);
-        \Mt2Cms\Model\Env::$instance = null;
-        \Mt2Cms\Model\Env::load();
+        \Mt2Cms\Support\Env::$instance = null;
+        \Mt2Cms\Support\Env::load();
     }
 
     protected function tearDown(): void
@@ -30,7 +30,7 @@ final class AppCryptoTest extends TestCase
             putenv('APP_KEY');
         }
 
-        \Mt2Cms\Model\Env::$instance = null;
+        \Mt2Cms\Support\Env::$instance = null;
     }
 
     public function testEncryptDecryptRoundTrip(): void

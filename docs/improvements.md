@@ -83,16 +83,9 @@ Captcha (self-hosted SVG) and admin TOTP 2FA are implemented — see `/admin/set
 
 Routes live in [`PublicRoutes.php`](../src/Http/PublicRoutes.php) / [`AdminRoutes.php`](../src/Http/AdminRoutes.php). Controllers are wired via [`controller_factories.php`](../src/Http/controller_factories.php) (one line per new controller).
 
-### Controllers mixed in one folder
+### ~~Controllers mixed in one folder~~ — done
 
-29 classes in `src/Http/Controller/` (public + `Admin*`). The prefix works; the folder will not.
-
-Suggested layout:
-
-```
-src/Http/Controller/          # public
-src/Http/Controller/Admin/    # panel
-```
+Public controllers live in [`src/Http/Controller/`](../src/Http/Controller/); admin panel controllers in [`src/Http/Controller/Admin/`](../src/Http/Controller/Admin/).
 
 ### Fat controllers
 
@@ -150,12 +143,13 @@ The shared grid is the right list primitive. To add sections without growing `Ap
 
 ### Module boundary
 
+Application code is layered: repositories in `src/Repository/`, services in `src/Service/`, admin controllers in `src/Http/Controller/Admin/`. Do not add new top-level feature folders (e.g. `src/Ban/`).
+
 Example for a new section (bans, events, cash log):
 
 ```
-src/Ban/
-  BanService.php
-  BanRepository.php
+src/Repository/BanRepository.php
+src/Service/BanService.php
 src/Http/Controller/Admin/AdminBansController.php
 src/Admin/Grid/Definitions/BansGrid.php
 themes/admin/templates/pages/bans.twig

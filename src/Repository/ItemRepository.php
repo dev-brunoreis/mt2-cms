@@ -7,7 +7,7 @@ namespace Mt2Cms\Repository;
 use Mt2Cms\Game\ItemDescCatalog;
 use Mt2Cms\Game\ItemSockets;
 use Mt2Cms\Game\ItemStats;
-use Mt2Cms\Model\Database;
+use Mt2Cms\Support\Database;
 
 class ItemRepository extends Repository
 {

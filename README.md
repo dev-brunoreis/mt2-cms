@@ -23,11 +23,13 @@ public/index.php          Front controller → Application::run()
 src/
   Application.php         Bootstrap, session, DI, FastRoute dispatch
   Auth/                   Session auth + CSRF + rate limit
-  Http/Controller/        Thin controllers
+  Http/Controller/        Public controllers
+  Http/Controller/Admin/  Admin panel controllers
+  Service/                Application services
   Theme/                  Theme chain, layout JSON merge, Twig render
   I18n/                   Locale files + Translator
-  Model/                  Env + PDO Database
-  Repository/             account / player / common / log
+  Support/                Env, PDO Database, crypto, sanitizer
+  Repository/             account / player / common / log / CMS tables
 themes/
   default/                Base theme (layouts + Twig atoms)
   overlay-demo/           Example child theme (navbar override)

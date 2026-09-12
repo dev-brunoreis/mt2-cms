@@ -7,13 +7,14 @@ Checklist for a new public or authenticated page.
 In `src/Http/PublicRoutes.php` or `src/Http/AdminRoutes.php`:
 
 1. `addRoute` for the method/path → `[YourController::class, 'action']`.
-2. If the controller is new, register it in `src/Http/ControllerMap.php` and inject dependencies (theme, auth, csrf, translator, repositories).
+2. If the controller is new, register it in `src/Http/controller_factories.php` and inject dependencies (theme, auth, csrf, translator, repositories).
 
 Do not instantiate repositories inside the controller.
 
 ## 2. Controller
 
-Extend `Mt2Cms\Http\Controller\Controller`.
+- Public: put the class in `src/Http/Controller/` and extend `Mt2Cms\Http\Controller\Controller`.
+- Admin: put the class in `src/Http/Controller/Admin/` and extend `Mt2Cms\Http\Controller\Admin\AdminController`.
 
 - Public page: return `$this->view('layoutName', $data)`.
 - Auth required: call `$this->requireAuth()` first (see `AccountController`).

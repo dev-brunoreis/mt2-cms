@@ -6,7 +6,7 @@ namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
-use Mt2Cms\Event\EventRepository;
+use Mt2Cms\Repository\EventRepository;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Theme\ThemeEngine;

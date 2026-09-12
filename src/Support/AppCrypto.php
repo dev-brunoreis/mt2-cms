@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Support;
 
-use Mt2Cms\Model\Env;
+use Mt2Cms\Support\Env;
 
 /**
  * Encrypts application secrets at rest using APP_KEY (32-byte hex).

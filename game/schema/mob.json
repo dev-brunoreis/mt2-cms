@@ -137,14 +137,19 @@
             ]
         },
         {
-            "id": "resists",
+            "id": "enchants",
             "fields": [
                 "enchant_curse",
                 "enchant_slow",
                 "enchant_poison",
                 "enchant_stun",
                 "enchant_critical",
-                "enchant_penetrate",
+                "enchant_penetrate"
+            ]
+        },
+        {
+            "id": "resists",
+            "fields": [
                 "resist_sword",
                 "resist_twohand",
                 "resist_dagger",

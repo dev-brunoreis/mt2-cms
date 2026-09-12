@@ -33,12 +33,19 @@ class ProtoFormFields
             }
 
             $tabKey = $prefix . '.tab_' . $tab['id'];
-            $decorated[] = [
+            $tabHelpKey = $prefix . '.tab_' . $tab['id'] . '_help';
+            $entry = [
                 'id' => $tab['id'],
                 'label' => $this->translator->has($tabKey) ? $this->translator->get($tabKey) : $tab['id'],
                 'active' => $index === 0,
                 'fields' => $fields,
             ];
+
+            if ($this->translator->has($tabHelpKey)) {
+                $entry['help'] = $this->translator->get($tabHelpKey);
+            }
+
+            $decorated[] = $entry;
         }
 
         return $decorated;
@@ -72,6 +79,12 @@ class ProtoFormFields
             'value' => $current,
         ];
 
+        $helpKey = $prefix . '.help.' . $fieldKey;
+
+        if ($this->translator->has($helpKey)) {
+            $config['hint'] = $this->translator->get($helpKey);
+        }
+
         if ($widget === 'select' || $widget === 'subtype') {
             $options = $widget === 'subtype'
                 ? $this->enums->subtypesForItemType($itemType)
@@ -102,9 +115,9 @@ class ProtoFormFields
 
             if ($hintKey !== null) {
                 $fullKey = 'admin.proto.equip.' . $hintKey;
-                $config['hint'] = $this->translator->has($fullKey)
-                    ? $this->translator->get($fullKey)
-                    : null;
+                if ($this->translator->has($fullKey)) {
+                    $config['hint'] = $this->translator->get($fullKey);
+                }
             }
         }
 

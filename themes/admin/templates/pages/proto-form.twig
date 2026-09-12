@@ -47,6 +47,10 @@
                 <fieldset class="admin-fieldset">
                     <legend>{{ tab.label }}</legend>
 
+                    {% if tab.help is defined and tab.help %}
+                        <p class="admin-field-help mb-4">{{ tab.help }}</p>
+                    {% endif %}
+
                     {% if tab.id == 'identity' and protoKind == 'item' and isEdit %}
                         <div class="mb-4">
                             {% include 'components/item-icon.twig' with { vnum: record.vnum, size: 'lg', placeholder: true } %}
@@ -58,6 +62,9 @@
                             {% if field.key == 'vnum' %}
                                 <div class="admin-field">
                                     <label for="proto-vnum">{{ field.label }}</label>
+                                    {% if field.hint is defined and field.hint %}
+                                        <span class="admin-field-help">{{ field.hint }}</span>
+                                    {% endif %}
                                     <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
                                            value="{{ field.value }}"
                                            class="admin-input"
@@ -66,6 +73,9 @@
                             {% elseif field.key == 'locale_name' %}
                                 <div class="admin-field">
                                     <label for="proto-locale_name">{{ field.label }}</label>
+                                    {% if field.hint is defined and field.hint %}
+                                        <span class="admin-field-help">{{ field.hint }}</span>
+                                    {% endif %}
                                     <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
                                            value="{{ field.value }}"
                                            class="admin-input" autocomplete="off">

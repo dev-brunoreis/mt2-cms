@@ -451,7 +451,10 @@
         "guild_member": "Member",
         "guild_level": "Level",
         "guild_members": "Members",
-        "guild_ladder": "Ladder"
+        "guild_ladder": "Ladder",
+        "equipment": "Equipment",
+        "equipment_gear": "Gear",
+        "equipment_costume": "Costume"
     },
     "map": {
         "1": "Yongan",
@@ -1150,6 +1153,18 @@
             "search_placeholder": "Search by login or email",
             "search": "Search",
             "empty": "No accounts found.",
+            "characters_grid": {
+                "count": "{count} characters",
+                "empty": "No characters on this account.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search characters"
+            },
+            "ips_grid": {
+                "count": "{count} IPs",
+                "empty": "No connection IPs logged.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search IPs"
+            },
             "id": "ID",
             "login": "Login",
             "email": "Email",
@@ -2085,6 +2100,25 @@
             "gold": "Gold",
             "ladder": "Ladder",
             "members": "Members",
+            "members_grid": {
+                "count": "{count} members",
+                "empty": "No members in this guild.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search members"
+            },
+            "comments_grid": {
+                "count": "{count} comments",
+                "empty": "No guild comments.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search comments"
+            },
+            "wars_grid": {
+                "count": "{count} wars",
+                "empty": "No wars recorded.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search wars"
+            },
+            "confirm_kick_row": "Kick this member from the guild?",
             "record": "Record",
             "record_value": "{win}W / {draw}D / {loss}L",
             "wins": "Wins",
@@ -2432,6 +2466,8 @@
             "online_window": "Online window (minutes)",
             "online_window_help": "Characters with last_play within this window count as online.",
             "require_verified_email": "Require verified email",
+            "public_player_equipment": "Show equipment on public profiles",
+            "public_player_equipment_help": "When enabled, /player/{name} shows worn gear and costumes (not bags, yang, or safebox). Off by default.",
             "require_verified_email_help": "Block login, shop, and donations until email is verified.",
             "channels": "Server channels",
             "channels_help": "Display-only channel list on /status.",
@@ -2461,6 +2497,10 @@
             "list_title": "Methods",
             "status_ready": "Ready",
             "status_setup": "Setup needed",
+            "currency": "Default currency",
+            "pending_minutes": "Pending checkout timeout (minutes)",
+            "secret_keep": "Leave blank to keep the current secret.",
+            "invalid_currency": "Currency must be a 3-letter code.",
             "paypal": "PayPal",
             "paypal_help": "Used for /donate checkout. Client ID and secret can also come from PAYPAL_* in .env.",
             "paypal_mode": "PayPal mode",
@@ -2472,9 +2512,16 @@
             "paypal_secret_keep": "Leave blank to keep the current secret.",
             "paypal_not_configured": "Not set. Paste credentials from developer.paypal.com, or use PAYPAL_* in .env.",
             "paypal_webhook_id": "Webhook ID",
+            "paypal_webhook_help": "Webhook URL: {url}. Required for signature verification.",
             "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal.",
             "paypal_pending_minutes": "Pending checkout timeout (minutes)",
-            "paypal_pending_minutes_help": "Unpaid PayPal checkouts are cancelled after this many minutes (5–180). The player is notified."
+            "paypal_pending_minutes_help": "Unpaid PayPal checkouts are cancelled after this many minutes (5–180). The player is notified.",
+            "mercadopago": "Mercado Pago",
+            "mercadopago_meta": "Checkout Pro + PIX",
+            "mercadopago_help": "Checkout Pro preferences with PIX as a payment method. Access token and webhook secret are stored encrypted.",
+            "mp_access_token": "Access token",
+            "mp_webhook_secret": "Webhook secret",
+            "mp_webhook_help": "Webhook URL: {url}. Paste the signing secret from Mercado Pago."
         },
         "events": {
             "title": "Events",
@@ -2598,6 +2645,12 @@
             "actions": "Actions",
             "tab_data": "Data",
             "tab_items": "Items",
+            "items_grid": {
+                "count": "{count} items",
+                "empty": "No items in this shop.",
+                "matching": "matching “{query}”",
+                "search_placeholder": "Search items"
+            },
             "details": "Shop details",
             "created": "Shop created.",
             "updated": "Shop updated.",

@@ -44,6 +44,8 @@
                  {% if activeMethod != method.id %}hidden{% endif %}>
                 {% if method.id == 'paypal' %}
                     {% include 'pages/payment-method-paypal.twig' with { formId: method.formId } %}
+                {% elseif method.id == 'mercadopago' %}
+                    {% include 'pages/payment-method-mercadopago.twig' with { formId: method.formId } %}
                 {% endif %}
             </div>
         {% endfor %}

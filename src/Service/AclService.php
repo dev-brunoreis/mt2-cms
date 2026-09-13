@@ -6,7 +6,6 @@ namespace Mt2Cms\Service;
 
 use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminResourceCatalog;
-use Mt2Cms\Admin\AdminSectionCatalog;
 use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Repository\AclRepository;
 use Mt2Cms\Repository\AdminRoleRepository;
@@ -68,7 +67,7 @@ class AclService
             return true;
         }
 
-        if (AdminSectionCatalog::isSuperOnly($sectionId)) {
+        if (AdminSections::isSuperOnly($sectionId)) {
             return false;
         }
 
@@ -127,7 +126,7 @@ class AclService
      */
     public function assignableSections(): array
     {
-        return AdminSectionCatalog::assignableIds();
+        return AdminSections::assignableIds();
     }
 
     /**

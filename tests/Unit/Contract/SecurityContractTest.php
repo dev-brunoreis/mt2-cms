@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 final class SecurityContractTest extends TestCase
 {
     private const CSRF_SKIP = [
-        PaymentWebhookController::class . '::paypal',
+        PaymentWebhookController::class . '::handle',
     ];
 
     private const AUDIT_SKIP = [
@@ -168,7 +168,7 @@ final class SecurityContractTest extends TestCase
             }
 
             foreach ($matches[1] as $expr) {
-                if (!preg_match('/^slots\.(main|sidebar|header|footer)$/', trim($expr))) {
+                if (!preg_match('/^slots\.(main|sidebar|header|footer|banner|left|right)$/', trim($expr))) {
                     $violations[] = $relative . ': {{ ' . trim($expr) . '|raw }}';
                 }
             }

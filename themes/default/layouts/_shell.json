@@ -1,0 +1,55 @@
+{
+  "id": "root",
+  "template": "layouts/shell.twig",
+  "slots": {
+    "header": [
+      {
+        "id": "navbar",
+        "template": "components/navbar.twig"
+      }
+    ],
+    "banner": [
+      {
+        "id": "banner",
+        "template": "components/banner.twig"
+      }
+    ],
+    "sidebar": [
+      {
+        "id": "sidebar",
+        "template": "components/sidebar-auth.twig"
+      }
+    ],
+    "left": [
+      {
+        "id": "widget-online",
+        "template": "components/widget-online.twig"
+      },
+      {
+        "id": "widget-download",
+        "template": "components/widget-download.twig"
+      }
+    ],
+    "main": [],
+    "right": [
+      {
+        "id": "widget-ranking",
+        "template": "components/widget-ranking.twig"
+      },
+      {
+        "id": "widget-events",
+        "template": "components/widget-events.twig"
+      },
+      {
+        "id": "widget-discord",
+        "template": "components/widget-discord.twig"
+      }
+    ],
+    "footer": [
+      {
+        "id": "footer",
+        "template": "components/footer.twig"
+      }
+    ]
+  }
+}

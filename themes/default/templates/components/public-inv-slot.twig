@@ -1,0 +1,28 @@
+{% if item %}
+    {% set icon_src = item_icon(item.vnum) %}
+    <div class="k-inv-item{% if not icon_src %} is-missing{% endif %}">
+        {% if icon_src %}
+            <img src="{{ icon_src }}" alt="" class="k-inv-icon" width="32" height="32">
+        {% else %}
+            <span class="k-inv-missing">?</span>
+        {% endif %}
+        {% if item.count > 1 %}
+            <span class="k-inv-count">{{ item.count }}</span>
+        {% endif %}
+        <span class="k-inv-tip">
+            <span class="k-inv-tip-title">{{ item.name|default(item.vnum) }}</span>
+            {% if item.description %}
+                {% for line in item.description|split('|') %}
+                    {% if line|trim != '' %}
+                        <span class="k-inv-tip-line">{{ line|trim }}</span>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% if item.bonuses is defined and item.bonuses is not empty %}
+                {% for bonus in item.bonuses %}
+                    <span class="k-inv-tip-line is-bonus">{{ t('admin.proto.tokens.' ~ bonus.token) }} {{ bonus.value > 0 ? '+' : '' }}{{ bonus.value }}{% if bonus.percent %}%{% endif %}</span>
+                {% endfor %}
+            {% endif %}
+        </span>
+    </div>
+{% endif %}

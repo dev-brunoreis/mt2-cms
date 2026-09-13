@@ -60,15 +60,15 @@
     {% if row.is_system|default(false) %}
         {% set href = '/admin/system/roles/' ~ rowId|url_encode %}
     {% else %}
-        {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode}) %}
+        {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId, '{name}': row.name|default('')|url_encode, '{opponent_id}': row.opponent_id|default(''), '{item_vnum}': row.item_vnum|default(rowId)}) %}
     {% endif %}
     <a href="{{ href }}" class="font-medium text-indigo-600 hover:underline">{{ value|default('—') }}</a>
 
 {% elseif type == 'icon_link' %}
-    {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+    {% set href = column.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(row.item_vnum|default('')), '{mID}': rowId, '{item_vnum}': row.item_vnum|default(row.vnum|default(rowId))}) %}
     <a href="{{ href }}" class="admin-game-icon-row font-medium text-indigo-600 hover:underline">
         {% if column.icon|default('item') == 'item' %}
-            {% include 'components/item-icon.twig' with { vnum: row.vnum|default(0) } %}
+            {% include 'components/item-icon.twig' with { vnum: row.vnum|default(row.item_vnum|default(0)) } %}
         {% elseif column.icon == 'face' %}
             {% include 'components/face-icon.twig' with { job: row.job|default(0) } %}
         {% endif %}
@@ -102,13 +102,27 @@
     <div class="admin-row-actions">
         {% for action in column.actions %}
             {% if action.type|default('link') == 'link' %}
-                {% set href = action.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+                {% set href = action.href|replace({
+                    '{id}': rowId,
+                    '{vnum}': row.vnum|default(''),
+                    '{mID}': rowId,
+                    '{item_vnum}': row.item_vnum|default(rowId),
+                    '{count}': row.count|default(''),
+                    '{opponent_id}': row.opponent_id|default('')
+                }) %}
                 <a href="{{ href }}" class="admin-link-action{% if action.danger|default(false) %} admin-link-danger{% endif %}">
                     {{ t(action.label) }}
                 </a>
             {% elseif action.type == 'form' %}
                 {% if action.when is not defined or attribute(row, action.when.field)|default('') == action.when.equals %}
-                    {% set actionHref = action.href|replace({'{id}': rowId, '{vnum}': row.vnum|default(''), '{mID}': rowId}) %}
+                    {% set actionHref = action.href|replace({
+                        '{id}': rowId,
+                        '{vnum}': row.vnum|default(''),
+                        '{mID}': rowId,
+                        '{item_vnum}': row.item_vnum|default(rowId),
+                        '{count}': row.count|default(''),
+                        '{opponent_id}': row.opponent_id|default('')
+                    }) %}
                     <form method="post" action="{{ actionHref }}"
                           {% if action.confirm is defined %}data-confirm="{{ t(action.confirm) }}"{% endif %}>
                         <input type="hidden" name="_csrf" value="{{ csrf }}">

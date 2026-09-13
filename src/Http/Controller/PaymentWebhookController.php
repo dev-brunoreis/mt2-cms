@@ -8,7 +8,7 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
-use Mt2Cms\Payment\PayPalGateway;
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Service\CashCreditService;
 use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\ThemeEngine;
@@ -20,14 +20,18 @@ class PaymentWebhookController extends Controller
         Auth $auth,
         Csrf $csrf,
         Translator $translator,
-        private PayPalGateway $paypal,
+        private GatewayRegistry $gateways,
         private CashCreditService $credits,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
     }
 
-    public function paypal(): Response
+    public function handle(string $provider): Response
     {
+        if (!$this->gateways->has($provider)) {
+            return Response::html('Not Found', 404);
+        }
+
         $raw = file_get_contents('php://input');
 
         if (!is_string($raw) || $raw === '') {
@@ -45,13 +49,14 @@ class PaymentWebhookController extends Controller
         }
 
         try {
-            $event = $this->paypal->parseWebhook($raw, $headers);
+            $gateway = $this->gateways->get($provider);
+            $event = $gateway->parseWebhook($raw, $headers);
 
             if ($event->paid) {
-                $this->credits->markPaidAndCredit('paypal', $event->providerRef);
+                $this->credits->markPaidAndCredit($provider, $event->providerRef);
             }
         } catch (\Throwable $e) {
-            Log::error('payments', 'PayPal webhook failed', $e);
+            Log::error('payments', $provider . ' webhook failed', $e);
 
             return Response::html('Bad Request', 400);
         }

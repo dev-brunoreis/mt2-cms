@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\GuildCommentsGrid;
+use Mt2Cms\Admin\Grid\Definitions\GuildMembersGrid;
 use Mt2Cms\Admin\Grid\Definitions\GuildsGrid;
+use Mt2Cms\Admin\Grid\Definitions\GuildWarsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\InMemoryGrid;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -83,6 +87,14 @@ class AdminGuildsController extends AdminController
             'error' => null,
         ];
 
+        if ($tab === 'members') {
+            $data['membersGrid'] = $this->membersGrid($guildId, $guild);
+        } elseif ($tab === 'comments') {
+            $data['commentsGrid'] = $this->commentsGrid($guildId, $guild);
+        } elseif ($tab === 'wars') {
+            $data['warsGrid'] = $this->warsGrid($guildId, $guild);
+        }
+
         if ($this->wantsTabPartial()) {
             $template = self::TAB_TEMPLATES[$tab] ?? null;
 
@@ -143,9 +155,9 @@ class AdminGuildsController extends AdminController
         }
     }
 
-    public function kick(string $id): Response
+    public function kick(string $id, string $playerId): Response
     {
-        return $this->memberAction((int) $id, 'kick', 'admin.guilds.kicked');
+        return $this->memberAction((int) $id, (int) $playerId, 'kick', 'admin.guilds.kicked');
     }
 
     public function deleteComment(string $id, string $commentId): Response
@@ -194,6 +206,97 @@ class AdminGuildsController extends AdminController
 
     /**
      * @param array<string, mixed> $guild
+     * @return array<string, mixed>
+     */
+    private function membersGrid(int $guildId, array $guild): array
+    {
+        $masterId = (int) ($guild['master_id'] ?? 0);
+        $rows = [];
+
+        foreach ($guild['members'] ?? [] as $member) {
+            if (!is_array($member)) {
+                continue;
+            }
+
+            $pid = (int) ($member['id'] ?? 0);
+            $rows[] = array_merge($member, [
+                'can_kick' => $pid > 0 && $pid !== $masterId ? '1' : '0',
+                'grade_name' => $member['grade_name'] ?? $member['grade'] ?? '',
+            ]);
+        }
+
+        $def = GuildMembersGrid::definition($guildId);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($rows),
+            static fn ($q) => InMemoryGrid::apply($rows, $q, $def->sortMap()),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $guild
+     * @return array<string, mixed>
+     */
+    private function commentsGrid(int $guildId, array $guild): array
+    {
+        $rows = is_array($guild['comments'] ?? null) ? $guild['comments'] : [];
+        $def = GuildCommentsGrid::definition($guildId);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($rows),
+            static fn ($q) => InMemoryGrid::apply($rows, $q, $def->sortMap()),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $guild
+     * @return array<string, mixed>
+     */
+    private function warsGrid(int $guildId, array $guild): array
+    {
+        $rows = [];
+
+        foreach ($guild['wars'] ?? [] as $war) {
+            if (!is_array($war)) {
+                continue;
+            }
+
+            $isGuild1 = (int) ($war['guild1'] ?? 0) === $guildId;
+            $opponentId = $isGuild1 ? (int) ($war['guild2'] ?? 0) : (int) ($war['guild1'] ?? 0);
+            $opponentName = $isGuild1
+                ? (string) ($war['guild2_name'] ?? $opponentId)
+                : (string) ($war['guild1_name'] ?? $opponentId);
+
+            $rows[] = array_merge($war, [
+                'opponent_id' => $opponentId,
+                'opponent_name' => $opponentName !== '' ? $opponentName : (string) $opponentId,
+                'started_label' => !empty($war['started']) ? $this->t('admin.guilds.yes') : $this->t('admin.guilds.no'),
+                'result_label' => ((int) ($war['result1'] ?? 0)) . ' : ' . ((int) ($war['result2'] ?? 0)),
+            ]);
+        }
+
+        $def = GuildWarsGrid::definition($guildId);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($rows),
+            static fn ($q) => InMemoryGrid::apply($rows, $q, $def->sortMap()),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $guild
      */
     private function formView(array $guild, ?string $error = null, int $status = 200): Response
     {
@@ -201,15 +304,13 @@ class AdminGuildsController extends AdminController
             return $guard;
         }
 
-        $tab = $this->requestedTab(['data', 'members', 'comments', 'wars'], 'data');
-
         return $this->adminView('guilds', 'pages/guild.twig', [
             'title' => $this->t('admin.guilds.view_title', ['name' => (string) ($guild['name'] ?? '')]),
             'pageLead' => $this->t('admin.guilds.view_lead'),
             'formId' => 'admin-guild-form',
             'saveLabel' => $this->t('admin.save'),
             'guild' => $guild,
-            'activeTab' => $tab,
+            'activeTab' => 'data',
             'error' => $error,
         ], $status);
     }
@@ -231,7 +332,7 @@ class AdminGuildsController extends AdminController
         ];
     }
 
-    private function memberAction(int $guildId, string $action, string $successKey): Response
+    private function memberAction(int $guildId, int $playerId, string $action, string $successKey): Response
     {
         if ($redirect = $this->requireAdminResource('game/guilds/kick')) {
             return $redirect;
@@ -242,8 +343,6 @@ class AdminGuildsController extends AdminController
 
             return $this->redirect('/admin/game/guilds/' . $guildId . '?tab=members');
         }
-
-        $playerId = (int) ($_POST['player_id'] ?? 0);
 
         try {
             $ok = $action === 'kick' && $this->guilds->kickMember($guildId, $playerId);

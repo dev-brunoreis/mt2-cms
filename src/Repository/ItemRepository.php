@@ -50,6 +50,16 @@ class ItemRepository extends Repository
     }
 
     /**
+     * Equipment window only (no inventory bags / safebox) for public profiles.
+     *
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public function equipmentForCharacter(int $playerId): array
+    {
+        return $this->groupedByWindow($playerId, ['EQUIPMENT']);
+    }
+
+    /**
      * Safebox gold/size plus SAFEBOX/MALL item rows (owner_id is the account).
      * Never selects the safebox password.
      *

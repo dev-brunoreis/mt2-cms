@@ -48,21 +48,36 @@ class AdminPaymentMethodsController extends AdminController
             return $this->redirect(AdminPaths::settingsPaymentMethods());
         }
 
-        $secretPosted = trim((string) ($_POST['paypal_client_secret'] ?? ''));
-        $before = $this->paypalAuditSnapshot();
+        $gateway = trim((string) ($_POST['gateway'] ?? 'paypal'));
 
         try {
-            $this->settings->setPaypalMode(trim((string) ($_POST['paypal_mode'] ?? 'sandbox')));
-            $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
-            $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
-            $this->settings->setPaypalClientSecret($secretPosted);
-            $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
-            $this->settings->setPaypalPendingMinutes((int) ($_POST['paypal_pending_minutes'] ?? 30));
+            if ($gateway === 'mercadopago') {
+                $this->saveMercadoPago();
+            } else {
+                $this->savePaypal();
+            }
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 
             return $this->redirect(AdminPaths::settingsPaymentMethods());
         }
+
+        $this->flash('success', $this->t('admin.saved'));
+
+        return $this->redirect(AdminPaths::settingsPaymentMethods());
+    }
+
+    private function savePaypal(): void
+    {
+        $secretPosted = trim((string) ($_POST['paypal_client_secret'] ?? ''));
+        $before = $this->paypalAuditSnapshot();
+
+        $this->settings->setPaypalMode(trim((string) ($_POST['paypal_mode'] ?? 'sandbox')));
+        $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
+        $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
+        $this->settings->setPaypalClientSecret($secretPosted);
+        $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
+        $this->settings->setPaypalPendingMinutes((int) ($_POST['paypal_pending_minutes'] ?? 30));
 
         $this->auditChange(
             'settings.payment_methods_save',
@@ -71,9 +86,26 @@ class AdminPaymentMethodsController extends AdminController
             $before,
             $this->paypalAuditSnapshot($secretPosted !== ''),
         );
-        $this->flash('success', $this->t('admin.saved'));
+    }
 
-        return $this->redirect(AdminPaths::settingsPaymentMethods());
+    private function saveMercadoPago(): void
+    {
+        $tokenPosted = trim((string) ($_POST['mp_access_token'] ?? ''));
+        $secretPosted = trim((string) ($_POST['mp_webhook_secret'] ?? ''));
+        $before = $this->mpAuditSnapshot();
+
+        $this->settings->setMercadoPagoCurrency(trim((string) ($_POST['mp_currency'] ?? 'BRL')));
+        $this->settings->setMercadoPagoAccessToken($tokenPosted);
+        $this->settings->setMercadoPagoWebhookSecret($secretPosted);
+        $this->settings->setMercadoPagoPendingMinutes((int) ($_POST['mp_pending_minutes'] ?? 30));
+
+        $this->auditChange(
+            'settings.payment_methods_save',
+            'settings',
+            null,
+            $before,
+            $this->mpAuditSnapshot($tokenPosted !== '' || $secretPosted !== ''),
+        );
     }
 
     /**
@@ -82,6 +114,7 @@ class AdminPaymentMethodsController extends AdminController
     private function paypalAuditSnapshot(bool $secretUpdated = false): array
     {
         $snapshot = [
+            'gateway' => 'paypal',
             'paypal_mode' => $this->settings->paypalMode(),
             'paypal_currency' => $this->settings->paypalCurrency(),
             'paypal_client_id' => $this->settings->paypalClientId(),
@@ -92,6 +125,25 @@ class AdminPaymentMethodsController extends AdminController
 
         if ($secretUpdated) {
             $snapshot['paypal_secret_updated'] = true;
+        }
+
+        return $snapshot;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mpAuditSnapshot(bool $secretsUpdated = false): array
+    {
+        $snapshot = [
+            'gateway' => 'mercadopago',
+            'mp_currency' => $this->settings->mercadoPagoCurrency(),
+            'mp_pending_minutes' => $this->settings->mercadoPagoPendingMinutes(),
+            'mp_configured' => $this->settings->mercadoPagoConfigured(),
+        ];
+
+        if ($secretsUpdated) {
+            $snapshot['mp_secrets_updated'] = true;
         }
 
         return $snapshot;

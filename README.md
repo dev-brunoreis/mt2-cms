@@ -70,18 +70,20 @@ Admin routes: [`src/Http/AdminRoutes.php`](src/Http/AdminRoutes.php). Controller
 
 ## Themes
 
-Set `THEME` in `.env` (default `default`).
+Set `THEME` in `.env` (default `default`), or pick an active theme under **Admin → Settings → Themes**.
 
 Themes live under `themes/{name}/`:
 
 - `theme.json` — `{ "name", "parent" }`
-- `layouts/*.json` — recursive atomic layout trees (`id`, `template`, `slots`)
+- `layouts/*.json` — layout trees with optional `"extends": "_shell"`; merge is deep **by node `id`**
 - `templates/` — Twig atoms; child theme paths win over parents
 - `assets/` — theme CSS/images; link with `theme_asset('css/theme.css')` (served as `/theme-assets/{name}/…`)
 
-Example: add a child theme under `themes/{name}/` with `theme.json` `{ "name", "parent": "default" }` and override only the Twig paths you need (e.g. `templates/components/navbar.twig`). Set `THEME={name}` to try it. See [docs/add-theme.md](docs/add-theme.md).
+**Overlay (child themes):** create `themes/{name}/` with `theme.json` `{ "name", "parent": "default" }` and override only what you need — e.g. `assets/css/tokens.css` for colors, or a layout node to hide a widget. The shipped `slate` theme is a minimal example. See [docs/add-theme.md](docs/add-theme.md).
 
-Layout merge is deep **by node `id`**, so a child can replace only the navbar without copying the full layout.
+## Payments
+
+Donate uses **PayPal** today (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers (e.g. Mercado Pago / PIX) can plug in without rewriting the donate flow.
 
 ## Implementing
 
@@ -191,4 +193,4 @@ After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when
 
 ## License
 
-Unspecified. Private / local use unless you add a license.
+[MIT](LICENSE)

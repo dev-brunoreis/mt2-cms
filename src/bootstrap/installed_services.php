@@ -17,6 +17,8 @@ use Mt2Cms\Game\Proto\ProtoFormFields;
 use Mt2Cms\Game\Proto\ProtoIndexCache;
 use Mt2Cms\Game\Proto\ProtoSchemas;
 use Mt2Cms\Mail\SymfonyMailer;
+use Mt2Cms\Payment\GatewayRegistry;
+use Mt2Cms\Payment\MercadoPagoGateway;
 use Mt2Cms\Payment\PayPalGateway;
 use Mt2Cms\Repository\AccountEmailRepository;
 use Mt2Cms\Repository\AccountRepository;
@@ -140,6 +142,9 @@ return static function (Application $app): void {
         $app->settings->mailFromName(),
     );
     $app->paypal = new PayPalGateway($app->settings);
+    $app->paymentGateways = new GatewayRegistry();
+    $app->paymentGateways->register($app->paypal);
+    $app->paymentGateways->register(new MercadoPagoGateway($app->settings));
 
     $defaultLocale = $app->settings->defaultLocale();
     $app->translator = new Translator(BASE_DIR . '/lang', $app->locales->resolve($defaultLocale));
@@ -240,13 +245,13 @@ return static function (Application $app): void {
     );
     $app->paymentExpiry = new PaymentExpiryService(
         $app->payments,
-        $app->settings,
+        $app->paymentGateways,
         $app->notificationService,
     );
     $app->paymentCheckout = new PaymentCheckoutService(
         $app->cashPackages,
         $app->payments,
-        $app->paypal,
+        $app->paymentGateways,
         $app->settings,
         $app->notificationService,
         $app->paymentExpiry,

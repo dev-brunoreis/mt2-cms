@@ -12,42 +12,5 @@
         </button>
     </form>
 
-    {% if shop.items is empty %}
-        <p class="text-sm text-slate-500">{{ t('admin.shops.items_empty') }}</p>
-    {% else %}
-        <div class="admin-tabs-table">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>{{ t('admin.shops.item_vnum') }}</th>
-                        <th>{{ t('admin.shops.item') }}</th>
-                        <th>{{ t('admin.shops.item_count') }}</th>
-                        <th>{{ t('admin.shops.actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in shop.items %}
-                        <tr>
-                            <td class="text-slate-600">
-                                <a href="/admin/game-data/items/{{ item.item_vnum }}" class="text-indigo-600 hover:underline">{{ item.item_vnum }}</a>
-                            </td>
-                            <td>{% include 'components/item-icon.twig' with { vnum: item.item_vnum } %}</td>
-                            <td class="text-slate-600">{{ item.count }}</td>
-                            <td>
-                                <form method="post" action="/admin/game-data/shops/{{ shop.vnum }}/items/delete"
-                                      data-confirm="{{ t('admin.shops.confirm_remove_item') }}">
-                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
-                                    <input type="hidden" name="item_vnum" value="{{ item.item_vnum }}">
-                                    <input type="hidden" name="count" value="{{ item.count }}">
-                                    <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
-                                        {{ t('admin.shops.remove_item') }}
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
+    {% include 'components/grid.twig' with { grid: itemsGrid } %}
 </section>

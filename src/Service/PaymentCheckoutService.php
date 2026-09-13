@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Payment\PaymentGateway;
 use Mt2Cms\Payment\PaymentIntent;
 use Mt2Cms\Repository\CashPackageRepository;
@@ -14,7 +15,7 @@ class PaymentCheckoutService
     public function __construct(
         private CashPackageRepository $packages,
         private PaymentRepository $payments,
-        private PaymentGateway $gateway,
+        private GatewayRegistry $gateways,
         private SettingsService $settings,
         private NotificationService $notifications,
         private PaymentExpiryService $expiry,
@@ -28,21 +29,28 @@ class PaymentCheckoutService
     {
         $this->expiry->expireDue();
 
+        $gateway = $this->gateways->active();
+
+        if ($gateway === null) {
+            throw new \RuntimeException('donate.paypal_unavailable');
+        }
+
         $package = $this->packages->findEnabledById($packageId);
 
         if ($package === null) {
             throw new \RuntimeException('donate.package_unavailable');
         }
 
+        $currency = (string) ($package['currency'] ?? $gateway->currency());
         $tempRef = 'tmp-' . bin2hex(random_bytes(16));
         $payment = $this->payments->createPending([
             'account_id' => $accountId,
             'account_login' => $accountLogin,
             'package_id' => $packageId,
-            'provider' => $this->gateway->id(),
+            'provider' => $gateway->id(),
             'provider_ref' => $tempRef,
             'amount_cents' => (int) $package['price_cents'],
-            'currency' => (string) ($package['currency'] ?? $this->settings->paypalCurrency()),
+            'currency' => $currency,
             'cash_amount' => (int) $package['cash_amount'],
         ]);
 
@@ -55,14 +63,14 @@ class PaymentCheckoutService
             $accountLogin,
             $packageId,
             (int) $package['price_cents'],
-            (string) ($package['currency'] ?? $this->settings->paypalCurrency()),
+            $currency,
             $cashAmount,
             $base . '/donate/return?payment_id=' . $paymentId,
             $base . '/donate/cancel?payment_id=' . $paymentId,
         );
 
         try {
-            $redirect = $this->gateway->createCheckout($intent);
+            $redirect = $gateway->createCheckout($intent);
             $this->payments->updateProviderRef($paymentId, $redirect->providerRef);
         } catch (\Throwable $e) {
             if ($this->payments->markFailed($paymentId)) {

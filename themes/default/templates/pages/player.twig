@@ -103,6 +103,10 @@
             </div>
         </article>
 
+        {% if equipmentLayout %}
+            {% include 'components/public-equipment.twig' with { layout: equipmentLayout } %}
+        {% endif %}
+
         {% if guild %}
             <section class="k-panel overflow-hidden">
                 <h2 class="k-panel-head">{{ t('player.guild') }}</h2>

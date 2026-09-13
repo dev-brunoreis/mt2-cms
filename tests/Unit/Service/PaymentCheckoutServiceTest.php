@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mt2Cms\Tests\Unit\Service;
 
 use Mt2Cms\Payment\CheckoutRedirect;
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Payment\PaymentGateway;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\PaymentRepository;
@@ -36,10 +37,14 @@ final class PaymentCheckoutServiceTest extends TestCase
 
         $gateway = $this->createMock(PaymentGateway::class);
         $gateway->method('id')->willReturn('paypal');
+        $gateway->method('configured')->willReturn(true);
+        $gateway->method('currency')->willReturn('USD');
         $gateway->method('createCheckout')->willThrowException(new \RuntimeException('payments.paypal_auth_failed'));
 
+        $registry = new GatewayRegistry();
+        $registry->register($gateway);
+
         $settings = $this->createMock(SettingsService::class);
-        $settings->method('paypalCurrency')->willReturn('USD');
         $settings->method('siteUrl')->willReturn('https://example.test');
 
         $notifications = $this->createMock(NotificationService::class);
@@ -51,7 +56,7 @@ final class PaymentCheckoutServiceTest extends TestCase
         $service = new PaymentCheckoutService(
             $packages,
             $payments,
-            $gateway,
+            $registry,
             $settings,
             $notifications,
             $expiry,
@@ -79,10 +84,14 @@ final class PaymentCheckoutServiceTest extends TestCase
 
         $gateway = $this->createMock(PaymentGateway::class);
         $gateway->method('id')->willReturn('paypal');
+        $gateway->method('configured')->willReturn(true);
+        $gateway->method('currency')->willReturn('USD');
         $gateway->method('createCheckout')->willReturn(new CheckoutRedirect('ORDER-99', 'https://paypal.test/approve'));
 
+        $registry = new GatewayRegistry();
+        $registry->register($gateway);
+
         $settings = $this->createMock(SettingsService::class);
-        $settings->method('paypalCurrency')->willReturn('USD');
         $settings->method('siteUrl')->willReturn('https://example.test');
 
         $notifications = $this->createMock(NotificationService::class);
@@ -93,7 +102,7 @@ final class PaymentCheckoutServiceTest extends TestCase
         $service = new PaymentCheckoutService(
             $packages,
             $payments,
-            $gateway,
+            $registry,
             $settings,
             $notifications,
             $expiry,
@@ -124,7 +133,7 @@ final class PaymentCheckoutServiceTest extends TestCase
         $service = new PaymentCheckoutService(
             $this->createMock(CashPackageRepository::class),
             $payments,
-            $this->createMock(PaymentGateway::class),
+            new GatewayRegistry(),
             $this->createMock(SettingsService::class),
             $notifications,
             $this->createMock(PaymentExpiryService::class),

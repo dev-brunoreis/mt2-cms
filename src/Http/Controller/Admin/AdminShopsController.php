@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\ShopItemsGrid;
 use Mt2Cms\Admin\Grid\Definitions\ShopsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\InMemoryGrid;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -130,6 +132,10 @@ class AdminShopsController extends AdminController
             'error' => null,
         ];
 
+        if ($tab === 'items') {
+            $data['itemsGrid'] = $this->itemsGrid((int) $shop['vnum'], $shop);
+        }
+
         if ($this->wantsTabPartial()) {
             $template = self::TAB_TEMPLATES[$tab] ?? null;
 
@@ -210,9 +216,48 @@ class AdminShopsController extends AdminController
         return $this->itemAction((int) $id, 'add');
     }
 
-    public function removeItem(string $id): Response
+    public function removeItem(string $id, string $itemVnum, string $count): Response
     {
+        $_POST['item_vnum'] = $itemVnum;
+        $_POST['count'] = $count;
+
         return $this->itemAction((int) $id, 'remove');
+    }
+
+    /**
+     * @param array<string, mixed> $shop
+     * @return array<string, mixed>
+     */
+    private function itemsGrid(int $shopVnum, array $shop): array
+    {
+        $rows = [];
+
+        foreach ($shop['items'] ?? [] as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $vnum = (int) ($item['item_vnum'] ?? 0);
+            $itemCount = (int) ($item['count'] ?? 1);
+            $rows[] = [
+                'row_key' => $vnum . ':' . $itemCount . ':' . $index,
+                'item_vnum' => $vnum,
+                'vnum' => $vnum,
+                'item_label' => (string) $vnum,
+                'count' => $itemCount,
+            ];
+        }
+
+        $def = ShopItemsGrid::definition($shopVnum);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($rows),
+            static fn ($q) => InMemoryGrid::apply($rows, $q, $def->sortMap()),
+        );
     }
 
     /**

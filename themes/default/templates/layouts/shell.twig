@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/item-tooltip.css">
     <link rel="stylesheet" href="/css/locale-switcher.css">
+    <link rel="stylesheet" href="{{ theme_asset('css/tokens.css') }}">
     <link rel="stylesheet" href="{{ theme_asset('css/theme.css') }}">
     <script src="/js/site/locale-switcher.js" defer></script>
     <script src="/js/site/nav-menu.js" defer></script>
@@ -20,17 +21,12 @@
         <div class="k-realm-stripe" aria-hidden="true"></div>
         {{ slots.header|raw }}
     </div>
-    {% include 'components/banner.twig' %}
+    {{ slots.banner|raw }}
 
     <div class="k-layout flex-1">
         <aside class="k-col">
-            {% if slots.sidebar %}
-                {{ slots.sidebar|raw }}
-            {% else %}
-                {% include 'components/sidebar-auth.twig' %}
-            {% endif %}
-            {% include 'components/widget-online.twig' %}
-            {% include 'components/widget-download.twig' %}
+            {{ slots.sidebar|raw }}
+            {{ slots.left|raw }}
         </aside>
 
         <main class="k-main-surface min-w-0">
@@ -44,11 +40,7 @@
         </main>
 
         <aside class="k-col">
-            {% include 'components/widget-ranking.twig' %}
-            {% include 'components/widget-events.twig' %}
-            {% if discord_invite_url %}
-                {% include 'components/widget-discord.twig' %}
-            {% endif %}
+            {{ slots.right|raw }}
         </aside>
     </div>
 

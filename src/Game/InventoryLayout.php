@@ -141,6 +141,25 @@ class InventoryLayout
     }
 
     /**
+     * Public-safe boards: worn gear + costume only (no bags, belt grid, or DS inventory).
+     *
+     * @param array<string, list<array<string, mixed>>> $grouped
+     * @return array{
+     *   equipment: array{width: int, height: int, slots: list<array<string, mixed>>, has_item: bool},
+     *   costume: array{width: int, height: int, slots: list<array<string, mixed>>, has_item: bool}
+     * }
+     */
+    public static function forPublicProfile(array $grouped): array
+    {
+        $equipment = $grouped['EQUIPMENT'] ?? [];
+
+        return [
+            'equipment' => self::paperdoll(self::EQUIPMENT_SLOTS, $equipment, self::EQUIPMENT_WIDTH, self::EQUIPMENT_HEIGHT),
+            'costume' => self::paperdoll(self::COSTUME_SLOTS, $equipment, self::COSTUME_WIDTH, self::COSTUME_HEIGHT),
+        ];
+    }
+
+    /**
      * @param array<string, list<array<string, mixed>>> $grouped
      * @return array{
      *   safebox: array{columns: int, rows: int, pages: list<array<string, mixed>>},

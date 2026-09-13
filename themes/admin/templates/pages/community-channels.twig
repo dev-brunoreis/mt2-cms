@@ -94,6 +94,16 @@
                     </span>
                 </label>
             </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="public_player_equipment" value="1"
+                           {% if publicPlayerEquipment|default(false) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.community.public_player_equipment') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.community.public_player_equipment_help') }}</span>
+                    </span>
+                </label>
+            </div>
         </div>
     </fieldset>
 

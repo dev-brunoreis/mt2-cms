@@ -1,43 +1,4 @@
 <section class="admin-fieldset">
     <h2 class="admin-fieldset-title">{{ t('admin.characters.guild_comments') }}</h2>
-
-    {% if guild.comments is empty %}
-        <p class="text-sm text-slate-500">{{ t('admin.characters.guild_comments_empty') }}</p>
-    {% else %}
-        <div class="admin-tabs-table">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>{{ t('admin.characters.name') }}</th>
-                        <th>{{ t('admin.characters.guild_comment') }}</th>
-                        <th>{{ t('admin.characters.guild_comment_time') }}</th>
-                        <th>{{ t('admin.guilds.actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for comment in guild.comments %}
-                        <tr>
-                            <td class="font-medium text-slate-800">
-                                {{ comment.name|default('—') }}
-                                {% if comment.notice %}
-                                    <span class="admin-badge admin-badge-ok ml-1">{{ t('admin.characters.guild_notice') }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-slate-600">{{ comment.content|default('—') }}</td>
-                            <td class="text-slate-600">{{ comment.time|game_date }}</td>
-                            <td>
-                                <form method="post" action="/admin/game/guilds/{{ guild.id }}/comment/{{ comment.id }}/delete"
-                                      data-confirm="{{ t('admin.guilds.confirm_delete_comment') }}">
-                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
-                                    <button type="submit" class="admin-link-action admin-link-danger cursor-pointer">
-                                        {{ t('admin.guilds.delete_comment') }}
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
+    {% include 'components/grid.twig' with { grid: commentsGrid } %}
 </section>

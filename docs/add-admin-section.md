@@ -27,10 +27,9 @@ Admin navigation and ACL use related but separate catalogs:
 
 | Class | Edit when |
 |---|---|
-| [`AdminSections`](../src/Admin/AdminSections.php) | Sidebar menu item (id, path, label) |
+| [`AdminSections`](../src/Admin/AdminSections.php) | Sidebar menu, breadcrumbs, role seed section lists, super-only ids |
 | [`AdminPaths`](../src/Admin/AdminPaths.php) | URL helpers (`admin_path()` / PHP) |
 | [`AdminResourceCatalog`](../src/Admin/AdminResourceCatalog.php) | Assignable ACL permissions (role form tree) |
-| [`AdminSectionCatalog`](../src/Admin/AdminSectionCatalog.php) | Role seeds, super-only section ids, legacy section→resource bridge |
 | [`AdminPermissions`](../src/Admin/AdminPermissions.php) | Super role constant only |
 | [`AdminRuntime`](../src/Admin/AdminRuntime.php) | Settings bind for Twig/helpers (not a catalog) |
 

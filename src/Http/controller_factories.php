@@ -43,10 +43,10 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->downloads, $app->downloadUploads,
     ),
     \Mt2Cms\Http\Controller\DonateController::class => static fn ($app) => new \Mt2Cms\Http\Controller\DonateController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->cashPackages, $app->payments, $app->paymentCheckout, $app->cashCredits, $app->paypal, $app->accountEmailService, $app->settings,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->cashPackages, $app->payments, $app->paymentCheckout, $app->cashCredits, $app->paymentGateways, $app->accountEmailService, $app->settings,
     ),
     \Mt2Cms\Http\Controller\PaymentWebhookController::class => static fn ($app) => new \Mt2Cms\Http\Controller\PaymentWebhookController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->paypal, $app->cashCredits,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->paymentGateways, $app->cashCredits,
     ),
     \Mt2Cms\Http\Controller\ItemShopController::class => static fn ($app) => new \Mt2Cms\Http\Controller\ItemShopController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->itemShopCategories, $app->itemShopProducts, $app->itemShopPurchases, $app->itemTooltips, $app->settings, $app->accountEmailService,
@@ -55,7 +55,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->players, $app->guilds,
     ),
     \Mt2Cms\Http\Controller\PlayerController::class => static fn ($app) => new \Mt2Cms\Http\Controller\PlayerController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->players, $app->guilds, $app->unstuckService, $app->settings,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->players, $app->guilds, $app->unstuckService, $app->settings, $app->items,
     ),
     \Mt2Cms\Http\Controller\GameIconController::class => static fn ($app) => new \Mt2Cms\Http\Controller\GameIconController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->icons,
@@ -79,7 +79,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminSettingsController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService, $app->paymentGateways,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminAccountsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAccountsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->accounts, $app->players, $app->logs, $app->notificationService,

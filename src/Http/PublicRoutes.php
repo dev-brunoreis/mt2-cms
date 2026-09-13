@@ -79,7 +79,7 @@ final class PublicRoutes
         $r->addRoute('POST', '/donate/buy', [DonateController::class, 'buy']);
         $r->addRoute('GET', '/donate/return', [DonateController::class, 'returnUrl']);
         $r->addRoute('GET', '/donate/cancel', [DonateController::class, 'cancel']);
-        $r->addRoute('POST', '/payments/webhook/paypal', [PaymentWebhookController::class, 'paypal']);
+        $r->addRoute('POST', '/payments/webhook/{provider}', [PaymentWebhookController::class, 'handle']);
         $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
         $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
         $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);

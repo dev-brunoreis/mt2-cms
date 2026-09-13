@@ -6,9 +6,11 @@ namespace Mt2Cms\Http\Controller;
 
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
+use Mt2Cms\Game\InventoryLayout;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\GuildRepository;
+use Mt2Cms\Repository\ItemRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\UnstuckService;
@@ -25,6 +27,7 @@ class PlayerController extends Controller
         private GuildRepository $guilds,
         private UnstuckService $unstuck,
         private SettingsService $settings,
+        private ItemRepository $items,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
     }
@@ -46,11 +49,19 @@ class PlayerController extends Controller
                 'unstuckAvailable' => false,
                 'unstuckState' => null,
                 'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
+                'equipmentLayout' => null,
             ], 404);
         }
 
         $playerId = (int) ($player['id'] ?? 0);
         $minutes = $this->settings->onlineWindowMinutes();
+        $equipmentLayout = null;
+
+        if ($this->settings->publicPlayerEquipment() && $playerId > 0) {
+            $equipmentLayout = InventoryLayout::forPublicProfile(
+                $this->items->equipmentForCharacter($playerId),
+            );
+        }
 
         return $this->view('player', [
             'title' => $player['name'],
@@ -61,6 +72,7 @@ class PlayerController extends Controller
             'levelRank' => $this->players->levelRank($playerId),
             'playtimeRank' => $this->players->playtimeRank($playerId),
             'online' => $this->isRecentlyActive((string) ($player['last_play'] ?? ''), $minutes),
+            'equipmentLayout' => $equipmentLayout,
             ...$this->ownUnstuckContext($playerId),
         ]);
     }

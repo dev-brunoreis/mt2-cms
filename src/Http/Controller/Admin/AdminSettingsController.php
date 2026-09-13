@@ -11,6 +11,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Repository\ServerChannelRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
@@ -77,6 +78,7 @@ class AdminSettingsController extends AdminController
         private Locales $locales,
         private ServerChannelRepository $channels,
         private UnstuckService $unstuck,
+        private GatewayRegistry $paymentGateways,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -388,6 +390,7 @@ class AdminSettingsController extends AdminController
                     'mailFromAddress' => $this->settings->mailFromAddress(),
                     'mailFromName' => $this->settings->mailFromName(),
                     'requireVerifiedEmail' => $this->settings->requireVerifiedEmail(),
+                    'publicPlayerEquipment' => $this->settings->publicPlayerEquipment(),
                     'discordInviteUrl' => $this->settings->discordInviteUrl(),
                     'discordWebhookConfigured' => $this->settings->discordWebhookConfigured(),
                 ],
@@ -433,29 +436,47 @@ class AdminSettingsController extends AdminController
      */
     private function paymentMethodsPartialData(string $formId): array
     {
-        $paypalConfigured = $this->settings->paypalConfigured();
+        $methods = [];
+
+        foreach ($this->paymentGateways->all() as $gateway) {
+            $id = $gateway->id();
+            $meta = '';
+
+            if ($id === 'paypal') {
+                $meta = $this->t($this->settings->paypalMode() === 'live'
+                    ? 'admin.payment_methods.paypal_live'
+                    : 'admin.payment_methods.paypal_sandbox');
+            } elseif ($id === 'mercadopago') {
+                $meta = $this->t('admin.payment_methods.mercadopago_meta');
+            }
+
+            $methods[] = [
+                'id' => $id,
+                'label' => $this->t($gateway->labelKey()),
+                'formId' => $formId . '-' . $id,
+                'configured' => $gateway->configured(),
+                'meta' => $meta,
+            ];
+        }
+
+        $active = $methods[0]['id'] ?? 'paypal';
 
         return [
             'formId' => $formId,
-            'activeMethod' => 'paypal',
-            'paymentMethods' => [
-                [
-                    'id' => 'paypal',
-                    'label' => $this->t('admin.payment_methods.paypal'),
-                    'formId' => $formId,
-                    'configured' => $paypalConfigured,
-                    'meta' => $this->t($this->settings->paypalMode() === 'live'
-                        ? 'admin.payment_methods.paypal_live'
-                        : 'admin.payment_methods.paypal_sandbox'),
-                ],
-            ],
+            'activeMethod' => $active,
+            'paymentMethods' => $methods,
             'paypalMode' => $this->settings->paypalMode(),
             'paypalCurrency' => $this->settings->paypalCurrency(),
             'paypalClientId' => $this->settings->paypalClientId(),
-            'paypalConfigured' => $paypalConfigured,
+            'paypalConfigured' => $this->settings->paypalConfigured(),
             'paypalSecretSet' => $this->settings->paypalClientSecret() !== '',
             'paypalWebhookId' => $this->settings->paypalWebhookId(),
             'paypalPendingMinutes' => $this->settings->paypalPendingMinutes(),
+            'mpCurrency' => $this->settings->mercadoPagoCurrency(),
+            'mpConfigured' => $this->settings->mercadoPagoConfigured(),
+            'mpTokenSet' => $this->settings->mercadoPagoAccessToken() !== '',
+            'mpSecretSet' => $this->settings->mercadoPagoWebhookSecret() !== '',
+            'mpPendingMinutes' => $this->settings->mercadoPagoPendingMinutes(),
         ];
     }
 

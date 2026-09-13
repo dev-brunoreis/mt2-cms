@@ -68,6 +68,12 @@ class Translator
      */
     private function load(string $locale): array
     {
+        $dir = $this->path . '/' . $locale;
+
+        if (is_dir($dir)) {
+            return $this->loadDirectory($dir);
+        }
+
         $file = $this->path . '/' . $locale . '.json';
 
         if (!is_file($file)) {
@@ -81,6 +87,46 @@ class Translator
         }
 
         return $data;
+    }
+
+    /**
+     * Merge lang/{locale}/*.json namespace files (filename stem = top-level key unless locale.json).
+     *
+     * @return array<string, mixed>
+     */
+    private function loadDirectory(string $dir): array
+    {
+        $files = glob($dir . '/*.json');
+
+        if ($files === false || $files === []) {
+            return [];
+        }
+
+        sort($files);
+        $merged = [];
+
+        foreach ($files as $file) {
+            $stem = basename($file, '.json');
+            $data = json_decode((string) file_get_contents($file), true);
+
+            if (!is_array($data)) {
+                throw new \RuntimeException('Invalid locale JSON: ' . $file);
+            }
+
+            if ($stem === 'locale') {
+                $merged = $this->merge($merged, ['locale' => $data['locale'] ?? $data]);
+                continue;
+            }
+
+            // File may be a full tree slice or a single namespace object.
+            if (array_key_exists($stem, $data) && count($data) === 1) {
+                $merged = $this->merge($merged, $data);
+            } else {
+                $merged = $this->merge($merged, [$stem => $data]);
+            }
+        }
+
+        return $merged;
     }
 
     /**

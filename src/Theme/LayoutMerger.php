@@ -8,6 +8,7 @@ class LayoutMerger
 {
     /**
      * Deep-merge layout trees by node id (not by array index).
+     * Overlay nodes with `"remove": true` drop the matching base id.
      *
      * @param array<string, mixed> $base
      * @param array<string, mixed> $overlay
@@ -18,6 +19,10 @@ class LayoutMerger
         $result = $base;
 
         foreach ($overlay as $key => $value) {
+            if ($key === 'extends') {
+                continue;
+            }
+
             if ($key === 'slots' && is_array($value)) {
                 $result['slots'] = self::mergeSlots(
                     is_array($result['slots'] ?? null) ? $result['slots'] : [],
@@ -47,7 +52,7 @@ class LayoutMerger
             }
 
             if (!isset($result[$slotName]) || !is_array($result[$slotName])) {
-                $result[$slotName] = $nodes;
+                $result[$slotName] = self::filterRemoved($nodes);
                 continue;
             }
 
@@ -63,6 +68,7 @@ class LayoutMerger
             }
 
             $order = [];
+            $removed = [];
 
             foreach ($nodes as $node) {
                 if (!is_array($node)) {
@@ -71,6 +77,15 @@ class LayoutMerger
 
                 $id = (string) ($node['id'] ?? '');
                 $key = $id !== '' ? $id : uniqid('node_', true);
+
+                if (!empty($node['remove'])) {
+                    if ($id !== '') {
+                        $removed[$id] = true;
+                        unset($indexed[$id]);
+                    }
+
+                    continue;
+                }
 
                 if ($id !== '' && isset($indexed[$id])) {
                     $indexed[$id] = self::mergeById($indexed[$id], $node);
@@ -82,30 +97,57 @@ class LayoutMerger
                 }
             }
 
-            // Keep remaining base nodes that were not overridden, then overlay order
-            $merged = array_values($indexed);
+            $ordered = [];
+            $remaining = $indexed;
 
-            if ($order !== []) {
-                $ordered = [];
-                $remaining = $indexed;
-
-                foreach ($order as $key) {
-                    if (isset($remaining[$key])) {
-                        $ordered[] = $remaining[$key];
-                        unset($remaining[$key]);
-                    }
+            foreach ($order as $key) {
+                if (isset($remaining[$key]) && empty($removed[$key])) {
+                    $ordered[] = self::stripRemoveFlag($remaining[$key]);
+                    unset($remaining[$key]);
                 }
-
-                foreach ($remaining as $node) {
-                    $ordered[] = $node;
-                }
-
-                $merged = $ordered;
             }
 
-            $result[$slotName] = $merged;
+            foreach ($remaining as $key => $node) {
+                if (isset($removed[$key])) {
+                    continue;
+                }
+
+                $ordered[] = self::stripRemoveFlag($node);
+            }
+
+            $result[$slotName] = $ordered;
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $nodes
+     * @return list<array<string, mixed>>
+     */
+    private static function filterRemoved(array $nodes): array
+    {
+        $out = [];
+
+        foreach ($nodes as $node) {
+            if (!is_array($node) || !empty($node['remove'])) {
+                continue;
+            }
+
+            $out[] = self::stripRemoveFlag($node);
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $node
+     * @return array<string, mixed>
+     */
+    private static function stripRemoveFlag(array $node): array
+    {
+        unset($node['remove']);
+
+        return $node;
     }
 }

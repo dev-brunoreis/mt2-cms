@@ -7,7 +7,7 @@ namespace Mt2Cms\Repository;
 use Mt2Cms\Admin\Grid\Definitions\AdminRolesGrid;
 use Mt2Cms\Admin\AdminPermissions;
 use Mt2Cms\Admin\AdminResourceCatalog;
-use Mt2Cms\Admin\AdminSectionCatalog;
+use Mt2Cms\Admin\AdminSections;
 use Mt2Cms\Admin\Grid\GridQuery;
 use Mt2Cms\Admin\Grid\GridSql;
 use Mt2Cms\Admin\Grid\ProvidesAdminGrid;
@@ -329,8 +329,8 @@ class AdminRoleRepository extends Repository implements ProvidesAdminGrid
 
         $acl = new AclRepository($this->db());
         $defaults = [
-            ['slug' => 'support', 'label' => 'Support', 'sections' => AdminSectionCatalog::defaultSupportSections()],
-            ['slug' => 'content', 'label' => 'Content', 'sections' => AdminSectionCatalog::defaultContentSections()],
+            ['slug' => 'support', 'label' => 'Support', 'sections' => AdminSections::defaultSupportSections()],
+            ['slug' => 'content', 'label' => 'Content', 'sections' => AdminSections::defaultContentSections()],
         ];
 
         foreach ($defaults as $row) {

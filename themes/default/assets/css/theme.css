@@ -1,101 +1,4 @@
-/* Kingdoms — Metin2-style public chrome (self-hosted fonts) */
-
-@font-face {
-  font-family: "Cinzel";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/cinzel-ext-400.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Cinzel";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/cinzel-400.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Cinzel";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/cinzel-ext-700.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Cinzel";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/cinzel-700.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Source Serif 4";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/source-serif-ext-400.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Source Serif 4";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/source-serif-400.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Source Serif 4";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/source-serif-ext-600.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Source Serif 4";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/source-serif-600.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-.theme-kingdoms {
-  --k-bg: #0c0a08;
-  --k-bg-panel: #14110d;
-  --k-bg-raised: #1a1611;
-  --k-bronze: #c4a35a;
-  --k-bronze-dim: #8a7340;
-  --k-ember: #b33a2b;
-  --k-ember-hot: #d4503f;
-  --k-crimson: #8b1e2d;
-  --k-cobalt: #2a4a7a;
-  --k-text: #e8dfc8;
-  --k-muted: #9a8f78;
-  --k-border: #3d3426;
-  --k-border-bright: #5c4d35;
-  color: var(--k-text);
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  background-color: var(--k-bg);
-  background-image:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(179, 58, 43, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 10% 90%, rgba(42, 74, 122, 0.12), transparent 50%),
-    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(139, 30, 45, 0.1), transparent 45%),
-    linear-gradient(180deg, #12100c 0%, var(--k-bg) 40%, #080706 100%);
-  background-attachment: fixed;
-}
+/* Kingdoms chrome — tokens live in tokens.css */
 
 .theme-kingdoms h1,
 .theme-kingdoms h2,
@@ -1315,4 +1218,90 @@
 
 .theme-kingdoms .locale-switcher-code {
   color: var(--k-bronze);
+}
+
+/* Public profile equipment paperdoll */
+.theme-kingdoms .k-inv-board-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k-muted);
+}
+.theme-kingdoms .k-inv-paperdoll {
+  position: relative;
+  width: calc(var(--board-w) * 1px);
+  height: calc(var(--board-h) * 1px);
+  background: var(--k-bg-raised);
+  border: 1px solid var(--k-border);
+  border-radius: 0.35rem;
+}
+.theme-kingdoms .k-inv-cell {
+  position: absolute;
+  left: calc(var(--slot-x) * 1px);
+  top: calc(var(--slot-y) * 1px);
+  width: calc(var(--slot-w) * 1px);
+  height: calc(var(--slot-h) * 1px);
+  box-sizing: border-box;
+  border: 1px solid var(--k-border);
+  background: rgba(0, 0, 0, 0.25);
+}
+.theme-kingdoms .k-inv-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.theme-kingdoms .k-inv-icon {
+  image-rendering: pixelated;
+  max-width: 100%;
+  max-height: 100%;
+}
+.theme-kingdoms .k-inv-missing {
+  color: var(--k-muted);
+  font-size: 0.75rem;
+}
+.theme-kingdoms .k-inv-count {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 0.65rem;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 2px #000;
+}
+.theme-kingdoms .k-inv-tip {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  min-width: 10rem;
+  max-width: 16rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--k-border-bright);
+  border-radius: 0.25rem;
+  background: #0e0c0a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.theme-kingdoms .k-inv-item:hover .k-inv-tip,
+.theme-kingdoms .k-inv-item:focus-within .k-inv-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.theme-kingdoms .k-inv-tip-title {
+  font-size: 0.8rem;
+  color: var(--k-bronze);
+}
+.theme-kingdoms .k-inv-tip-line {
+  font-size: 0.7rem;
+  color: var(--k-muted);
+}
+.theme-kingdoms .k-inv-tip-line.is-bonus {
+  color: #7ec8ff;
 }

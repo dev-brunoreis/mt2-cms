@@ -119,7 +119,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/game/guilds', [AdminGuildsController::class, 'index']);
         $r->addRoute('GET', '/admin/game/guilds/{id:\d+}', [AdminGuildsController::class, 'show']);
         $r->addRoute('POST', '/admin/game/guilds/{id:\d+}', [AdminGuildsController::class, 'update']);
-        $r->addRoute('POST', '/admin/game/guilds/{id:\d+}/kick', [AdminGuildsController::class, 'kick']);
+        $r->addRoute('POST', '/admin/game/guilds/{id:\d+}/kick/{playerId:\d+}', [AdminGuildsController::class, 'kick']);
         $r->addRoute('POST', '/admin/game/guilds/{id:\d+}/comment/{commentId:\d+}/delete', [AdminGuildsController::class, 'deleteComment']);
         $r->addRoute('POST', '/admin/game/guilds/{id:\d+}/dissolve', [AdminGuildsController::class, 'dissolve']);
         $r->addRoute('GET', '/admin/game/awards', [AdminAwardsController::class, 'index']);
@@ -223,7 +223,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}', [AdminShopsController::class, 'update']);
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/delete', [AdminShopsController::class, 'destroy']);
         $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/items', [AdminShopsController::class, 'addItem']);
-        $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/items/delete', [AdminShopsController::class, 'removeItem']);
+        $r->addRoute('POST', '/admin/game-data/shops/{id:\d+}/items/delete/{itemVnum:\d+}/{count:\d+}', [AdminShopsController::class, 'removeItem']);
         $r->addRoute('POST', '/admin/game-data/shops/mass', [AdminShopsController::class, 'mass']);
         $r->addRoute('GET', '/admin/game-data/refine', [AdminRefineController::class, 'index']);
         $r->addRoute('GET', '/admin/game-data/refine/new', [AdminRefineController::class, 'create']);

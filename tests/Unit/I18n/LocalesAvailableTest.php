@@ -84,6 +84,25 @@ final class LocalesAvailableTest extends TestCase
         self::assertFileExists(BASE_DIR . '/public/flag/en.webp');
     }
 
+    public function testAvailableIncludesDirectoryLocale(): void
+    {
+        mkdir($this->root . '/lang/de', 0777, true);
+        file_put_contents(
+            $this->root . '/lang/de/locale.json',
+            json_encode(['name' => 'Deutsch'], JSON_THROW_ON_ERROR),
+        );
+        file_put_contents(
+            $this->root . '/lang/de/nav.json',
+            json_encode(['home' => 'Start'], JSON_THROW_ON_ERROR),
+        );
+
+        $list = (new Locales($this->root . '/lang'))->available();
+        $codes = array_column($list, 'code');
+
+        self::assertContains('de', $codes);
+        self::assertTrue((new Locales($this->root . '/lang'))->isSupported('de'));
+    }
+
     private function writeLocale(string $code, string $name): void
     {
         file_put_contents(

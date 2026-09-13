@@ -18,6 +18,26 @@ final class PayPalGateway implements PaymentGateway
         return 'paypal';
     }
 
+    public function labelKey(): string
+    {
+        return 'admin.payment_methods.paypal';
+    }
+
+    public function configured(): bool
+    {
+        return $this->settings->paypalConfigured();
+    }
+
+    public function pendingMinutes(): int
+    {
+        return $this->settings->paypalPendingMinutes();
+    }
+
+    public function currency(): string
+    {
+        return $this->settings->paypalCurrency();
+    }
+
     public function createCheckout(PaymentIntent $intent): CheckoutRedirect
     {
         $token = $this->accessToken();
@@ -61,6 +81,22 @@ final class PayPalGateway implements PaymentGateway
         }
 
         return new CheckoutRedirect($orderId, $approvalUrl);
+    }
+
+    /**
+     * @param array<string, string> $query
+     */
+    public function captureReturn(array $query): ?WebhookEvent
+    {
+        $token = trim((string) ($query['token'] ?? ''));
+
+        if ($token === '') {
+            return null;
+        }
+
+        $paid = $this->captureOrder($token);
+
+        return new WebhookEvent($token, $paid ? 'COMPLETED' : 'PENDING', $paid);
     }
 
     public function captureOrder(string $orderId): bool

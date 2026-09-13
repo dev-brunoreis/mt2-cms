@@ -78,6 +78,7 @@ use Mt2Cms\Repository\EventRepository;
 use Mt2Cms\Service\EventService;
 use Mt2Cms\Mail\MailerInterface;
 use Mt2Cms\Mail\SymfonyMailer;
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Payment\PayPalGateway;
 use Mt2Cms\Repository\AccountEmailRepository;
 use Mt2Cms\Repository\CashPackageRepository;
@@ -180,6 +181,7 @@ class Application
     public NotificationRepository $notifications;
     public NotificationService $notificationService;
     public PayPalGateway $paypal;
+    public GatewayRegistry $paymentGateways;
     public CashCreditService $cashCredits;
     public PaymentCheckoutService $paymentCheckout;
     public PaymentExpiryService $paymentExpiry;

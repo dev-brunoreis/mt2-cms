@@ -1,24 +1,10 @@
 {
-  "id": "root",
-  "template": "layouts/shell.twig",
+  "extends": "_shell",
   "slots": {
-    "header": [
-      {
-        "id": "navbar",
-        "template": "components/navbar.twig"
-      }
-    ],
-    "sidebar": [],
     "main": [
       {
         "id": "content",
         "template": "pages/news-show.twig"
-      }
-    ],
-    "footer": [
-      {
-        "id": "footer",
-        "template": "components/footer.twig"
       }
     ]
   }

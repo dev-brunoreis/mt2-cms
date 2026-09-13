@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\Grid\Definitions\AccountCharactersGrid;
+use Mt2Cms\Admin\Grid\Definitions\AccountIpsGrid;
 use Mt2Cms\Admin\Grid\Definitions\AccountsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\Grid\InMemoryGrid;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -255,12 +258,15 @@ class AdminAccountsController extends AdminController
 
         $isEdit = isset($account['id']) && (int) $account['id'] > 0;
         $tab = $isEdit ? $this->requestedTab(['data', 'activity'], 'data') : 'data';
-        $characters = [];
-        $connectionIps = [];
+        $charactersGrid = null;
+        $ipsGrid = null;
 
         if ($isEdit && $tab === 'activity') {
-            $characters = $this->players->findByAccountId((int) $account['id']);
-            $connectionIps = $this->logs->ipsForAccount((int) $account['id']);
+            $accountId = (int) $account['id'];
+            $characters = $this->players->findByAccountId($accountId);
+            $connectionIps = $this->logs->ipsForAccount($accountId);
+            $charactersGrid = $this->charactersGrid($accountId, $characters);
+            $ipsGrid = $this->ipsGrid($accountId, $connectionIps);
         }
 
         $data = [
@@ -269,8 +275,8 @@ class AdminAccountsController extends AdminController
             'formId' => 'admin-account-form',
             'saveLabel' => $this->t('admin.save'),
             'account' => $isEdit ? $this->withPlayerIndexEmpire($account) : $account,
-            'characters' => $characters,
-            'connectionIps' => $connectionIps,
+            'charactersGrid' => $charactersGrid,
+            'ipsGrid' => $ipsGrid,
             'isEdit' => $isEdit,
             'activeTab' => $tab,
             'error' => $error,
@@ -285,6 +291,42 @@ class AdminAccountsController extends AdminController
         }
 
         return $this->adminView('accounts', 'pages/account-form.twig', $data, $status);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $characters
+     * @return array<string, mixed>
+     */
+    private function charactersGrid(int $accountId, array $characters): array
+    {
+        $def = AccountCharactersGrid::definition($accountId);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($characters),
+            static fn ($q) => InMemoryGrid::apply($characters, $q, $def->sortMap()),
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $ips
+     * @return array<string, mixed>
+     */
+    private function ipsGrid(int $accountId, array $ips): array
+    {
+        $def = AccountIpsGrid::definition($accountId);
+        $spec = $def->spec();
+        $query = $this->gridQuery($spec);
+
+        return GridRunner::fetch(
+            $spec,
+            $query,
+            static fn () => count($ips),
+            static fn ($q) => InMemoryGrid::apply($ips, $q, $def->sortMap()),
+        );
     }
 
     /**

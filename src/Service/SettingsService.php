@@ -517,6 +517,18 @@ class SettingsService
         $this->settings->set('online_window_minutes', (string) max(1, min(120, $minutes)));
     }
 
+    public function publicPlayerEquipment(): bool
+    {
+        $value = $this->settings->get('public_player_equipment');
+
+        return $value === '1';
+    }
+
+    public function setPublicPlayerEquipment(bool $enabled): void
+    {
+        $this->settings->set('public_player_equipment', $enabled ? '1' : '0');
+    }
+
     public function paypalMode(): string
     {
         $value = strtolower(trim((string) ($this->settings->get('paypal_mode') ?? 'sandbox')));
@@ -616,6 +628,94 @@ class SettingsService
     public function setPaypalPendingMinutes(int $minutes): void
     {
         $this->settings->set('paypal_pending_minutes', (string) max(5, min(180, $minutes)));
+    }
+
+    public function mercadoPagoAccessToken(): string
+    {
+        $stored = (string) ($this->settings->get('mp_access_token') ?? '');
+
+        if ($stored !== '') {
+            try {
+                return AppCrypto::isEncrypted($stored) ? AppCrypto::decrypt($stored) : $stored;
+            } catch (\Throwable) {
+                return '';
+            }
+        }
+
+        return '';
+    }
+
+    public function setMercadoPagoAccessToken(string $token): void
+    {
+        $token = trim($token);
+
+        if ($token === '') {
+            return;
+        }
+
+        $this->settings->set('mp_access_token', AppCrypto::encrypt($token));
+    }
+
+    public function mercadoPagoWebhookSecret(): string
+    {
+        $stored = (string) ($this->settings->get('mp_webhook_secret') ?? '');
+
+        if ($stored !== '') {
+            try {
+                return AppCrypto::isEncrypted($stored) ? AppCrypto::decrypt($stored) : $stored;
+            } catch (\Throwable) {
+                return '';
+            }
+        }
+
+        return '';
+    }
+
+    public function setMercadoPagoWebhookSecret(string $secret): void
+    {
+        $secret = trim($secret);
+
+        if ($secret === '') {
+            return;
+        }
+
+        $this->settings->set('mp_webhook_secret', AppCrypto::encrypt($secret));
+    }
+
+    public function mercadoPagoCurrency(): string
+    {
+        $value = strtoupper(trim((string) ($this->settings->get('mp_currency') ?? 'BRL')));
+
+        return strlen($value) === 3 ? $value : 'BRL';
+    }
+
+    public function setMercadoPagoCurrency(string $currency): void
+    {
+        $currency = strtoupper(trim($currency));
+
+        if (strlen($currency) !== 3) {
+            throw new \InvalidArgumentException('admin.payment_methods.invalid_currency');
+        }
+
+        $this->settings->set('mp_currency', $currency);
+    }
+
+    public function mercadoPagoPendingMinutes(): int
+    {
+        $value = (int) ($this->settings->get('mp_pending_minutes') ?? 30);
+
+        return max(5, min(180, $value > 0 ? $value : 30));
+    }
+
+    public function setMercadoPagoPendingMinutes(int $minutes): void
+    {
+        $this->settings->set('mp_pending_minutes', (string) max(5, min(180, $minutes)));
+    }
+
+    public function mercadoPagoConfigured(): bool
+    {
+        return $this->mercadoPagoAccessToken() !== ''
+            && $this->mercadoPagoWebhookSecret() !== '';
     }
 
     public function discordInviteUrl(): string

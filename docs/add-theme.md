@@ -21,7 +21,7 @@ themes/my-theme/
 }
 ```
 
-See [README Themes](../README.md#themes) and create a minimal child as above (override only the Twig paths you need).
+See [README Themes](../README.md#themes). The shipped `slate` theme is a minimal child (tokens + optional widget removal).
 
 ## 2. Theme assets (CSS, images)
 
@@ -29,9 +29,9 @@ Static files belong **inside the theme**, not under `public/`:
 
 ```
 themes/my-theme/assets/
-  css/theme.css
+  css/tokens.css    # color/font variables (override to recolor)
+  css/theme.css     # imports tokens + chrome
   img/hero.webp
-  src/              # optional masters / sources
 ```
 
 In Twig, resolve URLs with `theme_asset()` (walks active theme → parents; first hit wins):
@@ -53,22 +53,41 @@ Use the **same relative path** as the parent:
 
 Search order is active theme first, then parents (`ThemeResolver::templatePaths()`).
 
-## 4. Override a layout node
+## 4. Layout `extends` and node overlays
 
-Place `themes/my-theme/layouts/{page}.json` with the same node `id` you want to change. `LayoutMerger` merges by `id`, not by array index — so you can replace only the navbar node without copying the full layout.
+Public pages use `layouts/_shell.json` as the chrome base. A page layout is usually:
+
+```json
+{
+  "extends": "_shell",
+  "slots": {
+    "main": [{ "id": "content", "template": "pages/your-page.twig" }]
+  }
+}
+```
+
+Account pages also override the `sidebar` node (same `id`) to swap login for account nav.
+
+Child themes can overlay `layouts/_shell.json` (or any page) and merge by node `id`. To **remove** a widget:
+
+```json
+{
+  "slots": {
+    "right": [{ "id": "widget-discord", "remove": true }]
+  }
+}
+```
+
+Shell slots: `header`, `banner`, `sidebar`, `left` (column widgets), `main`, `right`, `footer`.
 
 ## 5. Activate
 
-Set in `.env`:
-
-```env
-THEME=my-theme
-```
+Set in `.env` (`THEME=my-theme`) or **Admin → Settings → Themes**.
 
 ## PR checklist
 
 - [ ] `parent` points at an existing theme
 - [ ] Override paths match parent paths
 - [ ] Layout node `id`s preserved for merge
-- [ ] No circular `parent` chains
+- [ ] No circular `parent` or layout `extends` chains
 - [ ] New static files live under `themes/{name}/assets/` and are linked via `theme_asset()`

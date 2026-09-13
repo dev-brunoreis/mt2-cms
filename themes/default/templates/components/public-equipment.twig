@@ -1,0 +1,33 @@
+{% if layout %}
+<section class="k-panel overflow-hidden">
+    <h2 class="k-panel-head">{{ t('player.equipment') }}</h2>
+    <div class="k-inv-stage flex flex-wrap items-start justify-center gap-6 p-5 sm:p-6">
+        {% if layout.equipment.has_item or true %}
+            <div class="k-inv-board">
+                <p class="k-inv-board-title">{{ t('player.equipment_gear') }}</p>
+                <div class="k-inv-paperdoll" style="--board-w: {{ layout.equipment.width }}; --board-h: {{ layout.equipment.height }};">
+                    {% for slot in layout.equipment.slots %}
+                        <div class="k-inv-cell"
+                             style="--slot-x: {{ slot.x }}; --slot-y: {{ slot.y }}; --slot-w: {{ slot.w }}; --slot-h: {{ slot.h }};">
+                            {% include 'components/public-inv-slot.twig' with { item: slot.item } %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        {% if layout.costume.has_item %}
+            <div class="k-inv-board">
+                <p class="k-inv-board-title">{{ t('player.equipment_costume') }}</p>
+                <div class="k-inv-paperdoll" style="--board-w: {{ layout.costume.width }}; --board-h: {{ layout.costume.height }};">
+                    {% for slot in layout.costume.slots %}
+                        <div class="k-inv-cell"
+                             style="--slot-x: {{ slot.x }}; --slot-y: {{ slot.y }}; --slot-w: {{ slot.w }}; --slot-h: {{ slot.h }};">
+                            {% include 'components/public-inv-slot.twig' with { item: slot.item } %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}

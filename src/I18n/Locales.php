@@ -31,27 +31,38 @@ class Locales
      */
     public function available(): array
     {
+        $codes = [];
+
         $files = glob($this->path . '/*.json');
 
-        if ($files === false) {
-            return [];
+        if ($files !== false) {
+            foreach ($files as $file) {
+                $code = basename($file, '.json');
+
+                if ($code !== '' && $this->isSupported($code)) {
+                    $codes[$code] = true;
+                }
+            }
+        }
+
+        $dirs = glob($this->path . '/*', GLOB_ONLYDIR);
+
+        if ($dirs !== false) {
+            foreach ($dirs as $dir) {
+                $code = basename($dir);
+
+                if ($code !== '' && $this->isSupported($code)) {
+                    $codes[$code] = true;
+                }
+            }
         }
 
         $list = [];
 
-        foreach ($files as $file) {
-            $code = basename($file, '.json');
-
-            if ($code === '' || !$this->isSupported($code)) {
-                continue;
-            }
-
-            $data = json_decode((string) file_get_contents($file), true);
-            $name = is_array($data) ? (string) ($data['locale']['name'] ?? $code) : $code;
-
+        foreach (array_keys($codes) as $code) {
             $list[] = [
                 'code' => $code,
-                'name' => $name !== '' ? $name : $code,
+                'name' => $this->localeName($code),
                 'flag' => $this->flagUrl($code),
             ];
         }
@@ -65,7 +76,12 @@ class Locales
             return false;
         }
 
-        return is_file($this->path . '/' . $locale . '.json');
+        if (!preg_match('/^[A-Za-z0-9_-]+$/', $locale)) {
+            return false;
+        }
+
+        return is_file($this->path . '/' . $locale . '.json')
+            || is_dir($this->path . '/' . $locale);
     }
 
     public function resolve(string $default): string
@@ -94,6 +110,36 @@ class Locales
         }
 
         return $target;
+    }
+
+    private function localeName(string $code): string
+    {
+        $file = $this->path . '/' . $code . '.json';
+
+        if (is_file($file)) {
+            $data = json_decode((string) file_get_contents($file), true);
+            $name = is_array($data) ? (string) ($data['locale']['name'] ?? '') : '';
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        $meta = $this->path . '/' . $code . '/locale.json';
+
+        if (is_file($meta)) {
+            $data = json_decode((string) file_get_contents($meta), true);
+
+            if (is_array($data)) {
+                $name = (string) ($data['locale']['name'] ?? $data['name'] ?? '');
+
+                if ($name !== '') {
+                    return $name;
+                }
+            }
+        }
+
+        return $code;
     }
 
     private function flagUrl(string $code): ?string

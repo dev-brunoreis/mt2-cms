@@ -175,9 +175,11 @@ Everything is a concrete class in `resolveController()`. An event dispatcher (`A
 
 Organization backlog below is largely done (DI bootstrap, proto `page()` removal, grid Definitions, Categories split, catalog docs). Remaining opportunistic work:
 
-1. Nested read-only admin tables → `grid.twig` fragments
-2. i18n multi-file when PT-BR lands (`Translator` / `Locales`)
-3. Optionally fold `AdminSectionCatalog` helpers into Sections/ResourceCatalog (do not merge ACL catalogs casually)
+1. ~~Nested read-only admin tables → `grid.twig` fragments~~ — done for guild members/wars/comments, shop items, account activity
+2. ~~i18n multi-file when PT-BR lands (`Translator` / `Locales`)~~ — loader supports `lang/{locale}/*.json` (single-file `en.json` kept)
+3. ~~Optionally fold `AdminSectionCatalog` helpers into Sections~~ — done (`AdminSections`); do not merge ACL catalogs casually
+
+Also done: layout `extends` + widget slots, `slate` child theme, MIT license, payment `GatewayRegistry` + Mercado Pago gateway, optional public equipment paperdoll.
 
 Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path, exception handler, idle sessions, `APP_KEY`/encrypted TOTP, 2FA defaults, player password change. See [deploy.md](deploy.md).
 

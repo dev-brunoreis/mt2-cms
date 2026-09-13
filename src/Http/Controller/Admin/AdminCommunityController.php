@@ -64,6 +64,7 @@ class AdminCommunityController extends AdminController
                 trim((string) ($_POST['mail_from_name'] ?? '')),
             );
             $this->settings->setRequireVerifiedEmail(isset($_POST['require_verified_email']));
+            $this->settings->setPublicPlayerEquipment(isset($_POST['public_player_equipment']));
             $this->settings->setDiscordInviteUrl(trim((string) ($_POST['discord_invite_url'] ?? '')));
             $this->settings->setDiscordWebhookUrl(trim((string) ($_POST['discord_webhook_url'] ?? '')));
             $social = $_POST['social'] ?? [];

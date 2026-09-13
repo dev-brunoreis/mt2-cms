@@ -26,22 +26,18 @@ Example layout name must match a file under `themes/*/layouts/{name}.json`.
 
 ## 3. Layout JSON
 
-Copy `themes/default/layouts/home.json` as a starting point:
+Extend the shared shell; only override `main` (and `sidebar` for account pages):
 
 ```json
 {
-  "id": "root",
-  "template": "layouts/shell.twig",
+  "extends": "_shell",
   "slots": {
-    "header": [{ "id": "navbar", "template": "components/navbar.twig" }],
-    "sidebar": [],
-    "main": [{ "id": "content", "template": "pages/your-page.twig" }],
-    "footer": [{ "id": "footer", "template": "components/footer.twig" }]
+    "main": [{ "id": "content", "template": "pages/your-page.twig" }]
   }
 }
 ```
 
-Keep stable `id` values so child themes can override nodes by id.
+Keep stable `id` values so child themes can override nodes by id. See [add-theme.md](add-theme.md).
 
 ## 4. Twig template
 

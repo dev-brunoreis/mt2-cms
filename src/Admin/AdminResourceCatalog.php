@@ -362,7 +362,7 @@ final class AdminResourceCatalog
      */
     public static function hasAnyResourceForSection(string $sectionId, array $granted): bool
     {
-        if (AdminSectionCatalog::isSuperOnly($sectionId)) {
+        if (AdminSections::isSuperOnly($sectionId)) {
             return false;
         }
 

@@ -11,6 +11,7 @@ use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\Support\Log;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Payment\PayPalGateway;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\PaymentRepository;
@@ -33,7 +34,7 @@ class DonateController extends Controller
         private PaymentRepository $payments,
         private PaymentCheckoutService $checkout,
         private CashCreditService $credits,
-        private PayPalGateway $paypal,
+        private GatewayRegistry $gateways,
         private AccountEmailService $accountEmails,
         private SettingsService $settings,
         ?RateLimiter $rateLimiter = null,
@@ -52,11 +53,13 @@ class DonateController extends Controller
             return $block;
         }
 
+        $gateway = $this->gateways->active();
+
         return $this->view('donate', [
             'title' => $this->t('donate.title'),
             'packages' => $this->packages->listEnabled(),
-            'currency' => $this->settings->paypalCurrency(),
-            'paypalConfigured' => $this->settings->paypalConfigured(),
+            'currency' => $gateway?->currency() ?? $this->settings->paypalCurrency(),
+            'paypalConfigured' => $gateway !== null,
         ]);
     }
 
@@ -76,7 +79,7 @@ class DonateController extends Controller
             return $this->redirect('/donate');
         }
 
-        if (!$this->settings->paypalConfigured()) {
+        if ($this->gateways->active() === null) {
             $this->flash('error', $this->t('donate.paypal_unavailable'));
 
             return $this->redirect('/donate');
@@ -118,7 +121,6 @@ class DonateController extends Controller
         }
 
         $paymentId = (int) ($_GET['payment_id'] ?? 0);
-        $token = trim((string) ($_GET['token'] ?? ''));
         $accountId = $this->auth->id();
 
         if ($accountId === null || $paymentId < 1) {
@@ -133,14 +135,30 @@ class DonateController extends Controller
             return $this->redirect('/donate');
         }
 
-        $providerRef = $token !== '' ? $token : (string) ($payment['provider_ref'] ?? '');
+        $provider = (string) ($payment['provider'] ?? '');
+        $query = [];
 
-        if ($providerRef !== '') {
+        foreach ($_GET as $key => $value) {
+            if (is_string($key) && is_string($value)) {
+                $query[$key] = $value;
+            }
+        }
+
+        if ($provider !== '' && $this->gateways->has($provider)) {
             try {
-                $this->paypal->captureOrder($providerRef);
-                $this->credits->markPaidAndCredit('paypal', $providerRef);
+                $event = $this->gateways->get($provider)->captureReturn($query);
+
+                if ($event !== null && $event->paid) {
+                    $this->credits->markPaidAndCredit($provider, $event->providerRef);
+                } elseif ($event === null) {
+                    $providerRef = (string) ($payment['provider_ref'] ?? '');
+
+                    if ($providerRef !== '' && !str_starts_with($providerRef, 'tmp-')) {
+                        $this->credits->markPaidAndCredit($provider, $providerRef);
+                    }
+                }
             } catch (\Throwable $e) {
-                Log::error('payments', 'Donate return capture/credit failed for ' . $providerRef, $e);
+                Log::error('payments', 'Donate return capture/credit failed', $e);
             }
         }
 

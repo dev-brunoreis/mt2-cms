@@ -88,17 +88,47 @@ class ThemeResolver
     }
 
     /**
-     * Load layout JSON from the first theme in the chain that has it,
-     * then deep-merge overlays from child themes.
+     * Load layout JSON across the theme chain, resolve same-theme `extends`, then return.
      *
      * @return array<string, mixed>
      */
     public function resolveLayout(string $layoutName): array
     {
+        return $this->resolveExtendsChain($layoutName, []);
+    }
+
+    /**
+     * @param array<string, true> $seen
+     * @return array<string, mixed>
+     */
+    private function resolveExtendsChain(string $layoutName, array $seen): array
+    {
+        if (isset($seen[$layoutName])) {
+            throw new \RuntimeException('Circular layout extends: ' . $layoutName);
+        }
+
+        $seen[$layoutName] = true;
+        $merged = $this->loadThemeChainLayout($layoutName);
+        $extends = $merged['extends'] ?? null;
+        unset($merged['extends']);
+
+        if (!is_string($extends) || $extends === '') {
+            return $merged;
+        }
+
+        $base = $this->resolveExtendsChain($extends, $seen);
+
+        return LayoutMerger::mergeById($base, $merged);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadThemeChainLayout(string $layoutName): array
+    {
         $chain = $this->chain();
         $merged = null;
 
-        // Walk from root parent to active so child overrides win
         foreach (array_reverse($chain) as $theme) {
             $file = $this->themePath($theme) . '/layouts/' . $layoutName . '.json';
 

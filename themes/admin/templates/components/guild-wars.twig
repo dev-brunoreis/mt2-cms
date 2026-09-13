@@ -3,55 +3,5 @@
         {{ t('admin.guilds.tab_wars') }}
         <span class="admin-fieldset-help">{{ t('admin.guilds.wars_help') }}</span>
     </h2>
-
-    {% if guild.wars is empty %}
-        <p class="text-sm text-slate-500">{{ t('admin.guilds.wars_empty') }}</p>
-    {% else %}
-        <div class="admin-tabs-table">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>{{ t('admin.guilds.war_id') }}</th>
-                        <th>{{ t('admin.guilds.war_opponent') }}</th>
-                        <th>{{ t('admin.guilds.war_time') }}</th>
-                        <th>{{ t('admin.guilds.war_type') }}</th>
-                        <th>{{ t('admin.guilds.war_price') }}</th>
-                        <th>{{ t('admin.guilds.war_started') }}</th>
-                        <th>{{ t('admin.guilds.war_result') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for war in guild.wars %}
-                        <tr>
-                            <td class="text-slate-400">{{ war.id }}</td>
-                            <td class="text-slate-600">
-                                {% if war.guild1 == guild.id %}
-                                    {% if war.guild2 %}
-                                        <a href="/admin/game/guilds/{{ war.guild2 }}" class="text-indigo-600 hover:underline">
-                                            {{ war.guild2_name|default(war.guild2) }}
-                                        </a>
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                {% else %}
-                                    {% if war.guild1 %}
-                                        <a href="/admin/game/guilds/{{ war.guild1 }}" class="text-indigo-600 hover:underline">
-                                            {{ war.guild1_name|default(war.guild1) }}
-                                        </a>
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <td class="text-slate-600">{{ war.time|game_date }}</td>
-                            <td class="text-slate-600">{{ war.type }}</td>
-                            <td class="text-slate-600">{{ war.warprice }}</td>
-                            <td class="text-slate-600">{{ war.started ? t('admin.guilds.yes') : t('admin.guilds.no') }}</td>
-                            <td class="text-slate-600">{{ war.result1 }} : {{ war.result2 }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
+    {% include 'components/grid.twig' with { grid: warsGrid } %}
 </section>

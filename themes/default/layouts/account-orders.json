@@ -1,16 +1,9 @@
 {
-  "id": "root",
-  "template": "layouts/shell.twig",
+  "extends": "_shell",
   "slots": {
-    "header": [
-      {
-        "id": "navbar",
-        "template": "components/navbar.twig"
-      }
-    ],
     "sidebar": [
       {
-        "id": "account-nav",
+        "id": "sidebar",
         "template": "components/account-sidebar.twig"
       }
     ],
@@ -18,12 +11,6 @@
       {
         "id": "content",
         "template": "pages/account-orders.twig"
-      }
-    ],
-    "footer": [
-      {
-        "id": "footer",
-        "template": "components/footer.twig"
       }
     ]
   }

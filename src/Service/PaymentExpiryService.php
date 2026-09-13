@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Service;
 
+use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Repository\PaymentRepository;
 
 class PaymentExpiryService
 {
     public function __construct(
         private PaymentRepository $payments,
-        private SettingsService $settings,
+        private GatewayRegistry $gateways,
         private NotificationService $notifications,
     ) {
     }
 
     public function expireDue(): int
     {
-        $minutes = $this->settings->paypalPendingMinutes();
+        $gateway = $this->gateways->active();
+        $minutes = $gateway !== null ? $gateway->pendingMinutes() : 30;
         $rows = $this->payments->listExpiredPending($minutes);
         $count = 0;
 

@@ -9,7 +9,7 @@ use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Payment\GatewayRegistry;
-use Mt2Cms\Service\CashCreditService;
+use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -21,7 +21,7 @@ class PaymentWebhookController extends Controller
         Csrf $csrf,
         Translator $translator,
         private GatewayRegistry $gateways,
-        private CashCreditService $credits,
+        private PaymentWebhookProcessor $processor,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator);
     }
@@ -49,17 +49,30 @@ class PaymentWebhookController extends Controller
         }
 
         try {
-            $gateway = $this->gateways->get($provider);
-            $event = $gateway->parseWebhook($raw, $headers);
-
-            if ($event->paid) {
-                $this->credits->markPaidAndCredit($provider, $event->providerRef);
-            }
-        } catch (\Throwable $e) {
-            Log::error('payments', $provider . ' webhook failed', $e);
+            $result = $this->processor->ingest($provider, $raw, $headers);
+        } catch (\InvalidArgumentException $e) {
+            Log::error('payments', $provider . ' webhook rejected', $e);
 
             return Response::html('Bad Request', 400);
+        } catch (\Throwable $e) {
+            Log::error('payments', $provider . ' webhook persist failed', $e);
+
+            return Response::html('Internal Server Error', 500);
         }
+
+        if (!$result['accepted']) {
+            return Response::html('Bad Request', 400);
+        }
+
+        $eventId = (int) $result['row']['id'];
+        $processor = $this->processor;
+        register_shutdown_function(static function () use ($processor, $eventId): void {
+            try {
+                $processor->processOne($eventId);
+            } catch (\Throwable $e) {
+                Log::error('payments', 'webhook background process failed', $e);
+            }
+        });
 
         return Response::html('OK', 200);
     }

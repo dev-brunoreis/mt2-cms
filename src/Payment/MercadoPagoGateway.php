@@ -133,23 +133,28 @@ final class MercadoPagoGateway implements PaymentGateway
             throw new \InvalidArgumentException('payments.invalid_webhook');
         }
 
-        $paid = str_contains(strtolower($type), 'payment') || str_contains(strtolower($type), 'updated');
-        $status = 'PENDING';
+        return new WebhookEvent($paymentId, $type !== '' ? $type : 'PENDING', false);
+    }
 
-        if ($paid) {
-            $detail = $this->fetchPayment($paymentId);
-            $status = strtoupper((string) ($detail['status'] ?? 'PENDING'));
-            $paid = $status === 'APPROVED';
-            $ref = (string) ($detail['preference_id'] ?? '');
+    public function processWebhook(WebhookEvent $event): WebhookEvent
+    {
+        $paymentId = $event->providerRef;
+        $type = strtolower($event->status);
 
-            if ($ref === '') {
-                $ref = (string) ($detail['order']['id'] ?? $paymentId);
-            }
-
-            return new WebhookEvent($ref, $status, $paid);
+        if ($paymentId === '' || (!str_contains($type, 'payment') && !str_contains($type, 'updated'))) {
+            return new WebhookEvent($paymentId, $event->status, false);
         }
 
-        return new WebhookEvent($paymentId, $status, false);
+        $detail = $this->fetchPayment($paymentId);
+        $status = strtoupper((string) ($detail['status'] ?? 'PENDING'));
+        $paid = $status === 'APPROVED';
+        $ref = (string) ($detail['preference_id'] ?? '');
+
+        if ($ref === '') {
+            $ref = (string) ($detail['order']['id'] ?? $paymentId);
+        }
+
+        return new WebhookEvent($ref, $status, $paid);
     }
 
     /**

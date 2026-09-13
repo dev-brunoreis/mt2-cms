@@ -2633,7 +2633,20 @@
             "not_credited": "Not credited yet",
             "recredit_action": "Credit cash now",
             "recredit_help": "Re-runs PayPal verification and credits cash if the order is completed.",
-            "back_to_list": "Back to payments"
+            "back_to_list": "Back to payments",
+            "webhook_events": "Provider postbacks",
+            "webhook_events_help": "Raw webhook payloads received for this payment. Use them to review capture and credit failures.",
+            "webhook_empty": "No webhook events recorded for this payment.",
+            "webhook_raw": "Headers and raw body",
+            "webhook_retry": "Retry event",
+            "webhook_retried": "Webhook event queued again.",
+            "webhook_retry_failed": "Could not retry this webhook event.",
+            "webhook_attempts": "{count} attempts",
+            "webhook_status_queued": "Queued",
+            "webhook_status_processing": "Processing",
+            "webhook_status_processed": "Processed",
+            "webhook_status_failed": "Failed",
+            "webhook_status_rejected": "Rejected"
         },
         "shops": {
             "title": "Shops",

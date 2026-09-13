@@ -28,7 +28,14 @@ interface PaymentGateway
     public function captureReturn(array $query): ?WebhookEvent;
 
     /**
+     * Verify signature and resolve the provider reference. Does not capture or credit.
+     *
      * @param array<string, string> $headers
      */
     public function parseWebhook(string $rawBody, array $headers): WebhookEvent;
+
+    /**
+     * Capture / fetch payment status for an already-verified webhook event.
+     */
+    public function processWebhook(WebhookEvent $event): WebhookEvent;
 }

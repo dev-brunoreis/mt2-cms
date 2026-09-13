@@ -214,6 +214,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/store/payments', [AdminPaymentsController::class, 'index']);
         $r->addRoute('GET', '/admin/store/payments/{id:\d+}', [AdminPaymentsController::class, 'show']);
         $r->addRoute('POST', '/admin/store/payments/{id:\d+}/recredit', [AdminPaymentsController::class, 'recredit']);
+        $r->addRoute('POST', '/admin/store/payments/{id:\d+}/events/{eventId:\d+}/retry', [AdminPaymentsController::class, 'retryEvent']);
 
         // Game data
         $r->addRoute('GET', '/admin/game-data/shops', [AdminShopsController::class, 'index']);

@@ -54,3 +54,56 @@
         </form>
     {% endif %}
 </div>
+
+<div class="admin-panel mt-6 p-6 space-y-4">
+    <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.payments.webhook_events') }}</h2>
+    <p class="text-sm text-slate-500">{{ t('admin.payments.webhook_events_help') }}</p>
+
+    {% if webhookEvents is empty %}
+        <p class="text-sm text-slate-500">{{ t('admin.payments.webhook_empty') }}</p>
+    {% else %}
+        <ul class="space-y-4">
+            {% for event in webhookEvents %}
+                <li class="rounded-md border border-slate-200 p-4 space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="admin-badge
+                            {% if event.status == 'processed' %}admin-badge-ok
+                            {% elseif event.status == 'failed' %}admin-badge-danger
+                            {% elseif event.status == 'rejected' %}admin-badge-muted
+                            {% else %}admin-badge-warn{% endif %}">
+                            {{ t('admin.payments.webhook_status_' ~ event.status) }}
+                        </span>
+                        <span class="font-mono text-sm text-slate-900">{{ event.event_type }}</span>
+                        <span class="text-xs text-slate-500">{{ event.created_at|game_date }}</span>
+                        <span class="text-xs text-slate-500">{{ t('admin.payments.webhook_attempts', {count: event.attempts}) }}</span>
+                    </div>
+                    {% if event.last_error %}
+                        <p class="text-sm text-rose-700">{{ event.last_error }}</p>
+                    {% endif %}
+                    {% if canRetryWebhook and event.status == 'failed' %}
+                        <form method="post" action="/admin/store/payments/{{ payment.id }}/events/{{ event.id }}/retry">
+                            <input type="hidden" name="_csrf" value="{{ csrf }}">
+                            <button type="submit" class="admin-btn-secondary cursor-pointer rounded-md px-3 py-1.5 text-sm font-semibold">
+                                {{ t('admin.payments.webhook_retry') }}
+                            </button>
+                        </form>
+                    {% endif %}
+                    <details class="rounded-md border border-slate-100 bg-slate-50 p-3">
+                        <summary class="cursor-pointer text-sm font-semibold text-slate-700">{{ t('admin.payments.webhook_raw') }}</summary>
+                        {% if event.headers is not empty %}
+                            <dl class="mt-3 grid gap-1 text-xs">
+                                {% for name, value in event.headers %}
+                                    <div>
+                                        <dt class="font-semibold text-slate-500">{{ name }}</dt>
+                                        <dd class="break-all font-mono text-slate-800">{{ value }}</dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        {% endif %}
+                        <pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-xs text-slate-800">{{ event.raw_pretty }}</pre>
+                    </details>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>

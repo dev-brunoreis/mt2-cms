@@ -129,24 +129,40 @@ final class PayPalGateway implements PaymentGateway
         }
 
         $eventType = (string) ($payload['event_type'] ?? '');
+
+        if (!PayPalWebhookParser::isPaymentEvent($eventType)) {
+            return new WebhookEvent('', $eventType, false);
+        }
+
         $resource = is_array($payload['resource'] ?? null) ? $payload['resource'] : [];
         $orderId = PayPalWebhookParser::resolveOrderId($eventType, $resource);
 
-        $paid = false;
+        return new WebhookEvent($orderId, $eventType, false);
+    }
 
-        if (PayPalWebhookParser::isPaymentEvent($eventType)) {
-            if ($eventType === 'CHECKOUT.ORDER.APPROVED') {
-                try {
-                    $this->captureOrder($orderId);
-                } catch (\Throwable $e) {
-                    Log::error('payments', 'PayPal capture on APPROVED failed for ' . $orderId, $e);
-                }
-            }
+    public function processWebhook(WebhookEvent $event): WebhookEvent
+    {
+        $orderId = $event->providerRef;
 
-            $paid = $this->verifyOrderCompleted($orderId);
+        if (!PayPalWebhookParser::isPaymentEvent($event->status)) {
+            return new WebhookEvent($orderId, $event->status, false);
         }
 
-        return new WebhookEvent($orderId, $eventType, $paid);
+        if ($event->status === 'CHECKOUT.ORDER.APPROVED') {
+            try {
+                $this->captureOrder($orderId);
+            } catch (\Throwable $e) {
+                if (!$this->verifyOrderCompleted($orderId)) {
+                    Log::error('payments', 'PayPal capture on APPROVED failed for ' . $orderId, $e);
+
+                    throw $e;
+                }
+            }
+        }
+
+        $paid = $this->verifyOrderCompleted($orderId);
+
+        return new WebhookEvent($orderId, $event->status, $paid);
     }
 
     /**

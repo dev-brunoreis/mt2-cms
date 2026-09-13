@@ -11,11 +11,13 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Repository\PaymentEventRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\CashCreditService;
 use Mt2Cms\Service\PaymentExpiryService;
+use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminPaymentsController extends AdminController
@@ -30,6 +32,8 @@ class AdminPaymentsController extends AdminController
         AclService $acl,
         AdminAuditService $auditLog,
         private PaymentRepository $payments,
+        private PaymentEventRepository $paymentEvents,
+        private PaymentWebhookProcessor $webhookProcessor,
         private CashCreditService $credits,
         private PaymentExpiryService $expiry,
     ) {
@@ -70,13 +74,41 @@ class AdminPaymentsController extends AdminController
             return $this->redirect('/admin/store/payments');
         }
 
+        $canEdit = $this->acl->isAllowed($this->adminAuth->user(), 'store/payments/edit');
+
         return $this->adminView('payments', 'pages/payment-detail.twig', [
             'title' => $this->t('admin.payments.detail_title', ['id' => $paymentId]),
             'pageLead' => $this->t('admin.payments.detail_lead'),
             'payment' => $payment,
-            'canRecredit' => $this->acl->isAllowed($this->adminAuth->user(), 'store/payments/edit')
-                && $payment['credited_at'] === null,
+            'webhookEvents' => $this->presentEvents($this->paymentEvents->listByPaymentId($paymentId)),
+            'canRecredit' => $canEdit && $payment['credited_at'] === null,
+            'canRetryWebhook' => $canEdit,
         ]);
+    }
+
+    public function retryEvent(string $id, string $eventId): Response
+    {
+        if ($redirect = $this->requireAdminResource('store/payments/edit')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect('/admin/store/payments/' . (int) $id);
+        }
+
+        $paymentId = (int) $id;
+
+        if ($this->webhookProcessor->retry((int) $eventId, $paymentId)) {
+            $this->audit('payment.webhook_retry', 'payment', $paymentId);
+            $this->webhookProcessor->processOne((int) $eventId);
+            $this->flash('success', $this->t('admin.payments.webhook_retried'));
+        } else {
+            $this->flash('error', $this->t('admin.payments.webhook_retry_failed'));
+        }
+
+        return $this->redirect('/admin/store/payments/' . $paymentId);
     }
 
     public function recredit(string $id): Response
@@ -117,5 +149,29 @@ class AdminPaymentsController extends AdminController
         }
 
         return $this->redirect('/admin/store/payments/' . $paymentId);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private function presentEvents(array $rows): array
+    {
+        $presented = [];
+
+        foreach ($rows as $row) {
+            $decoded = json_decode((string) ($row['raw_body'] ?? ''), true);
+            $headers = json_decode((string) ($row['headers_json'] ?? ''), true);
+            $row['raw_pretty'] = is_array($decoded)
+                ? (string) json_encode(
+                    $decoded,
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+                )
+                : (string) ($row['raw_body'] ?? '');
+            $row['headers'] = is_array($headers) ? $headers : [];
+            $presented[] = $row;
+        }
+
+        return $presented;
     }
 }

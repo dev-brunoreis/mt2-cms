@@ -215,6 +215,16 @@ Admin **Game → Economy** reads CMS snapshot tables only. Refresh them every 15
 
 The tick takes a file lock under `var/economy-tick.lock` so overlapping runs skip. First run after deploy may take longer (full `GROUP BY` on `player.item`).
 
+### Payment webhook worker
+
+`POST /payments/webhook/{provider}` stores the raw postback and returns `200` after signature verification. Capture and cash credit run in the worker (and once after the HTTP response via a shutdown hook). Drain the queue every minute:
+
+```cron
+* * * * * cd /path/to/mt2-cms && docker compose exec -T php php bin/payments-process.php >> /var/log/mt2-cms-payments.log 2>&1
+```
+
+The worker takes a file lock under `var/payments-process.lock`. Failed captures retry with backoff (1, 2, 5, then 15 minutes) up to 10 attempts. Raw payloads appear on **Admin → Store → Payments → detail**.
+
 Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
 
 ## Post-deploy checklist

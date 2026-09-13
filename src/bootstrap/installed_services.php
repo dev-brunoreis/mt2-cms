@@ -46,6 +46,7 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\NewsCommentRepository;
 use Mt2Cms\Repository\NewsRepository;
 use Mt2Cms\Repository\NotificationRepository;
+use Mt2Cms\Repository\PaymentEventRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Repository\ProtoNameRepository;
@@ -78,6 +79,7 @@ use Mt2Cms\Service\NewsUploadService;
 use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Service\PaymentCheckoutService;
 use Mt2Cms\Service\PaymentExpiryService;
+use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\TicketUploadService;
@@ -135,6 +137,7 @@ return static function (Application $app): void {
     ))->seedIfNeeded();
     $app->cashPackages = new CashPackageRepository($app->cmsDb);
     $app->payments = new PaymentRepository($app->cmsDb);
+    $app->paymentEvents = new PaymentEventRepository($app->cmsDb);
     $app->notifications = new NotificationRepository($app->cmsDb);
     $app->notificationService = new NotificationService($app->notifications);
     $app->mailer = new SymfonyMailer(
@@ -255,6 +258,12 @@ return static function (Application $app): void {
         $app->settings,
         $app->notificationService,
         $app->paymentExpiry,
+    );
+    $app->paymentWebhookProcessor = new PaymentWebhookProcessor(
+        $app->paymentEvents,
+        $app->payments,
+        $app->paymentGateways,
+        $app->cashCredits,
     );
     $app->adminAudit = new AdminAuditService(
         new AdminAuditRepository($app->cmsDb),

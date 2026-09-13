@@ -32,6 +32,36 @@ final class ProtoFormFieldsTest extends TestCase
         self::assertGreaterThan(10, count($labels));
     }
 
+    public function testApplyAndLimitFieldsAreGroupedAsTypeValuePairs(): void
+    {
+        $profile = GameProfile::load(BASE_DIR . '/game');
+        $fields = new ProtoFormFields(new Translator(BASE_DIR . '/lang', 'en', 'en'), new ProtoEnums($profile));
+        $record = (new ProtoSchemas($profile))->defaults(ProtoSchemas::KIND_ITEM);
+        $tabs = $fields->decorateTabs(ProtoSchemas::KIND_ITEM, 'admin.items', $profile->formTabs(ProtoSchemas::KIND_ITEM), $record);
+        $applies = null;
+
+        foreach ($tabs as $tab) {
+            if (($tab['id'] ?? '') === 'applies') {
+                $applies = $tab;
+                break;
+            }
+        }
+
+        self::assertNotNull($applies);
+        self::assertSame(['pair', 'pair', 'pair', 'pair', 'pair'], array_column($applies['rows'] ?? [], 'kind'));
+        self::assertSame('limit', $applies['rows'][0]['role'] ?? null);
+        self::assertSame('Requirement 1', $applies['rows'][0]['title'] ?? null);
+        self::assertSame('Requirement', $applies['rows'][0]['typeLabel'] ?? null);
+        self::assertSame('Value', $applies['rows'][0]['valueLabel'] ?? null);
+        self::assertSame('limit_type0', $applies['rows'][0]['type']['key'] ?? null);
+        self::assertSame('limit_value0', $applies['rows'][0]['value']['key'] ?? null);
+        self::assertSame('apply', $applies['rows'][2]['role'] ?? null);
+        self::assertSame('Bonus 1', $applies['rows'][2]['title'] ?? null);
+        self::assertSame('Bonus', $applies['rows'][2]['typeLabel'] ?? null);
+        self::assertSame('apply_type0', $applies['rows'][2]['type']['key'] ?? null);
+        self::assertSame('apply_value0', $applies['rows'][2]['value']['key'] ?? null);
+    }
+
     public function testSubtypeJsonMapIsSortedByTranslatedLabel(): void
     {
         $profile = GameProfile::load(BASE_DIR . '/game');

@@ -144,12 +144,7 @@ class AdminEconomyController extends AdminController
             $supplyChange = ($unitsNow / $units7) - 1.0;
         }
 
-        $medianNow = $this->economy->medianPriceForDay($vnum, date('Y-m-d'));
-
-        if ($medianNow === null) {
-            $medianNow = $this->economy->medianPriceForDay($vnum, date('Y-m-d', strtotime('-1 day')));
-        }
-
+        $medianNow = $this->economy->latestMedian($vnum);
         $priceBaseline = $this->economy->baselineMedian(
             $vnum,
             date('Y-m-d', strtotime('-7 days')),
@@ -173,6 +168,8 @@ class AdminEconomyController extends AdminController
             'npc' => $npc,
             'history' => $history,
             'market' => $market,
+            'trades' => $this->economy->recentTrades($vnum, 25),
+            'medianNow' => $medianNow,
             'watched' => $watched,
             'watchCfg' => $watchCfg,
             'alerts' => $alerts,

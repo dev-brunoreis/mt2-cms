@@ -6,6 +6,7 @@ namespace Mt2Cms\Http\Controller\Admin;
 
 use Mt2Cms\Admin\Grid\Definitions\PlayersGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
+use Mt2Cms\Admin\LogCatalog;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
@@ -19,6 +20,7 @@ use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\LogEnricher;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Theme\ThemeEngine;
 use Mt2Cms\Service\UnstuckService;
@@ -49,6 +51,7 @@ class AdminCharactersController extends AdminController
         private AccountRepository $accounts,
         private SettingsService $settings,
         private UnstuckService $unstuck,
+        private LogEnricher $logEnricher,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -107,7 +110,7 @@ class AdminCharactersController extends AdminController
         ];
 
         if ($tab === 'logs') {
-            $data['characterLogs'] = $this->decorateLogs($this->logs->listForCharacter($playerId, $name));
+            $data['characterLogs'] = $this->decorateLogs($this->logs->listForCharacter($playerId, $name), 'player');
         }
 
         if ($tab === 'items') {
@@ -198,7 +201,7 @@ class AdminCharactersController extends AdminController
         $itemLogs = [];
 
         if ($item === null || $tab === 'logs') {
-            $itemLogs = $this->decorateLogs($this->logs->listForItem($itemId));
+            $itemLogs = $this->decorateLogs($this->logs->listForItem($itemId), 'item');
         }
 
         if ($item === null && $itemLogs === []) {
@@ -246,20 +249,29 @@ class AdminCharactersController extends AdminController
 
     /**
      * @param list<array{id: string, label: string, columns: list<string>, dateColumn: string|null, itemColumns?: list<string>, rows: list<array<string, mixed>>}> $groups
-     * @return list<array{id: string, label: string, columns: list<array{key: string, label: string}>, dateColumns: list<string>, itemColumns: list<string>, rows: list<array<string, mixed>>}>
+     * @return list<array{id: string, label: string, filterKey: string, columns: list<array{key: string, label: string}>, dateColumns: list<string>, itemColumns: list<string>, rows: list<array<string, mixed>>}>
      */
-    private function decorateLogs(array $groups): array
+    private function decorateLogs(array $groups, string $filterFrom = 'player'): array
     {
         $decorated = [];
 
         foreach ($groups as $group) {
+            $catalog = LogCatalog::get($group['id']) ?? ['playerColumns' => [], 'itemColumns' => []];
+            $filterKey = $filterFrom === 'item'
+                ? (string) (($catalog['itemColumns'][0] ?? '') ?: '')
+                : (string) (($catalog['playerColumns'][0] ?? '') ?: '');
+            $rows = $this->logEnricher->decorate($group['id'], $group['rows']);
             $decorated[] = [
                 'id' => $group['id'],
                 'label' => $group['label'],
-                'columns' => $this->columnLabels($group['columns']),
+                'filterKey' => $filterKey,
+                'columns' => array_merge(
+                    [['key' => '_summary', 'label' => $this->t('admin.logs.columns.summary')]],
+                    $this->columnLabels($group['columns']),
+                ),
                 'dateColumns' => $this->dateColumns($group['columns']),
                 'itemColumns' => $group['itemColumns'] ?? [],
-                'rows' => $group['rows'],
+                'rows' => $rows,
             ];
         }
 
@@ -292,7 +304,12 @@ class AdminCharactersController extends AdminController
     private function dateColumns(array $columns): array
     {
         $known = ['time', 'date', 'login_time', 'logout_time', 'start_time', 'end_time', 'first_seen', 'last_seen'];
+        $found = array_values(array_intersect($columns, $known));
 
-        return array_values(array_intersect($columns, $known));
+        if (in_array('date', $found, true) && in_array('time', $found, true)) {
+            $found = array_values(array_diff($found, ['time']));
+        }
+
+        return $found;
     }
 }

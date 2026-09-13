@@ -17,6 +17,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\LogRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\LogEnricher;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminLogsController extends AdminController
@@ -31,6 +32,7 @@ class AdminLogsController extends AdminController
         AclService $acl,
         AdminAuditService $auditLog,
         private LogRepository $logs,
+        private LogEnricher $logEnricher,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -84,7 +86,6 @@ class AdminLogsController extends AdminController
             'pageLead' => $this->t('admin.logs.lead'),
             'activeTab' => $tab,
             'logGroups' => LogCatalog::groupedTabs(),
-            'logsBaseUrl' => AdminPaths::logs(),
             'initialPartial' => $initialPartial,
         ]);
     }
@@ -136,7 +137,7 @@ class AdminLogsController extends AdminController
             $spec,
             $query,
             fn ($q) => $missingTable ? 0 : $this->logs->countForGrid($table, $q),
-            fn ($q) => $missingTable ? [] : $this->logs->listForGrid($table, $q),
+            fn ($q) => $missingTable ? [] : $this->logEnricher->decorate($table, $this->logs->listForGrid($table, $q)),
         );
 
         return [
@@ -157,7 +158,10 @@ class AdminLogsController extends AdminController
             $spec,
             $query,
             fn ($q) => $missingTable ? 0 : $this->logs->countConnectionsForGrid($q),
-            fn ($q) => $missingTable ? [] : $this->logs->listConnectionsForGrid($q),
+            fn ($q) => $missingTable ? [] : $this->logEnricher->decorate(
+                LogCatalog::CONNECTIONS_ID,
+                $this->logs->listConnectionsForGrid($q),
+            ),
         );
 
         return [
@@ -182,17 +186,27 @@ class AdminLogsController extends AdminController
     private function logGridSpec(string $table, array $log): GridSpec
     {
         $dateColumns = $this->dateColumns($log['columns']);
-        $columns = [];
+        $columns = [[
+            'key' => '_summary',
+            'label' => 'admin.logs.columns.summary',
+            'type' => 'template',
+            'template' => 'components/log-cell.twig',
+            'filter' => false,
+            'itemColumns' => $log['itemColumns'],
+            'dateColumns' => $dateColumns,
+        ]];
 
         foreach ($log['columns'] as $column) {
             $isDate = in_array($column, $dateColumns, true);
+            $type = $isDate ? 'date' : $this->logColumnType($column);
             $columns[] = [
                 'key' => $column,
                 'label' => $this->translator->has('admin.logs.columns.' . $column)
                     ? 'admin.logs.columns.' . $column
                     : $column,
-                'type' => 'template',
-                'filterType' => $isDate ? 'date' : 'text',
+                'type' => $type,
+                'sort' => $column,
+                'filterType' => $isDate ? 'date' : ($type === 'bool' ? 'bool' : ($type === 'job' ? 'job' : ($type === 'empire' ? 'empire' : ($type === 'playtime' ? 'playtime' : 'text')))),
                 'template' => 'components/log-cell.twig',
                 'itemColumns' => $log['itemColumns'],
                 'dateColumns' => $dateColumns,
@@ -215,16 +229,38 @@ class AdminLogsController extends AdminController
         );
     }
 
+    private function logColumnType(string $column): string
+    {
+        if (in_array($column, ['success', 'is_success', 'is_gm'], true)) {
+            return 'bool';
+        }
+
+        if ($column === 'job') {
+            return 'job';
+        }
+
+        if ($column === 'empire') {
+            return 'empire';
+        }
+
+        if (in_array($column, ['playtime', 'play_time'], true)) {
+            return 'playtime';
+        }
+
+        return 'template';
+    }
+
     private function connectionsGridSpec(): GridSpec
     {
         return $this->decoratedLogSpec(
             AdminPaths::logs(LogCatalog::CONNECTIONS_ID),
             [
-                ['key' => 'ip', 'label' => 'admin.logs.columns.ip', 'type' => 'text'],
-                ['key' => 'account_id', 'label' => 'admin.logs.columns.account_id', 'type' => 'template', 'filterType' => 'number', 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
-                ['key' => 'connections', 'label' => 'admin.logs.columns.connections', 'type' => 'number'],
-                ['key' => 'first_seen', 'label' => 'admin.logs.columns.first_seen', 'type' => 'date'],
-                ['key' => 'last_seen', 'label' => 'admin.logs.columns.last_seen', 'type' => 'date'],
+                ['key' => '_summary', 'label' => 'admin.logs.columns.summary', 'type' => 'template', 'filter' => false, 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
+                ['key' => 'ip', 'label' => 'admin.logs.columns.ip', 'type' => 'text', 'sort' => 'ip'],
+                ['key' => 'account_id', 'label' => 'admin.logs.columns.account_id', 'type' => 'template', 'sort' => 'account_id', 'filterType' => 'number', 'template' => 'components/log-cell.twig', 'itemColumns' => [], 'dateColumns' => []],
+                ['key' => 'connections', 'label' => 'admin.logs.columns.connections', 'type' => 'number', 'sort' => 'connections'],
+                ['key' => 'first_seen', 'label' => 'admin.logs.columns.first_seen', 'type' => 'date', 'sort' => 'first_seen'],
+                ['key' => 'last_seen', 'label' => 'admin.logs.columns.last_seen', 'type' => 'date', 'sort' => 'last_seen'],
             ],
             [
                 ['key' => 'from', 'label' => 'admin.logs.from', 'type' => 'date'],
@@ -279,7 +315,12 @@ class AdminLogsController extends AdminController
     private function dateColumns(array $columns): array
     {
         $known = ['time', 'date', 'login_time', 'logout_time', 'start_time', 'end_time', 'first_seen', 'last_seen'];
+        $found = array_values(array_intersect($columns, $known));
 
-        return array_values(array_intersect($columns, $known));
+        if (in_array('date', $found, true) && in_array('time', $found, true)) {
+            $found = array_values(array_diff($found, ['time']));
+        }
+
+        return $found;
     }
 }

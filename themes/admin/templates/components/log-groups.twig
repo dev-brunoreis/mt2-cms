@@ -5,8 +5,8 @@
         <section class="admin-fieldset">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 class="text-sm font-semibold text-slate-900">{{ t(group.label) }}</h3>
-                {% if query is defined and query %}
-                    <a href="/admin/logs?tab={{ group.id }}&amp;q={{ query }}" class="admin-link-action">
+                {% if query is defined and query and group.filterKey is defined and group.filterKey %}
+                    <a href="/admin/logs?tab={{ group.id }}&amp;filter[{{ group.filterKey }}]={{ query }}" class="admin-link-action">
                         {{ t('admin.characters.logs_view_all') }}
                     </a>
                 {% endif %}

@@ -23,8 +23,19 @@ final class GridView
      */
     public function toArray(): array
     {
+        [$formAction, $formParams] = GridUrl::splitAction($this->spec->action);
+        $hidden = [];
+
+        foreach ($formParams as $key => $value) {
+            if (is_scalar($value)) {
+                $hidden[(string) $key] = (string) $value;
+            }
+        }
+
         return [
             'action' => $this->spec->action,
+            'formAction' => $formAction,
+            'formParams' => $hidden,
             'massActionPath' => $this->spec->massActionPath,
             'i18nPrefix' => $this->spec->i18nPrefix,
             'idField' => $this->spec->idField,

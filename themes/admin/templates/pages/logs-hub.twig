@@ -37,7 +37,7 @@
                 {% include 'components/tab-panel.twig' with {
                     id: tab.id,
                     visible: false,
-                    src: logsBaseUrl ~ '?tab=' ~ tab.id ~ '&partial=1'
+                    src: admin_path('logs', tab.id) ~ '&partial=1'
                 } %}
             {% endif %}
         {% endfor %}

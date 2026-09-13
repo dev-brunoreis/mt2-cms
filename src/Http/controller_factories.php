@@ -85,7 +85,13 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->accounts, $app->players, $app->logs, $app->notificationService,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminCharactersController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCharactersController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->items, $app->guilds, $app->logs, $app->accounts, $app->settings, $app->unstuckService,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->items, $app->guilds, $app->logs, $app->accounts, $app->settings, $app->unstuckService, new \Mt2Cms\Service\LogEnricher(
+            new \Mt2Cms\Service\LogRowPresenter($app->translator),
+            $app->players,
+            $app->gameEconomyScan,
+            $app->accounts,
+            $app->guilds,
+        ),
     ),
     \Mt2Cms\Http\Controller\Admin\AdminUnstuckController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminUnstuckController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->unstuckService,
@@ -97,7 +103,13 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->gameProto, $app->protoFields, $app->mobDrops, $app->protoEnums, $app->shops,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminLogsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminLogsController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->logs,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->logs, new \Mt2Cms\Service\LogEnricher(
+            new \Mt2Cms\Service\LogRowPresenter($app->translator),
+            $app->players,
+            $app->gameEconomyScan,
+            $app->accounts,
+            $app->guilds,
+        ),
     ),
     \Mt2Cms\Http\Controller\Admin\AdminGuildsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminGuildsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->guilds,

@@ -1,12 +1,39 @@
 {% set value = row[column.key] %}
-{% if value is same as(null) or value is same as('') %}
+{% if column.key == '_summary' %}
+    <div class="admin-log-summary">
+        <p class="font-medium text-slate-900">{{ row._summary|default('—') }}</p>
+    </div>
+{% elseif value is same as(null) or value is same as('') %}
     —
 {% elseif column.key in ['account_id'] and value %}
-    <a href="/admin/game/accounts/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+    <a href="/admin/game/accounts/{{ value }}" class="text-indigo-600 hover:underline">{{ row.account_login|default(value) }}</a>
+    {% if row.account_login is defined and row.account_login %}
+        <span class="text-slate-400">#{{ value }}</span>
+    {% endif %}
 {% elseif column.key in ['pid', 'player_id', 'who'] and value %}
-    <a href="/admin/game/characters/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+    {% set playerName = attribute(row, column.key ~ '_name')|default('') %}
+    <a href="/admin/game/characters/{{ value }}" class="text-indigo-600 hover:underline">{{ playerName ? playerName : value }}</a>
+    {% if playerName %}
+        <span class="text-slate-400">#{{ value }}</span>
+    {% endif %}
+{% elseif column.key in ['guild_id'] and value %}
+    <a href="/admin/game/guilds/{{ value }}" class="text-indigo-600 hover:underline">{{ row.guild_name|default(value) }}</a>
 {% elseif column.key in itemColumns|default([]) and value %}
     <a href="/admin/game/owned-items/{{ value }}" class="text-indigo-600 hover:underline">{{ value }}</a>
+{% elseif column.key in ['item_vnum', 'vnum', 'fish_id'] and value %}
+    {% set itemName = attribute(row, column.key ~ '_name')|default('') %}
+    <span class="inline-flex items-center gap-1">
+        {% include 'components/item-icon.twig' with { vnum: value, size: 'sm' } %}
+        <span>{{ itemName ? itemName : ('#' ~ value) }}</span>
+    </span>
+{% elseif column.key in ['how', 'type'] %}
+    {% set codeLabel = attribute(row, '_' ~ column.key ~ '_label')|default(value) %}
+    <span class="admin-badge admin-badge-muted">{{ codeLabel }}</span>
+{% elseif column.key in ['what', 'gold'] and row._yang is defined %}
+    {% set yang = row._yang %}
+    <span class="{% if yang < 0 %}text-rose-700{% elseif yang > 0 %}text-emerald-700{% else %}text-slate-600{% endif %}">
+        {{ yang > 0 ? '+' : '' }}{{ yang|number_format(0, '.', ',') }} yang
+    </span>
 {% elseif column.key in dateColumns %}
     {{ value|game_date }}
 {% else %}

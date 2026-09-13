@@ -153,6 +153,43 @@
     </div>
 
     <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.recent_trades') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.price_caveat') }}</p>
+        {% if medianNow is not null %}
+        <dl class="admin-stat-grid mt-3">
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.economy.last_median') }}</dt>
+                <dd>{{ medianNow|number_format }}</dd>
+            </div>
+        </dl>
+        {% endif %}
+        {% if trades|length == 0 %}
+        <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.no_trades') }}</p>
+        {% else %}
+        <table class="admin-table mt-3">
+            <thead>
+                <tr>
+                    <th>{{ t('admin.economy.sold_at') }}</th>
+                    <th>{{ t('admin.economy.trade_count') }}</th>
+                    <th>{{ t('admin.economy.unit_price') }}</th>
+                    <th>{{ t('admin.economy.price_yang') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                <tr>
+                    <td>{{ trade.sold_at }}</td>
+                    <td>{{ trade.count|number_format }}</td>
+                    <td>{{ trade.unit_price|number_format }}</td>
+                    <td>{{ trade.price_yang|number_format }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <div class="admin-panel p-4 md:p-6 overflow-x-auto">
         <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.history_price') }}</h2>
         <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.price_caveat') }}</p>
         {% if market|length == 0 %}

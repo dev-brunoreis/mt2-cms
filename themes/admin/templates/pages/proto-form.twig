@@ -58,30 +58,35 @@
                     {% endif %}
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        {% for field in tab.fields %}
-                            {% if field.key == 'vnum' %}
-                                <div class="admin-field">
-                                    <label for="proto-vnum">{{ field.label }}</label>
-                                    {% if field.hint is defined and field.hint %}
-                                        <span class="admin-field-help">{{ field.hint }}</span>
-                                    {% endif %}
-                                    <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
-                                           value="{{ field.value }}"
-                                           class="admin-input"
-                                           {% if isEdit %}readonly{% endif %}>
-                                </div>
-                            {% elseif field.key == 'locale_name' %}
-                                <div class="admin-field">
-                                    <label for="proto-locale_name">{{ field.label }}</label>
-                                    {% if field.hint is defined and field.hint %}
-                                        <span class="admin-field-help">{{ field.hint }}</span>
-                                    {% endif %}
-                                    <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
-                                           value="{{ field.value }}"
-                                           class="admin-input" autocomplete="off">
-                                </div>
+                        {% for row in tab.rows %}
+                            {% if row.kind == 'pair' %}
+                                {% include 'components/proto-field-pair.twig' with { row: row } %}
                             {% else %}
-                                {% include 'components/proto-field.twig' with { field: field } %}
+                                {% set field = row.field %}
+                                {% if field.key == 'vnum' %}
+                                    <div class="admin-field">
+                                        <label for="proto-vnum">{{ field.label }}</label>
+                                        {% if field.hint is defined and field.hint %}
+                                            <span class="admin-field-help">{{ field.hint }}</span>
+                                        {% endif %}
+                                        <input id="proto-vnum" type="number" name="vnum" min="1" step="1" required
+                                               value="{{ field.value }}"
+                                               class="admin-input"
+                                               {% if isEdit %}readonly{% endif %}>
+                                    </div>
+                                {% elseif field.key == 'locale_name' %}
+                                    <div class="admin-field">
+                                        <label for="proto-locale_name">{{ field.label }}</label>
+                                        {% if field.hint is defined and field.hint %}
+                                            <span class="admin-field-help">{{ field.hint }}</span>
+                                        {% endif %}
+                                        <input id="proto-locale_name" type="text" name="locale_name" required maxlength="64"
+                                               value="{{ field.value }}"
+                                               class="admin-input" autocomplete="off">
+                                    </div>
+                                {% else %}
+                                    {% include 'components/proto-field.twig' with { field: field } %}
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                     </div>

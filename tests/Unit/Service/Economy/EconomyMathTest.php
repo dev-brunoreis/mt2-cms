@@ -7,6 +7,7 @@ namespace Mt2Cms\Tests\Unit\Service\Economy;
 use Mt2Cms\Service\Economy\EconomyAnomaly;
 use Mt2Cms\Service\Economy\EconomyStats;
 use Mt2Cms\Service\Economy\GoldlogHintParser;
+use Mt2Cms\Service\Economy\ItemLogHintParser;
 use PHPUnit\Framework\TestCase;
 
 final class EconomyMathTest extends TestCase
@@ -41,6 +42,34 @@ final class EconomyMathTest extends TestCase
         self::assertSame(50, GoldlogHintParser::unitPrice(1000, 20));
         self::assertNull(GoldlogHintParser::unitPrice(0, 1));
         self::assertSame(40, strlen(GoldlogHintParser::tradeKey('2026-01-01', '12:00:00', 1, 100, 'x')));
+    }
+
+    public function testResolveVnumIsCaseInsensitiveAndStripsPlusLevel(): void
+    {
+        $map = [
+            'long sword' => 299,
+            'yang ore' => 80007,
+        ];
+
+        self::assertSame(299, GoldlogHintParser::resolveVnum('Long Sword+9', $map));
+        self::assertSame(80007, GoldlogHintParser::resolveVnum('Yang Ore 20', $map));
+        self::assertNull(GoldlogHintParser::resolveVnum('Unknown Blade', $map));
+    }
+
+    public function testItemLogShopHint(): void
+    {
+        $parsed = ItemLogHintParser::parseShop('Lunar Sword+9 1([SA]Admin) 40 1');
+        self::assertNotNull($parsed);
+        self::assertSame('Lunar Sword+9', $parsed['name']);
+        self::assertSame(1, $parsed['other_pid']);
+        self::assertSame('[SA]Admin', $parsed['other_name']);
+        self::assertSame(40, $parsed['yang']);
+        self::assertSame(1, $parsed['count']);
+
+        $big = ItemLogHintParser::parseShop('Lunar Sword+9 2(Test) 900000000 1');
+        self::assertNotNull($big);
+        self::assertSame(900000000, $big['yang']);
+        self::assertNull(ItemLogHintParser::parseShop('Lunar Sword+9 2 1'));
     }
 
     public function testSupplyAlert(): void

@@ -9,6 +9,7 @@ use Mt2Cms\Repository\GameEconomyScanRepository;
 use Mt2Cms\Service\Economy\EconomyAnomaly;
 use Mt2Cms\Service\Economy\EconomyStats;
 use Mt2Cms\Service\Economy\GoldlogHintParser;
+use Mt2Cms\Service\Economy\ItemLogHintParser;
 use Mt2Cms\Support\Log;
 
 class EconomyTickService
@@ -78,11 +79,11 @@ class EconomyTickService
                 'money_kill' => $money['KILL'],
             ], $now);
 
-            $ingest = $this->ingestGoldlog();
+            $ingest = $this->ingestMarketTrades();
             $result['trades_ingested'] = $ingest['ingested'];
             $result['trades_unmatched'] = $ingest['unmatched'];
 
-            $this->rebuildMarketDaily($day);
+            $this->rebuildMarketDaily();
 
             $newAlerts = $this->detectAlerts($day, $census);
             $result['alerts_created'] = count($newAlerts);
@@ -212,17 +213,95 @@ class EconomyTickService
     /**
      * @return array{ingested: int, unmatched: int}
      */
+    private function ingestMarketTrades(): array
+    {
+        $item = $this->ingestItemLogShop();
+        $gold = $this->ingestGoldlog();
+
+        return [
+            'ingested' => $item['ingested'] + $gold['ingested'],
+            'unmatched' => $item['unmatched'] + $gold['unmatched'],
+        ];
+    }
+
+    /**
+     * Player-shop sales from `log` (this core leaves goldlog empty).
+     *
+     * @return array{ingested: int, unmatched: int}
+     */
+    private function ingestItemLogShop(): array
+    {
+        $afterTime = $this->economy->getState('itemlog_shop_time') ?? '0000-00-00 00:00:00';
+        $afterUid = (int) ($this->economy->getState('itemlog_shop_uid') ?? '0');
+        $ingested = 0;
+        $unmatched = 0;
+        $lastTime = $afterTime;
+        $lastUid = $afterUid;
+
+        $rows = $this->scan->itemLogShopSellsAfter($afterTime, $afterUid);
+
+        foreach ($rows as $row) {
+            $lastTime = $row['time'];
+            $lastUid = $row['what'];
+            $vnum = (int) $row['vnum'];
+            $parsed = ItemLogHintParser::parseShop($row['hint']);
+
+            if ($vnum < 1 || $parsed === null) {
+                $unmatched++;
+
+                continue;
+            }
+
+            $total = $parsed['yang'];
+            $unit = GoldlogHintParser::unitPrice($total, $parsed['count']);
+
+            if ($unit === null || $unit < 1) {
+                continue;
+            }
+
+            $baseline = $this->economy->baselineMedian(
+                $vnum,
+                date('Y-m-d', strtotime('-7 days')),
+                date('Y-m-d', strtotime('-1 day')),
+            );
+
+            if ($baseline !== null && $baseline > 0) {
+                $ratio = $unit / $baseline;
+
+                if ($ratio > self::OUTLIER_BAND || $ratio < (1.0 / self::OUTLIER_BAND)) {
+                    continue;
+                }
+            }
+
+            $key = hash('sha1', $row['time'] . '|' . $row['what'] . '|' . $vnum . '|' . $total . '|SHOP_SELL');
+
+            if ($this->economy->insertTrade($key, $vnum, $parsed['count'], $total, $unit, $row['time'], 'itemlog')) {
+                $ingested++;
+            }
+        }
+
+        if ($rows !== []) {
+            $this->economy->setState('itemlog_shop_time', $lastTime);
+            $this->economy->setState('itemlog_shop_uid', (string) $lastUid);
+        }
+
+        return ['ingested' => $ingested, 'unmatched' => $unmatched];
+    }
+
+    /**
+     * @return array{ingested: int, unmatched: int}
+     */
     private function ingestGoldlog(): array
     {
-        $afterDate = $this->economy->getState('goldlog_date') ?? '0000-00-00';
-        $afterTime = $this->economy->getState('goldlog_time') ?? '00:00:00';
+        $afterDate = $this->economy->getState('goldlog_market_date') ?? '0000-00-00';
+        $afterTime = $this->economy->getState('goldlog_market_time') ?? '00:00:00';
         $nameMap = $this->scan->itemNameToVnumMap();
         $ingested = 0;
         $unmatched = 0;
         $lastDate = $afterDate;
         $lastTime = $afterTime;
 
-        $rows = $this->scan->goldlogShopBuysAfter($afterDate, $afterTime);
+        $rows = $this->scan->goldlogShopTradesAfter($afterDate, $afterTime);
 
         foreach ($rows as $row) {
             $lastDate = $row['date'];
@@ -235,7 +314,7 @@ class EconomyTickService
                 continue;
             }
 
-            $vnum = $nameMap[$parsed['name']] ?? null;
+            $vnum = GoldlogHintParser::resolveVnum($parsed['name'], $nameMap);
 
             if ($vnum === null) {
                 $unmatched++;
@@ -246,7 +325,7 @@ class EconomyTickService
             $total = abs((int) $row['what']);
             $unit = GoldlogHintParser::unitPrice($total, $parsed['count']);
 
-            if ($unit === null || $unit < 2) {
+            if ($unit === null || $unit < 1) {
                 continue;
             }
 
@@ -279,42 +358,36 @@ class EconomyTickService
         }
 
         if ($rows !== []) {
-            $this->economy->setState('goldlog_date', $lastDate);
-            $this->economy->setState('goldlog_time', $lastTime);
+            $this->economy->setState('goldlog_market_date', $lastDate);
+            $this->economy->setState('goldlog_market_time', $lastTime);
         }
 
         return ['ingested' => $ingested, 'unmatched' => $unmatched];
     }
 
-    private function rebuildMarketDaily(string $day): void
+    private function rebuildMarketDaily(): void
     {
-        $trades = $this->economy->tradesForDay($day);
-        /** @var array<int, list<int>> $prices */
-        $prices = [];
-        /** @var array<int, int> $units */
-        $units = [];
+        $from = date('Y-m-d', strtotime('-90 days'));
+        $grouped = $this->economy->tradesGroupedByDaySince($from);
 
-        foreach ($trades as $trade) {
-            $vnum = $trade['vnum'];
-            $prices[$vnum][] = $trade['unit_price'];
-            $units[$vnum] = ($units[$vnum] ?? 0) + $trade['count'];
-        }
+        foreach ($grouped as $day => $byVnum) {
+            foreach ($byVnum as $vnum => $info) {
+                $list = $info['prices'];
+                $median = EconomyStats::median($list);
+                $p25 = EconomyStats::percentile($list, 25);
+                $p75 = EconomyStats::percentile($list, 75);
 
-        foreach ($prices as $vnum => $list) {
-            $median = EconomyStats::median($list);
-            $p25 = EconomyStats::percentile($list, 25);
-            $p75 = EconomyStats::percentile($list, 75);
-
-            $this->economy->upsertMarketDaily(
-                $day,
-                $vnum,
-                count($list),
-                $units[$vnum] ?? 0,
-                $median !== null ? (int) round($median) : null,
-                $p25 !== null ? (int) round($p25) : null,
-                $p75 !== null ? (int) round($p75) : null,
-                'goldlog',
-            );
+                $this->economy->upsertMarketDaily(
+                    $day,
+                    $vnum,
+                    count($list),
+                    $info['units'],
+                    $median !== null ? (int) round($median) : null,
+                    $p25 !== null ? (int) round($p25) : null,
+                    $p75 !== null ? (int) round($p75) : null,
+                    $info['source'] !== '' ? $info['source'] : 'itemlog',
+                );
+            }
         }
     }
 
@@ -349,11 +422,7 @@ class EconomyTickService
 
             $watched = isset($watch[$vnum]);
             $cfg = $watch[$vnum] ?? null;
-            $medianNow = $this->economy->medianPriceForDay($vnum, $day);
-
-            if ($medianNow === null) {
-                $medianNow = $this->economy->medianPriceForDay($vnum, $day1);
-            }
+            $medianNow = $this->economy->latestMedian($vnum);
 
             $baseline = $this->economy->baselineMedian($vnum, $day7, $day1);
             $trades = $this->economy->tradesCountSince($vnum, $day2);

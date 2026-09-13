@@ -220,7 +220,7 @@ class LogRepository extends Repository
         $params[] = $perPage;
         $params[] = $offset;
 
-        $order = $this->orderBy($log);
+        $order = $this->orderBy($log, $query);
 
         return $this->sanitizeRows(
             $this->db()->fetchAll(
@@ -405,6 +405,10 @@ class LogRepository extends Repository
             'time', 'date', 'login_time', 'logout_time', 'start_time', 'end_time', 'first_seen', 'last_seen',
         ]);
 
+        if (in_array('date', $log['columns'], true)) {
+            $dateColumns = array_values(array_diff($dateColumns, ['time']));
+        }
+
         if (is_string($log['dateColumn']) && $log['dateColumn'] !== '') {
             $dateColumns[] = $log['dateColumn'];
         }
@@ -530,13 +534,20 @@ class LogRepository extends Repository
     /**
      * @param array{columns: list<string>, dateColumn: string|null} $log
      */
-    private function orderBy(array $log): string
+    private function orderBy(array $log, ?GridQuery $query = null): string
     {
-        if ($log['dateColumn'] !== null && $log['dateColumn'] !== '') {
-            return '`' . Database::quoteIdentifier($log['dateColumn']) . '` DESC';
+        $dir = $query !== null && $query->dir === 'asc' ? 'ASC' : 'DESC';
+        $sort = $query?->sort ?? '';
+
+        if ($sort !== '' && in_array($sort, $log['columns'], true)) {
+            return '`' . Database::quoteIdentifier($sort) . '` ' . $dir;
         }
 
-        return '`' . Database::quoteIdentifier($log['columns'][0]) . '` DESC';
+        if ($log['dateColumn'] !== null && $log['dateColumn'] !== '') {
+            return '`' . Database::quoteIdentifier($log['dateColumn']) . '` ' . $dir;
+        }
+
+        return '`' . Database::quoteIdentifier($log['columns'][0]) . '` ' . $dir;
     }
 
     /**

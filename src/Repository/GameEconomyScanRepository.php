@@ -119,7 +119,7 @@ class GameEconomyScanRepository extends Repository
     }
 
     /**
-     * Map exact locale_name / name → vnum; ambiguous names omitted.
+     * Map lowercase locale_name / name → vnum; ambiguous names omitted.
      *
      * @return array<string, int>
      */
@@ -130,7 +130,10 @@ class GameEconomyScanRepository extends Repository
         }
 
         $rows = $this->db()->fetchAll(
-            'SELECT vnum, name, locale_name FROM `item_proto`',
+            'SELECT vnum,
+                    CONVERT(locale_name USING utf8mb4) AS locale_name,
+                    CONVERT(name USING utf8mb4) AS name
+             FROM `item_proto`',
         );
 
         /** @var array<string, list<int>> $buckets */
@@ -150,6 +153,7 @@ class GameEconomyScanRepository extends Repository
                     continue;
                 }
 
+                $name = mb_strtolower($name);
                 $buckets[$name] ??= [];
 
                 if (!in_array($vnum, $buckets[$name], true)) {
@@ -209,7 +213,10 @@ class GameEconomyScanRepository extends Repository
 
         $placeholders = implode(', ', array_fill(0, count($vnums), '?'));
         $rows = $this->db()->fetchAll(
-            'SELECT vnum, locale_name, name FROM `item_proto` WHERE vnum IN (' . $placeholders . ')',
+            'SELECT vnum,
+                    CONVERT(locale_name USING utf8mb4) AS locale_name,
+                    CONVERT(name USING utf8mb4) AS name
+             FROM `item_proto` WHERE vnum IN (' . $placeholders . ')',
             $vnums,
         );
 
@@ -228,11 +235,11 @@ class GameEconomyScanRepository extends Repository
     }
 
     /**
-     * Incremental goldlog SHOP_BUY rows after cursor (date, time).
+     * Incremental goldlog player-shop trades after cursor (date, time).
      *
-     * @return list<array{date: string, time: string, pid: int, what: int, hint: string}>
+     * @return list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}>
      */
-    public function goldlogShopBuysAfter(string $afterDate, string $afterTime, int $limit = 5000): array
+    public function goldlogShopTradesAfter(string $afterDate, string $afterTime, int $limit = 5000): array
     {
         if (!$this->logTableExists('goldlog')) {
             return [];
@@ -241,9 +248,9 @@ class GameEconomyScanRepository extends Repository
         $limit = max(1, min(20000, $limit));
         $log = $this->db->useDatabase('log');
         $rows = $log->fetchAll(
-            'SELECT `date`, `time`, pid, `what`, hint
+            'SELECT `date`, `time`, pid, `what`, hint, `how`
              FROM `goldlog`
-             WHERE FIND_IN_SET(\'SHOP_BUY\', `how`) > 0
+             WHERE (FIND_IN_SET(\'SHOP_BUY\', `how`) > 0 OR FIND_IN_SET(\'SHOP_SELL\', `how`) > 0)
                AND (`date` > ? OR (`date` = ? AND `time` > ?))
              ORDER BY `date` ASC, `time` ASC
              LIMIT ?',
@@ -257,6 +264,44 @@ class GameEconomyScanRepository extends Repository
                 'pid' => (int) ($row['pid'] ?? 0),
                 'what' => (int) ($row['what'] ?? 0),
                 'hint' => (string) ($row['hint'] ?? ''),
+                'how' => (string) ($row['how'] ?? ''),
+            ];
+        }, $rows);
+    }
+
+    /**
+     * Incremental ITEM log player-shop sales (SHOP_SELL) after cursor.
+     *
+     * `what` is the item uid; yang and count live in hint.
+     *
+     * @return list<array{time: string, who: int, what: int, hint: string, vnum: int}>
+     */
+    public function itemLogShopSellsAfter(string $afterTime, int $afterUid, int $limit = 5000): array
+    {
+        if (!$this->logTableExists('log')) {
+            return [];
+        }
+
+        $limit = max(1, min(20000, $limit));
+        $log = $this->db->useDatabase('log');
+        $rows = $log->fetchAll(
+            'SELECT `time`, who, `what`, hint, vnum
+             FROM `log`
+             WHERE `type` = \'ITEM\'
+               AND `how` = \'SHOP_SELL\'
+               AND (`time` > ? OR (`time` = ? AND `what` > ?))
+             ORDER BY `time` ASC, `what` ASC
+             LIMIT ?',
+            [$afterTime, $afterTime, $afterUid, $limit],
+        );
+
+        return array_map(static function (array $row): array {
+            return [
+                'time' => (string) ($row['time'] ?? ''),
+                'who' => (int) ($row['who'] ?? 0),
+                'what' => (int) ($row['what'] ?? 0),
+                'hint' => (string) ($row['hint'] ?? ''),
+                'vnum' => (int) ($row['vnum'] ?? 0),
             ];
         }, $rows);
     }

@@ -17,6 +17,40 @@ class GuildRepository extends Repository implements ProvidesAdminGrid
         return 'player';
     }
 
+    /**
+     * @param list<int> $ids
+     * @return array<int, string>
+     */
+    public function namesByIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $ids),
+            static fn (int $id): bool => $id > 0,
+        )));
+        $ids = array_slice($ids, 0, 200);
+
+        if ($ids === [] || !$this->schemaTableExists('guild')) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($ids), '?'));
+        $rows = $this->db()->fetchAll(
+            'SELECT id, name FROM `guild` WHERE id IN (' . $placeholders . ')',
+            $ids,
+        );
+        $map = [];
+
+        foreach ($rows as $row) {
+            $id = (int) ($row['id'] ?? 0);
+
+            if ($id > 0) {
+                $map[$id] = (string) ($row['name'] ?? '');
+            }
+        }
+
+        return $map;
+    }
+
     public function countForGrid(GridQuery $query): int
     {
         if (!$this->schemaTableExists('guild')) {

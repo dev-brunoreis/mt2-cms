@@ -2393,3 +2393,82 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   display: none;
 }
 
+.proto-field-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+}
+
+.proto-field-pair-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.proto-field-pair-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.proto-field-pair-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.proto-field-pair-type,
+.proto-field-pair-value {
+  min-width: 0;
+}
+
+.proto-field-pair-type .admin-select,
+.proto-field-pair-value .admin-input {
+  max-width: none;
+}
+
+.proto-field-pair-join {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 1.25rem;
+  color: #6366f1;
+}
+
+.proto-field-pair-join svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(90deg);
+}
+
+@media (min-width: 640px) {
+  .proto-field-pair-body {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+  }
+
+  .proto-field-pair-type {
+    flex: 1 1 16rem;
+  }
+
+  .proto-field-pair-value {
+    flex: 0 0 10rem;
+  }
+
+  .proto-field-pair-join {
+    width: 1.75rem;
+    height: 2.5rem;
+  }
+
+  .proto-field-pair-join svg {
+    transform: none;
+  }
+}
+

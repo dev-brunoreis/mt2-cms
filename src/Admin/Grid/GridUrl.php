@@ -62,11 +62,52 @@ final class GridUrl
             unset($params['filter']);
         }
 
-        if ($params === []) {
-            return $action;
+        return self::withQuery($action, $params);
+    }
+
+    /**
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    public static function splitAction(string $action): array
+    {
+        $qPos = strpos($action, '?');
+
+        if ($qPos === false) {
+            return [$action, []];
         }
 
-        return $action . '?' . http_build_query($params);
+        $path = substr($action, 0, $qPos);
+        $query = substr($action, $qPos + 1);
+        $existing = [];
+
+        if ($query !== '') {
+            parse_str($query, $existing);
+        }
+
+        return [$path !== '' ? $path : $action, is_array($existing) ? $existing : []];
+    }
+
+    /**
+     * Keep query params already on $action (e.g. ?tab=goldlog) when appending grid params.
+     *
+     * @param array<string, mixed> $params
+     */
+    public static function withQuery(string $action, array $params): string
+    {
+        [$path, $existing] = self::splitAction($action);
+        $merged = array_replace($existing, $params);
+
+        foreach ($merged as $key => $value) {
+            if ($value === null || $value === '') {
+                unset($merged[$key]);
+            }
+        }
+
+        if ($merged === []) {
+            return $path;
+        }
+
+        return $path . '?' . http_build_query($merged);
     }
 
     public static function sort(

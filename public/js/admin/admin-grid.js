@@ -9,7 +9,13 @@
         });
     }
 
-    document.querySelectorAll('[data-admin-grid]').forEach(function (root) {
+    function bindGrid(root) {
+        if (!(root instanceof HTMLElement) || root.getAttribute('data-grid-ready') === '1') {
+            return;
+        }
+
+        root.setAttribute('data-grid-ready', '1');
+
         var limitSelect = root.querySelector('[data-grid-limit]');
 
         if (limitSelect) {
@@ -130,5 +136,12 @@
         });
 
         updateMassState();
-    });
+    }
+
+    function initAdminGrids(scope) {
+        (scope || document).querySelectorAll('[data-admin-grid]').forEach(bindGrid);
+    }
+
+    window.initAdminGrids = initAdminGrids;
+    initAdminGrids(document);
 })();

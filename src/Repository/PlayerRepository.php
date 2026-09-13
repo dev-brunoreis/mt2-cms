@@ -88,6 +88,36 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
+    /**
+     * @param list<int> $ids
+     * @return array<int, string>
+     */
+    public function namesByIds(array $ids): array
+    {
+        $ids = $this->uniquePositiveIds($ids);
+
+        if ($ids === [] || !$this->schemaTableExists('player')) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($ids), '?'));
+        $rows = $this->db()->fetchAll(
+            'SELECT id, name FROM `player` WHERE id IN (' . $placeholders . ')',
+            $ids,
+        );
+        $map = [];
+
+        foreach ($rows as $row) {
+            $id = (int) ($row['id'] ?? 0);
+
+            if ($id > 0) {
+                $map[$id] = (string) ($row['name'] ?? '');
+            }
+        }
+
+        return $map;
+    }
+
     public function findByName(string $name): ?array
     {
         return $this->reveal(
@@ -509,5 +539,26 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         return $this->schemaTableExists('player_index')
             ? ' LEFT JOIN `player_index` pi ON pi.id = p.account_id'
             : '';
+    }
+
+    /**
+     * @param list<int|string> $ids
+     * @return list<int>
+     */
+    private function uniquePositiveIds(array $ids): array
+    {
+        $out = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $out[$id] = $id;
+            }
+        }
+
+        $out = array_values($out);
+
+        return array_slice($out, 0, 200);
     }
 }

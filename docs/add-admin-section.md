@@ -96,6 +96,8 @@ Use `[data-admin-tabs]` when a form has more than one section. Keep **one** `<fo
 
 Read-only panels that are expensive to build (inventory, logs, drops) can stay empty until opened: set `data-tab-src="/admin/…?tab=items&partial=1"` and only query that data when `tab` matches. The script fetches the fragment on first click. Keep editable form fields in the DOM so Save still posts every tab.
 
+Hub `*BaseUrl` must be the path **without** `?tab=` (or use `admin_path('logs', tab.id) ~ '&partial=1'`). Concatenating `?tab=` onto a URL that already has `?tab=` makes every lazy panel load the default tab.
+
 Hub examples: [`AdminLogsController`](../src/Http/Controller/Admin/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/Admin/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/Admin/AdminStoreHubController.php), [`AdminSettingsController`](../src/Http/Controller/Admin/AdminSettingsController.php).
 
 ## 6. List pages (admin grid)

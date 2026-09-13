@@ -31,7 +31,12 @@
     <span class="text-slate-400">{{ value|default('—') }}</span>
 
 {% elseif type == 'number' %}
-    <span class="text-slate-600">{{ value|default(0) }}</span>
+    {% set num = attribute(row, column.key) %}
+    {% if num is not defined or num is same as(null) or num is same as('') %}
+        <span class="text-slate-400">—</span>
+    {% else %}
+        <span class="text-slate-600">{{ num|number_format }}</span>
+    {% endif %}
 
 {% elseif type == 'money' %}
     <span class="text-slate-600">{{ value|money }} {{ attribute(row, column.currencyKey|default('currency'))|default('') }}</span>

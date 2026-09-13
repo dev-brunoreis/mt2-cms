@@ -6,7 +6,10 @@
 {% set filterFormId = 'admin-grid-filter-' ~ grid.action|replace({'/': '-', '?': '-', '=': '-', '#': '-'}) %}
 
 <div class="admin-panel admin-grid overflow-hidden" data-admin-grid>
-    <form id="{{ filterFormId }}" method="get" action="{{ grid.action }}" hidden>
+    <form id="{{ filterFormId }}" method="get" action="{{ grid.formAction|default(grid.action) }}" hidden>
+        {% for key, value in grid.formParams|default({}) %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
         {% if grid.sort != grid.defaultSort|default('') %}<input type="hidden" name="sort" value="{{ grid.sort }}">{% endif %}
         {% if grid.dir != grid.defaultDir|default('desc') %}<input type="hidden" name="dir" value="{{ grid.dir }}">{% endif %}
         {% if grid.perPage != grid.defaultPerPage|default(20) %}<input type="hidden" name="limit" value="{{ grid.perPage }}">{% endif %}

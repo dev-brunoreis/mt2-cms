@@ -18,7 +18,7 @@ class ProtoFormFields
     /**
      * @param list<array{id: string, fields: list<string>}> $tabs
      * @param array<string, string> $record
-     * @return list<array{id: string, label: string, active: bool, fields: list<array<string, mixed>>}>
+     * @return list<array{id: string, label: string, active: bool, fields: list<array<string, mixed>>, rows: list<array<string, mixed>>}>
      */
     public function decorateTabs(string $kind, string $prefix, array $tabs, array $record): array
     {
@@ -40,6 +40,7 @@ class ProtoFormFields
                 'label' => $this->translator->has($tabKey) ? $this->translator->get($tabKey) : $tab['id'],
                 'active' => $index === 0,
                 'fields' => $fields,
+                'rows' => $this->groupFieldRows($prefix, $fields),
             ];
 
             if ($this->translator->has($tabHelpKey)) {
@@ -50,6 +51,68 @@ class ProtoFormFields
         }
 
         return $decorated;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $fields
+     * @return list<array<string, mixed>>
+     */
+    private function groupFieldRows(string $prefix, array $fields): array
+    {
+        $rows = [];
+        $count = count($fields);
+
+        for ($i = 0; $i < $count; $i++) {
+            $field = $fields[$i];
+            $next = $fields[$i + 1] ?? null;
+            $role = $this->typeValuePairRole((string) ($field['key'] ?? ''), (string) ($next['key'] ?? ''));
+
+            if ($role !== null && is_array($next)) {
+                $typeField = $field;
+                $valueField = $next;
+                unset($typeField['hint'], $valueField['hint']);
+
+                $typeLabelKey = $prefix . ($role === 'apply' ? '.list_bonus' : '.list_requirement');
+                $valueLabelKey = $prefix . '.pair_value';
+
+                $rows[] = [
+                    'kind' => 'pair',
+                    'role' => $role,
+                    'title' => (string) ($field['label'] ?? $field['key']),
+                    'hint' => (string) ($field['hint'] ?? ''),
+                    'typeLabel' => $this->translator->has($typeLabelKey)
+                        ? $this->translator->get($typeLabelKey)
+                        : ($role === 'apply' ? 'Bonus' : 'Requirement'),
+                    'valueLabel' => $this->translator->has($valueLabelKey)
+                        ? $this->translator->get($valueLabelKey)
+                        : 'Value',
+                    'type' => $typeField,
+                    'value' => $valueField,
+                ];
+                $i++;
+                continue;
+            }
+
+            $rows[] = [
+                'kind' => 'field',
+                'field' => $field,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function typeValuePairRole(string $typeKey, string $valueKey): ?string
+    {
+        if (!preg_match('/^(apply|limit)_type(\d+)$/', $typeKey, $matches)) {
+            return null;
+        }
+
+        if ($valueKey !== $matches[1] . '_value' . $matches[2]) {
+            return null;
+        }
+
+        return $matches[1];
     }
 
     /**

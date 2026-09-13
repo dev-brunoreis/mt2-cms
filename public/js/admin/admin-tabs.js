@@ -167,6 +167,9 @@ const initTabs = (root) => {
       panel.removeAttribute('data-tab-src')
       panel.setAttribute('data-tab-loaded', '1')
       panel.querySelectorAll('[data-admin-tabs]').forEach(initTabs)
+      if (typeof window.initAdminGrids === 'function') {
+        window.initAdminGrids(panel)
+      }
       snapshots.set(panel.getAttribute('data-tab-panel'), snapshotPanel(panel))
       return true
     } catch {

@@ -48,4 +48,62 @@ final class GoldlogHintParser
     {
         return hash('sha1', $date . '|' . $time . '|' . $pid . '|' . $what . '|' . $hint);
     }
+
+    /**
+     * Match a goldlog item name against locale/name → vnum map (lowercase keys).
+     *
+     * @param array<string, int> $nameMap
+     */
+    public static function resolveVnum(string $name, array $nameMap): ?int
+    {
+        foreach (self::nameCandidates($name) as $candidate) {
+            if (isset($nameMap[$candidate])) {
+                return $nameMap[$candidate];
+            }
+        }
+
+        $candidates = self::nameCandidates($name);
+        $primary = $candidates[0] ?? '';
+
+        if ($primary === '' || mb_strlen($primary) < 40) {
+            return null;
+        }
+
+        $matched = [];
+
+        foreach ($nameMap as $mapName => $vnum) {
+            if (str_starts_with((string) $mapName, $primary)) {
+                $matched[(int) $vnum] = (int) $vnum;
+
+                if (count($matched) > 1) {
+                    return null;
+                }
+            }
+        }
+
+        return $matched === [] ? null : array_values($matched)[0];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function nameCandidates(string $name): array
+    {
+        $parsed = self::parse($name);
+        $base = trim($parsed['name'] ?? $name);
+
+        if ($base === '') {
+            return [];
+        }
+
+        $lower = mb_strtolower($base);
+        $out = [$lower];
+        $stripped = rtrim((string) preg_replace('/\+\d+$/u', '', $lower));
+
+        if ($stripped !== '' && $stripped !== $lower) {
+            $out[] = $stripped;
+        }
+
+        return array_values(array_unique($out));
+    }
 }

@@ -26,9 +26,16 @@ class EconomyRepository extends Repository implements ProvidesAdminGrid
         return (int) $this->db()->fetchColumn(
             'SELECT COUNT(*) FROM item_census c
              LEFT JOIN economy_watchlist w ON w.vnum = c.vnum
-             LEFT JOIN item_market_daily m ON m.vnum = c.vnum AND m.day = CURDATE()
+             LEFT JOIN (
+                 SELECT m1.vnum, m1.day, m1.median_price, m1.trades
+                 FROM item_market_daily m1
+                 INNER JOIN (
+                     SELECT vnum, MAX(day) AS day FROM item_market_daily GROUP BY vnum
+                 ) latest ON latest.vnum = m1.vnum AND latest.day = m1.day
+             ) m ON m.vnum = c.vnum
              LEFT JOIN item_census_daily d1 ON d1.vnum = c.vnum AND d1.day = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-             LEFT JOIN item_market_daily m7 ON m7.vnum = c.vnum AND m7.day = DATE_SUB(CURDATE(), INTERVAL 7 DAY)'
+             LEFT JOIN item_market_daily m7 ON m7.vnum = c.vnum AND m.day IS NOT NULL
+                  AND m7.day = DATE_SUB(m.day, INTERVAL 7 DAY)'
             . $where,
             $params,
         );
@@ -54,10 +61,17 @@ class EconomyRepository extends Repository implements ProvidesAdminGrid
                     m7.median_price AS median_price_7d
              FROM item_census c
              LEFT JOIN economy_watchlist w ON w.vnum = c.vnum
-             LEFT JOIN item_market_daily m ON m.vnum = c.vnum AND m.day = CURDATE()
+             LEFT JOIN (
+                 SELECT m1.vnum, m1.day, m1.median_price, m1.trades
+                 FROM item_market_daily m1
+                 INNER JOIN (
+                     SELECT vnum, MAX(day) AS day FROM item_market_daily GROUP BY vnum
+                 ) latest ON latest.vnum = m1.vnum AND latest.day = m1.day
+             ) m ON m.vnum = c.vnum
              LEFT JOIN item_census_daily d1 ON d1.vnum = c.vnum AND d1.day = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
              LEFT JOIN item_census_daily d7 ON d7.vnum = c.vnum AND d7.day = DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-             LEFT JOIN item_market_daily m7 ON m7.vnum = c.vnum AND m7.day = DATE_SUB(CURDATE(), INTERVAL 7 DAY)'
+             LEFT JOIN item_market_daily m7 ON m7.vnum = c.vnum AND m.day IS NOT NULL
+                  AND m7.day = DATE_SUB(m.day, INTERVAL 7 DAY)'
             . $where . $order . '
              LIMIT ? OFFSET ?',
             $params,
@@ -372,6 +386,84 @@ class EconomyRepository extends Repository implements ProvidesAdminGrid
                 'count' => (int) ($row['count'] ?? 0),
             ];
         }, $rows);
+    }
+
+    /**
+     * @return array<string, array<int, array{prices: list<int>, units: int, source: string}>>
+     */
+    public function tradesGroupedByDaySince(string $fromDay): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT DATE(sold_at) AS day, vnum, unit_price, count, source
+             FROM item_market_trades
+             WHERE DATE(sold_at) >= ?
+             ORDER BY day ASC, vnum ASC',
+            [$fromDay],
+        );
+
+        /** @var array<string, array<int, array{prices: list<int>, units: int, source: string}>> $out */
+        $out = [];
+
+        foreach ($rows as $row) {
+            $day = (string) ($row['day'] ?? '');
+            $vnum = (int) ($row['vnum'] ?? 0);
+
+            if ($day === '' || $vnum < 1) {
+                continue;
+            }
+
+            if (!isset($out[$day][$vnum])) {
+                $out[$day][$vnum] = [
+                    'prices' => [],
+                    'units' => 0,
+                    'source' => (string) ($row['source'] ?? 'itemlog'),
+                ];
+            }
+
+            $out[$day][$vnum]['prices'][] = (int) ($row['unit_price'] ?? 0);
+            $out[$day][$vnum]['units'] += (int) ($row['count'] ?? 0);
+            $out[$day][$vnum]['source'] = (string) ($row['source'] ?? $out[$day][$vnum]['source']);
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function recentTrades(int $vnum, int $limit = 25): array
+    {
+        if ($vnum < 1) {
+            return [];
+        }
+
+        $limit = max(1, min(100, $limit));
+
+        return $this->db()->fetchAll(
+            'SELECT sold_at, count, price_yang, unit_price, source
+             FROM item_market_trades
+             WHERE vnum = ?
+             ORDER BY sold_at DESC
+             LIMIT ?',
+            [$vnum, $limit],
+        );
+    }
+
+    public function latestMedian(int $vnum): ?int
+    {
+        if ($vnum < 1) {
+            return null;
+        }
+
+        $value = $this->db()->fetchColumn(
+            'SELECT median_price FROM item_market_daily
+             WHERE vnum = ?
+             ORDER BY day DESC
+             LIMIT 1',
+            [$vnum],
+        );
+
+        return $value !== null ? (int) $value : null;
     }
 
     /**

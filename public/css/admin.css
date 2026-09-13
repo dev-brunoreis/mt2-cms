@@ -2272,10 +2272,6 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   word-break: break-word;
 }
 
-.admin-community-tabs {
-  margin: -1.5rem;
-}
-
 .admin-payment-methods {
   display: grid;
   min-height: 28rem;

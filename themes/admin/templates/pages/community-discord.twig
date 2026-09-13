@@ -1,0 +1,29 @@
+<form id="{{ formId }}" method="post" action="/admin/settings/discord" class="p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.discord') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.discord_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="discord-invite-url">{{ t('admin.community.discord_invite_url') }}</label>
+                <input id="discord-invite-url" type="url" name="discord_invite_url"
+                       value="{{ discordInviteUrl|default('') }}" class="admin-input" placeholder="https://discord.gg/">
+                <span class="admin-field-help">{{ t('admin.community.discord_invite_url_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="discord-webhook-url">{{ t('admin.community.discord_webhook_url') }}</label>
+                <input id="discord-webhook-url" type="password" name="discord_webhook_url" autocomplete="new-password"
+                       value="" class="admin-input">
+                {% if discordWebhookConfigured|default(false) %}
+                    <span class="admin-field-help">{{ t('admin.community.discord_webhook_keep') }}</span>
+                {% else %}
+                    <span class="admin-field-help">{{ t('admin.community.discord_webhook_help') }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </fieldset>
+</form>

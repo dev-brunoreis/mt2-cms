@@ -1,0 +1,91 @@
+<form id="{{ formId }}" method="post" action="/admin/settings/community" enctype="multipart/form-data" class="p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.branding') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.branding_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="site-title">{{ t('admin.community.site_title') }}</label>
+                <input id="site-title" type="text" name="site_title" maxlength="100"
+                       value="{{ siteTitle|default('') }}" class="admin-input"
+                       placeholder="{{ t('app.name') }}">
+                <span class="admin-field-help">{{ t('admin.community.site_title_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="site-logo">{{ t('admin.community.logo') }}</label>
+                <input id="site-logo" type="file" name="site_logo" accept="image/jpeg,image/png,image/webp"
+                       class="admin-input">
+                <span class="admin-field-help">{{ t('admin.community.logo_help') }}</span>
+                {% if siteLogo|default('') %}
+                    <div class="mt-3 flex flex-wrap items-center gap-4">
+                        <img src="{{ siteLogo }}" alt="" class="h-12 w-auto max-w-[12rem] rounded border border-slate-200 object-contain bg-slate-50 p-1">
+                        <label class="admin-toggle-row cursor-pointer">
+                            <input type="checkbox" name="remove_site_logo" value="1">
+                            <span class="text-sm font-medium text-slate-700">{{ t('admin.community.logo_remove') }}</span>
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="footer-text">{{ t('admin.community.footer_text') }}</label>
+                <textarea id="footer-text" name="footer_text" rows="2" maxlength="500"
+                          class="admin-input" placeholder="{{ t('theme.kingdoms.footer_tagline') }}">{{ footerText|default('') }}</textarea>
+                <span class="admin-field-help">{{ t('admin.community.footer_text_help') }}</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.site_settings') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.site_settings_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="site-url">{{ t('admin.community.site_url') }}</label>
+                <input id="site-url" type="url" name="site_url" value="{{ siteUrl|default('') }}" class="admin-input" placeholder="https://">
+            </div>
+            <div class="admin-field">
+                <label for="mail-from-address">{{ t('admin.community.mail_from_address') }}</label>
+                <input id="mail-from-address" type="email" name="mail_from_address"
+                       value="{{ mailFromAddress|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="mail-from-name">{{ t('admin.community.mail_from_name') }}</label>
+                <input id="mail-from-name" type="text" name="mail_from_name"
+                       value="{{ mailFromName|default('') }}" class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="online-window">{{ t('admin.community.online_window') }}</label>
+                <input id="online-window" type="number" name="online_window_minutes" min="1" max="1440"
+                       value="{{ onlineWindowMinutes|default(15) }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.community.online_window_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="require_verified_email" value="1"
+                           {% if requireVerifiedEmail|default(false) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.community.require_verified_email') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.community.require_verified_email_help') }}</span>
+                    </span>
+                </label>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="public_player_equipment" value="1"
+                           {% if publicPlayerEquipment|default(false) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.community.public_player_equipment') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.community.public_player_equipment_help') }}</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+</form>

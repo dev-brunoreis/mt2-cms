@@ -268,6 +268,21 @@ final class AdminPaths
         return self::settings('community');
     }
 
+    public static function settingsSocial(): string
+    {
+        return self::settings('social');
+    }
+
+    public static function settingsDiscord(): string
+    {
+        return self::settings('discord');
+    }
+
+    public static function settingsChannels(): string
+    {
+        return self::settings('channels');
+    }
+
     public static function settingsSeo(): string
     {
         return self::settings('seo');
@@ -333,6 +348,9 @@ final class AdminPaths
             'locale' => self::settingsLocale(),
             'security' => self::settingsSecurity(),
             'community' => self::settingsCommunity(),
+            'social' => self::settingsSocial(),
+            'discord' => self::settingsDiscord(),
+            'channels' => self::settingsChannels(),
             'seo' => self::settingsSeo(),
             'payment-methods' => self::settingsPaymentMethods(),
             'unstuck' => self::settingsUnstuck(),

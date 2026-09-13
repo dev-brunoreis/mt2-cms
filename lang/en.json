@@ -2959,6 +2959,8 @@
             "tab_posts": "Posts",
             "tab_comments": "Comments",
             "tab_settings": "Settings",
+            "tab_data": "Post",
+            "tab_seo": "SEO",
             "lead": "Create and publish site news posts.",
             "create": "New post",
             "create_title": "Create post",

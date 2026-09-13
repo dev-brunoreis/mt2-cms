@@ -1,0 +1,21 @@
+<form id="{{ formId }}" method="post" action="/admin/settings/social" class="p-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.community.social') }}
+            <span class="admin-fieldset-help">{{ t('admin.community.social_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            {% for network in socialNetworks|default([]) %}
+                <div class="admin-field">
+                    <label for="social-{{ network }}">{{ t('admin.community.social_' ~ network) }}</label>
+                    <input id="social-{{ network }}" type="url" name="social[{{ network }}]"
+                           value="{{ socialLinks[network]|default('') }}" class="admin-input"
+                           placeholder="https://">
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+</form>

@@ -45,6 +45,14 @@
       form.addEventListener('submit', () => {
         editor.value = ed.getContent()
       })
+
+      form.querySelectorAll('[role="tab"][data-tab="data"]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          requestAnimationFrame(() => {
+            ed.execCommand('mceAutoResize')
+          })
+        })
+      })
     },
   })
 

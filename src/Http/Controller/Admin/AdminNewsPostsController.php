@@ -126,7 +126,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
             return $this->redirect('/admin/content/news?tab=posts');
         } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->formView($input, $this->t($e->getMessage()), 422);
+            return $this->formView($input, $this->t($e->getMessage()), 422, $this->newsFormTabFromError($e));
         }
     }
 
@@ -153,7 +153,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
             'author_login' => (string) $post['author_login'],
             'views' => (int) $post['views'],
             'published_at' => $post['published_at'],
-        ]);
+        ], activeTab: $this->requestedNewsFormTab());
     }
 
     public function update(string $id): Response
@@ -213,7 +213,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
             return $this->redirect('/admin/content/news/posts/' . (int) $id);
         } catch (\InvalidArgumentException | \RuntimeException $e) {
-            return $this->formView($input, $this->t($e->getMessage()), 422);
+            return $this->formView($input, $this->t($e->getMessage()), 422, $this->newsFormTabFromError($e));
         }
     }
 
@@ -268,7 +268,7 @@ class AdminNewsPostsController extends AdminNewsBaseController
     /**
      * @param array<string, mixed> $post
      */
-    private function formView(array $post = [], ?string $error = null, int $status = 200): Response
+    private function formView(array $post = [], ?string $error = null, int $status = 200, ?string $activeTab = null): Response
     {
         $isEdit = isset($post['id']);
 
@@ -280,7 +280,23 @@ class AdminNewsPostsController extends AdminNewsBaseController
             'post' => $post,
             'isEdit' => $isEdit,
             'error' => $error,
+            'activeTab' => $this->normalizeNewsFormTab($activeTab ?? $this->requestedNewsFormTab()),
         ], $status);
+    }
+
+    private function requestedNewsFormTab(): string
+    {
+        return $this->normalizeNewsFormTab((string) ($_GET['tab'] ?? 'data'));
+    }
+
+    private function newsFormTabFromError(\Throwable $error): string
+    {
+        return str_contains($error->getMessage(), 'invalid_seo') ? 'seo' : 'data';
+    }
+
+    private function normalizeNewsFormTab(string $tab): string
+    {
+        return in_array($tab, ['data', 'seo'], true) ? $tab : 'data';
     }
 
     /**

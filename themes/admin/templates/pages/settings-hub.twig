@@ -1,7 +1,7 @@
-{% set activeTab = activeTab|default('registration') %}
+{% set activeTab = activeTab|default('community') %}
 <div class="admin-panel admin-tabs overflow-hidden"
      data-admin-tabs
-     data-default-tab="{{ defaultTab|default('registration') }}"
+     data-default-tab="{{ defaultTab|default('community') }}"
      data-tab-loading="{{ t('admin.tabs.loading') }}"
      data-tab-load-error="{{ t('admin.tabs.load_error') }}"
      {% for tab in tabs %}data-header-form-{{ tab.id }}="{{ tab.formId }}" {% endfor %}>

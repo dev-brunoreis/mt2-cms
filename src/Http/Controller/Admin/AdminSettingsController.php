@@ -24,7 +24,7 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminSettingsController extends AdminController
 {
-    private const TABS = ['registration', 'themes', 'locale', 'security', 'community', 'seo', 'payment-methods', 'unstuck', 'news', 'banners'];
+    private const TABS = ['community', 'social', 'discord', 'channels', 'registration', 'themes', 'locale', 'security', 'seo', 'payment-methods', 'unstuck', 'news', 'banners'];
 
     /** @var array<string, string> */
     private const TAB_VIEW_RESOURCES = [
@@ -33,6 +33,9 @@ class AdminSettingsController extends AdminController
         'locale' => 'settings/locale/view',
         'security' => 'settings/security/view',
         'community' => 'settings/community/view',
+        'social' => 'settings/community/view',
+        'discord' => 'settings/community/view',
+        'channels' => 'settings/community/view',
         'seo' => 'settings/seo/view',
         'payment-methods' => 'settings/payment-methods/view',
         'unstuck' => 'settings/unstuck/view',
@@ -47,6 +50,9 @@ class AdminSettingsController extends AdminController
         'locale' => 'admin-locale-form',
         'security' => 'admin-security-form',
         'community' => 'admin-community-form',
+        'social' => 'admin-community-social-form',
+        'discord' => 'admin-community-discord-form',
+        'channels' => 'admin-community-channels-form',
         'seo' => 'admin-seo-form',
         'payment-methods' => 'admin-paypal-form',
         'unstuck' => 'admin-unstuck-form',
@@ -60,7 +66,10 @@ class AdminSettingsController extends AdminController
         'themes' => 'admin.nav.themes',
         'locale' => 'admin.nav.locale',
         'security' => 'admin.nav.security',
-        'community' => 'admin.nav.community',
+        'community' => 'admin.community.tab_general',
+        'social' => 'admin.community.tab_social',
+        'discord' => 'admin.community.tab_discord',
+        'channels' => 'admin.community.tab_channels',
         'seo' => 'admin.nav.seo',
         'payment-methods' => 'admin.nav.payment_methods',
         'unstuck' => 'admin.nav.unstuck',
@@ -94,7 +103,7 @@ class AdminSettingsController extends AdminController
             return $redirect;
         }
 
-        $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'registration');
+        $tab = $this->resolveResourceTab(self::TABS, self::TAB_VIEW_RESOURCES, 'community');
 
         if ($deny = $this->requireAdminResourceView(self::TAB_VIEW_RESOURCES[$tab])) {
             return $deny;
@@ -109,7 +118,7 @@ class AdminSettingsController extends AdminController
             'pageLead' => $this->t('admin.settings.hub_lead'),
             'formId' => self::TAB_FORMS[$tab],
             'activeTab' => $tab,
-            'defaultTab' => 'registration',
+            'defaultTab' => 'community',
             'settingsBaseUrl' => AdminPaths::settings(),
             'tabs' => $this->hubTabs(),
             'initialPartial' => $this->partialPayload($tab),
@@ -429,23 +438,41 @@ class AdminSettingsController extends AdminController
                 ],
             ],
             'community' => [
-                'template' => 'pages/community-channels.twig',
+                'template' => 'pages/community-general.twig',
                 'data' => [
                     'formId' => $formId,
-                    'channels' => $this->channels->allForAdmin(),
                     'onlineWindowMinutes' => $this->settings->onlineWindowMinutes(),
                     'siteTitle' => $this->settings->siteTitle(),
                     'siteLogo' => $this->settings->siteLogo(),
                     'footerText' => $this->settings->footerText(),
-                    'socialLinks' => $this->settings->socialLinks(),
-                    'socialNetworks' => SettingsService::socialNetworks(),
                     'siteUrl' => $this->settings->siteUrl(),
                     'mailFromAddress' => $this->settings->mailFromAddress(),
                     'mailFromName' => $this->settings->mailFromName(),
                     'requireVerifiedEmail' => $this->settings->requireVerifiedEmail(),
                     'publicPlayerEquipment' => $this->settings->publicPlayerEquipment(),
+                ],
+            ],
+            'social' => [
+                'template' => 'pages/community-social.twig',
+                'data' => [
+                    'formId' => $formId,
+                    'socialLinks' => $this->settings->socialLinks(),
+                    'socialNetworks' => SettingsService::socialNetworks(),
+                ],
+            ],
+            'discord' => [
+                'template' => 'pages/community-discord.twig',
+                'data' => [
+                    'formId' => $formId,
                     'discordInviteUrl' => $this->settings->discordInviteUrl(),
                     'discordWebhookConfigured' => $this->settings->discordWebhookConfigured(),
+                ],
+            ],
+            'channels' => [
+                'template' => 'pages/community-channels.twig',
+                'data' => [
+                    'formId' => $formId,
+                    'channels' => $this->channels->allForAdmin(),
                 ],
             ],
             'unstuck' => [

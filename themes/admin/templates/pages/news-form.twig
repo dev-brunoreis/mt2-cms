@@ -1,3 +1,4 @@
+{% set activeTab = activeTab|default('data') %}
 {% if error %}
     <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error }}</div>
 {% endif %}
@@ -5,140 +6,161 @@
 <form id="admin-news-form"
       method="post"
       action="{% if isEdit %}/admin/content/news/posts/{{ post.id }}{% else %}/admin/content/news/posts{% endif %}"
-      class="admin-panel p-6 space-y-6">
+      class="admin-panel admin-tabs overflow-hidden"
+      data-admin-tabs
+      data-default-tab="{{ activeTab }}">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.news.details') }}
-            <span class="admin-fieldset-help">{{ t('admin.news.details_help') }}</span>
-        </legend>
+    <div class="admin-tabs-nav" role="tablist" aria-label="{{ t('admin.tabs.label') }}">
+        {% include 'components/tab.twig' with { id: 'data', label: t('admin.news.tab_data'), active: activeTab == 'data' } %}
+        {% include 'components/tab.twig' with { id: 'seo', label: t('admin.news.tab_seo'), active: activeTab == 'seo' } %}
+    </div>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field sm:col-span-2">
-                <label for="news-title">{{ t('admin.news.post_title') }}</label>
-                <input id="news-title" type="text" name="title" required maxlength="200"
-                       value="{{ post.title|default('') }}" class="admin-input">
-            </div>
+    <div id="admin-tab-panel-data"
+         class="admin-tabs-panel space-y-6"
+         role="tabpanel"
+         data-tab-panel="data"
+         aria-labelledby="admin-tab-data"
+         {% if activeTab != 'data' %}hidden{% endif %}>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.news.details') }}
+                <span class="admin-fieldset-help">{{ t('admin.news.details_help') }}</span>
+            </legend>
 
-            <div class="admin-field">
-                <label for="news-status">{{ t('admin.news.status') }}</label>
-                <select id="news-status" name="status" class="admin-select">
-                    {% for value, labelKey in {
-                        'draft': 'admin.news.status_draft',
-                        'published': 'admin.news.status_published'
-                    }|sort_select %}
-                        <option value="{{ value }}" {% if post.status|default('draft') == value %}selected{% endif %}>
-                            {{ t(labelKey) }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="admin-field">
-                <label class="flex items-start gap-3">
-                    <input type="checkbox" name="comments_enabled" value="1"
-                           {% if post.comments_enabled|default(true) %}checked{% endif %}
-                           class="mt-1">
-                    <span>
-                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.comments_enabled') }}</span>
-                        <span class="mt-1 block text-sm text-slate-500">{{ t('admin.news.comments_enabled_help') }}</span>
-                    </span>
-                </label>
-            </div>
-
-            {% if isEdit %}
-                <div class="admin-field">
-                    <label>{{ t('admin.news.author') }}</label>
-                    <p class="text-sm text-slate-600">{{ post.author_login }}</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field sm:col-span-2">
+                    <label for="news-title">{{ t('admin.news.post_title') }}</label>
+                    <input id="news-title" type="text" name="title" required maxlength="200"
+                           value="{{ post.title|default('') }}" class="admin-input">
                 </div>
+
                 <div class="admin-field">
-                    <label>{{ t('admin.news.views') }}</label>
-                    <p class="text-sm text-slate-600">{{ post.views|default(0) }}</p>
+                    <label for="news-status">{{ t('admin.news.status') }}</label>
+                    <select id="news-status" name="status" class="admin-select">
+                        {% for value, labelKey in {
+                            'draft': 'admin.news.status_draft',
+                            'published': 'admin.news.status_published'
+                        }|sort_select %}
+                            <option value="{{ value }}" {% if post.status|default('draft') == value %}selected{% endif %}>
+                                {{ t(labelKey) }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
-            {% endif %}
-        </div>
-    </fieldset>
 
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.news.cover') }}
-            <span class="admin-fieldset-help">{{ t('admin.news.cover_help') }}</span>
-        </legend>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field">
-                <label for="news-cover-file">{{ t('admin.news.cover_upload') }}</label>
-                <input id="news-cover-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="admin-input">
-            </div>
-            <div class="admin-field">
-                <label for="news-cover-image">{{ t('admin.news.cover_path') }}</label>
-                <input id="news-cover-image" type="text" name="cover_image"
-                       value="{{ post.cover_image|default('') }}" class="admin-input" readonly>
-            </div>
-            <div class="admin-field sm:col-span-2">
-                <img id="news-cover-preview"
-                     src="{{ post.cover_image|default('') }}"
-                     alt=""
-                     class="max-h-48 rounded-md border border-slate-200 object-cover"
-                     {% if not post.cover_image|default('') %}hidden{% endif %}>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.news.seo') }}
-            <span class="admin-fieldset-help">{{ t('admin.news.seo_help') }}</span>
-        </legend>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="admin-field sm:col-span-2">
-                <label for="news-seo-title">{{ t('admin.news.seo_title') }}</label>
-                <input id="news-seo-title" type="text" name="seo_title" maxlength="70"
-                       value="{{ post.seo_title|default('') }}" class="admin-input">
-                <span class="admin-field-help">{{ t('admin.news.seo_title_help') }}</span>
-            </div>
-            <div class="admin-field sm:col-span-2">
-                <label for="news-seo-description">{{ t('admin.news.seo_description') }}</label>
-                <textarea id="news-seo-description" name="seo_description" rows="3" maxlength="320"
-                          class="admin-input">{{ post.seo_description|default('') }}</textarea>
-                <span class="admin-field-help">{{ t('admin.news.seo_description_help') }}</span>
-            </div>
-            <div class="admin-field">
-                <label for="news-seo-og-file">{{ t('admin.news.seo_og_upload') }}</label>
-                <input id="news-seo-og-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="admin-input">
-            </div>
-            <div class="admin-field">
-                <label for="news-seo-og-image">{{ t('admin.news.seo_og_path') }}</label>
-                <input id="news-seo-og-image" type="text" name="seo_og_image"
-                       value="{{ post.seo_og_image|default('') }}" class="admin-input" readonly>
-            </div>
-            <div class="admin-field sm:col-span-2">
-                <img id="news-seo-og-preview"
-                     src="{{ post.seo_og_image|default('') }}"
-                     alt=""
-                     class="max-h-48 rounded-md border border-slate-200 object-cover"
-                     {% if not post.seo_og_image|default('') %}hidden{% endif %}>
-                {% if post.seo_og_image|default('') %}
-                    <label class="admin-toggle-row mt-3 cursor-pointer">
-                        <input type="checkbox" name="remove_seo_og_image" value="1">
-                        <span class="text-sm font-medium text-slate-700">{{ t('admin.news.seo_og_remove') }}</span>
+                <div class="admin-field">
+                    <label class="flex items-start gap-3">
+                        <input type="checkbox" name="comments_enabled" value="1"
+                               {% if post.comments_enabled|default(true) %}checked{% endif %}
+                               class="mt-1">
+                        <span>
+                            <span class="block text-sm font-semibold text-slate-900">{{ t('admin.news.comments_enabled') }}</span>
+                            <span class="mt-1 block text-sm text-slate-500">{{ t('admin.news.comments_enabled_help') }}</span>
+                        </span>
                     </label>
+                </div>
+
+                {% if isEdit %}
+                    <div class="admin-field">
+                        <label>{{ t('admin.news.author') }}</label>
+                        <p class="text-sm text-slate-600">{{ post.author_login }}</p>
+                    </div>
+                    <div class="admin-field">
+                        <label>{{ t('admin.news.views') }}</label>
+                        <p class="text-sm text-slate-600">{{ post.views|default(0) }}</p>
+                    </div>
                 {% endif %}
             </div>
-        </div>
-    </fieldset>
+        </fieldset>
 
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.news.body') }}
-            <span class="admin-fieldset-help">{{ t('admin.news.body_help') }}</span>
-        </legend>
-        <textarea id="news-body" name="body" rows="16" class="admin-input">{{ post.body|default('') }}</textarea>
-    </fieldset>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.news.cover') }}
+                <span class="admin-fieldset-help">{{ t('admin.news.cover_help') }}</span>
+            </legend>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field">
+                    <label for="news-cover-file">{{ t('admin.news.cover_upload') }}</label>
+                    <input id="news-cover-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label for="news-cover-image">{{ t('admin.news.cover_path') }}</label>
+                    <input id="news-cover-image" type="text" name="cover_image"
+                           value="{{ post.cover_image|default('') }}" class="admin-input" readonly>
+                </div>
+                <div class="admin-field sm:col-span-2">
+                    <img id="news-cover-preview"
+                         src="{{ post.cover_image|default('') }}"
+                         alt=""
+                         class="max-h-48 rounded-md border border-slate-200 object-cover"
+                         {% if not post.cover_image|default('') %}hidden{% endif %}>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.news.body') }}
+                <span class="admin-fieldset-help">{{ t('admin.news.body_help') }}</span>
+            </legend>
+            <textarea id="news-body" name="body" rows="16" class="admin-input">{{ post.body|default('') }}</textarea>
+        </fieldset>
+    </div>
+
+    <div id="admin-tab-panel-seo"
+         class="admin-tabs-panel"
+         role="tabpanel"
+         data-tab-panel="seo"
+         aria-labelledby="admin-tab-seo"
+         {% if activeTab != 'seo' %}hidden{% endif %}>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.news.seo') }}
+                <span class="admin-fieldset-help">{{ t('admin.news.seo_help') }}</span>
+            </legend>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="admin-field sm:col-span-2">
+                    <label for="news-seo-title">{{ t('admin.news.seo_title') }}</label>
+                    <input id="news-seo-title" type="text" name="seo_title" maxlength="70"
+                           value="{{ post.seo_title|default('') }}" class="admin-input">
+                    <span class="admin-field-help">{{ t('admin.news.seo_title_help') }}</span>
+                </div>
+                <div class="admin-field sm:col-span-2">
+                    <label for="news-seo-description">{{ t('admin.news.seo_description') }}</label>
+                    <textarea id="news-seo-description" name="seo_description" rows="3" maxlength="320"
+                              class="admin-input">{{ post.seo_description|default('') }}</textarea>
+                    <span class="admin-field-help">{{ t('admin.news.seo_description_help') }}</span>
+                </div>
+                <div class="admin-field">
+                    <label for="news-seo-og-file">{{ t('admin.news.seo_og_upload') }}</label>
+                    <input id="news-seo-og-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="admin-input">
+                </div>
+                <div class="admin-field">
+                    <label for="news-seo-og-image">{{ t('admin.news.seo_og_path') }}</label>
+                    <input id="news-seo-og-image" type="text" name="seo_og_image"
+                           value="{{ post.seo_og_image|default('') }}" class="admin-input" readonly>
+                </div>
+                <div class="admin-field sm:col-span-2">
+                    <img id="news-seo-og-preview"
+                         src="{{ post.seo_og_image|default('') }}"
+                         alt=""
+                         class="max-h-48 rounded-md border border-slate-200 object-cover"
+                         {% if not post.seo_og_image|default('') %}hidden{% endif %}>
+                    {% if post.seo_og_image|default('') %}
+                        <label class="admin-toggle-row mt-3 cursor-pointer">
+                            <input type="checkbox" name="remove_seo_og_image" value="1">
+                            <span class="text-sm font-medium text-slate-700">{{ t('admin.news.seo_og_remove') }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+        </fieldset>
+    </div>
 </form>
 
 <script src="/vendor/tinymce/tinymce.min.js"></script>

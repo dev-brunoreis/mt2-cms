@@ -55,6 +55,16 @@ final class AdminPaths
         return '/admin/game/economy/' . $vnum;
     }
 
+    public static function gameEconomyPlayers(): string
+    {
+        return '/admin/game/economy/players';
+    }
+
+    public static function gameEconomyPlayer(int $pid): string
+    {
+        return '/admin/game/economy/players/' . $pid;
+    }
+
     // Content
     public static function contentNews(?string $tab = null): string
     {

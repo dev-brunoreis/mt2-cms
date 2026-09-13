@@ -60,7 +60,7 @@ class DiscordWebhookService
     /**
      * Digest of new economy alerts (one webhook, not per item).
      *
-     * @param list<array{vnum: int, kind: string, change: float}> $alerts
+     * @param list<array{vnum?: int, kind: string, change: float, subject_type?: string, subject_id?: int}> $alerts
      */
     public function notifyEconomyAlerts(array $alerts): void
     {
@@ -75,7 +75,9 @@ class DiscordWebhookService
             $a = $alerts[$i];
             $pct = round(((float) $a['change']) * 100.0, 1);
             $sign = $pct >= 0 ? '+' : '';
-            $lines[] = '• vnum `' . (int) $a['vnum'] . '` **' . (string) $a['kind'] . '** (' . $sign . $pct . '%)';
+            $type = (string) ($a['subject_type'] ?? 'item');
+            $id = (int) ($a['subject_id'] ?? $a['vnum'] ?? 0);
+            $lines[] = '• ' . $type . ' `' . $id . '` **' . (string) $a['kind'] . '** (' . $sign . $pct . '%)';
         }
 
         if (count($alerts) > $max) {

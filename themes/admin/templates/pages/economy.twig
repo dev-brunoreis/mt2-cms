@@ -11,29 +11,160 @@
     <p class="text-sm text-slate-500">{{ t('admin.economy.last_ok', {at: lastOkAt}) }}</p>
     {% endif %}
 
-    {% if yang %}
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-2" role="group" aria-label="{{ t('admin.economy.range_label') }}">
+            {% for opt in rangeOptions %}
+            <a href="/admin/game/economy?range={{ opt }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium {% if range == opt %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                {{ t('admin.economy.range.' ~ opt) }}
+            </a>
+            {% endfor %}
+        </div>
+        <a class="text-sm font-medium text-indigo-600 hover:underline" href="{{ playersHref }}">{{ t('admin.economy.players_link') }}</a>
+    </div>
+
     <div class="admin-panel p-4 md:p-6">
         <dl class="admin-stat-grid">
             <div class="admin-stat admin-stat-highlight">
                 <dt>{{ t('admin.economy.total_yang') }}</dt>
-                <dd>{{ totalYang|number_format }}</dd>
+                <dd class="break-all">{{ kpis.total_yang|number_format }}</dd>
+                {% if kpis.total_yang_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.total_yang_delta > 0 %}+{% endif %}{{ (kpis.total_yang_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
             </div>
             <div class="admin-stat">
-                <dt>{{ t('admin.economy.player_yang') }}</dt>
-                <dd>{{ yang.player_yang|number_format }}</dd>
+                <dt>{{ t('admin.economy.market_volume') }}</dt>
+                <dd class="break-all">{{ kpis.volume_yang|number_format }}</dd>
+                {% if kpis.volume_yang_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.volume_yang_delta > 0 %}+{% endif %}{{ (kpis.volume_yang_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
             </div>
             <div class="admin-stat">
-                <dt>{{ t('admin.economy.safebox_yang') }}</dt>
-                <dd>{{ yang.safebox_yang|number_format }}</dd>
+                <dt>{{ t('admin.economy.market_trades') }}</dt>
+                <dd>{{ kpis.trades|number_format }}</dd>
+                {% if kpis.trades_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.trades_delta > 0 %}+{% endif %}{{ (kpis.trades_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
             </div>
             <div class="admin-stat">
-                <dt>{{ t('admin.economy.money_sources') }}</dt>
-                <dd>{{ (yang.money_monster + yang.money_drop)|number_format }}</dd>
+                <dt>{{ t('admin.economy.yang_net') }}</dt>
+                <dd class="break-all">{{ kpis.money_net|number_format }}</dd>
+                <dd class="text-xs font-normal text-slate-500">
+                    +{{ kpis.money_created|number_format }} / −{{ kpis.money_destroyed|number_format }}
+                </dd>
             </div>
         </dl>
+        {% if yang %}
         <p class="mt-3 text-sm text-slate-500">{{ t('admin.economy.yang_help') }}</p>
+        {% endif %}
     </div>
-    {% endif %}
+
+    <div class="grid gap-4 lg:grid-cols-3">
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_yang_supply') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_yang_supply_help', {days: chartDays}) }}</p>
+            <div class="mt-3 text-indigo-600">
+                {% include 'components/day-chart.twig' with {
+                    points: yangChart.points|default(''),
+                    area: yangChart.area|default(''),
+                    min_label: yangChart.min_label|default(''),
+                    max_label: yangChart.max_label|default(''),
+                    from_label: yangFrom|default(''),
+                    to_label: yangTo|default(''),
+                    title: t('admin.economy.chart_yang_supply'),
+                    width: 400,
+                    height: 110
+                } %}
+            </div>
+        </div>
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_market_volume') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_market_volume_help', {days: chartDays}) }}</p>
+            <div class="mt-3 text-emerald-600">
+                {% include 'components/day-chart.twig' with {
+                    points: volumeChart.points|default(''),
+                    area: volumeChart.area|default(''),
+                    min_label: volumeChart.min_label|default(''),
+                    max_label: volumeChart.max_label|default(''),
+                    from_label: volumeFrom|default(''),
+                    to_label: volumeTo|default(''),
+                    title: t('admin.economy.chart_market_volume'),
+                    width: 400,
+                    height: 110
+                } %}
+            </div>
+        </div>
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_yang_flow') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_yang_flow_help', {days: chartDays}) }}</p>
+            <div class="mt-3 text-amber-600">
+                {% include 'components/day-chart.twig' with {
+                    points: netChart.points|default(''),
+                    area: netChart.area|default(''),
+                    min_label: netChart.min_label|default(''),
+                    max_label: netChart.max_label|default(''),
+                    from_label: netFrom|default(''),
+                    to_label: netTo|default(''),
+                    title: t('admin.economy.chart_yang_flow'),
+                    width: 400,
+                    height: 110
+                } %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-2">
+        <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.top_sold') }}</h2>
+            {% if topSold|length == 0 %}
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.no_trades') }}</p>
+            {% else %}
+            <table class="admin-table mt-3">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.economy.item') }}</th>
+                        <th>{{ t('admin.economy.market_volume') }}</th>
+                        <th>{{ t('admin.economy.trades') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in topSold %}
+                    <tr>
+                        <td><a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/{{ row.vnum }}">{{ row.item_name }}</a></td>
+                        <td>{{ row.volume_yang|number_format }}</td>
+                        <td>{{ row.trades|number_format }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.top_movers') }}</h2>
+            {% if movers|length == 0 %}
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.history_empty') }}</p>
+            {% else %}
+            <table class="admin-table mt-3">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.economy.item') }}</th>
+                        <th>{{ t('admin.economy.median_price') }}</th>
+                        <th>{{ t('admin.economy.price_delta') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in movers %}
+                    <tr>
+                        <td><a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/{{ row.vnum }}">{{ row.item_name }}</a></td>
+                        <td>{{ row.median_now|number_format }}</td>
+                        <td>{% if row.change_pct > 0 %}+{% endif %}{{ row.change_pct|number_format(1) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
 
     {% if alerts|default([])|length > 0 %}
     <div class="admin-panel p-4 md:p-6">
@@ -42,13 +173,13 @@
             {% for alert in alerts %}
             <li class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
                 <div>
-                    <a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/{{ alert.vnum }}">{{ alert.item_name }}</a>
+                    <a class="font-medium text-indigo-600 hover:underline" href="{{ alert.href }}">{{ alert.label }}</a>
                     <span class="admin-badge admin-badge-muted">{{ t('admin.economy.alert_kind.' ~ alert.kind) }}</span>
                     <span class="text-sm text-slate-500">{{ alert.created_at }}</span>
                 </div>
                 <form method="post" action="/admin/game/economy/alerts/{{ alert.id }}/ack" class="inline">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
-                    <input type="hidden" name="back" value="/admin/game/economy">
+                    <input type="hidden" name="back" value="/admin/game/economy?range={{ range }}">
                     <button type="submit" class="admin-btn-secondary rounded-md px-2.5 py-1.5 text-xs font-medium">{{ t('admin.economy.ack') }}</button>
                 </form>
             </li>

@@ -1,0 +1,10 @@
+{# Compact SVG sparkline. Pass points as "x,y x,y …" and optional width/height. #}
+{% set w = width|default(220) %}
+{% set h = height|default(48) %}
+{% if points|default('') != '' %}
+<svg class="block {{ class|default('') }}" width="{{ w }}" height="{{ h }}" viewBox="0 0 {{ w }} {{ h }}" aria-hidden="true" role="img">
+  <polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="{{ points }}" />
+</svg>
+{% else %}
+<p class="text-xs text-slate-400">{{ t('admin.economy.spark_empty') }}</p>
+{% endif %}

@@ -38,8 +38,15 @@
                 <dt>{{ t('admin.economy.holders_accounts') }}</dt>
                 <dd>{{ census.holders_accounts|number_format }}</dd>
             </div>
+            {% if unitsDelta is not null %}
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.units_delta') }}</dt>
+                <dd>{% if unitsDelta > 0 %}+{% endif %}{{ unitsDelta|number_format }}</dd>
+            </div>
+            {% endif %}
         </dl>
         <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.captured_at', {at: census.captured_at}) }}</p>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.units_delta_help') }}</p>
     </div>
     {% endif %}
 
@@ -126,6 +133,43 @@
     </div>
     {% endif %}
 
+    <div class="grid gap-4 lg:grid-cols-2">
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_supply') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_supply_help') }}</p>
+            <div class="mt-3">
+                {% include 'components/day-chart.twig' with {
+                    points: supplyChart.points|default(''),
+                    area: supplyChart.area|default(''),
+                    min_label: supplyChart.min_label|default(''),
+                    max_label: supplyChart.max_label|default(''),
+                    from_label: supplyFrom|default(''),
+                    to_label: supplyTo|default(''),
+                    title: t('admin.economy.chart_supply'),
+                    width: 560,
+                    height: 120
+                } %}
+            </div>
+        </div>
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_price') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_price_help') }}</p>
+            <div class="mt-3">
+                {% include 'components/day-chart.twig' with {
+                    points: priceChart.points|default(''),
+                    area: priceChart.area|default(''),
+                    min_label: priceChart.min_label|default(''),
+                    max_label: priceChart.max_label|default(''),
+                    from_label: priceFrom|default(''),
+                    to_label: priceTo|default(''),
+                    title: t('admin.economy.chart_price'),
+                    width: 560,
+                    height: 120
+                } %}
+            </div>
+        </div>
+    </div>
+
     <div class="admin-panel p-4 md:p-6 overflow-x-auto">
         <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.history_supply') }}</h2>
         {% if history|length == 0 %}
@@ -136,6 +180,7 @@
                 <tr>
                     <th>{{ t('admin.economy.day') }}</th>
                     <th>{{ t('admin.economy.units') }}</th>
+                    <th>{{ t('admin.economy.units_delta') }}</th>
                     <th>{{ t('admin.economy.stacks') }}</th>
                 </tr>
             </thead>
@@ -144,6 +189,7 @@
                 <tr>
                     <td>{{ row.day }}</td>
                     <td>{{ row.units|number_format }}</td>
+                    <td>{% if row.units_delta is defined %}{% if row.units_delta > 0 %}+{% endif %}{{ row.units_delta|number_format }}{% else %}—{% endif %}</td>
                     <td>{{ row.stacks|number_format }}</td>
                 </tr>
                 {% endfor %}
@@ -170,6 +216,9 @@
             <thead>
                 <tr>
                     <th>{{ t('admin.economy.sold_at') }}</th>
+                    <th>{{ t('admin.economy.channel') }}</th>
+                    <th>{{ t('admin.economy.seller') }}</th>
+                    <th>{{ t('admin.economy.buyer') }}</th>
                     <th>{{ t('admin.economy.trade_count') }}</th>
                     <th>{{ t('admin.economy.unit_price') }}</th>
                     <th>{{ t('admin.economy.price_yang') }}</th>
@@ -179,6 +228,9 @@
                 {% for trade in trades %}
                 <tr>
                     <td>{{ trade.sold_at }}</td>
+                    <td>{{ t('admin.economy.channel_' ~ (trade.channel|default('shop'))) }}</td>
+                    <td>{% if trade.seller_name %}{{ trade.seller_name }}{% elseif trade.seller_pid %}#{{ trade.seller_pid }}{% else %}—{% endif %}</td>
+                    <td>{% if trade.buyer_name %}{{ trade.buyer_name }}{% elseif trade.buyer_pid %}#{{ trade.buyer_pid }}{% else %}—{% endif %}</td>
                     <td>{{ trade.count|number_format }}</td>
                     <td>{{ trade.unit_price|number_format }}</td>
                     <td>{{ trade.price_yang|number_format }}</td>
@@ -200,6 +252,7 @@
                 <tr>
                     <th>{{ t('admin.economy.day') }}</th>
                     <th>{{ t('admin.economy.trades') }}</th>
+                    <th>{{ t('admin.economy.market_volume') }}</th>
                     <th>{{ t('admin.economy.median_price') }}</th>
                     <th>{{ t('admin.economy.p25') }}</th>
                     <th>{{ t('admin.economy.p75') }}</th>
@@ -210,6 +263,7 @@
                 <tr>
                     <td>{{ row.day }}</td>
                     <td>{{ row.trades|number_format }}</td>
+                    <td>{% if row.volume_yang is defined %}{{ row.volume_yang|number_format }}{% else %}—{% endif %}</td>
                     <td>{% if row.median_price is not null %}{{ row.median_price|number_format }}{% else %}—{% endif %}</td>
                     <td>{% if row.p25_price is not null %}{{ row.p25_price|number_format }}{% else %}—{% endif %}</td>
                     <td>{% if row.p75_price is not null %}{{ row.p75_price|number_format }}{% else %}—{% endif %}</td>

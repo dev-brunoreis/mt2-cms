@@ -104,4 +104,43 @@ final class EconomyMathTest extends TestCase
         self::assertSame('supply_up_no_price', EconomyAnomaly::dropAdvice(0.4, null));
         self::assertSame('stable', EconomyAnomaly::dropAdvice(0.05, 0.05));
     }
+
+    public function testZScoreAndWealth(): void
+    {
+        $z = EconomyStats::zScore(100.0, [10, 12, 11, 13, 10, 12]);
+        self::assertNotNull($z);
+        self::assertGreaterThan(3.0, $z);
+
+        $alert = EconomyAnomaly::zScoreAlert(100.0, [10, 12, 11, 13, 10, 12]);
+        self::assertNotNull($alert);
+        self::assertSame(EconomyAnomaly::KIND_ZSCORE, $alert['kind']);
+
+        $conc = EconomyStats::wealthConcentration([100, 50, 25, 25], 200);
+        self::assertSame(50.0, $conc['top1_pct']);
+        self::assertSame(50.0, $conc['top5_pct']);
+
+        $big = EconomyStats::wealthConcentration(
+            array_merge([900], array_fill(0, 99, 1)),
+            999,
+        );
+        self::assertGreaterThan(80.0, $big['top1_pct']);
+    }
+
+    public function testVolumeConcentrationVelocity(): void
+    {
+        $vol = EconomyAnomaly::volumeAlert(30, 5.0);
+        self::assertNotNull($vol);
+        self::assertSame(EconomyAnomaly::KIND_VOLUME_SPIKE, $vol['kind']);
+        self::assertNull(EconomyAnomaly::volumeAlert(4, 5.0));
+
+        $c = EconomyAnomaly::concentrationAlert(0.8, 3, 20);
+        self::assertNotNull($c);
+        self::assertSame(EconomyAnomaly::KIND_CONCENTRATION, $c['kind']);
+        self::assertNull(EconomyAnomaly::concentrationAlert(0.5, 3, 20));
+
+        $v = EconomyAnomaly::yangVelocityAlert(600_000_000, 10, 15);
+        self::assertNotNull($v);
+        self::assertSame(EconomyAnomaly::KIND_YANG_VELOCITY, $v['kind']);
+        self::assertNull(EconomyAnomaly::yangVelocityAlert(1000, 10, 15));
+    }
 }

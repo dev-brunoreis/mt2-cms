@@ -235,26 +235,40 @@ class GameEconomyScanRepository extends Repository
     }
 
     /**
-     * Incremental goldlog player-shop trades after cursor (date, time).
+     * Incremental goldlog rows after cursor (date, time).
      *
+     * @param list<string> $howFlags SHOP_BUY, SHOP_SELL, BUY, SELL, EXCHANGE_GIVE, EXCHANGE_TAKE, …
      * @return list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}>
      */
-    public function goldlogShopTradesAfter(string $afterDate, string $afterTime, int $limit = 5000): array
+    public function goldlogRowsAfter(string $afterDate, string $afterTime, array $howFlags, int $limit = 5000): array
     {
-        if (!$this->logTableExists('goldlog')) {
+        if ($howFlags === [] || !$this->logTableExists('goldlog')) {
             return [];
         }
 
         $limit = max(1, min(20000, $limit));
+        $conds = [];
+        $params = [];
+
+        foreach ($howFlags as $flag) {
+            $conds[] = 'FIND_IN_SET(?, `how`) > 0';
+            $params[] = $flag;
+        }
+
+        $params[] = $afterDate;
+        $params[] = $afterDate;
+        $params[] = $afterTime;
+        $params[] = $limit;
+
         $log = $this->db->useDatabase('log');
         $rows = $log->fetchAll(
             'SELECT `date`, `time`, pid, `what`, hint, `how`
              FROM `goldlog`
-             WHERE (FIND_IN_SET(\'SHOP_BUY\', `how`) > 0 OR FIND_IN_SET(\'SHOP_SELL\', `how`) > 0)
+             WHERE (' . implode(' OR ', $conds) . ')
                AND (`date` > ? OR (`date` = ? AND `time` > ?))
              ORDER BY `date` ASC, `time` ASC
              LIMIT ?',
-            [$afterDate, $afterDate, $afterTime, $limit],
+            $params,
         );
 
         return array_map(static function (array $row): array {
@@ -267,6 +281,36 @@ class GameEconomyScanRepository extends Repository
                 'how' => (string) ($row['how'] ?? ''),
             ];
         }, $rows);
+    }
+
+    /**
+     * Incremental goldlog player-shop trades after cursor (date, time).
+     *
+     * @return list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}>
+     */
+    public function goldlogShopTradesAfter(string $afterDate, string $afterTime, int $limit = 5000): array
+    {
+        return $this->goldlogRowsAfter($afterDate, $afterTime, ['SHOP_BUY', 'SHOP_SELL'], $limit);
+    }
+
+    /**
+     * NPC buy/sell from goldlog (not used for market median).
+     *
+     * @return list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}>
+     */
+    public function goldlogNpcTradesAfter(string $afterDate, string $afterTime, int $limit = 5000): array
+    {
+        return $this->goldlogRowsAfter($afterDate, $afterTime, ['BUY', 'SELL'], $limit);
+    }
+
+    /**
+     * Player–player yang transfers (exchange).
+     *
+     * @return list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}>
+     */
+    public function goldlogExchangeAfter(string $afterDate, string $afterTime, int $limit = 5000): array
+    {
+        return $this->goldlogRowsAfter($afterDate, $afterTime, ['EXCHANGE_GIVE', 'EXCHANGE_TAKE'], $limit);
     }
 
     /**
@@ -309,11 +353,17 @@ class GameEconomyScanRepository extends Repository
     /**
      * money_log gold sums by type for a calendar day (best-effort; table has no date id).
      *
-     * @return array<string, int>
+     * Net per type is gold SUM; created/destroyed split positive vs negative rows.
+     *
+     * @return array{
+     *   by_type: array<string, int>,
+     *   created: int,
+     *   destroyed: int
+     * }
      */
     public function moneyLogSumsForDay(string $day): array
     {
-        $out = [
+        $byType = [
             'MONSTER' => 0,
             'SHOP' => 0,
             'REFINE' => 0,
@@ -323,14 +373,19 @@ class GameEconomyScanRepository extends Repository
             'KILL' => 0,
             'DROP' => 0,
         ];
+        $created = 0;
+        $destroyed = 0;
 
         if (!$this->logTableExists('money_log')) {
-            return $out;
+            return ['by_type' => $byType, 'created' => 0, 'destroyed' => 0];
         }
 
         $log = $this->db->useDatabase('log');
         $rows = $log->fetchAll(
-            'SELECT `type`, COALESCE(SUM(gold), 0) AS total
+            'SELECT `type`,
+                    COALESCE(SUM(gold), 0) AS total,
+                    COALESCE(SUM(IF(gold > 0, gold, 0)), 0) AS created,
+                    COALESCE(SUM(IF(gold < 0, -gold, 0)), 0) AS destroyed
              FROM `money_log`
              WHERE DATE(`time`) = ?
              GROUP BY `type`',
@@ -340,12 +395,84 @@ class GameEconomyScanRepository extends Repository
         foreach ($rows as $row) {
             $type = (string) ($row['type'] ?? '');
 
-            if (isset($out[$type])) {
-                $out[$type] = (int) ($row['total'] ?? 0);
+            if (isset($byType[$type])) {
+                $byType[$type] = (int) ($row['total'] ?? 0);
             }
+
+            $created += (int) ($row['created'] ?? 0);
+            $destroyed += (int) ($row['destroyed'] ?? 0);
         }
 
-        return $out;
+        return [
+            'by_type' => $byType,
+            'created' => $created,
+            'destroyed' => $destroyed,
+        ];
+    }
+
+    /**
+     * Character gold rankings for wealth concentration (player.gold only; no safebox).
+     *
+     * @return list<array{pid: int, yang: int}>
+     */
+    public function playerYangRanking(int $limit = 0): array
+    {
+        if (!$this->schemaTableExists('player')) {
+            return [];
+        }
+
+        $sql = 'SELECT id AS pid, gold AS yang
+                FROM `player`
+                WHERE gold > 0
+                ORDER BY gold DESC';
+        $params = [];
+
+        if ($limit > 0) {
+            $sql .= ' LIMIT ?';
+            $params[] = max(1, min(10000, $limit));
+        }
+
+        $rows = $this->db()->fetchAll($sql, $params);
+
+        return array_map(static function (array $row): array {
+            return [
+                'pid' => (int) ($row['pid'] ?? 0),
+                'yang' => (int) ($row['yang'] ?? 0),
+            ];
+        }, $rows);
+    }
+
+    /**
+     * @return array{player_count: int, total_yang: int}
+     */
+    public function playerYangTotals(): array
+    {
+        if (!$this->schemaTableExists('player')) {
+            return ['player_count' => 0, 'total_yang' => 0];
+        }
+
+        $row = $this->db()->fetch(
+            'SELECT COUNT(*) AS player_count, COALESCE(SUM(gold), 0) AS total_yang FROM `player`',
+        );
+
+        return [
+            'player_count' => (int) ($row['player_count'] ?? 0),
+            'total_yang' => (int) ($row['total_yang'] ?? 0),
+        ];
+    }
+
+    public function playerGold(int $pid): ?int
+    {
+        if ($pid < 1 || !$this->schemaTableExists('player')) {
+            return null;
+        }
+
+        $value = $this->db()->fetchColumn(
+            'SELECT gold FROM `player` WHERE id = ? LIMIT 1',
+            [$pid],
+        );
+
+        return $value !== null ? (int) $value : null;
     }
 
     private function logTableExists(string $table): bool

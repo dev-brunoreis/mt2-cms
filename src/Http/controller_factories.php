@@ -172,7 +172,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->banRepo, $app->banService, $app->accounts,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminEconomyController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminEconomyController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->economy, $app->gameEconomyScan, $app->dropFiles,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->economy, $app->gameEconomyScan, $app->dropFiles, $app->players,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminDownloadsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDownloadsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->downloads, $app->downloadUploads,

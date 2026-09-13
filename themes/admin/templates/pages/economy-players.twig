@@ -1,0 +1,117 @@
+<div class="space-y-4">
+    <div class="flex flex-wrap gap-2" role="group" aria-label="{{ t('admin.economy.range_label') }}">
+        {% for opt in rangeOptions %}
+        <a href="/admin/game/economy/players?range={{ opt }}"
+           class="rounded-md px-3 py-1.5 text-sm font-medium {% if range == opt %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+            {{ t('admin.economy.range.' ~ opt) }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if wealth %}
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.wealth_title') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.wealth_help') }}</p>
+        <dl class="admin-stat-grid mt-3">
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.wealth_players') }}</dt>
+                <dd>{{ wealth.player_count|number_format }}</dd>
+            </div>
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.economy.wealth_total') }}</dt>
+                <dd>{{ wealth.total_yang|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.wealth_top1') }}</dt>
+                <dd>{{ wealth.top1_pct }}%</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.wealth_top5') }}</dt>
+                <dd>{{ wealth.top5_pct }}%</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.economy.wealth_top10') }}</dt>
+                <dd>{{ wealth.top10_pct }}%</dd>
+            </div>
+        </dl>
+    </div>
+    {% endif %}
+
+    <div class="grid gap-4 xl:grid-cols-3">
+        <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.top_yang') }}</h2>
+            {% if topYang|length == 0 %}
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.players_empty') }}</p>
+            {% else %}
+            <table class="admin-table mt-3">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{{ t('admin.economy.player') }}</th>
+                        <th>{{ t('admin.economy.total_yang') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in topYang %}
+                    <tr>
+                        <td>{{ row.rank_pos }}</td>
+                        <td><a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/players/{{ row.pid }}">{{ row.name }}</a></td>
+                        <td>{{ row.yang|number_format }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.top_sellers') }}</h2>
+            {% if sellers|length == 0 %}
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.no_trades') }}</p>
+            {% else %}
+            <table class="admin-table mt-3">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.economy.player') }}</th>
+                        <th>{{ t('admin.economy.market_volume') }}</th>
+                        <th>{{ t('admin.economy.trades') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in sellers %}
+                    <tr>
+                        <td><a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/players/{{ row.pid }}">{{ row.name }}</a></td>
+                        <td>{{ row.volume_yang|number_format }}</td>
+                        <td>{{ row.trades|number_format }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="admin-panel p-4 md:p-6 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.top_buyers') }}</h2>
+            {% if buyers|length == 0 %}
+            <p class="mt-2 text-sm text-slate-500">{{ t('admin.economy.no_trades') }}</p>
+            {% else %}
+            <table class="admin-table mt-3">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.economy.player') }}</th>
+                        <th>{{ t('admin.economy.market_volume') }}</th>
+                        <th>{{ t('admin.economy.trades') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in buyers %}
+                    <tr>
+                        <td><a class="font-medium text-indigo-600 hover:underline" href="/admin/game/economy/players/{{ row.pid }}">{{ row.name }}</a></td>
+                        <td>{{ row.volume_yang|number_format }}</td>
+                        <td>{{ row.trades|number_format }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>

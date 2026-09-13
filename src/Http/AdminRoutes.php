@@ -134,6 +134,8 @@ final class AdminRoutes
 
         $r->addRoute('GET', '/admin/game/economy', [AdminEconomyController::class, 'index']);
         $r->addRoute('POST', '/admin/game/economy/mass', [AdminEconomyController::class, 'mass']);
+        $r->addRoute('GET', '/admin/game/economy/players', [AdminEconomyController::class, 'players']);
+        $r->addRoute('GET', '/admin/game/economy/players/{id:\d+}', [AdminEconomyController::class, 'playerShow']);
         $r->addRoute('GET', '/admin/game/economy/{id:\d+}', [AdminEconomyController::class, 'show']);
         $r->addRoute('POST', '/admin/game/economy/{id:\d+}/watch', [AdminEconomyController::class, 'saveWatch']);
         $r->addRoute('POST', '/admin/game/economy/alerts/{id:\d+}/ack', [AdminEconomyController::class, 'ackAlert']);

@@ -65,25 +65,31 @@ class EconomyTickService
 
             $yang = $this->scan->yangTotals();
             $money = $this->scan->moneyLogSumsForDay($day);
+            $byType = $money['by_type'];
             $this->economy->upsertYangDaily($day, [
                 'player_yang' => $yang['player_yang'],
                 'safebox_yang' => $yang['safebox_yang'],
                 'guild_yang' => $yang['guild_yang'],
-                'money_monster' => $money['MONSTER'],
-                'money_drop' => $money['DROP'],
-                'money_shop' => $money['SHOP'],
-                'money_refine' => $money['REFINE'],
-                'money_quest' => $money['QUEST'],
-                'money_guild' => $money['GUILD'],
-                'money_misc' => $money['MISC'],
-                'money_kill' => $money['KILL'],
+                'money_monster' => $byType['MONSTER'],
+                'money_drop' => $byType['DROP'],
+                'money_shop' => $byType['SHOP'],
+                'money_refine' => $byType['REFINE'],
+                'money_quest' => $byType['QUEST'],
+                'money_guild' => $byType['GUILD'],
+                'money_misc' => $byType['MISC'],
+                'money_kill' => $byType['KILL'],
+                'money_created' => $money['created'],
+                'money_destroyed' => $money['destroyed'],
             ], $now);
+
+            $this->economy->applyCensusDeltas($day);
 
             $ingest = $this->ingestMarketTrades();
             $result['trades_ingested'] = $ingest['ingested'];
             $result['trades_unmatched'] = $ingest['unmatched'];
 
             $this->rebuildMarketDaily();
+            $this->snapshotWealth($day, $now);
 
             $newAlerts = $this->detectAlerts($day, $census);
             $result['alerts_created'] = count($newAlerts);
@@ -216,11 +222,13 @@ class EconomyTickService
     private function ingestMarketTrades(): array
     {
         $item = $this->ingestItemLogShop();
-        $gold = $this->ingestGoldlog();
+        $gold = $this->ingestGoldlogShop();
+        $npc = $this->ingestGoldlogNpc();
+        $xfer = $this->ingestGoldlogExchange();
 
         return [
-            'ingested' => $item['ingested'] + $gold['ingested'],
-            'unmatched' => $item['unmatched'] + $gold['unmatched'],
+            'ingested' => $item['ingested'] + $gold['ingested'] + $npc['ingested'] + $xfer['ingested'],
+            'unmatched' => $item['unmatched'] + $gold['unmatched'] + $npc['unmatched'] + $xfer['unmatched'],
         ];
     }
 
@@ -274,8 +282,22 @@ class EconomyTickService
             }
 
             $key = hash('sha1', $row['time'] . '|' . $row['what'] . '|' . $vnum . '|' . $total . '|SHOP_SELL');
+            // SHOP_SELL: who = seller, other_pid = buyer
+            $sellerPid = (int) $row['who'];
+            $buyerPid = (int) $parsed['other_pid'];
 
-            if ($this->economy->insertTrade($key, $vnum, $parsed['count'], $total, $unit, $row['time'], 'itemlog')) {
+            if ($this->economy->insertTrade(
+                $key,
+                $vnum,
+                $parsed['count'],
+                $total,
+                $unit,
+                $row['time'],
+                'itemlog',
+                $sellerPid,
+                $buyerPid,
+                'shop',
+            )) {
                 $ingested++;
             }
         }
@@ -291,17 +313,53 @@ class EconomyTickService
     /**
      * @return array{ingested: int, unmatched: int}
      */
-    private function ingestGoldlog(): array
+    private function ingestGoldlogShop(): array
     {
-        $afterDate = $this->economy->getState('goldlog_market_date') ?? '0000-00-00';
-        $afterTime = $this->economy->getState('goldlog_market_time') ?? '00:00:00';
+        return $this->ingestGoldlogChannel(
+            'goldlog_market_date',
+            'goldlog_market_time',
+            fn (string $d, string $t) => $this->scan->goldlogShopTradesAfter($d, $t),
+            'shop',
+            true,
+        );
+    }
+
+    /**
+     * NPC BUY/SELL — volume only, excluded from market median.
+     *
+     * @return array{ingested: int, unmatched: int}
+     */
+    private function ingestGoldlogNpc(): array
+    {
+        return $this->ingestGoldlogChannel(
+            'goldlog_npc_date',
+            'goldlog_npc_time',
+            fn (string $d, string $t) => $this->scan->goldlogNpcTradesAfter($d, $t),
+            'npc',
+            false,
+        );
+    }
+
+    /**
+     * @param callable(string, string): list<array{date: string, time: string, pid: int, what: int, hint: string, how: string}> $fetcher
+     * @return array{ingested: int, unmatched: int}
+     */
+    private function ingestGoldlogChannel(
+        string $dateState,
+        string $timeState,
+        callable $fetcher,
+        string $channel,
+        bool $applyOutlierFilter,
+    ): array {
+        $afterDate = $this->economy->getState($dateState) ?? '0000-00-00';
+        $afterTime = $this->economy->getState($timeState) ?? '00:00:00';
         $nameMap = $this->scan->itemNameToVnumMap();
         $ingested = 0;
         $unmatched = 0;
         $lastDate = $afterDate;
         $lastTime = $afterTime;
 
-        $rows = $this->scan->goldlogShopTradesAfter($afterDate, $afterTime);
+        $rows = $fetcher($afterDate, $afterTime);
 
         foreach ($rows as $row) {
             $lastDate = $row['date'];
@@ -329,17 +387,37 @@ class EconomyTickService
                 continue;
             }
 
-            $baseline = $this->economy->baselineMedian(
-                $vnum,
-                date('Y-m-d', strtotime('-7 days')),
-                date('Y-m-d', strtotime('-1 day')),
-            );
+            if ($applyOutlierFilter) {
+                $baseline = $this->economy->baselineMedian(
+                    $vnum,
+                    date('Y-m-d', strtotime('-7 days')),
+                    date('Y-m-d', strtotime('-1 day')),
+                );
 
-            if ($baseline !== null && $baseline > 0) {
-                $ratio = $unit / $baseline;
+                if ($baseline !== null && $baseline > 0) {
+                    $ratio = $unit / $baseline;
 
-                if ($ratio > self::OUTLIER_BAND || $ratio < (1.0 / self::OUTLIER_BAND)) {
-                    continue;
+                    if ($ratio > self::OUTLIER_BAND || $ratio < (1.0 / self::OUTLIER_BAND)) {
+                        continue;
+                    }
+                }
+            }
+
+            $how = strtoupper((string) preg_replace('/,.*/', '', $row['how']));
+            $sellerPid = null;
+            $buyerPid = null;
+
+            if ($channel === 'shop') {
+                if (str_contains($how, 'SHOP_SELL')) {
+                    $sellerPid = $row['pid'];
+                } elseif (str_contains($how, 'SHOP_BUY')) {
+                    $buyerPid = $row['pid'];
+                }
+            } elseif ($channel === 'npc') {
+                if (str_contains($how, 'SELL')) {
+                    $sellerPid = $row['pid'];
+                } else {
+                    $buyerPid = $row['pid'];
                 }
             }
 
@@ -349,17 +427,83 @@ class EconomyTickService
                 $row['time'],
                 $row['pid'],
                 $row['what'],
-                $row['hint'],
+                $row['hint'] . '|' . $channel,
             );
 
-            if ($this->economy->insertTrade($key, $vnum, $parsed['count'], $total, $unit, $soldAt, 'goldlog')) {
+            if ($this->economy->insertTrade(
+                $key,
+                $vnum,
+                $parsed['count'],
+                $total,
+                $unit,
+                $soldAt,
+                'goldlog',
+                $sellerPid,
+                $buyerPid,
+                $channel,
+            )) {
                 $ingested++;
             }
         }
 
         if ($rows !== []) {
-            $this->economy->setState('goldlog_market_date', $lastDate);
-            $this->economy->setState('goldlog_market_time', $lastTime);
+            $this->economy->setState($dateState, $lastDate);
+            $this->economy->setState($timeState, $lastTime);
+        }
+
+        return ['ingested' => $ingested, 'unmatched' => $unmatched];
+    }
+
+    /**
+     * @return array{ingested: int, unmatched: int}
+     */
+    private function ingestGoldlogExchange(): array
+    {
+        $afterDate = $this->economy->getState('goldlog_xfer_date') ?? '0000-00-00';
+        $afterTime = $this->economy->getState('goldlog_xfer_time') ?? '00:00:00';
+        $ingested = 0;
+        $unmatched = 0;
+        $lastDate = $afterDate;
+        $lastTime = $afterTime;
+
+        $rows = $this->scan->goldlogExchangeAfter($afterDate, $afterTime);
+
+        foreach ($rows as $row) {
+            $lastDate = $row['date'];
+            $lastTime = $row['time'];
+            $yang = abs((int) $row['what']);
+
+            if ($yang < 1) {
+                $unmatched++;
+
+                continue;
+            }
+
+            $how = strtoupper((string) $row['how']);
+            $fromPid = 0;
+            $toPid = 0;
+
+            if (str_contains($how, 'EXCHANGE_GIVE')) {
+                $fromPid = $row['pid'];
+            } elseif (str_contains($how, 'EXCHANGE_TAKE')) {
+                $toPid = $row['pid'];
+            } else {
+                $unmatched++;
+
+                continue;
+            }
+
+            $at = $this->goldlogDateTime($row['date'], $row['time']);
+            $key = hash('sha1', $row['date'] . '|' . $row['time'] . '|' . $row['pid'] . '|' . $row['what'] . '|' . $how);
+
+            if ($this->economy->insertYangTransfer($key, $fromPid, $toPid, $yang, $at, 'goldlog')) {
+                $ingested++;
+            }
+        }
+
+        if ($rows !== []) {
+            $this->economy->setState('goldlog_xfer_date', $lastDate);
+            $this->economy->setState('goldlog_xfer_time', $lastTime);
         }
 
         return ['ingested' => $ingested, 'unmatched' => $unmatched];
@@ -368,7 +512,7 @@ class EconomyTickService
     private function rebuildMarketDaily(): void
     {
         $from = date('Y-m-d', strtotime('-90 days'));
-        $grouped = $this->economy->tradesGroupedByDaySince($from);
+        $grouped = $this->economy->tradesGroupedByDaySince($from, 'shop');
 
         foreach ($grouped as $day => $byVnum) {
             foreach ($byVnum as $vnum => $info) {
@@ -382,6 +526,9 @@ class EconomyTickService
                     $vnum,
                     count($list),
                     $info['units'],
+                    $info['volume_yang'],
+                    $info['unique_sellers'],
+                    $info['unique_buyers'],
                     $median !== null ? (int) round($median) : null,
                     $p25 !== null ? (int) round($p25) : null,
                     $p75 !== null ? (int) round($p75) : null,
@@ -391,9 +538,30 @@ class EconomyTickService
         }
     }
 
+    private function snapshotWealth(string $day, string $now): void
+    {
+        $totals = $this->scan->playerYangTotals();
+        $ranking = $this->scan->playerYangRanking(0);
+        $concentration = EconomyStats::wealthConcentration(
+            array_column($ranking, 'yang'),
+            $totals['total_yang'],
+        );
+
+        $this->economy->upsertWealthDaily($day, [
+            'player_count' => $totals['player_count'],
+            'total_yang' => $totals['total_yang'],
+            'top1_pct' => $concentration['top1_pct'],
+            'top5_pct' => $concentration['top5_pct'],
+            'top10_pct' => $concentration['top10_pct'],
+        ], $now);
+
+        $top = array_slice($ranking, 0, 50);
+        $this->economy->replaceWealthTop($day, $top);
+    }
+
     /**
      * @param list<array{vnum: int, units: int}> $census
-     * @return list<array{vnum: int, kind: string, change: float}>
+     * @return list<array{vnum: int, kind: string, change: float, subject_type?: string, subject_id?: int}>
      */
     private function detectAlerts(string $day, array $census): array
     {
@@ -401,6 +569,7 @@ class EconomyTickService
         $day7 = date('Y-m-d', strtotime('-7 days'));
         $day1 = date('Y-m-d', strtotime('-1 day'));
         $day2 = date('Y-m-d', strtotime('-2 days'));
+        $day30 = date('Y-m-d', strtotime('-30 days'));
         $created = [];
 
         foreach ($census as $row) {
@@ -411,12 +580,18 @@ class EconomyTickService
             if ($units7 !== null) {
                 $supply = EconomyAnomaly::supplyAlert($unitsNow, $units7);
 
-                if ($supply !== null && $this->economy->insertAlert($day, $vnum, $supply['kind'], [
+                if ($supply !== null && $this->economy->insertAlert($day, 'item', $vnum, $supply['kind'], [
                     'units_now' => $unitsNow,
                     'units_baseline' => $units7,
                     'change' => $supply['change'],
                 ])) {
-                    $created[] = ['vnum' => $vnum, 'kind' => $supply['kind'], 'change' => $supply['change']];
+                    $created[] = [
+                        'vnum' => $vnum,
+                        'kind' => $supply['kind'],
+                        'change' => $supply['change'],
+                        'subject_type' => 'item',
+                        'subject_id' => $vnum,
+                    ];
                 }
             }
 
@@ -437,14 +612,103 @@ class EconomyTickService
                 isset($cfg['min_sample']) ? $cfg['min_sample'] : null,
             );
 
-            if ($price !== null && $this->economy->insertAlert($day, $vnum, $price['kind'], [
+            if ($price !== null && $this->economy->insertAlert($day, 'item', $vnum, $price['kind'], [
                 'median_now' => $medianNow,
                 'median_baseline' => $baseline,
                 'trades' => $trades,
                 'change' => $price['change'],
                 'watched' => $watched,
             ])) {
-                $created[] = ['vnum' => $vnum, 'kind' => $price['kind'], 'change' => $price['change']];
+                $created[] = [
+                    'vnum' => $vnum,
+                    'kind' => $price['kind'],
+                    'change' => $price['change'],
+                    'subject_type' => 'item',
+                    'subject_id' => $vnum,
+                ];
+            }
+
+            $history = $this->economy->medianSeries($vnum, $day30, $day1);
+            $zAlert = EconomyAnomaly::zScoreAlert(
+                $medianNow !== null ? (float) $medianNow : null,
+                $history,
+            );
+
+            if ($zAlert !== null && $this->economy->insertAlert($day, 'item', $vnum, $zAlert['kind'], [
+                'median_now' => $medianNow,
+                'z_score' => $zAlert['z_score'],
+                'change' => $zAlert['change'],
+            ])) {
+                $created[] = [
+                    'vnum' => $vnum,
+                    'kind' => $zAlert['kind'],
+                    'change' => $zAlert['change'],
+                    'subject_type' => 'item',
+                    'subject_id' => $vnum,
+                ];
+            }
+
+            $volNow = $this->economy->tradesCountSince($vnum, $day);
+            $volAvg = $this->economy->avgDailyTrades($vnum, $day7, $day1);
+            $volAlert = EconomyAnomaly::volumeAlert($volNow, $volAvg);
+
+            if ($volAlert !== null && $this->economy->insertAlert($day, 'item', $vnum, $volAlert['kind'], [
+                'trades_now' => $volNow,
+                'trades_avg' => $volAvg,
+                'change' => $volAlert['change'],
+            ])) {
+                $created[] = [
+                    'vnum' => $vnum,
+                    'kind' => $volAlert['kind'],
+                    'change' => $volAlert['change'],
+                    'subject_type' => 'item',
+                    'subject_id' => $vnum,
+                ];
+            }
+
+            $concentration = $this->economy->tradeConcentration($vnum, $day7, 4);
+            $concAlert = EconomyAnomaly::concentrationAlert(
+                $concentration['share'],
+                $concentration['player_count'],
+                $concentration['trades'],
+            );
+
+            if ($concAlert !== null && $this->economy->insertAlert($day, 'item', $vnum, $concAlert['kind'], [
+                'share' => $concentration['share'],
+                'player_count' => $concentration['player_count'],
+                'trades' => $concentration['trades'],
+                'change' => $concAlert['change'],
+            ])) {
+                $created[] = [
+                    'vnum' => $vnum,
+                    'kind' => $concAlert['kind'],
+                    'change' => $concAlert['change'],
+                    'subject_type' => 'item',
+                    'subject_id' => $vnum,
+                ];
+            }
+        }
+
+        foreach ($this->economy->yangVelocityCandidates($day) as $cand) {
+            $vel = EconomyAnomaly::yangVelocityAlert(
+                $cand['yang_received'],
+                $cand['unique_sources'],
+                $cand['window_minutes'],
+            );
+
+            if ($vel !== null && $this->economy->insertAlert($day, 'player', $cand['pid'], $vel['kind'], [
+                'yang_received' => $cand['yang_received'],
+                'unique_sources' => $cand['unique_sources'],
+                'window_minutes' => $cand['window_minutes'],
+                'change' => $vel['change'],
+            ])) {
+                $created[] = [
+                    'vnum' => 0,
+                    'kind' => $vel['kind'],
+                    'change' => $vel['change'],
+                    'subject_type' => 'player',
+                    'subject_id' => $cand['pid'],
+                ];
             }
         }
 

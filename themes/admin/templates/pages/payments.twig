@@ -1,5 +1,96 @@
-<div class="mb-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-    {{ t('admin.payments.recredit_note') }}
-</div>
+<div class="space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-2" role="group" aria-label="{{ t('admin.payments.range_label') }}">
+            {% for opt in rangeOptions %}
+            <a href="/admin/store/payments?range={{ opt }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium {% if range == opt %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                {{ t('admin.payments.range.' ~ opt) }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
 
-{% include 'components/grid.twig' with {grid: grid} %}
+    <div class="admin-panel p-4 md:p-6">
+        <dl class="admin-stat-grid">
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.payments.kpi_paid') }}</dt>
+                <dd class="break-all">{{ kpis.paid_cents|money }}{% if currency %} {{ currency }}{% endif %}</dd>
+                {% if kpis.paid_cents_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.paid_cents_delta > 0 %}+{% endif %}{{ (kpis.paid_cents_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.payments.kpi_cash') }}</dt>
+                <dd>{{ kpis.cash_amount|number_format }}</dd>
+                {% if kpis.cash_amount_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.cash_amount_delta > 0 %}+{% endif %}{{ (kpis.cash_amount_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.payments.kpi_paid_count') }}</dt>
+                <dd>{{ kpis.paid_count|number_format }}</dd>
+                {% if kpis.paid_count_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.paid_count_delta > 0 %}+{% endif %}{{ (kpis.paid_count_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.payments.kpi_pending') }}</dt>
+                <dd>{{ kpis.pending|number_format }}</dd>
+                {% if kpis.pending_delta is not null %}
+                <dd class="text-xs font-normal text-slate-500">{% if kpis.pending_delta > 0 %}+{% endif %}{{ (kpis.pending_delta * 100)|number_format(1) }}%</dd>
+                {% endif %}
+            </div>
+            {% if kpis.refunded_cents|default(0) > 0 %}
+            <div class="admin-stat">
+                <dt>{{ t('admin.payments.kpi_refunded') }}</dt>
+                <dd class="break-all">{{ kpis.refunded_cents|money }}{% if currency %} {{ currency }}{% endif %}</dd>
+            </div>
+            {% endif %}
+        </dl>
+        {% if otherCurrencies|default([])|length > 0 %}
+        <p class="mt-3 text-xs text-slate-500">
+            {% for extra in otherCurrencies %}
+                {{ t('admin.payments.other_currency', {currency: extra.currency, amount: extra.amount_cents|money}) }}{% if not loop.last %} · {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-2">
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.payments.chart_revenue') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.payments.chart_revenue_help', {currency: currency|default('—'), days: chartDays}) }}</p>
+            <div class="mt-3">
+                {% include 'components/day-chart.twig' with {
+                    labels: revenueChart.labels|default([]),
+                    values: revenueChart.values|default([]),
+                    title: t('admin.payments.chart_revenue'),
+                    format: 'money',
+                    currency: currency|default(''),
+                    color: 'indigo',
+                    begin_zero: true
+                } %}
+            </div>
+        </div>
+        <div class="admin-panel p-4 md:p-6">
+            <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.payments.chart_cash') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('admin.payments.chart_cash_help', {days: chartDays}) }}</p>
+            <div class="mt-3">
+                {% include 'components/day-chart.twig' with {
+                    labels: cashChart.labels|default([]),
+                    values: cashChart.values|default([]),
+                    title: t('admin.payments.chart_cash'),
+                    format: 'number',
+                    color: 'emerald',
+                    begin_zero: true
+                } %}
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+        {{ t('admin.payments.recredit_note') }}
+    </div>
+
+    {% include 'components/grid.twig' with {grid: grid} %}
+</div>

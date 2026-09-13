@@ -84,22 +84,15 @@ class AdminEconomyController extends AdminController
         };
         $yangHistory = $this->economy->yangHistory($chartDays);
         $yangValues = [];
+        $yangDays = [];
         $netValues = [];
-        $yangFrom = '';
-        $yangTo = '';
 
         foreach ($yangHistory as $row) {
             $yangValues[] = (int) $row['player_yang']
                 + (int) $row['safebox_yang']
                 + (int) $row['guild_yang'];
             $netValues[] = (int) ($row['money_created'] ?? 0) - (int) ($row['money_destroyed'] ?? 0);
-            $day = (string) ($row['day'] ?? '');
-
-            if ($yangFrom === '') {
-                $yangFrom = $day;
-            }
-
-            $yangTo = $day;
+            $yangDays[] = (string) ($row['day'] ?? '');
         }
 
         $volumeRows = $this->economy->marketVolumeByDay(
@@ -107,23 +100,16 @@ class AdminEconomyController extends AdminController
             date('Y-m-d'),
         );
         $volumeValues = [];
-        $volumeFrom = '';
-        $volumeTo = '';
+        $volumeDays = [];
 
         foreach ($volumeRows as $row) {
             $volumeValues[] = (int) $row['volume_yang'];
-            $day = (string) ($row['day'] ?? '');
-
-            if ($volumeFrom === '') {
-                $volumeFrom = $day;
-            }
-
-            $volumeTo = $day;
+            $volumeDays[] = (string) ($row['day'] ?? '');
         }
 
-        $yangChart = $this->dayChart($yangValues, 560, 120);
-        $volumeChart = $this->dayChart($volumeValues, 560, 120);
-        $netChart = $this->dayChart($netValues, 560, 120);
+        $yangChart = ['labels' => $yangDays, 'values' => $yangValues];
+        $volumeChart = ['labels' => $volumeDays, 'values' => $volumeValues];
+        $netChart = ['labels' => $yangDays, 'values' => $netValues];
 
         $topSold = $this->economy->topSoldByVolume($range['from'], $range['to'], 10);
         $movers = $this->economy->topPriceMovers($range['to'], 7, 10);
@@ -168,14 +154,8 @@ class AdminEconomyController extends AdminController
                 ),
             ],
             'yangChart' => $yangChart,
-            'yangFrom' => $yangFrom,
-            'yangTo' => $yangTo,
             'volumeChart' => $volumeChart,
-            'volumeFrom' => $volumeFrom,
-            'volumeTo' => $volumeTo,
             'netChart' => $netChart,
-            'netFrom' => $yangFrom,
-            'netTo' => $yangTo,
             'chartDays' => $chartDays,
             'topSold' => $topSold,
             'movers' => $movers,
@@ -385,23 +365,15 @@ class AdminEconomyController extends AdminController
         $adviceKey = EconomyAnomaly::dropAdvice($supplyChange, $priceChange);
 
         $supplyValues = [];
-        $supplyFrom = '';
-        $supplyTo = '';
+        $supplyDays = [];
 
         foreach ($history as $row) {
             $supplyValues[] = (int) ($row['units'] ?? 0);
-            $day = (string) ($row['day'] ?? '');
-
-            if ($supplyFrom === '') {
-                $supplyFrom = $day;
-            }
-
-            $supplyTo = $day;
+            $supplyDays[] = (string) ($row['day'] ?? '');
         }
 
         $priceValues = [];
-        $priceFrom = '';
-        $priceTo = '';
+        $priceDays = [];
 
         foreach ($market as $row) {
             if ($row['median_price'] === null) {
@@ -409,17 +381,11 @@ class AdminEconomyController extends AdminController
             }
 
             $priceValues[] = (int) $row['median_price'];
-            $day = (string) ($row['day'] ?? '');
-
-            if ($priceFrom === '') {
-                $priceFrom = $day;
-            }
-
-            $priceTo = $day;
+            $priceDays[] = (string) ($row['day'] ?? '');
         }
 
-        $supplyChart = $this->dayChart($supplyValues, 560, 120);
-        $priceChart = $this->dayChart($priceValues, 560, 120);
+        $supplyChart = ['labels' => $supplyDays, 'values' => $supplyValues];
+        $priceChart = ['labels' => $priceDays, 'values' => $priceValues];
 
         return $this->adminView('economy', 'pages/economy-item.twig', [
             'title' => $this->t('admin.economy.item_title', ['name' => $name]),
@@ -442,11 +408,7 @@ class AdminEconomyController extends AdminController
             'priceChange' => $priceChange,
             'unitsDelta' => $unitsDelta,
             'supplyChart' => $supplyChart,
-            'supplyFrom' => $supplyFrom,
-            'supplyTo' => $supplyTo,
             'priceChart' => $priceChart,
-            'priceFrom' => $priceFrom,
-            'priceTo' => $priceTo,
             'formId' => 'admin-economy-watch-form',
             'saveLabel' => $this->t('admin.economy.save_watch'),
         ]);
@@ -612,65 +574,6 @@ class AdminEconomyController extends AdminController
         }
 
         return ((float) $now / (float) $prev) - 1.0;
-    }
-
-    /**
-     * @param list<int|float> $values
-     * @return array{points: string, area: string, min_label: string, max_label: string}
-     */
-    private function dayChart(array $values, int $width = 560, int $height = 120): array
-    {
-        $empty = ['points' => '', 'area' => '', 'min_label' => '', 'max_label' => ''];
-
-        if (count($values) < 2) {
-            return $empty;
-        }
-
-        $min = min($values);
-        $max = max($values);
-        $span = $max - $min;
-
-        if ($span == 0.0) {
-            $span = 1.0;
-        }
-
-        $padX = 4.0;
-        $padY = 8.0;
-        $n = count($values);
-        $pts = [];
-
-        foreach ($values as $i => $v) {
-            $x = $padX + ($i / ($n - 1)) * ($width - $padX * 2);
-            $y = ($height - $padY) - (((float) $v - $min) / $span) * ($height - $padY * 2);
-            $pts[] = [round($x, 1), round($y, 1)];
-        }
-
-        $line = [];
-
-        foreach ($pts as $p) {
-            $line[] = $p[0] . ',' . $p[1];
-        }
-
-        $first = $pts[0];
-        $last = $pts[count($pts) - 1];
-        $area = $line;
-        $area[] = $last[0] . ',' . ($height - 2);
-        $area[] = $first[0] . ',' . ($height - 2);
-
-        return [
-            'points' => implode(' ', $line),
-            'area' => implode(' ', $area),
-            'min_label' => number_format((float) $min),
-            'max_label' => number_format((float) $max),
-        ];
-    }
-
-    /**
-     * @param list<int|float> $values
-     */
-    private function sparklinePoints(array $values, int $width = 220, int $height = 48): string
-    {
-        return $this->dayChart($values, $width, $height)['points'];
     }
 
     private function formatPct(mixed $value): string

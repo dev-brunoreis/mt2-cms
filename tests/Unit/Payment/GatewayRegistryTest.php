@@ -41,32 +41,32 @@ final class GatewayRegistryTest extends TestCase
     public function testResolvePicksConfiguredGatewayById(): void
     {
         $paypal = $this->gateway('paypal', configured: true, enabled: true);
-        $mp = $this->gateway('mercadopago', configured: true, enabled: true);
+        $other = $this->gateway('other', configured: true, enabled: true);
 
         $registry = new GatewayRegistry();
         $registry->register($paypal);
-        $registry->register($mp);
+        $registry->register($other);
 
         self::assertSame($paypal, $registry->active());
-        self::assertSame($mp, $registry->resolve('mercadopago'));
+        self::assertSame($other, $registry->resolve('other'));
         self::assertCount(2, $registry->available());
     }
 
     public function testDisabledGatewayIsConfiguredButNotAvailable(): void
     {
         $paypal = $this->gateway('paypal', configured: true, enabled: false);
-        $mp = $this->gateway('mercadopago', configured: true, enabled: true);
+        $other = $this->gateway('other', configured: true, enabled: true);
 
         $registry = new GatewayRegistry();
         $registry->register($paypal);
-        $registry->register($mp);
+        $registry->register($other);
 
         self::assertCount(2, $registry->configured());
         self::assertCount(1, $registry->available());
-        self::assertSame($mp, $registry->active());
+        self::assertSame($other, $registry->active());
         self::assertNull($registry->resolve('paypal'));
-        self::assertSame($mp, $registry->resolve('mercadopago'));
-        self::assertSame($mp, $registry->resolve(null));
+        self::assertSame($other, $registry->resolve('other'));
+        self::assertSame($other, $registry->resolve(null));
     }
 
     private function gateway(string $id, bool $configured, bool $enabled): PaymentGateway

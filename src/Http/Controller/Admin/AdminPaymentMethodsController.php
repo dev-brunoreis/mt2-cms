@@ -48,14 +48,8 @@ class AdminPaymentMethodsController extends AdminController
             return $this->redirect(AdminPaths::settingsPaymentMethods());
         }
 
-        $gateway = trim((string) ($_POST['gateway'] ?? 'paypal'));
-
         try {
-            if ($gateway === 'mercadopago') {
-                $this->saveMercadoPago();
-            } else {
-                $this->savePaypal();
-            }
+            $this->savePaypal();
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
 
@@ -91,31 +85,6 @@ class AdminPaymentMethodsController extends AdminController
         );
     }
 
-    private function saveMercadoPago(): void
-    {
-        $tokenPosted = SettingsService::postedSecret((string) ($_POST['mp_access_token'] ?? ''));
-        $secretPosted = SettingsService::postedSecret((string) ($_POST['mp_webhook_secret'] ?? ''));
-        $before = $this->mpAuditSnapshot();
-
-        $this->settings->setMercadoPagoEnabled(isset($_POST['mp_enabled']));
-        $this->settings->setMercadoPagoCurrency(trim((string) ($_POST['mp_currency'] ?? 'BRL')));
-        if ($tokenPosted !== null) {
-            $this->settings->setMercadoPagoAccessToken($tokenPosted);
-        }
-        if ($secretPosted !== null) {
-            $this->settings->setMercadoPagoWebhookSecret($secretPosted);
-        }
-        $this->settings->setMercadoPagoPendingMinutes((int) ($_POST['mp_pending_minutes'] ?? 30));
-
-        $this->auditChange(
-            'settings.payment_methods_save',
-            'settings',
-            null,
-            $before,
-            $this->mpAuditSnapshot($tokenPosted !== null || $secretPosted !== null),
-        );
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -134,26 +103,6 @@ class AdminPaymentMethodsController extends AdminController
 
         if ($secretUpdated) {
             $snapshot['paypal_secret_updated'] = true;
-        }
-
-        return $snapshot;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function mpAuditSnapshot(bool $secretsUpdated = false): array
-    {
-        $snapshot = [
-            'gateway' => 'mercadopago',
-            'mp_enabled' => $this->settings->mercadoPagoEnabled(),
-            'mp_currency' => $this->settings->mercadoPagoCurrency(),
-            'mp_pending_minutes' => $this->settings->mercadoPagoPendingMinutes(),
-            'mp_configured' => $this->settings->mercadoPagoConfigured(),
-        ];
-
-        if ($secretsUpdated) {
-            $snapshot['mp_secrets_updated'] = true;
         }
 
         return $snapshot;

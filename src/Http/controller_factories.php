@@ -76,7 +76,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->adminTotp, $app->settings,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminDashboardController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDashboardController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->paymentStats,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminSettingsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService, $app->paymentGateways,
@@ -193,6 +193,6 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->cashPackages, $app->settings,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminPaymentsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminPaymentsController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->payments, $app->paymentEvents, $app->paymentWebhookProcessor, $app->cashCredits, $app->paymentExpiry,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->payments, $app->paymentEvents, $app->paymentWebhookProcessor, $app->cashCredits, $app->paymentExpiry, $app->paymentStats,
     ),
 ];

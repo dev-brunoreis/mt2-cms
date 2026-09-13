@@ -96,6 +96,7 @@ use Mt2Cms\Service\BannerUploadService;
 use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Service\PaymentCheckoutService;
 use Mt2Cms\Service\PaymentExpiryService;
+use Mt2Cms\Service\PaymentStatsService;
 use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
@@ -189,6 +190,7 @@ class Application
     public CashCreditService $cashCredits;
     public PaymentCheckoutService $paymentCheckout;
     public PaymentExpiryService $paymentExpiry;
+    public PaymentStatsService $paymentStats;
     public EventRepository $events;
     public EventService $eventService;
     public DiscordWebhookService $discord;

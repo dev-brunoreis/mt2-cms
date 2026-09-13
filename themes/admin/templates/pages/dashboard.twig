@@ -14,6 +14,51 @@
     </div>
     {% endif %}
 
+    {% if canPayments|default(false) and finance is defined %}
+    <div class="admin-panel p-4 md:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.dashboard.finance_title') }}</h2>
+                <p class="mt-1 text-sm text-slate-500">{{ t('admin.dashboard.finance_lead') }}</p>
+            </div>
+            <a class="text-sm font-medium text-indigo-600 hover:underline" href="{{ paymentsHref }}">{{ t('admin.dashboard.finance_link') }}</a>
+        </div>
+        <dl class="admin-stat-grid mt-4">
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.dashboard.finance_paid') }}</dt>
+                <dd class="break-all">{{ finance.paid_cents|money }}{% if finance.currency %} {{ finance.currency }}{% endif %}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.dashboard.finance_cash') }}</dt>
+                <dd>{{ finance.cash_amount|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.dashboard.finance_pending') }}</dt>
+                <dd>{{ finance.open_pending|number_format }}</dd>
+            </div>
+        </dl>
+        {% if finance.other_currencies|default([])|length > 0 %}
+        <p class="mt-3 text-xs text-slate-500">
+            {% for extra in finance.other_currencies %}
+                {{ t('admin.dashboard.finance_other_currency', {currency: extra.currency, amount: extra.amount_cents|money}) }}{% if not loop.last %} · {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+        <div class="mt-4">
+            {% include 'components/day-chart.twig' with {
+                labels: finance.spark.labels|default([]),
+                values: finance.spark.values|default([]),
+                title: t('admin.dashboard.finance_paid'),
+                format: 'money',
+                currency: finance.currency|default(''),
+                color: 'indigo',
+                begin_zero: true,
+                compact: true
+            } %}
+        </div>
+    </div>
+    {% endif %}
+
     {% if canPlayers|default(false) %}
     <div class="admin-panel overflow-hidden">
         {% include 'components/grid.twig' with {grid: grid} %}

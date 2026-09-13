@@ -63,51 +63,38 @@
         <div class="admin-panel p-4 md:p-6">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_yang_supply') }}</h2>
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_yang_supply_help', {days: chartDays}) }}</p>
-            <div class="mt-3 text-indigo-600">
+            <div class="mt-3">
                 {% include 'components/day-chart.twig' with {
-                    points: yangChart.points|default(''),
-                    area: yangChart.area|default(''),
-                    min_label: yangChart.min_label|default(''),
-                    max_label: yangChart.max_label|default(''),
-                    from_label: yangFrom|default(''),
-                    to_label: yangTo|default(''),
+                    labels: yangChart.labels|default([]),
+                    values: yangChart.values|default([]),
                     title: t('admin.economy.chart_yang_supply'),
-                    width: 400,
-                    height: 110
+                    color: 'indigo',
+                    begin_zero: true
                 } %}
             </div>
         </div>
         <div class="admin-panel p-4 md:p-6">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_market_volume') }}</h2>
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_market_volume_help', {days: chartDays}) }}</p>
-            <div class="mt-3 text-emerald-600">
+            <div class="mt-3">
                 {% include 'components/day-chart.twig' with {
-                    points: volumeChart.points|default(''),
-                    area: volumeChart.area|default(''),
-                    min_label: volumeChart.min_label|default(''),
-                    max_label: volumeChart.max_label|default(''),
-                    from_label: volumeFrom|default(''),
-                    to_label: volumeTo|default(''),
+                    labels: volumeChart.labels|default([]),
+                    values: volumeChart.values|default([]),
                     title: t('admin.economy.chart_market_volume'),
-                    width: 400,
-                    height: 110
+                    color: 'emerald',
+                    begin_zero: true
                 } %}
             </div>
         </div>
         <div class="admin-panel p-4 md:p-6">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.economy.chart_yang_flow') }}</h2>
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_yang_flow_help', {days: chartDays}) }}</p>
-            <div class="mt-3 text-amber-600">
+            <div class="mt-3">
                 {% include 'components/day-chart.twig' with {
-                    points: netChart.points|default(''),
-                    area: netChart.area|default(''),
-                    min_label: netChart.min_label|default(''),
-                    max_label: netChart.max_label|default(''),
-                    from_label: netFrom|default(''),
-                    to_label: netTo|default(''),
+                    labels: netChart.labels|default([]),
+                    values: netChart.values|default([]),
                     title: t('admin.economy.chart_yang_flow'),
-                    width: 400,
-                    height: 110
+                    color: 'amber'
                 } %}
             </div>
         </div>

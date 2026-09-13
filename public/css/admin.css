@@ -2472,3 +2472,13 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   }
 }
 
+.admin-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 11.5rem;
+}
+
+.admin-chart-wrap.is-compact {
+  height: 9rem;
+}
+

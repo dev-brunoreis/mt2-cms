@@ -810,7 +810,18 @@
                 "12h": "12 hours",
                 "24h": "24 hours",
                 "7d": "1 week"
-            }
+            },
+            "finance_title": "Donations",
+            "finance_lead": "Paid top-ups in the last 7 days.",
+            "finance_paid": "Paid (7 days)",
+            "finance_cash": "Cash credited (7 days)",
+            "finance_pending": "Open pending",
+            "finance_link": "View payments",
+            "finance_other_currency": "Also {currency} {amount}"
+        },
+        "chart": {
+            "empty": "Not enough history for a chart yet.",
+            "range": "min {min} · max {max}"
         },
         "toggle_menu": "Toggle menu",
         "resources": {
@@ -2527,13 +2538,7 @@
             "paypal_webhook_help": "Webhook URL: {url}. Required for signature verification.",
             "paypal_webhook_id_help": "From PayPal Developer → Webhooks. Required in production to verify POST /payments/webhook/paypal.",
             "paypal_pending_minutes": "Pending checkout timeout (minutes)",
-            "paypal_pending_minutes_help": "Unpaid PayPal checkouts are cancelled after this many minutes (5–180). The player is notified.",
-            "mercadopago": "Mercado Pago",
-            "mercadopago_meta": "Checkout Pro + PIX",
-            "mercadopago_help": "Checkout Pro preferences with PIX as a payment method. Access token and webhook secret are stored encrypted.",
-            "mp_access_token": "Access token",
-            "mp_webhook_secret": "Webhook secret",
-            "mp_webhook_help": "Webhook URL: {url}. Paste the signing secret from Mercado Pago."
+            "paypal_pending_minutes_help": "Unpaid PayPal checkouts are cancelled after this many minutes (5–180). The player is notified."
         },
         "events": {
             "title": "Events",
@@ -2603,6 +2608,22 @@
             "title": "Payments",
             "lead": "PayPal top-ups and cash credit status.",
             "recredit_note": "If cash was not credited automatically, use recredit from the payment row (supervised).",
+            "range_label": "Period",
+            "range": {
+                "today": "Today",
+                "7d": "7 days",
+                "30d": "30 days"
+            },
+            "kpi_paid": "Paid",
+            "kpi_cash": "Cash credited",
+            "kpi_paid_count": "Paid orders",
+            "kpi_pending": "Pending",
+            "kpi_refunded": "Refunded",
+            "chart_revenue": "Paid revenue",
+            "chart_revenue_help": "Daily paid amount in {currency} ({days} days).",
+            "chart_cash": "Cash credited",
+            "chart_cash_help": "Daily cash credited ({days} days).",
+            "other_currency": "Also {currency} {amount}",
             "not_found": "Payment not found.",
             "already_credited": "Already credited.",
             "recredited": "Cash credited.",

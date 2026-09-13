@@ -1,22 +1,28 @@
-{# Day series chart: points string + labels/min/max from controller. #}
-{% set w = width|default(560) %}
-{% set h = height|default(120) %}
-{% if points|default('') != '' %}
-<figure class="{{ class|default('') }}">
-  <svg class="block w-full max-w-full text-indigo-600" width="{{ w }}" height="{{ h }}" viewBox="0 0 {{ w }} {{ h }}" role="img" aria-label="{{ title|default('') }}">
-    {% if area|default('') != '' %}
-    <polygon fill="currentColor" fill-opacity="0.12" points="{{ area }}" />
-    {% endif %}
-    <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="{{ points }}" />
-  </svg>
-  <figcaption class="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-    <span>{{ from_label|default('') }}</span>
-    {% if min_label is defined and max_label is defined %}
-    <span>{{ t('admin.economy.chart_range', {min: min_label, max: max_label}) }}</span>
-    {% endif %}
-    <span>{{ to_label|default('') }}</span>
-  </figcaption>
+{# Day series: labels + values (JSON on the canvas; Chart.js in admin-charts.js). #}
+{% set labels = labels|default([]) %}
+{% set values = values|default([]) %}
+{% set color = color|default('indigo') %}
+{% set format = format|default('number') %}
+{% if values|length >= 2 %}
+<figure class="admin-chart {{ class|default('') }}">
+    <div class="admin-chart-wrap{% if compact|default(false) %} is-compact{% endif %}">
+        <canvas
+            data-admin-chart
+            data-labels="{{ labels|json_encode|e('html_attr') }}"
+            data-values="{{ values|json_encode|e('html_attr') }}"
+            data-format="{{ format }}"
+            data-color="{{ color }}"
+            data-currency="{{ currency|default('') }}"
+            {% if begin_zero|default(false) %}data-begin-zero="1"{% endif %}
+            role="img"
+            aria-label="{{ title|default('') }}"
+        ></canvas>
+    </div>
+    <figcaption class="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <span>{{ labels|first }}</span>
+        <span>{{ labels|last }}</span>
+    </figcaption>
 </figure>
 {% else %}
-<p class="text-sm text-slate-400">{{ t('admin.economy.spark_empty') }}</p>
+<p class="text-sm text-slate-400">{{ t('admin.chart.empty') }}</p>
 {% endif %}

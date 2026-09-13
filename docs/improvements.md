@@ -179,7 +179,7 @@ Organization backlog below is largely done (DI bootstrap, proto `page()` removal
 2. ~~i18n multi-file when PT-BR lands (`Translator` / `Locales`)~~ — loader supports `lang/{locale}/*.json` (single-file `en.json` kept)
 3. ~~Optionally fold `AdminSectionCatalog` helpers into Sections~~ — done (`AdminSections`); do not merge ACL catalogs casually
 
-Also done: layout `extends` + widget slots, `slate` child theme, MIT license, payment `GatewayRegistry` + Mercado Pago gateway, optional public equipment paperdoll.
+Also done: layout `extends` + widget slots, `slate` child theme, MIT license, payment `GatewayRegistry`, optional public equipment paperdoll.
 
 Done (production hardening): file-backed rate limit, RBAC, audit log, admin session cookie split, self-hosted assets/CSP, migrations off hot path, exception handler, idle sessions, `APP_KEY`/encrypted TOTP, 2FA defaults, player password change. See [deploy.md](deploy.md).
 

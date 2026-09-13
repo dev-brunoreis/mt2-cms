@@ -27,11 +27,11 @@ final class PaymentWebhookEnvelopeTest extends TestCase
         );
     }
 
-    public function testMercadoPagoEventIdPrefersTopLevelId(): void
+    public function testGenericProviderEventIdPrefersTopLevelId(): void
     {
         self::assertSame(
             '999',
-            PaymentWebhookEnvelope::eventId('mercadopago', [
+            PaymentWebhookEnvelope::eventId('other', [
                 'id' => 999,
                 'data' => ['id' => 'pay-1'],
             ], '{}'),

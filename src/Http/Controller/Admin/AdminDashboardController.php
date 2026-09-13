@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mt2Cms\Http\Controller\Admin;
 
+use Mt2Cms\Admin\AdminPaths;
 use Mt2Cms\Admin\Grid\Definitions\DashboardPlayersGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Auth\AdminAuth;
@@ -14,6 +15,7 @@ use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\PaymentStatsService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminDashboardController extends AdminController
@@ -28,6 +30,7 @@ class AdminDashboardController extends AdminController
         AclService $acl,
         AdminAuditService $auditLog,
         private PlayerRepository $players,
+        private PaymentStatsService $paymentStats,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -37,12 +40,14 @@ class AdminDashboardController extends AdminController
         $user = $this->adminAuth->user();
         $canStats = $this->acl->isAllowed($user, 'overview/dashboard/stats/view');
         $canPlayers = $this->acl->isAllowed($user, 'overview/dashboard/players/view');
+        $canPayments = $this->acl->isAllowed($user, 'store/payments/view');
 
         $data = [
             'title' => $this->t('admin.dashboard.title'),
             'pageLead' => $this->t('admin.dashboard.lead'),
             'canStats' => $canStats,
             'canPlayers' => $canPlayers,
+            'canPayments' => $canPayments,
         ];
 
         if ($canStats) {
@@ -52,6 +57,11 @@ class AdminDashboardController extends AdminController
             $minutes = PlayerRepository::rangeMinutes($range);
             $data['playerCount'] = $this->players->countActiveSinceMinutes($minutes);
             $data['accountCount'] = $this->players->countAccountsActiveSinceMinutes($minutes);
+        }
+
+        if ($canPayments) {
+            $data['finance'] = $this->paymentStats->dashboardSnapshot();
+            $data['paymentsHref'] = AdminPaths::storePayments();
         }
 
         if ($canPlayers) {

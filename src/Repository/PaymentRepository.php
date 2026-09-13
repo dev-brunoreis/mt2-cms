@@ -184,6 +184,169 @@ class PaymentRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
+     * @return list<array{currency: string, amount_cents: int, paid_count: int}>
+     */
+    public function paidTotalsByCurrency(string $from, string $to): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT currency,
+                    COALESCE(SUM(amount_cents), 0) AS amount_cents,
+                    COUNT(*) AS paid_count
+             FROM cms_payments
+             WHERE status = ?
+               AND created_at >= ?
+               AND created_at < ?
+             GROUP BY currency
+             ORDER BY amount_cents DESC, currency ASC',
+            ['paid', $from, $to],
+        );
+
+        return array_map(static function (array $row): array {
+            return [
+                'currency' => strtoupper((string) ($row['currency'] ?? '')),
+                'amount_cents' => (int) ($row['amount_cents'] ?? 0),
+                'paid_count' => (int) ($row['paid_count'] ?? 0),
+            ];
+        }, $rows);
+    }
+
+    /**
+     * @return array{
+     *   pending: int,
+     *   failed: int,
+     *   expired: int,
+     *   refunded: int,
+     *   refunded_by_currency: list<array{currency: string, amount_cents: int}>
+     * }
+     */
+    public function statusCounts(string $from, string $to): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT status, COUNT(*) AS cnt
+             FROM cms_payments
+             WHERE created_at >= ?
+               AND created_at < ?
+               AND status IN (?, ?, ?, ?)
+             GROUP BY status',
+            [$from, $to, 'pending', 'failed', 'expired', 'refunded'],
+        );
+
+        $counts = [
+            'pending' => 0,
+            'failed' => 0,
+            'expired' => 0,
+            'refunded' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $status = (string) ($row['status'] ?? '');
+
+            if (isset($counts[$status])) {
+                $counts[$status] = (int) ($row['cnt'] ?? 0);
+            }
+        }
+
+        $refundedRows = $this->db()->fetchAll(
+            'SELECT currency, COALESCE(SUM(amount_cents), 0) AS amount_cents
+             FROM cms_payments
+             WHERE status = ?
+               AND created_at >= ?
+               AND created_at < ?
+             GROUP BY currency
+             ORDER BY amount_cents DESC, currency ASC',
+            ['refunded', $from, $to],
+        );
+
+        $counts['refunded_by_currency'] = array_map(static function (array $row): array {
+            return [
+                'currency' => strtoupper((string) ($row['currency'] ?? '')),
+                'amount_cents' => (int) ($row['amount_cents'] ?? 0),
+            ];
+        }, $refundedRows);
+
+        return $counts;
+    }
+
+    /**
+     * @return array{cash_amount: int, count: int}
+     */
+    public function cashCredited(string $from, string $to): array
+    {
+        $row = $this->db()->fetch(
+            'SELECT COALESCE(SUM(cash_amount), 0) AS cash_amount, COUNT(*) AS cnt
+             FROM cms_payments
+             WHERE credited_at IS NOT NULL
+               AND credited_at >= ?
+               AND credited_at < ?',
+            [$from, $to],
+        );
+
+        return [
+            'cash_amount' => (int) ($row['cash_amount'] ?? 0),
+            'count' => (int) ($row['cnt'] ?? 0),
+        ];
+    }
+
+    public function openPendingCount(): int
+    {
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM cms_payments WHERE status = ?',
+            ['pending'],
+        );
+    }
+
+    /**
+     * @return list<array{day: string, amount_cents: int}>
+     */
+    public function dailyPaid(string $from, string $to, string $currency): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT DATE(created_at) AS day,
+                    COALESCE(SUM(amount_cents), 0) AS amount_cents
+             FROM cms_payments
+             WHERE status = ?
+               AND currency = ?
+               AND created_at >= ?
+               AND created_at < ?
+             GROUP BY DATE(created_at)
+             ORDER BY day ASC',
+            ['paid', $currency, $from, $to],
+        );
+
+        return array_map(static function (array $row): array {
+            return [
+                'day' => (string) ($row['day'] ?? ''),
+                'amount_cents' => (int) ($row['amount_cents'] ?? 0),
+            ];
+        }, $rows);
+    }
+
+    /**
+     * @return list<array{day: string, cash_amount: int}>
+     */
+    public function dailyCashCredited(string $from, string $to): array
+    {
+        $rows = $this->db()->fetchAll(
+            'SELECT DATE(credited_at) AS day,
+                    COALESCE(SUM(cash_amount), 0) AS cash_amount
+             FROM cms_payments
+             WHERE credited_at IS NOT NULL
+               AND credited_at >= ?
+               AND credited_at < ?
+             GROUP BY DATE(credited_at)
+             ORDER BY day ASC',
+            [$from, $to],
+        );
+
+        return array_map(static function (array $row): array {
+            return [
+                'day' => (string) ($row['day'] ?? ''),
+                'cash_amount' => (int) ($row['cash_amount'] ?? 0),
+            ];
+        }, $rows);
+    }
+
+    /**
      * @return array{0: string, 1: list<mixed>}
      */
     private function gridWhere(GridQuery $query): array

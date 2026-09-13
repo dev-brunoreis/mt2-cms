@@ -128,7 +128,7 @@ final class PaymentCheckoutServiceTest extends TestCase
 
         $payments = $this->createMock(PaymentRepository::class);
         $payments->expects(self::once())->method('createPending')->with(self::callback(
-            static fn (array $row): bool => ($row['provider'] ?? '') === 'mercadopago',
+            static fn (array $row): bool => ($row['provider'] ?? '') === 'other',
         ))->willReturn(['id' => 11]);
         $payments->expects(self::once())->method('updateProviderRef')->with(11, 'PREF-1');
 
@@ -139,17 +139,17 @@ final class PaymentCheckoutServiceTest extends TestCase
         $paypal->method('currency')->willReturn('USD');
         $paypal->expects(self::never())->method('createCheckout');
 
-        $mp = $this->createMock(PaymentGateway::class);
-        $mp->method('id')->willReturn('mercadopago');
-        $mp->method('configured')->willReturn(true);
-        $mp->method('enabled')->willReturn(true);
-        $mp->method('currency')->willReturn('BRL');
-        $mp->expects(self::once())->method('createCheckout')
-            ->willReturn(new CheckoutRedirect('PREF-1', 'https://mp.test/checkout'));
+        $other = $this->createMock(PaymentGateway::class);
+        $other->method('id')->willReturn('other');
+        $other->method('configured')->willReturn(true);
+        $other->method('enabled')->willReturn(true);
+        $other->method('currency')->willReturn('BRL');
+        $other->expects(self::once())->method('createCheckout')
+            ->willReturn(new CheckoutRedirect('PREF-1', 'https://other.test/checkout'));
 
         $registry = new GatewayRegistry();
         $registry->register($paypal);
-        $registry->register($mp);
+        $registry->register($other);
 
         $settings = $this->createMock(SettingsService::class);
         $settings->method('siteUrl')->willReturn('https://example.test');
@@ -163,9 +163,9 @@ final class PaymentCheckoutServiceTest extends TestCase
             $this->createMock(PaymentExpiryService::class),
         );
 
-        $result = $service->startCheckout(5, 'player1', 3, 'mercadopago');
+        $result = $service->startCheckout(5, 'player1', 3, 'other');
 
-        self::assertSame('https://mp.test/checkout', $result['approval_url']);
+        self::assertSame('https://other.test/checkout', $result['approval_url']);
     }
 
     public function testStartCheckoutRejectsDisabledGatewayEvenWhenConfigured(): void

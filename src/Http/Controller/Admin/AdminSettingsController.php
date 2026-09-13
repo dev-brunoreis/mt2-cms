@@ -446,8 +446,6 @@ class AdminSettingsController extends AdminController
                 $meta = $this->t($this->settings->paypalMode() === 'live'
                     ? 'admin.payment_methods.paypal_live'
                     : 'admin.payment_methods.paypal_sandbox');
-            } elseif ($id === 'mercadopago') {
-                $meta = $this->t('admin.payment_methods.mercadopago_meta');
             }
 
             $methods[] = [
@@ -474,12 +472,6 @@ class AdminSettingsController extends AdminController
             'paypalSecretSet' => $this->settings->paypalClientSecret() !== '',
             'paypalWebhookId' => $this->settings->paypalWebhookId(),
             'paypalPendingMinutes' => $this->settings->paypalPendingMinutes(),
-            'mpEnabled' => $this->settings->mercadoPagoEnabled(),
-            'mpCurrency' => $this->settings->mercadoPagoCurrency(),
-            'mpConfigured' => $this->settings->mercadoPagoConfigured(),
-            'mpTokenSet' => $this->settings->mercadoPagoAccessToken() !== '',
-            'mpSecretSet' => $this->settings->mercadoPagoWebhookSecret() !== '',
-            'mpPendingMinutes' => $this->settings->mercadoPagoPendingMinutes(),
             'secretPlaceholder' => SettingsService::SECRET_UI_PLACEHOLDER,
         ];
     }

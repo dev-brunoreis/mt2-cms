@@ -139,15 +139,11 @@
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_supply_help') }}</p>
             <div class="mt-3">
                 {% include 'components/day-chart.twig' with {
-                    points: supplyChart.points|default(''),
-                    area: supplyChart.area|default(''),
-                    min_label: supplyChart.min_label|default(''),
-                    max_label: supplyChart.max_label|default(''),
-                    from_label: supplyFrom|default(''),
-                    to_label: supplyTo|default(''),
+                    labels: supplyChart.labels|default([]),
+                    values: supplyChart.values|default([]),
                     title: t('admin.economy.chart_supply'),
-                    width: 560,
-                    height: 120
+                    color: 'indigo',
+                    begin_zero: true
                 } %}
             </div>
         </div>
@@ -156,15 +152,11 @@
             <p class="mt-1 text-sm text-slate-500">{{ t('admin.economy.chart_price_help') }}</p>
             <div class="mt-3">
                 {% include 'components/day-chart.twig' with {
-                    points: priceChart.points|default(''),
-                    area: priceChart.area|default(''),
-                    min_label: priceChart.min_label|default(''),
-                    max_label: priceChart.max_label|default(''),
-                    from_label: priceFrom|default(''),
-                    to_label: priceTo|default(''),
+                    labels: priceChart.labels|default([]),
+                    values: priceChart.values|default([]),
                     title: t('admin.economy.chart_price'),
-                    width: 560,
-                    height: 120
+                    color: 'emerald',
+                    begin_zero: true
                 } %}
             </div>
         </div>

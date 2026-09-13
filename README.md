@@ -83,7 +83,7 @@ Themes live under `themes/{name}/`:
 
 ## Payments
 
-Donate uses **PayPal** today (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers (e.g. Mercado Pago / PIX) can plug in without rewriting the donate flow.
+Donate uses **PayPal** (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers can plug in without rewriting the donate flow.
 
 ## Implementing
 

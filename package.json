@@ -4,10 +4,12 @@
   "scripts": {
     "build:css": "tailwindcss -i resources/css/app.css -o public/css/app.css --minify",
     "vendor:tinymce": "node scripts/vendor-tinymce.mjs",
-    "build": "npm run build:css && npm run vendor:tinymce"
+    "vendor:chartjs": "node scripts/vendor-chartjs.mjs",
+    "build": "npm run build:css && npm run vendor:tinymce && npm run vendor:chartjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
+    "chart.js": "^4.5.1",
     "tailwindcss": "^4.1.13",
     "tinymce": "^7.6.0"
   }

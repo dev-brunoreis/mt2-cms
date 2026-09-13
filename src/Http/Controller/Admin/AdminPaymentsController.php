@@ -17,6 +17,7 @@ use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\CashCreditService;
 use Mt2Cms\Service\PaymentExpiryService;
+use Mt2Cms\Service\PaymentStatsService;
 use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Theme\ThemeEngine;
 
@@ -36,6 +37,7 @@ class AdminPaymentsController extends AdminController
         private PaymentWebhookProcessor $webhookProcessor,
         private CashCreditService $credits,
         private PaymentExpiryService $expiry,
+        private PaymentStatsService $paymentStats,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -52,10 +54,22 @@ class AdminPaymentsController extends AdminController
             fn ($q) => $this->payments->listForGrid($q),
         );
 
+        $overview = $this->paymentStats->paymentsOverview((string) ($_GET['range'] ?? '7d'));
+
         return $this->adminView('payments', 'pages/payments.twig', [
             'title' => $this->t('admin.payments.title'),
             'pageLead' => $this->t('admin.payments.lead'),
             'grid' => $grid,
+            'range' => $overview['range'],
+            'rangeOptions' => $overview['range_options'],
+            'currency' => $overview['currency'],
+            'otherCurrencies' => $overview['other_currencies'],
+            'chartDays' => $overview['chart_days'],
+            'chartFrom' => $overview['chart_from'],
+            'chartTo' => $overview['chart_to'],
+            'kpis' => $overview['kpis'],
+            'revenueChart' => $overview['revenue_chart'],
+            'cashChart' => $overview['cash_chart'],
         ]);
     }
 

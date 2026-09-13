@@ -8,7 +8,16 @@
             <span class="admin-fieldset-help">{{ t('admin.payment_methods.paypal_help') }}</span>
         </legend>
 
-        <div class="grid gap-4 sm:grid-cols-2">
+        <label class="admin-toggle-row cursor-pointer">
+            <input type="checkbox" name="paypal_enabled" value="1"
+                   {% if paypalEnabled|default(true) %}checked{% endif %}>
+            <span>
+                <span class="block text-sm font-semibold text-slate-900">{{ t('admin.payment_methods.enable') }}</span>
+                <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.payment_methods.enable_help') }}</span>
+            </span>
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2 mt-4">
             <div class="admin-field">
                 <label for="paypal-mode">{{ t('admin.payment_methods.paypal_mode') }}</label>
                 <select id="paypal-mode" name="paypal_mode" class="admin-input">
@@ -28,8 +37,8 @@
             </div>
             <div class="admin-field sm:col-span-2">
                 <label for="paypal-client-secret">{{ t('admin.payment_methods.paypal_client_secret') }}</label>
-                <input id="paypal-client-secret" type="password" name="paypal_client_secret" autocomplete="new-password"
-                       value="" class="admin-input">
+                <input id="paypal-client-secret" type="password" name="paypal_client_secret" autocomplete="off"
+                       value="{{ paypalSecretSet|default(false) ? secretPlaceholder|default('') : '' }}" class="admin-input">
                 {% if paypalSecretSet|default(false) %}
                     <span class="admin-field-help">{{ t('admin.payment_methods.secret_keep') }}</span>
                 {% endif %}

@@ -69,13 +69,16 @@ class AdminPaymentMethodsController extends AdminController
 
     private function savePaypal(): void
     {
-        $secretPosted = trim((string) ($_POST['paypal_client_secret'] ?? ''));
+        $secretPosted = SettingsService::postedSecret((string) ($_POST['paypal_client_secret'] ?? ''));
         $before = $this->paypalAuditSnapshot();
 
+        $this->settings->setPaypalEnabled(isset($_POST['paypal_enabled']));
         $this->settings->setPaypalMode(trim((string) ($_POST['paypal_mode'] ?? 'sandbox')));
         $this->settings->setPaypalCurrency(trim((string) ($_POST['paypal_currency'] ?? 'USD')));
         $this->settings->setPaypalClientId(trim((string) ($_POST['paypal_client_id'] ?? '')));
-        $this->settings->setPaypalClientSecret($secretPosted);
+        if ($secretPosted !== null) {
+            $this->settings->setPaypalClientSecret($secretPosted);
+        }
         $this->settings->setPaypalWebhookId(trim((string) ($_POST['paypal_webhook_id'] ?? '')));
         $this->settings->setPaypalPendingMinutes((int) ($_POST['paypal_pending_minutes'] ?? 30));
 
@@ -84,19 +87,24 @@ class AdminPaymentMethodsController extends AdminController
             'settings',
             null,
             $before,
-            $this->paypalAuditSnapshot($secretPosted !== ''),
+            $this->paypalAuditSnapshot($secretPosted !== null),
         );
     }
 
     private function saveMercadoPago(): void
     {
-        $tokenPosted = trim((string) ($_POST['mp_access_token'] ?? ''));
-        $secretPosted = trim((string) ($_POST['mp_webhook_secret'] ?? ''));
+        $tokenPosted = SettingsService::postedSecret((string) ($_POST['mp_access_token'] ?? ''));
+        $secretPosted = SettingsService::postedSecret((string) ($_POST['mp_webhook_secret'] ?? ''));
         $before = $this->mpAuditSnapshot();
 
+        $this->settings->setMercadoPagoEnabled(isset($_POST['mp_enabled']));
         $this->settings->setMercadoPagoCurrency(trim((string) ($_POST['mp_currency'] ?? 'BRL')));
-        $this->settings->setMercadoPagoAccessToken($tokenPosted);
-        $this->settings->setMercadoPagoWebhookSecret($secretPosted);
+        if ($tokenPosted !== null) {
+            $this->settings->setMercadoPagoAccessToken($tokenPosted);
+        }
+        if ($secretPosted !== null) {
+            $this->settings->setMercadoPagoWebhookSecret($secretPosted);
+        }
         $this->settings->setMercadoPagoPendingMinutes((int) ($_POST['mp_pending_minutes'] ?? 30));
 
         $this->auditChange(
@@ -104,7 +112,7 @@ class AdminPaymentMethodsController extends AdminController
             'settings',
             null,
             $before,
-            $this->mpAuditSnapshot($tokenPosted !== '' || $secretPosted !== ''),
+            $this->mpAuditSnapshot($tokenPosted !== null || $secretPosted !== null),
         );
     }
 
@@ -115,6 +123,7 @@ class AdminPaymentMethodsController extends AdminController
     {
         $snapshot = [
             'gateway' => 'paypal',
+            'paypal_enabled' => $this->settings->paypalEnabled(),
             'paypal_mode' => $this->settings->paypalMode(),
             'paypal_currency' => $this->settings->paypalCurrency(),
             'paypal_client_id' => $this->settings->paypalClientId(),
@@ -137,6 +146,7 @@ class AdminPaymentMethodsController extends AdminController
     {
         $snapshot = [
             'gateway' => 'mercadopago',
+            'mp_enabled' => $this->settings->mercadoPagoEnabled(),
             'mp_currency' => $this->settings->mercadoPagoCurrency(),
             'mp_pending_minutes' => $this->settings->mercadoPagoPendingMinutes(),
             'mp_configured' => $this->settings->mercadoPagoConfigured(),

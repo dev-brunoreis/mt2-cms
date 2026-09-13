@@ -2499,10 +2499,13 @@
             "discord_webhook_invalid": "Webhook URL must be a Discord API webhook (https://discord.com/api/webhooks/…)."
         },
         "payment_methods": {
-            "lead": "Checkout providers used on /donate. Select a method to configure it.",
+            "lead": "Checkout providers used on /donate. Disable a method to hide it from checkout without removing credentials.",
             "list_title": "Methods",
             "status_ready": "Ready",
             "status_setup": "Setup needed",
+            "status_disabled": "Disabled",
+            "enable": "Enable this method",
+            "enable_help": "When off, this method is hidden on /donate. Credentials stay saved so you can turn it back on later.",
             "currency": "Default currency",
             "pending_minutes": "Pending checkout timeout (minutes)",
             "secret_keep": "Leave blank to keep the current secret.",

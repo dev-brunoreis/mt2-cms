@@ -52,7 +52,7 @@ class DonateController extends Controller
             return $block;
         }
 
-        $gateways = $this->gateways->configured();
+        $gateways = $this->gateways->available();
         $active = $gateways[0] ?? null;
 
         return $this->view('donate', [

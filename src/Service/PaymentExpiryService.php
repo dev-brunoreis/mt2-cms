@@ -18,7 +18,8 @@ class PaymentExpiryService
 
     public function expireDue(): int
     {
-        $gateway = $this->gateways->active();
+        $configured = $this->gateways->configured();
+        $gateway = $configured[0] ?? null;
         $minutes = $gateway !== null ? $gateway->pendingMinutes() : 30;
         $rows = $this->payments->listExpiredPending($minutes);
         $count = 0;

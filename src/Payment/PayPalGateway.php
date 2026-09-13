@@ -28,6 +28,11 @@ final class PayPalGateway implements PaymentGateway
         return $this->settings->paypalConfigured();
     }
 
+    public function enabled(): bool
+    {
+        return $this->settings->paypalEnabled();
+    }
+
     public function pendingMinutes(): int
     {
         return $this->settings->paypalPendingMinutes();

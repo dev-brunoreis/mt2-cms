@@ -32,6 +32,11 @@ final class MercadoPagoGateway implements PaymentGateway
         return $this->settings->mercadoPagoConfigured();
     }
 
+    public function enabled(): bool
+    {
+        return $this->settings->mercadoPagoEnabled();
+    }
+
     public function pendingMinutes(): int
     {
         return $this->settings->mercadoPagoPendingMinutes();

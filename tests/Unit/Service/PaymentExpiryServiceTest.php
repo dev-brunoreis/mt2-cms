@@ -21,6 +21,7 @@ final class PaymentExpiryServiceTest extends TestCase
         $gateway = $this->createMock(PaymentGateway::class);
         $gateway->method('id')->willReturn('paypal');
         $gateway->method('configured')->willReturn(true);
+        $gateway->method('enabled')->willReturn(true);
         $gateway->method('pendingMinutes')->willReturn(30);
 
         $registry = new GatewayRegistry();

@@ -12,10 +12,27 @@ use Mt2Cms\Support\Money;
 
 class SettingsService
 {
+    /** Shown in admin password fields when a secret is stored. Saving this value is a no-op. */
+    public const SECRET_UI_PLACEHOLDER = '••••••••••••••••';
+
     public function __construct(
         private SettingsRepository $settings,
         private ThemeCatalog $themes,
     ) {
+    }
+
+    /**
+     * Posted admin secret: null means keep the stored value.
+     */
+    public static function postedSecret(string $value): ?string
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === self::SECRET_UI_PLACEHOLDER) {
+            return null;
+        }
+
+        return $value;
     }
 
     public function registrationEnabled(): bool
@@ -592,6 +609,22 @@ class SettingsService
             && $this->paypalWebhookId() !== '';
     }
 
+    public function paypalEnabled(): bool
+    {
+        $value = $this->settings->get('paypal_enabled');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setPaypalEnabled(bool $enabled): void
+    {
+        $this->settings->set('paypal_enabled', $enabled ? '1' : '0');
+    }
+
     public function setPaypalClientId(string $clientId): void
     {
         $this->settings->set('paypal_client_id', trim($clientId));
@@ -599,9 +632,9 @@ class SettingsService
 
     public function setPaypalClientSecret(string $secret): void
     {
-        $secret = trim($secret);
+        $secret = self::postedSecret($secret);
 
-        if ($secret === '') {
+        if ($secret === null) {
             return;
         }
 
@@ -647,9 +680,9 @@ class SettingsService
 
     public function setMercadoPagoAccessToken(string $token): void
     {
-        $token = trim($token);
+        $token = self::postedSecret($token);
 
-        if ($token === '') {
+        if ($token === null) {
             return;
         }
 
@@ -673,9 +706,9 @@ class SettingsService
 
     public function setMercadoPagoWebhookSecret(string $secret): void
     {
-        $secret = trim($secret);
+        $secret = self::postedSecret($secret);
 
-        if ($secret === '') {
+        if ($secret === null) {
             return;
         }
 
@@ -716,6 +749,22 @@ class SettingsService
     {
         return $this->mercadoPagoAccessToken() !== ''
             && $this->mercadoPagoWebhookSecret() !== '';
+    }
+
+    public function mercadoPagoEnabled(): bool
+    {
+        $value = $this->settings->get('mp_enabled');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setMercadoPagoEnabled(bool $enabled): void
+    {
+        $this->settings->set('mp_enabled', $enabled ? '1' : '0');
     }
 
     public function discordInviteUrl(): string

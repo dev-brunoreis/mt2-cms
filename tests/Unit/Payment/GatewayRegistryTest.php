@@ -20,13 +20,8 @@ final class GatewayRegistryTest extends TestCase
 
     public function testActiveReturnsFirstConfigured(): void
     {
-        $off = $this->createMock(PaymentGateway::class);
-        $off->method('id')->willReturn('off');
-        $off->method('configured')->willReturn(false);
-
-        $on = $this->createMock(PaymentGateway::class);
-        $on->method('id')->willReturn('on');
-        $on->method('configured')->willReturn(true);
+        $off = $this->gateway('off', configured: false, enabled: true);
+        $on = $this->gateway('on', configured: true, enabled: true);
 
         $registry = new GatewayRegistry();
         $registry->register($off);
@@ -40,17 +35,13 @@ final class GatewayRegistryTest extends TestCase
         self::assertTrue($registry->has('off'));
         self::assertCount(2, $registry->all());
         self::assertCount(1, $registry->configured());
+        self::assertCount(1, $registry->available());
     }
 
     public function testResolvePicksConfiguredGatewayById(): void
     {
-        $paypal = $this->createMock(PaymentGateway::class);
-        $paypal->method('id')->willReturn('paypal');
-        $paypal->method('configured')->willReturn(true);
-
-        $mp = $this->createMock(PaymentGateway::class);
-        $mp->method('id')->willReturn('mercadopago');
-        $mp->method('configured')->willReturn(true);
+        $paypal = $this->gateway('paypal', configured: true, enabled: true);
+        $mp = $this->gateway('mercadopago', configured: true, enabled: true);
 
         $registry = new GatewayRegistry();
         $registry->register($paypal);
@@ -58,5 +49,33 @@ final class GatewayRegistryTest extends TestCase
 
         self::assertSame($paypal, $registry->active());
         self::assertSame($mp, $registry->resolve('mercadopago'));
+        self::assertCount(2, $registry->available());
+    }
+
+    public function testDisabledGatewayIsConfiguredButNotAvailable(): void
+    {
+        $paypal = $this->gateway('paypal', configured: true, enabled: false);
+        $mp = $this->gateway('mercadopago', configured: true, enabled: true);
+
+        $registry = new GatewayRegistry();
+        $registry->register($paypal);
+        $registry->register($mp);
+
+        self::assertCount(2, $registry->configured());
+        self::assertCount(1, $registry->available());
+        self::assertSame($mp, $registry->active());
+        self::assertNull($registry->resolve('paypal'));
+        self::assertSame($mp, $registry->resolve('mercadopago'));
+        self::assertSame($mp, $registry->resolve(null));
+    }
+
+    private function gateway(string $id, bool $configured, bool $enabled): PaymentGateway
+    {
+        $gateway = $this->createMock(PaymentGateway::class);
+        $gateway->method('id')->willReturn($id);
+        $gateway->method('configured')->willReturn($configured);
+        $gateway->method('enabled')->willReturn($enabled);
+
+        return $gateway;
     }
 }

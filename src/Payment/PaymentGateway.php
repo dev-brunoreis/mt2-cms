@@ -12,6 +12,8 @@ interface PaymentGateway
 
     public function configured(): bool;
 
+    public function enabled(): bool;
+
     public function pendingMinutes(): int;
 
     public function currency(): string;

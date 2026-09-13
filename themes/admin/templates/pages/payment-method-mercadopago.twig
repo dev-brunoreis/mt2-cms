@@ -8,7 +8,16 @@
             <span class="admin-fieldset-help">{{ t('admin.payment_methods.mercadopago_help') }}</span>
         </legend>
 
-        <div class="grid gap-4 sm:grid-cols-2">
+        <label class="admin-toggle-row cursor-pointer">
+            <input type="checkbox" name="mp_enabled" value="1"
+                   {% if mpEnabled|default(true) %}checked{% endif %}>
+            <span>
+                <span class="block text-sm font-semibold text-slate-900">{{ t('admin.payment_methods.enable') }}</span>
+                <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.payment_methods.enable_help') }}</span>
+            </span>
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2 mt-4">
             <div class="admin-field">
                 <label for="mp-currency">{{ t('admin.payment_methods.currency') }}</label>
                 <input id="mp-currency" type="text" name="mp_currency" maxlength="3"
@@ -21,16 +30,16 @@
             </div>
             <div class="admin-field sm:col-span-2">
                 <label for="mp-access-token">{{ t('admin.payment_methods.mp_access_token') }}</label>
-                <input id="mp-access-token" type="password" name="mp_access_token" autocomplete="new-password"
-                       value="" class="admin-input">
+                <input id="mp-access-token" type="password" name="mp_access_token" autocomplete="off"
+                       value="{{ mpTokenSet|default(false) ? secretPlaceholder|default('') : '' }}" class="admin-input">
                 {% if mpTokenSet|default(false) %}
                     <span class="admin-field-help">{{ t('admin.payment_methods.secret_keep') }}</span>
                 {% endif %}
             </div>
             <div class="admin-field sm:col-span-2">
                 <label for="mp-webhook-secret">{{ t('admin.payment_methods.mp_webhook_secret') }}</label>
-                <input id="mp-webhook-secret" type="password" name="mp_webhook_secret" autocomplete="new-password"
-                       value="" class="admin-input">
+                <input id="mp-webhook-secret" type="password" name="mp_webhook_secret" autocomplete="off"
+                       value="{{ mpSecretSet|default(false) ? secretPlaceholder|default('') : '' }}" class="admin-input">
                 {% if mpSecretSet|default(false) %}
                     <span class="admin-field-help">{{ t('admin.payment_methods.secret_keep') }}</span>
                 {% else %}

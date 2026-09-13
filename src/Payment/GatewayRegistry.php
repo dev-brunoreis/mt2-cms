@@ -37,6 +37,8 @@ final class GatewayRegistry
     }
 
     /**
+     * Gateways with credentials stored (may still be disabled in admin).
+     *
      * @return list<PaymentGateway>
      */
     public function configured(): array
@@ -47,9 +49,22 @@ final class GatewayRegistry
         ));
     }
 
+    /**
+     * Configured gateways that are enabled for new checkouts.
+     *
+     * @return list<PaymentGateway>
+     */
+    public function available(): array
+    {
+        return array_values(array_filter(
+            $this->gateways,
+            static fn (PaymentGateway $g): bool => $g->configured() && $g->enabled(),
+        ));
+    }
+
     public function active(): ?PaymentGateway
     {
-        foreach ($this->configured() as $gateway) {
+        foreach ($this->available() as $gateway) {
             return $gateway;
         }
 
@@ -57,7 +72,7 @@ final class GatewayRegistry
     }
 
     /**
-     * Resolve a configured gateway by id, or the first configured one when $id is empty.
+     * Resolve an available gateway by id, or the first available one when $id is empty.
      */
     public function resolve(?string $id = null): ?PaymentGateway
     {
@@ -70,7 +85,7 @@ final class GatewayRegistry
 
             $gateway = $this->get($id);
 
-            return $gateway->configured() ? $gateway : null;
+            return $gateway->configured() && $gateway->enabled() ? $gateway : null;
         }
 
         return $this->active();

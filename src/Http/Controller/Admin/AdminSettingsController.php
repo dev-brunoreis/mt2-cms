@@ -455,6 +455,7 @@ class AdminSettingsController extends AdminController
                 'label' => $this->t($gateway->labelKey()),
                 'formId' => $formId . '-' . $id,
                 'configured' => $gateway->configured(),
+                'enabled' => $gateway->enabled(),
                 'meta' => $meta,
             ];
         }
@@ -468,15 +469,18 @@ class AdminSettingsController extends AdminController
             'paypalMode' => $this->settings->paypalMode(),
             'paypalCurrency' => $this->settings->paypalCurrency(),
             'paypalClientId' => $this->settings->paypalClientId(),
+            'paypalEnabled' => $this->settings->paypalEnabled(),
             'paypalConfigured' => $this->settings->paypalConfigured(),
             'paypalSecretSet' => $this->settings->paypalClientSecret() !== '',
             'paypalWebhookId' => $this->settings->paypalWebhookId(),
             'paypalPendingMinutes' => $this->settings->paypalPendingMinutes(),
+            'mpEnabled' => $this->settings->mercadoPagoEnabled(),
             'mpCurrency' => $this->settings->mercadoPagoCurrency(),
             'mpConfigured' => $this->settings->mercadoPagoConfigured(),
             'mpTokenSet' => $this->settings->mercadoPagoAccessToken() !== '',
             'mpSecretSet' => $this->settings->mercadoPagoWebhookSecret() !== '',
             'mpPendingMinutes' => $this->settings->mercadoPagoPendingMinutes(),
+            'secretPlaceholder' => SettingsService::SECRET_UI_PLACEHOLDER,
         ];
     }
 

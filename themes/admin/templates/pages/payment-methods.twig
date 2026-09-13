@@ -26,9 +26,13 @@
                             <span class="admin-payment-method-meta">{{ method.meta }}</span>
                         {% endif %}
                     </span>
-                    <span class="admin-badge {{ method.configured ? 'admin-badge-ok' : 'admin-badge-warn' }}">
-                        {{ method.configured ? t('admin.payment_methods.status_ready') : t('admin.payment_methods.status_setup') }}
-                    </span>
+                    {% if not method.configured %}
+                        <span class="admin-badge admin-badge-warn">{{ t('admin.payment_methods.status_setup') }}</span>
+                    {% elseif not method.enabled %}
+                        <span class="admin-badge admin-badge-muted">{{ t('admin.payment_methods.status_disabled') }}</span>
+                    {% else %}
+                        <span class="admin-badge admin-badge-ok">{{ t('admin.payment_methods.status_ready') }}</span>
+                    {% endif %}
                 </button>
             {% endfor %}
         </div>

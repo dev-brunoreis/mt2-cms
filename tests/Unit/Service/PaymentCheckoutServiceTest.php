@@ -38,6 +38,7 @@ final class PaymentCheckoutServiceTest extends TestCase
         $gateway = $this->createMock(PaymentGateway::class);
         $gateway->method('id')->willReturn('paypal');
         $gateway->method('configured')->willReturn(true);
+        $gateway->method('enabled')->willReturn(true);
         $gateway->method('currency')->willReturn('USD');
         $gateway->method('createCheckout')->willThrowException(new \RuntimeException('payments.paypal_auth_failed'));
 
@@ -85,6 +86,7 @@ final class PaymentCheckoutServiceTest extends TestCase
         $gateway = $this->createMock(PaymentGateway::class);
         $gateway->method('id')->willReturn('paypal');
         $gateway->method('configured')->willReturn(true);
+        $gateway->method('enabled')->willReturn(true);
         $gateway->method('currency')->willReturn('USD');
         $gateway->method('createCheckout')->willReturn(new CheckoutRedirect('ORDER-99', 'https://paypal.test/approve'));
 
@@ -133,12 +135,14 @@ final class PaymentCheckoutServiceTest extends TestCase
         $paypal = $this->createMock(PaymentGateway::class);
         $paypal->method('id')->willReturn('paypal');
         $paypal->method('configured')->willReturn(true);
+        $paypal->method('enabled')->willReturn(true);
         $paypal->method('currency')->willReturn('USD');
         $paypal->expects(self::never())->method('createCheckout');
 
         $mp = $this->createMock(PaymentGateway::class);
         $mp->method('id')->willReturn('mercadopago');
         $mp->method('configured')->willReturn(true);
+        $mp->method('enabled')->willReturn(true);
         $mp->method('currency')->willReturn('BRL');
         $mp->expects(self::once())->method('createCheckout')
             ->willReturn(new CheckoutRedirect('PREF-1', 'https://mp.test/checkout'));
@@ -162,6 +166,37 @@ final class PaymentCheckoutServiceTest extends TestCase
         $result = $service->startCheckout(5, 'player1', 3, 'mercadopago');
 
         self::assertSame('https://mp.test/checkout', $result['approval_url']);
+    }
+
+    public function testStartCheckoutRejectsDisabledGatewayEvenWhenConfigured(): void
+    {
+        $packages = $this->createMock(CashPackageRepository::class);
+        $packages->expects(self::never())->method('findEnabledById');
+
+        $payments = $this->createMock(PaymentRepository::class);
+        $payments->expects(self::never())->method('createPending');
+
+        $paypal = $this->createMock(PaymentGateway::class);
+        $paypal->method('id')->willReturn('paypal');
+        $paypal->method('configured')->willReturn(true);
+        $paypal->method('enabled')->willReturn(false);
+        $paypal->expects(self::never())->method('createCheckout');
+
+        $registry = new GatewayRegistry();
+        $registry->register($paypal);
+
+        $service = new PaymentCheckoutService(
+            $packages,
+            $payments,
+            $registry,
+            $this->createMock(SettingsService::class),
+            $this->createMock(NotificationService::class),
+            $this->createMock(PaymentExpiryService::class),
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('donate.payments_unavailable');
+        $service->startCheckout(5, 'player1', 3, 'paypal');
     }
 
     public function testCancelPendingMarksFailedAndNotifies(): void

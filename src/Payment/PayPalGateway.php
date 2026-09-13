@@ -108,7 +108,7 @@ final class PayPalGateway implements PaymentGateway
     {
         $token = $this->accessToken();
         $base = $this->apiBase();
-        $response = $this->request('POST', $base . '/v2/checkout/orders/' . rawurlencode($orderId) . '/capture', $token, []);
+        $response = $this->request('POST', $base . '/v2/checkout/orders/' . rawurlencode($orderId) . '/capture', $token, null);
 
         return (string) ($response['status'] ?? '') === 'COMPLETED';
     }
@@ -289,7 +289,9 @@ final class PayPalGateway implements PaymentGateway
 
         if ($method === 'POST') {
             $opts[CURLOPT_POST] = true;
-            $opts[CURLOPT_POSTFIELDS] = $body === null ? '{}' : json_encode($body, JSON_THROW_ON_ERROR);
+            $opts[CURLOPT_POSTFIELDS] = ($body === null || $body === [])
+                ? '{}'
+                : json_encode($body, JSON_THROW_ON_ERROR);
         }
 
         curl_setopt_array($ch, $opts);

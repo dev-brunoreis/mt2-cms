@@ -179,16 +179,32 @@ final class PaymentStatsServiceTest extends TestCase
 
         $snapshot = (new PaymentStatsService($payments))->dashboardSnapshot();
 
+        self::assertSame('7d', $snapshot['range']);
         self::assertSame('USD', $snapshot['currency']);
         self::assertSame(800, $snapshot['paid_cents']);
+        self::assertSame(2, $snapshot['paid_count']);
         self::assertSame(40, $snapshot['cash_amount']);
         self::assertSame(3, $snapshot['open_pending']);
         self::assertSame([], $snapshot['other_currencies']);
-        self::assertCount(14, PaymentStatsService::fillDailySeries(
-            $snapshot['spark_from'],
-            $snapshot['spark_to'],
-            [],
-            'amount_cents',
-        ));
+        self::assertCount(7, $snapshot['spark']['labels']);
+    }
+
+    public function testDashboardSnapshotTodayUsesTodayBounds(): void
+    {
+        $payments = $this->createMock(PaymentRepository::class);
+        $today = PaymentStatsService::parseRange('today');
+
+        $payments->expects(self::once())->method('paidTotalsByCurrency')
+            ->with($today['from'], $today['to'])
+            ->willReturn([]);
+        $payments->method('cashCredited')->willReturn(['cash_amount' => 0, 'count' => 0]);
+        $payments->method('openPendingCount')->willReturn(0);
+        $payments->method('dailyPaid')->willReturn([]);
+
+        $snapshot = (new PaymentStatsService($payments))->dashboardSnapshot('today');
+
+        self::assertSame('today', $snapshot['range']);
+        self::assertSame(0, $snapshot['paid_cents']);
+        self::assertCount(7, $snapshot['spark']['labels']);
     }
 }

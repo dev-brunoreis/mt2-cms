@@ -60,7 +60,10 @@ class AdminDashboardController extends AdminController
         }
 
         if ($canPayments) {
-            $data['finance'] = $this->paymentStats->dashboardSnapshot();
+            $finance = $this->paymentStats->dashboardSnapshot((string) ($_GET['finance'] ?? '7d'));
+            $data['finance'] = $finance;
+            $data['financeRange'] = $finance['range'];
+            $data['financeRangeOptions'] = PaymentStatsService::RANGE_OPTIONS;
             $data['paymentsHref'] = AdminPaths::storePayments();
         }
 

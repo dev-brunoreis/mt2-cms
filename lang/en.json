@@ -812,12 +812,18 @@
                 "7d": "1 week"
             },
             "finance_title": "Donations",
-            "finance_lead": "Paid top-ups in the last 7 days.",
-            "finance_paid": "Paid (7 days)",
-            "finance_cash": "Cash credited (7 days)",
+            "finance_lead": "Sum of paid top-ups in the selected period, one currency. The chart is per day. Other currencies are listed separately and are not added in.",
+            "finance_range_label": "Donation period",
+            "finance_paid": "Paid in period",
+            "finance_paid_hint": {
+                "one": "{count} paid order",
+                "other": "{count} paid orders"
+            },
+            "finance_cash": "Cash credited",
             "finance_pending": "Open pending",
+            "finance_chart": "Daily paid",
             "finance_link": "View payments",
-            "finance_other_currency": "Also {currency} {amount}"
+            "finance_other_currency": "Not included: {currency} {amount}"
         },
         "chart": {
             "empty": "Not enough history for a chart yet.",

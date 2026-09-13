@@ -22,17 +22,20 @@ class PaymentStatsService
      *   paid_cents: int,
      *   cash_amount: int,
      *   open_pending: int,
+     *   range: string,
+     *   paid_count: int,
      *   other_currencies: list<array{currency: string, amount_cents: int}>,
      *   spark: array{labels: list<string>, values: list<int>},
      *   spark_from: string,
      *   spark_to: string
      * }
      */
-    public function dashboardSnapshot(): array
+    public function dashboardSnapshot(string $rangeKey = '7d'): array
     {
-        $range = self::parseRange('7d');
+        $range = self::parseRange($rangeKey);
+        $chartDays = $range['chart_days'];
         $sparkTo = $range['to_day'];
-        $sparkFrom = date('Y-m-d', strtotime($sparkTo . ' -13 days') ?: time());
+        $sparkFrom = date('Y-m-d', strtotime($sparkTo . ' -' . ($chartDays - 1) . ' days') ?: time());
         $sparkBounds = self::datetimeBounds($sparkFrom, $sparkTo);
 
         $paid = $this->payments->paidTotalsByCurrency($range['from'], $range['to']);
@@ -46,8 +49,10 @@ class PaymentStatsService
         $series = self::fillDailySeries($sparkFrom, $sparkTo, $daily, 'amount_cents');
 
         return [
+            'range' => $range['key'],
             'currency' => $currency,
             'paid_cents' => (int) ($paidRow['amount_cents'] ?? 0),
+            'paid_count' => (int) ($paidRow['paid_count'] ?? 0),
             'cash_amount' => (int) ($cash['cash_amount'] ?? 0),
             'open_pending' => $this->payments->openPendingCount(),
             'other_currencies' => self::otherCurrencies($paid, $currency),

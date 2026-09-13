@@ -46,6 +46,7 @@ class ItemShopController extends Controller
         }
 
         $slug = trim((string) ($_GET['category'] ?? ''));
+        $query = $this->searchQuery();
         $categories = $this->categories->treeEnabled();
         $activeCategory = null;
         $categoryIds = null;
@@ -62,6 +63,7 @@ class ItemShopController extends Controller
                     'products' => [],
                     'activeCategory' => null,
                     'expandedCategoryIds' => [],
+                    'query' => $query,
                     'cash' => $this->currentCash(),
                     'idempotencyKeys' => [],
                 ], 404);
@@ -71,7 +73,10 @@ class ItemShopController extends Controller
             $expandedCategoryIds = $this->categories->ancestorIds((int) $activeCategory['id']);
         }
 
-        $products = $this->enrichProducts($this->products->listEnabled($categoryIds));
+        $products = $this->filterProducts(
+            $this->enrichProducts($this->products->listEnabled($categoryIds)),
+            $query,
+        );
         $idempotencyKeys = [];
 
         if ($this->auth->check()) {
@@ -87,6 +92,7 @@ class ItemShopController extends Controller
             'products' => $products,
             'activeCategory' => $activeCategory,
             'expandedCategoryIds' => $expandedCategoryIds,
+            'query' => $query,
             'cash' => $this->currentCash(),
             'idempotencyKeys' => $idempotencyKeys,
         ]);
@@ -215,6 +221,49 @@ class ItemShopController extends Controller
         unset($row);
 
         return $rows;
+    }
+
+    private function searchQuery(): string
+    {
+        $query = trim((string) ($_GET['q'] ?? ''));
+
+        if ($query === '') {
+            return '';
+        }
+
+        return mb_substr($query, 0, 80);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $products
+     * @return list<array<string, mixed>>
+     */
+    private function filterProducts(array $products, string $query): array
+    {
+        $needle = mb_strtolower(trim($query));
+
+        if ($needle === '') {
+            return $products;
+        }
+
+        $matched = [];
+
+        foreach ($products as $product) {
+            if ($this->productMatchesQuery($product, $needle)) {
+                $matched[] = $product;
+            }
+        }
+
+        return $matched;
+    }
+
+    /**
+     * @param array<string, mixed> $product
+     */
+    private function productMatchesQuery(array $product, string $needle): bool
+    {
+        return str_contains((string) ($product['vnum'] ?? ''), $needle)
+            || str_contains(mb_strtolower((string) ($product['item_name'] ?? '')), $needle);
     }
 
     private function requireVerifiedIfNeeded(): ?Response

@@ -1,4 +1,4 @@
-{% macro category_tree(nodes, activeCategory, expandedIds) %}
+{% macro category_tree(nodes, activeCategory, expandedIds, query) %}
     <ul class="shop-cat-list" data-shop-cat-list>
         {% for category in nodes %}
             {% set hasChildren = category.children is not empty %}
@@ -21,14 +21,14 @@
                     {% else %}
                         <span class="k-shop-cat-spacer" aria-hidden="true"></span>
                     {% endif %}
-                    <a href="/shop?category={{ category.slug|url_encode }}" class="k-shop-cat-link">
+                    <a href="/shop?category={{ category.slug|url_encode }}{% if query %}&q={{ query|url_encode }}{% endif %}" class="k-shop-cat-link">
                         {{ category.name }}
                     </a>
                 </div>
                 {% if hasChildren %}
                     <div class="shop-cat-children k-shop-cat-children {% if not isExpanded %}hidden{% endif %}"
                          data-shop-cat-children>
-                        {{ _self.category_tree(category.children, activeCategory, expandedIds) }}
+                        {{ _self.category_tree(category.children, activeCategory, expandedIds, query) }}
                     </div>
                 {% endif %}
             </li>
@@ -37,16 +37,30 @@
 {% endmacro %}
 
 <section class="space-y-5">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h1 class="k-title text-2xl">{{ t('shop.title') }}</h1>
-            <p class="mt-1 text-sm k-muted">{{ t('shop.lead') }}</p>
-        </div>
-        {% if auth.check and cash is not null %}
-            <div class="k-shop-cash">
-                <span class="k-muted">{{ t('shop.your_cash') }}</span>
-                <span class="k-shop-cash-value">{{ cash }}</span>
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h1 class="k-title text-2xl">{{ t('shop.title') }}</h1>
+                <p class="mt-1 text-sm k-muted">{{ t('shop.lead') }}</p>
             </div>
+            {% if auth.check and cash is not null %}
+                <div class="k-shop-cash">
+                    <span class="k-muted">{{ t('shop.your_cash') }}</span>
+                    <span class="k-shop-cash-value">{{ cash }}</span>
+                </div>
+            {% endif %}
+        </div>
+        {% if not notFound %}
+            <form method="get" action="/shop" class="k-search-form" data-shop-search>
+                {% if activeCategory %}
+                    <input type="hidden" name="category" value="{{ activeCategory.slug }}">
+                {% endif %}
+                <label class="sr-only" for="shop-search">{{ t('shop.search') }}</label>
+                <input id="shop-search" type="search" name="q" value="{{ query|default('') }}"
+                       placeholder="{{ t('shop.search_placeholder') }}"
+                       class="k-input text-sm" autocomplete="off" maxlength="80" data-shop-search-input>
+                <button type="submit" class="k-btn shrink-0">{{ t('shop.search') }}</button>
+            </form>
         {% endif %}
     </div>
 
@@ -60,60 +74,67 @@
             <nav class="k-panel k-shop-cats" data-shop-category-tree aria-label="{{ t('shop.categories') }}">
                 <div class="k-panel-head">{{ t('shop.categories') }}</div>
                 <div class="p-2">
-                    <a href="/shop" class="k-shop-cat {% if not activeCategory %}is-active{% endif %}">
+                    <a href="/shop{% if query %}?q={{ query|url_encode }}{% endif %}" class="k-shop-cat {% if not activeCategory %}is-active{% endif %}">
                         <span class="k-shop-cat-spacer" aria-hidden="true"></span>
                         <span class="k-shop-cat-link">{{ t('shop.all_categories') }}</span>
                     </a>
                     {% import _self as shop_nav %}
-                    {{ shop_nav.category_tree(categories, activeCategory, expandedCategoryIds|default([])) }}
+                    {{ shop_nav.category_tree(categories, activeCategory, expandedCategoryIds|default([]), query|default('')) }}
                 </div>
             </nav>
         {% endif %}
 
         {% if products is empty %}
             <div class="k-panel p-10 text-center">
-                <p class="text-sm k-muted">{{ t('shop.empty') }}</p>
+                <p class="text-sm k-muted">{{ query ? t('shop.search_empty') : t('shop.empty') }}</p>
             </div>
         {% else %}
-            <ul class="k-shop-list">
-                {% for product in products %}
-                    <li class="k-shop-product shop-product-card">
-                        {% set icon = item_icon(product.vnum) %}
-                        <div class="mt2-item-tip-host k-shop-icon" tabindex="0">
-                            {% if icon %}
-                                <img src="{{ icon }}" alt="" width="48" height="48">
-                            {% else %}
-                                <span class="k-shop-icon-fallback" aria-hidden="true">?</span>
-                            {% endif %}
-                            {% if product.tooltip is defined %}
-                                {% include 'components/item-tooltip.twig' with { tip: product.tooltip, icon_src: icon } %}
-                            {% endif %}
-                        </div>
-                        <div class="k-shop-product-body">
-                            <h2 class="k-shop-product-name" title="{{ product.item_name }}">{{ product.item_name }}</h2>
-                            <p class="k-shop-product-meta">
-                                {{ product.category_name }}
-                                <span aria-hidden="true">·</span>
-                                {{ t('shop.qty', {count: product.count}) }}
-                            </p>
-                        </div>
-                        <div class="k-shop-product-buy">
-                            <p class="k-shop-price">{{ t('shop.price', {price: product.price}) }}</p>
-                            {% if auth.check %}
-                                <form method="post" action="/shop/buy"
-                                      data-confirm="{{ t('shop.confirm_buy', {name: product.item_name, price: product.price}) }}">
-                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
-                                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                                    <input type="hidden" name="idempotency_key" value="{{ idempotencyKeys[product.id]|default('') }}">
-                                    <button type="submit" class="k-btn k-btn-ember k-btn-sm">{{ t('shop.buy') }}</button>
-                                </form>
-                            {% else %}
-                                <a href="/login" class="k-btn k-btn-ghost k-btn-sm !no-underline">{{ t('shop.login_to_buy') }}</a>
-                            {% endif %}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
+            <div data-shop-catalog>
+                <ul class="k-shop-list" data-shop-list>
+                    {% for product in products %}
+                        <li class="k-shop-product shop-product-card"
+                            data-shop-product
+                            data-shop-search="{{ product.item_name }} {{ product.vnum }}">
+                            {% set icon = item_icon(product.vnum) %}
+                            <div class="mt2-item-tip-host k-shop-icon" tabindex="0">
+                                {% if icon %}
+                                    <img src="{{ icon }}" alt="" width="48" height="48">
+                                {% else %}
+                                    <span class="k-shop-icon-fallback" aria-hidden="true">?</span>
+                                {% endif %}
+                                {% if product.tooltip is defined %}
+                                    {% include 'components/item-tooltip.twig' with { tip: product.tooltip, icon_src: icon } %}
+                                {% endif %}
+                            </div>
+                            <div class="k-shop-product-body">
+                                <h2 class="k-shop-product-name" title="{{ product.item_name }}">{{ product.item_name }}</h2>
+                                <p class="k-shop-product-meta">
+                                    {{ product.category_name }}
+                                    <span aria-hidden="true">·</span>
+                                    {{ t('shop.qty', {count: product.count}) }}
+                                </p>
+                            </div>
+                            <div class="k-shop-product-buy">
+                                <p class="k-shop-price">{{ t('shop.price', {price: product.price}) }}</p>
+                                {% if auth.check %}
+                                    <form method="post" action="/shop/buy"
+                                          data-confirm="{{ t('shop.confirm_buy', {name: product.item_name, price: product.price}) }}">
+                                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                        <input type="hidden" name="idempotency_key" value="{{ idempotencyKeys[product.id]|default('') }}">
+                                        <button type="submit" class="k-btn k-btn-ember k-btn-sm">{{ t('shop.buy') }}</button>
+                                    </form>
+                                {% else %}
+                                    <a href="/login" class="k-btn k-btn-ghost k-btn-sm !no-underline">{{ t('shop.login_to_buy') }}</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="k-panel p-10 text-center hidden" data-shop-search-empty>
+                    <p class="text-sm k-muted">{{ t('shop.search_empty') }}</p>
+                </div>
+            </div>
         {% endif %}
     {% endif %}
 </section>

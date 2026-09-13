@@ -16,6 +16,7 @@ use Mt2Cms\Repository\PlayerRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
 use Mt2Cms\Service\PaymentStatsService;
+use Mt2Cms\Service\PlayerCensusService;
 use Mt2Cms\Theme\ThemeEngine;
 
 class AdminDashboardController extends AdminController
@@ -31,6 +32,7 @@ class AdminDashboardController extends AdminController
         AdminAuditService $auditLog,
         private PlayerRepository $players,
         private PaymentStatsService $paymentStats,
+        private PlayerCensusService $census,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -41,6 +43,7 @@ class AdminDashboardController extends AdminController
         $canStats = $this->acl->isAllowed($user, 'overview/dashboard/stats/view');
         $canPlayers = $this->acl->isAllowed($user, 'overview/dashboard/players/view');
         $canPayments = $this->acl->isAllowed($user, 'store/payments/view');
+        $canPopulation = $this->acl->isAllowed($user, 'overview/population/view');
 
         $data = [
             'title' => $this->t('admin.dashboard.title'),
@@ -48,6 +51,7 @@ class AdminDashboardController extends AdminController
             'canStats' => $canStats,
             'canPlayers' => $canPlayers,
             'canPayments' => $canPayments,
+            'canPopulation' => $canPopulation,
         ];
 
         if ($canStats) {
@@ -57,6 +61,13 @@ class AdminDashboardController extends AdminController
             $minutes = PlayerRepository::rangeMinutes($range);
             $data['playerCount'] = $this->players->countActiveSinceMinutes($minutes);
             $data['accountCount'] = $this->players->countAccountsActiveSinceMinutes($minutes);
+            $totals = $this->census->totals();
+            $data['totalAccounts'] = $totals['account_count'];
+            $data['totalCharacters'] = $totals['character_count'];
+        }
+
+        if ($canPopulation) {
+            $data['populationHref'] = AdminPaths::population();
         }
 
         if ($canPayments) {

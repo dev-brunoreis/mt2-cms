@@ -516,7 +516,8 @@
             },
             "8": {
                 "1": "Instinct"
-            }
+            },
+            "none": "No path"
         }
     },
     "sex": {
@@ -794,6 +795,9 @@
             "range_label": "Activity window",
             "players": "Players",
             "accounts": "Accounts",
+            "total_characters": "Total characters",
+            "total_accounts": "Total accounts",
+            "population_link": "View population",
             "empty": "No players in this window.",
             "list_count": {
                 "one": "{count} player in this window",
@@ -825,8 +829,21 @@
             "finance_link": "View payments",
             "finance_other_currency": "Not included: {currency} {amount}"
         },
+        "population": {
+            "title": "Population",
+            "lead": "Live counts of every account and character on the game database, split by empire, class, and skill path.",
+            "accounts": "Accounts",
+            "characters": "Characters",
+            "empires_title": "Accounts by empire",
+            "empires_lead": "Share of accounts by the kingdom chosen at character select.",
+            "races_title": "Class by empire",
+            "races_lead": "Characters per class in each kingdom. Male and female variants of the same class are counted together.",
+            "skills_title": "Skill path by class",
+            "skills_lead": "Chosen skill path for each class. Characters who have not picked a path are grouped as No path."
+        },
         "chart": {
             "empty": "Not enough history for a chart yet.",
+            "empty_pie": "No data for this chart yet.",
             "range": "min {min} · max {max}"
         },
         "toggle_menu": "Toggle menu",
@@ -871,6 +888,7 @@
             "game": "Game",
             "overview": "Overview",
             "dashboard": "Dashboard",
+            "population": "Population",
             "content": "Content",
             "accounts": "Accounts",
             "characters": "Characters",

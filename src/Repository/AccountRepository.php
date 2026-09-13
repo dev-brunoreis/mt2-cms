@@ -142,6 +142,15 @@ class AccountRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
+    public function countAll(): int
+    {
+        if (!$this->schemaTableExists('account')) {
+            return 0;
+        }
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `account`');
+    }
+
     public function countForGrid(GridQuery $query): int
     {
         [$where, $params] = $this->gridWhere($query);

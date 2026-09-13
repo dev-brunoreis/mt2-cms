@@ -1,14 +1,27 @@
 <div class="space-y-4">
     {% if canStats|default(false) %}
     <div class="admin-panel p-4 md:p-6">
-        <dl class="grid gap-4 sm:grid-cols-2">
+        {% if populationHref is defined %}
+        <div class="mb-3 flex justify-end">
+            <a class="text-sm font-medium text-indigo-600 hover:underline" href="{{ populationHref }}">{{ t('admin.dashboard.population_link') }}</a>
+        </div>
+        {% endif %}
+        <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="admin-stat admin-stat-highlight">
                 <dt>{{ t('admin.dashboard.players') }}</dt>
-                <dd>{{ playerCount }}</dd>
+                <dd>{{ playerCount|number_format }}</dd>
             </div>
             <div class="admin-stat admin-stat-highlight">
                 <dt>{{ t('admin.dashboard.accounts') }}</dt>
-                <dd>{{ accountCount }}</dd>
+                <dd>{{ accountCount|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.dashboard.total_characters') }}</dt>
+                <dd>{{ totalCharacters|default(0)|number_format }}</dd>
+            </div>
+            <div class="admin-stat">
+                <dt>{{ t('admin.dashboard.total_accounts') }}</dt>
+                <dd>{{ totalAccounts|default(0)|number_format }}</dd>
             </div>
         </dl>
     </div>

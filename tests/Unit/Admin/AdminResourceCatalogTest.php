@@ -13,6 +13,7 @@ final class AdminResourceCatalogTest extends TestCase
     public function testResourceIdsFollowConvention(): void
     {
         self::assertContains('game/accounts/view', AdminResourceCatalog::allResourceIds());
+        self::assertContains('overview/population/view', AdminResourceCatalog::allResourceIds());
         self::assertContains('game/economy/view', AdminResourceCatalog::allResourceIds());
         self::assertContains('store/products/create', AdminResourceCatalog::allResourceIds());
         self::assertContains('content/news/posts/mass', AdminResourceCatalog::allResourceIds());
@@ -64,6 +65,19 @@ final class AdminResourceCatalogTest extends TestCase
             '/admin/store?tab=orders',
             AdminResourceCatalog::pathForResource('store/orders/view'),
         );
+    }
+
+    public function testPopulationSection(): void
+    {
+        self::assertSame('population', AdminResourceCatalog::sectionIdForResource('overview/population/view'));
+        self::assertSame(
+            '/admin/population',
+            AdminResourceCatalog::pathForResource('overview/population/view'),
+        );
+        self::assertTrue(AdminResourceCatalog::hasAnyResourceForSection(
+            'population',
+            ['overview/population/view'],
+        ));
     }
 
     public function testSettingsHubPaths(): void

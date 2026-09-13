@@ -264,6 +264,103 @@ class PlayerRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
+    public function countAll(): int
+    {
+        if (!$this->schemaTableExists('player')) {
+            return 0;
+        }
+
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `player`');
+    }
+
+    /**
+     * @return list<array{empire: int, n: int}>
+     */
+    public function countAccountsByEmpire(): array
+    {
+        if (!$this->schemaTableExists('player_index')) {
+            $n = (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM `account`.`account`');
+
+            return $n > 0 ? [['empire' => 0, 'n' => $n]] : [];
+        }
+
+        $rows = $this->db()->fetchAll(
+            'SELECT COALESCE(pi.empire, 0) AS empire, COUNT(*) AS n
+             FROM `account`.`account` a
+             LEFT JOIN `player_index` pi ON pi.id = a.id
+             GROUP BY empire',
+        );
+
+        return $this->intCountRows($rows, ['empire']);
+    }
+
+    /**
+     * @return list<array{empire: int, job: int, n: int}>
+     */
+    public function countJobsByEmpire(): array
+    {
+        if (!$this->schemaTableExists('player')) {
+            return [];
+        }
+
+        if ($this->schemaTableExists('player_index')) {
+            $rows = $this->db()->fetchAll(
+                'SELECT COALESCE(pi.empire, 0) AS empire, p.job AS job, COUNT(*) AS n
+                 FROM `player` p
+                 LEFT JOIN `player_index` pi ON pi.id = p.account_id
+                 GROUP BY empire, job',
+            );
+        } else {
+            $rows = $this->db()->fetchAll(
+                'SELECT 0 AS empire, p.job AS job, COUNT(*) AS n
+                 FROM `player` p
+                 GROUP BY job',
+            );
+        }
+
+        return $this->intCountRows($rows, ['empire', 'job']);
+    }
+
+    /**
+     * @return list<array{job: int, skill_group: int, n: int}>
+     */
+    public function countSkillGroupsByJob(): array
+    {
+        if (!$this->schemaTableExists('player')) {
+            return [];
+        }
+
+        $rows = $this->db()->fetchAll(
+            'SELECT p.job AS job, p.skill_group AS skill_group, COUNT(*) AS n
+             FROM `player` p
+             GROUP BY job, skill_group',
+        );
+
+        return $this->intCountRows($rows, ['job', 'skill_group']);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @param list<string> $keys
+     * @return list<array<string, int>>
+     */
+    private function intCountRows(array $rows, array $keys): array
+    {
+        $out = [];
+
+        foreach ($rows as $row) {
+            $item = ['n' => (int) ($row['n'] ?? 0)];
+
+            foreach ($keys as $key) {
+                $item[$key] = (int) ($row[$key] ?? 0);
+            }
+
+            $out[] = $item;
+        }
+
+        return $out;
+    }
+
     public function countActiveSinceMinutes(int $minutes): int
     {
         $minutes = max(1, $minutes);

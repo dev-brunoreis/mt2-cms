@@ -6,6 +6,7 @@ use Mt2Cms\Admin\AdminRuntime;
 use Mt2Cms\Application;
 use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
+use Mt2Cms\Game\Display;
 use Mt2Cms\Game\Drop\GroupTextParser;
 use Mt2Cms\Game\Drop\GroupTextWriter;
 use Mt2Cms\Game\GameProfile;
@@ -81,6 +82,7 @@ use Mt2Cms\Service\NotificationService;
 use Mt2Cms\Service\PaymentCheckoutService;
 use Mt2Cms\Service\PaymentExpiryService;
 use Mt2Cms\Service\PaymentStatsService;
+use Mt2Cms\Service\PlayerCensusService;
 use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Service\ReferralService;
 use Mt2Cms\Service\SettingsService;
@@ -256,6 +258,12 @@ return static function (Application $app): void {
         $app->notificationService,
     );
     $app->paymentStats = new PaymentStatsService($app->payments);
+    $app->playerCensus = new PlayerCensusService(
+        $app->accounts,
+        $app->players,
+        new Display($app->translator),
+        $app->translator,
+    );
     $app->paymentCheckout = new PaymentCheckoutService(
         $app->cashPackages,
         $app->payments,

@@ -20,6 +20,8 @@ final class AdminPathsTest extends TestCase
         self::assertSame('/admin/store?tab=categories&new=1&parent_id=4', AdminPaths::storeCategoryNew(4));
         self::assertSame('/admin/store?tab=categories&id=12&panel=products', AdminPaths::storeCategoryEdit(12, 'products'));
         self::assertSame('/admin/system/roles', AdminPaths::systemRoles());
+        self::assertSame('/admin/population', AdminPaths::population());
+        self::assertSame('/admin/population', AdminSections::sectionPath('population'));
     }
 
     public function testAdminSectionsUsesCanonicalPaths(): void

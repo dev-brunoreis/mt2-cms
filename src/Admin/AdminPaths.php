@@ -9,6 +9,11 @@ final class AdminPaths
     public const DASHBOARD = '/admin';
     public const LOGIN = '/admin/login';
 
+    public static function population(): string
+    {
+        return '/admin/population';
+    }
+
     // Game
     public static function gameAccounts(): string
     {
@@ -317,6 +322,7 @@ final class AdminPaths
     {
         return match ($sectionId) {
             'dashboard' => self::DASHBOARD,
+            'population' => self::population(),
             'accounts' => self::gameAccounts(),
             'characters' => self::gameCharacters(),
             'guilds' => self::gameGuilds(),

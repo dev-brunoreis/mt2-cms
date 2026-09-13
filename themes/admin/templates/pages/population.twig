@@ -1,0 +1,78 @@
+<div class="space-y-4">
+    <div class="admin-panel p-4 md:p-6">
+        <dl class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.population.accounts') }}</dt>
+                <dd>{{ census.account_count|number_format }}</dd>
+            </div>
+            <div class="admin-stat admin-stat-highlight">
+                <dt>{{ t('admin.population.characters') }}</dt>
+                <dd>{{ census.character_count|number_format }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.population.empires_title') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.population.empires_lead') }}</p>
+        <div class="mx-auto mt-4 max-w-md">
+            {% include 'components/pie-chart.twig' with {
+                labels: census.empires.labels|default([]),
+                values: census.empires.values|default([]),
+                colors: census.empires.colors|default([]),
+                percents: census.empires.percents|default([]),
+                title: t('admin.population.empires_title')
+            } %}
+        </div>
+    </div>
+
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.population.races_title') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.population.races_lead') }}</p>
+        {% if census.races_by_empire|default([])|length > 0 %}
+        <div class="mt-4 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {% for chart in census.races_by_empire %}
+            <div>
+                <h3 class="text-xs font-medium text-slate-500">{{ chart.title }}</h3>
+                <div class="mt-2">
+                    {% include 'components/pie-chart.twig' with {
+                        labels: chart.labels,
+                        values: chart.values,
+                        colors: chart.colors,
+                        percents: chart.percents,
+                        title: chart.title
+                    } %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="mt-3 text-sm text-slate-400">{{ t('admin.chart.empty_pie') }}</p>
+        {% endif %}
+    </div>
+
+    <div class="admin-panel p-4 md:p-6">
+        <h2 class="text-sm font-semibold text-slate-900">{{ t('admin.population.skills_title') }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ t('admin.population.skills_lead') }}</p>
+        {% if census.skills_by_class|default([])|length > 0 %}
+        <div class="mt-4 grid gap-6 md:grid-cols-2">
+            {% for chart in census.skills_by_class %}
+            <div>
+                <h3 class="text-xs font-medium text-slate-500">{{ chart.title }}</h3>
+                <div class="mt-2">
+                    {% include 'components/pie-chart.twig' with {
+                        labels: chart.labels,
+                        values: chart.values,
+                        colors: chart.colors,
+                        percents: chart.percents,
+                        title: chart.title
+                    } %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="mt-3 text-sm text-slate-400">{{ t('admin.chart.empty_pie') }}</p>
+        {% endif %}
+    </div>
+</div>

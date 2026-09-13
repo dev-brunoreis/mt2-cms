@@ -2482,3 +2482,7 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   height: 9rem;
 }
 
+.admin-chart-wrap.is-pie {
+  height: 14rem;
+}
+

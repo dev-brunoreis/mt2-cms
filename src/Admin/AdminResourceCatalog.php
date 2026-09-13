@@ -31,6 +31,7 @@ final class AdminResourceCatalog
                     self::entity('admin.resources.stats', 'stats', ['view']),
                     self::entity('admin.resources.players', 'players', ['view']),
                 ]),
+                self::flatModule('admin.nav.population', 'population', ['view']),
             ]),
             self::group('admin.nav.game', 'game', [
                 self::flatModule('admin.nav.accounts', 'accounts', ['view', 'create', 'edit', 'delete', 'mass', 'block']),
@@ -217,6 +218,10 @@ final class AdminResourceCatalog
             return 'dashboard';
         }
 
+        if (str_starts_with($resourceId, 'overview/population/')) {
+            return 'population';
+        }
+
         if (str_starts_with($resourceId, 'game/accounts/')) {
             return 'accounts';
         }
@@ -306,6 +311,7 @@ final class AdminResourceCatalog
     {
         return match ($sectionId) {
             'dashboard' => 'overview/dashboard',
+            'population' => 'overview/population',
             'accounts' => 'game/accounts',
             'characters' => 'game/characters',
             'guilds' => 'game/guilds',

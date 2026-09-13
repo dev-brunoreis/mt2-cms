@@ -79,7 +79,10 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->adminTotp, $app->settings,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminDashboardController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminDashboardController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->paymentStats,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->paymentStats, $app->playerCensus,
+    ),
+    \Mt2Cms\Http\Controller\Admin\AdminPopulationController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminPopulationController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->playerCensus,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminSettingsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService, $app->paymentGateways, $app->seoUploads,

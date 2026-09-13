@@ -21,6 +21,11 @@ class AdminSections
                         'path' => AdminPaths::DASHBOARD,
                         'label' => 'admin.nav.dashboard',
                     ],
+                    [
+                        'id' => 'population',
+                        'path' => AdminPaths::population(),
+                        'label' => 'admin.nav.population',
+                    ],
                 ],
             ],
             [

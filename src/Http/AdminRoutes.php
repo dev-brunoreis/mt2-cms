@@ -23,6 +23,7 @@ use Mt2Cms\Http\Controller\Admin\AdminEventsController;
 use Mt2Cms\Http\Controller\Admin\AdminPaymentsController;
 use Mt2Cms\Http\Controller\Admin\AdminCharactersController;
 use Mt2Cms\Http\Controller\Admin\AdminDashboardController;
+use Mt2Cms\Http\Controller\Admin\AdminPopulationController;
 use Mt2Cms\Http\Controller\Admin\AdminDropsController;
 use Mt2Cms\Http\Controller\Admin\AdminGameProtoController;
 use Mt2Cms\Http\Controller\Admin\AdminGmsController;
@@ -59,6 +60,7 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/account/security/enroll', [AdminAccountSecurityController::class, 'startEnroll']);
         $r->addRoute('POST', '/admin/account/security/confirm', [AdminAccountSecurityController::class, 'confirmEnroll']);
         $r->addRoute('GET', '/admin', [AdminDashboardController::class, 'index']);
+        $r->addRoute('GET', '/admin/population', [AdminPopulationController::class, 'index']);
 
         // Settings hub
         $r->addRoute('GET', '/admin/settings', [AdminSettingsController::class, 'index']);

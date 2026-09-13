@@ -1,0 +1,23 @@
+{# Doughnut slices: labels + values + colors (JSON on the canvas; Chart.js in admin-charts.js). #}
+{% set labels = labels|default([]) %}
+{% set values = values|default([]) %}
+{% set colors = colors|default([]) %}
+{% set percents = percents|default([]) %}
+{% if values|length >= 1 %}
+<figure class="admin-chart {{ class|default('') }}">
+    <div class="admin-chart-wrap is-pie{% if compact|default(false) %} is-compact{% endif %}">
+        <canvas
+            data-admin-chart
+            data-chart-type="doughnut"
+            data-labels="{{ labels|json_encode|e('html_attr') }}"
+            data-values="{{ values|json_encode|e('html_attr') }}"
+            data-colors="{{ colors|json_encode|e('html_attr') }}"
+            data-percents="{{ percents|json_encode|e('html_attr') }}"
+            role="img"
+            aria-label="{{ title|default('') }}"
+        ></canvas>
+    </div>
+</figure>
+{% else %}
+<p class="text-sm text-slate-400">{{ t('admin.chart.empty_pie') }}</p>
+{% endif %}

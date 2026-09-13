@@ -12,7 +12,6 @@ use Mt2Cms\Http\Response;
 use Mt2Cms\Support\Log;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Payment\GatewayRegistry;
-use Mt2Cms\Payment\PayPalGateway;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\PaymentRepository;
 use Mt2Cms\Service\AccountEmailService;
@@ -53,13 +52,21 @@ class DonateController extends Controller
             return $block;
         }
 
-        $gateway = $this->gateways->active();
+        $gateways = $this->gateways->configured();
+        $active = $gateways[0] ?? null;
 
         return $this->view('donate', [
             'title' => $this->t('donate.title'),
             'packages' => $this->packages->listEnabled(),
-            'currency' => $gateway?->currency() ?? $this->settings->paypalCurrency(),
-            'paypalConfigured' => $gateway !== null,
+            'currency' => $active?->currency() ?? $this->settings->paypalCurrency(),
+            'paymentsConfigured' => $gateways !== [],
+            'paymentGateways' => array_map(
+                static fn ($g): array => [
+                    'id' => $g->id(),
+                    'label_key' => $g->labelKey(),
+                ],
+                $gateways,
+            ),
         ]);
     }
 
@@ -79,8 +86,10 @@ class DonateController extends Controller
             return $this->redirect('/donate');
         }
 
-        if ($this->gateways->active() === null) {
-            $this->flash('error', $this->t('donate.paypal_unavailable'));
+        $gatewayId = trim((string) ($_POST['gateway'] ?? ''));
+
+        if ($this->gateways->resolve($gatewayId !== '' ? $gatewayId : null) === null) {
+            $this->flash('error', $this->t('donate.payments_unavailable'));
 
             return $this->redirect('/donate');
         }
@@ -104,7 +113,12 @@ class DonateController extends Controller
         $this->rateLimiter->hit($bucket);
 
         try {
-            $result = $this->checkout->startCheckout($accountId, $login, $packageId);
+            $result = $this->checkout->startCheckout(
+                $accountId,
+                $login,
+                $packageId,
+                $gatewayId !== '' ? $gatewayId : null,
+            );
 
             return Response::redirect($result['approval_url']);
         } catch (\Throwable) {

@@ -55,4 +55,24 @@ final class GatewayRegistry
 
         return null;
     }
+
+    /**
+     * Resolve a configured gateway by id, or the first configured one when $id is empty.
+     */
+    public function resolve(?string $id = null): ?PaymentGateway
+    {
+        $id = $id !== null ? trim($id) : '';
+
+        if ($id !== '') {
+            if (!$this->has($id)) {
+                return null;
+            }
+
+            $gateway = $this->get($id);
+
+            return $gateway->configured() ? $gateway : null;
+        }
+
+        return $this->active();
+    }
 }

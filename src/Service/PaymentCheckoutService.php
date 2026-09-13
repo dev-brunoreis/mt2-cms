@@ -25,14 +25,14 @@ class PaymentCheckoutService
     /**
      * @return array{approval_url: string, payment_id: int}
      */
-    public function startCheckout(int $accountId, string $accountLogin, int $packageId): array
+    public function startCheckout(int $accountId, string $accountLogin, int $packageId, ?string $gatewayId = null): array
     {
         $this->expiry->expireDue();
 
-        $gateway = $this->gateways->active();
+        $gateway = $this->gateways->resolve($gatewayId);
 
         if ($gateway === null) {
-            throw new \RuntimeException('donate.paypal_unavailable');
+            throw new \RuntimeException('donate.payments_unavailable');
         }
 
         $package = $this->packages->findEnabledById($packageId);

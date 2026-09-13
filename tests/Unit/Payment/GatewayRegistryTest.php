@@ -33,8 +33,30 @@ final class GatewayRegistryTest extends TestCase
         $registry->register($on);
 
         self::assertSame($on, $registry->active());
+        self::assertSame($on, $registry->resolve(null));
+        self::assertSame($on, $registry->resolve('on'));
+        self::assertNull($registry->resolve('off'));
+        self::assertNull($registry->resolve('missing'));
         self::assertTrue($registry->has('off'));
         self::assertCount(2, $registry->all());
         self::assertCount(1, $registry->configured());
+    }
+
+    public function testResolvePicksConfiguredGatewayById(): void
+    {
+        $paypal = $this->createMock(PaymentGateway::class);
+        $paypal->method('id')->willReturn('paypal');
+        $paypal->method('configured')->willReturn(true);
+
+        $mp = $this->createMock(PaymentGateway::class);
+        $mp->method('id')->willReturn('mercadopago');
+        $mp->method('configured')->willReturn(true);
+
+        $registry = new GatewayRegistry();
+        $registry->register($paypal);
+        $registry->register($mp);
+
+        self::assertSame($paypal, $registry->active());
+        self::assertSame($mp, $registry->resolve('mercadopago'));
     }
 }

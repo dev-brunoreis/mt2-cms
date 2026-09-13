@@ -114,6 +114,56 @@ final class PaymentCheckoutServiceTest extends TestCase
         self::assertSame(11, $result['payment_id']);
     }
 
+    public function testStartCheckoutUsesRequestedGatewayWhenSeveralConfigured(): void
+    {
+        $packages = $this->createMock(CashPackageRepository::class);
+        $packages->method('findEnabledById')->willReturn([
+            'id' => 3,
+            'price_cents' => 999,
+            'currency' => 'BRL',
+            'cash_amount' => 100,
+        ]);
+
+        $payments = $this->createMock(PaymentRepository::class);
+        $payments->expects(self::once())->method('createPending')->with(self::callback(
+            static fn (array $row): bool => ($row['provider'] ?? '') === 'mercadopago',
+        ))->willReturn(['id' => 11]);
+        $payments->expects(self::once())->method('updateProviderRef')->with(11, 'PREF-1');
+
+        $paypal = $this->createMock(PaymentGateway::class);
+        $paypal->method('id')->willReturn('paypal');
+        $paypal->method('configured')->willReturn(true);
+        $paypal->method('currency')->willReturn('USD');
+        $paypal->expects(self::never())->method('createCheckout');
+
+        $mp = $this->createMock(PaymentGateway::class);
+        $mp->method('id')->willReturn('mercadopago');
+        $mp->method('configured')->willReturn(true);
+        $mp->method('currency')->willReturn('BRL');
+        $mp->expects(self::once())->method('createCheckout')
+            ->willReturn(new CheckoutRedirect('PREF-1', 'https://mp.test/checkout'));
+
+        $registry = new GatewayRegistry();
+        $registry->register($paypal);
+        $registry->register($mp);
+
+        $settings = $this->createMock(SettingsService::class);
+        $settings->method('siteUrl')->willReturn('https://example.test');
+
+        $service = new PaymentCheckoutService(
+            $packages,
+            $payments,
+            $registry,
+            $settings,
+            $this->createMock(NotificationService::class),
+            $this->createMock(PaymentExpiryService::class),
+        );
+
+        $result = $service->startCheckout(5, 'player1', 3, 'mercadopago');
+
+        self::assertSame('https://mp.test/checkout', $result['approval_url']);
+    }
+
     public function testCancelPendingMarksFailedAndNotifies(): void
     {
         $payments = $this->createMock(PaymentRepository::class);

@@ -18,24 +18,4 @@
             </div>
         </div>
     {% endif %}
-
-    {% if events is not empty %}
-        <div class="k-panel">
-            <div class="k-panel-head flex items-center justify-between gap-3">
-                <span>{{ t('home.events_title') }}</span>
-                <a href="/events" class="!text-[0.65rem] !normal-case !tracking-normal font-normal">{{ t('home.events_all') }}</a>
-            </div>
-            <div class="px-4 py-1">
-                {% for event in events %}
-                    <div class="k-news-row">
-                        <time class="k-news-date">{{ event.starts_at|game_date }}</time>
-                        <div>
-                            <a href="/events/{{ event.id }}" class="k-news-title">{{ event.title }}</a>
-                            <p class="mt-1 line-clamp-2 text-xs k-muted">{{ event.body|news_excerpt(100) }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
 </section>

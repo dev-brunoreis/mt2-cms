@@ -112,18 +112,21 @@
     },
     "donate": {
         "title": "Buy cash",
-        "lead": "Top up your account cash balance via PayPal.",
+        "lead": "Top up your account cash balance.",
         "empty": "No packages available.",
         "cash_amount": "{amount} cash",
         "price": "{price} {currency}",
-        "buy": "Buy with PayPal",
+        "buy": "Buy",
+        "buy_with": "Buy with {gateway}",
         "checkout_failed": "Could not start checkout.",
         "payment_not_found": "Payment not found.",
         "return_pending": "Payment received. Cash will appear shortly.",
         "cancelled": "Payment cancelled.",
         "package_unavailable": "Package unavailable.",
-        "paypal_unavailable": "PayPal checkout is not available right now. Please try again later.",
-        "paypal_unavailable_short": "PayPal is not configured."
+        "payments_unavailable": "Checkout is not available right now. Please try again later.",
+        "payments_unavailable_short": "No payment method is configured.",
+        "paypal_unavailable": "Checkout is not available right now. Please try again later.",
+        "paypal_unavailable_short": "No payment method is configured."
     },
     "auth": {
         "login_title": "Login",

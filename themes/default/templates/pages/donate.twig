@@ -4,9 +4,9 @@
         <p class="mt-1 text-slate-500">{{ t('donate.lead') }}</p>
     </div>
 
-    {% if not paypalConfigured|default(false) %}
+    {% if not paymentsConfigured|default(false) %}
         <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {{ t('donate.paypal_unavailable') }}
+            {{ t('donate.payments_unavailable') }}
         </p>
     {% endif %}
 
@@ -30,18 +30,21 @@
                             }) }}
                         </p>
                     </div>
-                    <div class="border-t border-slate-100 p-5">
-                        {% if paypalConfigured|default(false) %}
-                            <form method="post" action="/donate/buy">
-                                <input type="hidden" name="_csrf" value="{{ csrf }}">
-                                <input type="hidden" name="package_id" value="{{ package.id }}">
-                                <button type="submit"
-                                        class="w-full cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                                    {{ t('donate.buy') }}
-                                </button>
-                            </form>
+                    <div class="border-t border-slate-100 p-5 space-y-2">
+                        {% if paymentsConfigured|default(false) %}
+                            {% for gateway in paymentGateways %}
+                                <form method="post" action="/donate/buy">
+                                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                                    <input type="hidden" name="package_id" value="{{ package.id }}">
+                                    <input type="hidden" name="gateway" value="{{ gateway.id }}">
+                                    <button type="submit"
+                                            class="w-full cursor-pointer rounded-lg {% if loop.first %}bg-indigo-600 hover:bg-indigo-500 text-white{% else %}bg-white border border-slate-300 text-slate-800 hover:bg-slate-50{% endif %} px-4 py-2 text-sm font-semibold shadow-sm">
+                                        {{ t('donate.buy_with', {gateway: t(gateway.label_key)}) }}
+                                    </button>
+                                </form>
+                            {% endfor %}
                         {% else %}
-                            <p class="text-center text-sm text-slate-500">{{ t('donate.paypal_unavailable_short') }}</p>
+                            <p class="text-center text-sm text-slate-500">{{ t('donate.payments_unavailable_short') }}</p>
                         {% endif %}
                     </div>
                 </article>

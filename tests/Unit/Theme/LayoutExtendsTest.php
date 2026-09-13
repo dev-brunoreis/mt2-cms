@@ -95,6 +95,56 @@ final class LayoutExtendsTest extends TestCase
         self::assertSame(['widget-ranking'], $ids);
     }
 
+    public function testOverlayReplacesNodeTemplateById(): void
+    {
+        $base = [
+            'slots' => [
+                'sidebar' => [
+                    ['id' => 'sidebar', 'template' => 'components/sidebar-auth.twig'],
+                    ['id' => 'widget-online', 'template' => 'components/widget-online.twig'],
+                ],
+            ],
+        ];
+        $overlay = [
+            'slots' => [
+                'sidebar' => [
+                    ['id' => 'sidebar', 'template' => 'components/account-sidebar.twig'],
+                ],
+            ],
+        ];
+
+        $merged = LayoutMerger::mergeById($base, $overlay);
+
+        self::assertSame('components/account-sidebar.twig', $merged['slots']['sidebar'][0]['template']);
+        self::assertSame('widget-online', $merged['slots']['sidebar'][1]['id']);
+        self::assertCount(2, $merged['slots']['sidebar']);
+    }
+
+    public function testAccountLayoutSwapsAuthSidebar(): void
+    {
+        file_put_contents($this->tmp . '/default/layouts/_shell.json', json_encode([
+            'id' => 'root',
+            'template' => 'layouts/shell.twig',
+            'slots' => [
+                'sidebar' => [['id' => 'sidebar', 'template' => 'components/sidebar-auth.twig']],
+                'main' => [],
+            ],
+        ]));
+        file_put_contents($this->tmp . '/default/layouts/account.json', json_encode([
+            'extends' => '_shell',
+            'slots' => [
+                'sidebar' => [['id' => 'sidebar', 'template' => 'components/account-sidebar.twig']],
+                'main' => [['id' => 'content', 'template' => 'pages/account.twig']],
+            ],
+        ]));
+
+        $layout = (new ThemeResolver($this->tmp, 'default'))->resolveLayout('account');
+
+        self::assertSame('components/account-sidebar.twig', $layout['slots']['sidebar'][0]['template']);
+        self::assertCount(1, $layout['slots']['sidebar']);
+        self::assertSame('pages/account.twig', $layout['slots']['main'][0]['template']);
+    }
+
     public function testMergeByIdRemoveFlag(): void
     {
         $base = [

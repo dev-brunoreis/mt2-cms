@@ -90,7 +90,6 @@ class LayoutMerger
                 if ($id !== '' && isset($indexed[$id])) {
                     $indexed[$id] = self::mergeById($indexed[$id], $node);
                     $order[] = $id;
-                    unset($indexed[$id]);
                 } else {
                     $indexed[$key] = $node;
                     $order[] = $key;

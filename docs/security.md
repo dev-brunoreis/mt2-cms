@@ -21,7 +21,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Admin ACL | Resource-based access via `AclService` (Magento-style hierarchical IDs in `acl_role_resources` / `acl_admin_resources`, catalog in `AdminResourceCatalog`). Section checks in nav map to resource prefixes; mutations use `requireAdminResource()`. Super-only: admins, roles, audit log |
 | Security contracts | `tests/Unit/Contract/SecurityContractTest.php` — CSRF, mass-action whitelist, rate-limited POSTs, prepared statements. Keep green on every PR |
 | Admin audit | Mutating admin POSTs write to `admin_audit_log`; super admins can browse `/admin/audit-log` |
-| Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only) |
+| Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only; `form-action 'self'`) |
 | Config | `DB_PASSWORD` and `APP_KEY` required in `.env` when installed (no hardcoded runtime default) |
 | PayPal webhooks | Signature verification is fail-closed; webhook id required in **Settings → Payment methods** for `/donate` and webhook acceptance |
 | Operational errors | Schema drift and missing `APP_KEY` return generic HTTP 503; details logged server-side only |
@@ -36,7 +36,7 @@ Accounts use Metin2 / MySQL `PASSWORD()` style (`*` + uppercase `SHA1(SHA1(passw
 2. **POST** — always `assertCsrf()` before writes. Include `_csrf` in forms.
 3. **Twig** — never `|raw` on user input, flash text from untrusted sources, or DB strings. Prefer autoescape.
 4. **Auth responses** — generic failure messages (do not reveal whether a login exists).
-5. **Redirects** — only relative same-origin paths (`/`…), reject `//` and CR/LF.
+5. **Redirects** — only relative same-origin paths (`/`…), reject `//` and CR/LF. After a donate POST, hop to `/donate/pay` then navigate to the provider; a 302 to PayPal/Mercado Pago is blocked by `form-action 'self'`.
 6. **Secrets** — never log passwords, PINs, or hashes; never put them in Twig context.
 7. **Headers** — add via `Response::withHeader()` / defaults on `Response`, not ad-hoc `header()` in controllers.
 

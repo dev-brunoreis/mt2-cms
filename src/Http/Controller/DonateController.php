@@ -11,6 +11,7 @@ use Mt2Cms\Http\Request;
 use Mt2Cms\Http\Response;
 use Mt2Cms\Support\Log;
 use Mt2Cms\I18n\Translator;
+use Mt2Cms\Payment\CheckoutUrl;
 use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Repository\CashPackageRepository;
 use Mt2Cms\Repository\PaymentRepository;
@@ -22,6 +23,8 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class DonateController extends Controller
 {
+    private const CHECKOUT_SESSION_KEY = '_donate_checkout_url';
+
     private RateLimiter $rateLimiter;
 
     public function __construct(
@@ -119,13 +122,43 @@ class DonateController extends Controller
                 $packageId,
                 $gatewayId !== '' ? $gatewayId : null,
             );
-
-            return Response::redirect($result['approval_url']);
         } catch (\Throwable) {
             $this->flash('error', $this->t('donate.checkout_failed'));
 
             return $this->redirect('/donate');
         }
+
+        $url = $result['approval_url'];
+
+        if (!CheckoutUrl::isSafe($url)) {
+            $this->flash('error', $this->t('donate.checkout_failed'));
+
+            return $this->redirect('/donate');
+        }
+
+        $_SESSION[self::CHECKOUT_SESSION_KEY] = $url;
+
+        return $this->redirect('/donate/pay');
+    }
+
+    public function pay(): Response
+    {
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
+
+        $url = (string) ($_SESSION[self::CHECKOUT_SESSION_KEY] ?? '');
+
+        if (!CheckoutUrl::isSafe($url)) {
+            $this->flash('error', $this->t('donate.checkout_failed'));
+
+            return $this->redirect('/donate');
+        }
+
+        return $this->view('donate-pay', [
+            'title' => $this->t('donate.redirect_title'),
+            'checkout_url' => $url,
+        ]);
     }
 
     public function returnUrl(): Response

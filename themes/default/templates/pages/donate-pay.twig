@@ -1,0 +1,15 @@
+<section class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">{{ t('donate.redirect_title') }}</h1>
+        <p class="mt-1 text-slate-500">{{ t('donate.redirect_lead') }}</p>
+    </div>
+    <p>
+        <a id="donate-checkout-continue"
+           href="{{ checkout_url }}"
+           rel="noopener noreferrer"
+           class="inline-flex cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            {{ t('donate.redirect_continue') }}
+        </a>
+    </p>
+</section>
+<script src="/js/site/donate-checkout.js" defer></script>

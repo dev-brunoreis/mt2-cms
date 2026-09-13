@@ -77,6 +77,7 @@ final class PublicRoutes
         $r->addRoute('GET', '/downloads/{id:\d+}/file', [DownloadsController::class, 'file']);
         $r->addRoute('GET', '/donate', [DonateController::class, 'index']);
         $r->addRoute('POST', '/donate/buy', [DonateController::class, 'buy']);
+        $r->addRoute('GET', '/donate/pay', [DonateController::class, 'pay']);
         $r->addRoute('GET', '/donate/return', [DonateController::class, 'returnUrl']);
         $r->addRoute('GET', '/donate/cancel', [DonateController::class, 'cancel']);
         $r->addRoute('POST', '/payments/webhook/{provider}', [PaymentWebhookController::class, 'handle']);

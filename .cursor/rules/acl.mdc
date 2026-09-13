@@ -1,0 +1,21 @@
+---
+description: Admin ACL — every new section and mutating POST needs a catalog resource
+globs: src/Admin/AdminResourceCatalog.php,src/Admin/AdminSections.php,src/Http/AdminRoutes.php,src/Http/Controller/Admin/**/*.php,themes/admin/**/*.twig,docs/acl.md,docs/add-admin-section.md
+alwaysApply: false
+---
+
+# Admin ACL
+
+Follow `docs/acl.md`. Catalog: `AdminResourceCatalog::tree()`.
+
+## Required
+
+- New module: add resources to the catalog **and** map `sectionIdForResource` / `sectionResourcePrefix` / `pathForResource`
+- List GET: `adminView('section-id', …)` is enough for section access
+- Hub tab GET: `requireAdminResourceView('…/view')` + `acl_allowed()` on tabs
+- Mutating POST: `requireAdminResource('area/module/action')` (or `requireAnyAdminResource` / `requireAdminSection` for super-only)
+- Mass POST: last arg to `runMassActions()` is the `…/mass` resource
+- Twig: gate writes with `acl_allowed('…')`
+- JSON POSTs still need a resource check (return 401/403 JSON)
+
+`adminView()` does **not** replace a POST resource check. Skip only login, logout, 2FA verify, own TOTP.

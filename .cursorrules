@@ -7,5 +7,6 @@
 - Use imperative mood ("Add" not "Adds" or "Adding")
 
 # Implementation / security
-- Follow docs/ and .cursor/rules/implementing.mdc + security.mdc when adding features
-- Keep tests/Unit/Contract/SecurityContractTest.php green (SQL, CSRF, Twig, mass/actions, audit, rate limit)
+- Start from docs/map.md + docs/patterns.md + docs/testing.md; follow docs/ and .cursor/rules/
+- Keep compiled docs in sync when behavior changes (map + the linked feature doc)
+- Keep tests/Unit/Contract/SecurityContractTest.php green; add unit tests for new behavior

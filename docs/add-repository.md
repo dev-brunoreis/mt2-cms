@@ -53,3 +53,4 @@ For public profiles, omit extra columns in the SQL itself (see `PlayerRepository
 - [ ] Explicit columns + `reveal()` where needed
 - [ ] Injected via `Application`
 - [ ] No secrets in logs or Twig context
+- [ ] Unit test for validation/behavior that does not need MySQL (`docs/testing.md`)

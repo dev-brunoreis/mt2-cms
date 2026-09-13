@@ -189,12 +189,15 @@ Done: `GmRepository` rename, JS split, proto index cache, `FormInput`, controlle
 
 ## Checklist for a new admin list (today)
 
-Follow [add-admin-section.md](add-admin-section.md):
+Follow [add-admin-section.md](add-admin-section.md) and [acl.md](acl.md):
 
 - [ ] `src/Admin/Grid/Definitions/YourSectionGrid.php` + `countForGrid` / `listForGrid` on the repository
 - [ ] `GridSql::orderBy` with `YourSectionGrid::definition()->sortMap()`
 - [ ] `GridRunner::fetch` in the controller
 - [ ] Mass POST: `runMassActions()` (or `assertCsrf()` + whitelist from the spec)
+- [ ] ACL: catalog id + `requireAdminResource` / `runMassActions` on POSTs
 - [ ] Audit via `audit()` / `auditChange()` / `runMassActions()`
 - [ ] Translation keys in `lang/en.json`
 - [ ] Route in `AdminRoutes.php` + factory in `controller_factories.php`
+- [ ] Unit test for new logic (`docs/testing.md`)
+- [ ] Update [map.md](map.md) if you added a module

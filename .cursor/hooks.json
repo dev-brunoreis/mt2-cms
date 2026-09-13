@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/session-docs.js",
+        "timeout": 5
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/remind-docs.js",
+        "timeout": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": ".cursor/hooks/remind-docs.js",
+        "matcher": "Write|StrReplace",
+        "timeout": 5
+      }
+    ],
+    "stop": [
+      {
+        "type": "prompt",
+        "prompt": "If this turn changed behavior in src/, themes/, lang/, routes, or ACL catalogs, confirm (1) matching files under docs/ were updated (start at docs/map.md + docs/patterns.md), (2) a unit test under tests/Unit/ was added or adjusted when production behavior changed (docs/testing.md), (3) new admin mutations call requireAdminResource / runMassActions / requireAdminSection. If already current, do not make extra edits — one-line status and stop.",
+        "timeout": 30,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

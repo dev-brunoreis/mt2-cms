@@ -11,8 +11,8 @@ use Mt2Cms\Http\Controller\SetupController;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Source-level security contracts. New SQL, POST, grid, Twig, audit, or
- * auth endpoints must keep these green — see docs/security.md.
+ * Source-level security contracts. New SQL, POST, grid, Twig, audit, ACL, or
+ * auth endpoints must keep these green — see docs/security.md and docs/acl.md.
  */
 final class SecurityContractTest extends TestCase
 {
@@ -25,6 +25,14 @@ final class SecurityContractTest extends TestCase
         AdminAuthController::class . '::verifyTwoFactor',
         AdminAuthController::class . '::logout',
         AdminAccountSecurityController::class . '::startEnroll',
+    ];
+
+    private const ACL_SKIP = [
+        AdminAuthController::class . '::login',
+        AdminAuthController::class . '::verifyTwoFactor',
+        AdminAuthController::class . '::logout',
+        AdminAccountSecurityController::class . '::startEnroll',
+        AdminAccountSecurityController::class . '::confirmEnroll',
     ];
 
     /** @var list<string> */
@@ -318,6 +326,36 @@ final class SecurityContractTest extends TestCase
         }
 
         self::assertSame([], $missing, "Admin POSTs must audit (or use runMassActions):\n" . implode("\n", $missing));
+    }
+
+    public function testAdminPostHandlersCheckAcl(): void
+    {
+        $missing = [];
+
+        foreach (SourceScan::postRoutes() as $route) {
+            if (!str_starts_with($route['path'], '/admin/')) {
+                continue;
+            }
+
+            $id = $route['class'] . '::' . $route['method'];
+
+            if (in_array($id, self::ACL_SKIP, true)) {
+                continue;
+            }
+
+            $source = SourceScan::reachableSource($route['class'], $route['method']);
+
+            if (!str_contains($source, 'requireAdminResource(')
+                && !str_contains($source, 'requireAdminResourceView(')
+                && !str_contains($source, 'requireAnyAdminResource(')
+                && !str_contains($source, 'requireAdminSection(')
+                && !str_contains($source, 'runMassActions(')
+            ) {
+                $missing[] = $route['path'] . ' → ' . $id;
+            }
+        }
+
+        self::assertSame([], $missing, "Admin POSTs must check ACL (requireAdminResource / runMassActions / requireAdminSection):\n" . implode("\n", $missing));
     }
 
     public function testSensitivePostsAreRateLimited(): void

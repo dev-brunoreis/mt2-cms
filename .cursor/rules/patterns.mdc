@@ -1,0 +1,17 @@
+---
+description: Mt2 CMS code patterns — layers, HTTP, SQL, i18n
+globs: src/**/*.php,themes/**/*.twig,themes/**/*.json
+alwaysApply: false
+---
+
+# Patterns
+
+Follow `docs/patterns.md`. Do not invent a parallel stack.
+
+- Layers: route → factory → controller → service → repository. No `src/Feature/` folders. No SQL in controllers. No `$_POST` in services.
+- Wire new classes in `src/bootstrap/installed_services.php` + `controller_factories.php`. Never `new Repository()` in a controller.
+- Return `Response::*`. User copy via `$this->t()` / `{{ t() }}`. Exception message = i18n key.
+- POST: `FormInput` + `assertCsrf()` (or `runMassActions()`). Admin writes also ACL + audit (`docs/acl.md`).
+- SQL: prepared `?` only; `reveal()` before data leaves a repository.
+- Twig: no `|raw` on data. Admin lists use `grid.twig`.
+- After behavior change: update `docs/map.md` + the feature doc; add/adjust a unit test (`docs/testing.md`).

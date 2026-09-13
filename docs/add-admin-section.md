@@ -1,6 +1,6 @@
 # Add an admin section
 
-Admin UI lives in **`themes/admin`** (white panel, Magento-style page header).
+Admin UI lives in **`themes/admin`** (white panel, Magento-style page header). Architecture index: [map.md](map.md). ACL details: [acl.md](acl.md).
 
 ## URL layout
 
@@ -152,7 +152,7 @@ public function mass(): Response
 
 ## 7. ACL resources
 
-Resource IDs follow `{area}/{module}/[{entity}/]{action}` (see `AdminResourceCatalog`). Examples:
+See [acl.md](acl.md) for the full contract. Resource IDs follow `{area}/{module}/[{entity}/]{action}` (see `AdminResourceCatalog`). Examples:
 
 | Action | Resource |
 |--------|----------|

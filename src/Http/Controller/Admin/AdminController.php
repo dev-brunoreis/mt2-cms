@@ -109,6 +109,30 @@ abstract class AdminController extends Controller
         return $this->denyUnlessAllowed($resourceId);
     }
 
+    /**
+     * @param list<string> $resourceIds
+     */
+    protected function requireAnyAdminResource(array $resourceIds): ?Response
+    {
+        if ($redirect = $this->requireAdmin()) {
+            return $redirect;
+        }
+
+        if ($redirect = $this->requireTwoFactorEnrollment('')) {
+            return $redirect;
+        }
+
+        $admin = $this->adminAuth->user();
+
+        foreach ($resourceIds as $resourceId) {
+            if ($resourceId !== '' && $this->acl->isAllowed($admin, $resourceId)) {
+                return null;
+            }
+        }
+
+        return $this->denyUnlessAllowed($resourceIds[0] ?? '');
+    }
+
     protected function requireAdminResourceView(string $resourceId): ?Response
     {
         if ($redirect = $this->requireAdmin()) {

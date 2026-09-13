@@ -6,14 +6,19 @@ alwaysApply: false
 
 # Implementing features
 
+Start from `docs/map.md`, then `docs/patterns.md` and `docs/testing.md`. Do not grep the whole repo to learn a subsystem.
+
 Follow the project guides — do not invent a parallel stack:
 
 - Admin list pages: `.cursor/rules/admin-grid.mdc` + `docs/add-admin-section.md` §6 (`Admin/Grid/Definitions/*Grid`, `grid.twig`, mass **or** row actions — never both)
+- Admin ACL: `.cursor/rules/acl.mdc` + `docs/acl.md` (`AdminResourceCatalog`, `requireAdminResource` on POSTs)
 - Pages: `docs/add-page.md` (route → controller → layout JSON → Twig → i18n)
 - Repositories: `docs/add-repository.md` (PDO prepared, `reveal()`, DI in `Application`)
 - Themes: `docs/add-theme.md` (parent theme, override by path and node `id`)
 - Locales: `docs/add-locale.md` (keys in `en.json`)
+- Payments / economy / SEO / inbox: `docs/payments.md`, `docs/economy.md`, `docs/seo.md`, `docs/notifications.md`
 - Security: `.cursor/rules/security.mdc` + `docs/security.md` (contracts in `tests/Unit/Contract/SecurityContractTest.php`)
+- After a behavior change: update `docs/map.md` and the linked doc; add/adjust a unit test (`docs/testing.md`)
 
 ## Must not skip
 
@@ -24,6 +29,7 @@ Follow the project guides — do not invent a parallel stack:
 - Admin mutating POSTs call `audit()` / `auditChange()` / `runMassActions()`
 - Sensitive auth POSTs stay behind `RateLimiter`
 - Auth-only pages call `requireAuth()`
+- Admin mutations call `requireAdminResource()` / `runMassActions()` / `requireAdminSection()`; add the id to `AdminResourceCatalog`
 - Add translation keys to `lang/en.json`
-- Keep `tests/Unit/Contract/SecurityContractTest.php` green
+- Keep `tests/Unit/Contract/SecurityContractTest.php` green; new behavior gets a `tests/Unit/` test
 - Do not reformat or rewrite unrelated files

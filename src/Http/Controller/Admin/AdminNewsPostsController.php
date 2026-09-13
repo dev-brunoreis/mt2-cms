@@ -241,8 +241,12 @@ class AdminNewsPostsController extends AdminNewsBaseController
 
     public function upload(): Response
     {
-        if (!$this->adminAuth->check()) {
-            return Response::json(['error' => $this->t('admin.login_required')], 401);
+        if ($this->requireAnyAdminResource(['content/news/posts/create', 'content/news/posts/edit']) !== null) {
+            if (!$this->adminAuth->check()) {
+                return Response::json(['error' => $this->t('admin.login_required')], 401);
+            }
+
+            return Response::json(['error' => $this->t('admin.access_denied')], 403);
         }
 
         if (!$this->assertCsrf()) {

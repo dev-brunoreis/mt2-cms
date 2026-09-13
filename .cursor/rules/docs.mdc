@@ -1,0 +1,20 @@
+---
+description: Read docs/map.md first; keep compiled docs in sync when behavior changes
+alwaysApply: true
+---
+
+# Project docs
+
+Start from `docs/map.md`, then `docs/patterns.md` and `docs/testing.md`. Do **not** grep the whole repo to learn how a subsystem works — open the one linked doc, then the files it names.
+
+## When behavior changes
+
+Update the matching file under `docs/` **in the same turn** (map row + the feature doc). New admin module = `docs/map.md` + `docs/acl.md` + `docs/add-admin-section.md`.
+
+Do not write a second architecture in chat. Keep docs short; they are an index, not a dump of the source.
+
+## Must not skip
+
+- Admin mutations: `requireAdminResource` / `runMassActions` / `requireAdminSection` (see `docs/acl.md`)
+- New behavior: unit test in `tests/Unit/` (see `docs/testing.md`)
+- Keep `tests/Unit/Contract/SecurityContractTest.php` green

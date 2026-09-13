@@ -87,12 +87,23 @@ Donate uses **PayPal** (Checkout + fail-closed webhooks). Gateways implement `Mt
 
 ## Implementing
 
+Start from **[docs/map.md](docs/map.md)** (compiled index), then **[docs/patterns.md](docs/patterns.md)** and **[docs/testing.md](docs/testing.md)**. Then open only the one guide for the area you are changing.
+
 | Guide | When to use |
 | --- | --- |
+| [docs/map.md](docs/map.md) | Architecture index — read this first |
+| [docs/patterns.md](docs/patterns.md) | Layers, HTTP, SQL, i18n — how to write code |
+| [docs/testing.md](docs/testing.md) | Unit + contract tests (`composer test`) |
+| [docs/acl.md](docs/acl.md) | Admin ACL resources and POST checks |
+| [docs/add-admin-section.md](docs/add-admin-section.md) | New admin screen / grid / hub |
 | [docs/add-page.md](docs/add-page.md) | New public or authenticated page |
 | [docs/add-repository.md](docs/add-repository.md) | New game DB queries |
 | [docs/add-theme.md](docs/add-theme.md) | Child theme / overlay |
 | [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
+| [docs/payments.md](docs/payments.md) | Donate, webhooks, cash credit |
+| [docs/economy.md](docs/economy.md) | Economy tick, alerts, admin UI |
+| [docs/notifications.md](docs/notifications.md) | Player in-app inbox |
+| [docs/seo.md](docs/seo.md) | Meta, robots, sitemap |
 | [docs/game-files.md](docs/game-files.md) | Game dumps, JSON config, custom source |
 | [docs/security.md](docs/security.md) | Security rules and PR checklist |
 | [docs/deploy.md](docs/deploy.md) | Production deployment and TLS |

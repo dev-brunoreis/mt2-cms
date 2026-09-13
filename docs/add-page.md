@@ -58,3 +58,4 @@ Add `themes/default/templates/pages/your-page.twig`.
 - [ ] Layout JSON + Twig page
 - [ ] `en` + `pt-BR` keys
 - [ ] CSRF on POST / `requireAuth` when needed
+- [ ] Unit test if you added non-trivial logic (`docs/testing.md`)

@@ -22,6 +22,7 @@ use Mt2Cms\Http\Controller\PasswordController;
 use Mt2Cms\Http\Controller\PaymentWebhookController;
 use Mt2Cms\Http\Controller\PlayerController;
 use Mt2Cms\Http\Controller\RankingController;
+use Mt2Cms\Http\Controller\SeoController;
 use Mt2Cms\Http\Controller\StatusController;
 use Mt2Cms\Http\Controller\TicketController;
 
@@ -30,6 +31,8 @@ final class PublicRoutes
     public static function register(RouteCollector $r): void
     {
         $r->addRoute('GET', '/health', [HealthController::class, 'index']);
+        $r->addRoute('GET', '/robots.txt', [SeoController::class, 'robots']);
+        $r->addRoute('GET', '/sitemap.xml', [SeoController::class, 'sitemap']);
         $r->addRoute('GET', '/', [HomeController::class, 'index']);
         $r->addRoute('GET', '/captcha.svg', [CaptchaController::class, 'publicSvg']);
         $r->addRoute('GET', '/login', [AuthController::class, 'showLogin']);

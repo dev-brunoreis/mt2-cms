@@ -522,6 +522,147 @@ class SettingsService
         $this->settings->set('site_url', $url);
     }
 
+    public function seoDescription(): string
+    {
+        return trim((string) ($this->settings->get('seo_description') ?? ''));
+    }
+
+    public function setSeoDescription(string $description): void
+    {
+        $description = trim($description);
+
+        if (mb_strlen($description) > 320) {
+            throw new \InvalidArgumentException('admin.seo.description_invalid');
+        }
+
+        $this->settings->set('seo_description', $description);
+    }
+
+    public function seoOgImage(): string
+    {
+        $path = trim((string) ($this->settings->get('seo_og_image') ?? ''));
+
+        if ($path === '' || !SeoImageUploadService::isStoredPath($path)) {
+            return '';
+        }
+
+        return $path;
+    }
+
+    public function setSeoOgImage(string $path): void
+    {
+        $path = trim($path);
+
+        if ($path !== '' && !SeoImageUploadService::isStoredPath($path)) {
+            throw new \InvalidArgumentException('admin.seo.og_image_upload_invalid');
+        }
+
+        $this->settings->set('seo_og_image', $path);
+    }
+
+    public function seoIndexEnabled(): bool
+    {
+        $value = $this->settings->get('seo_index_enabled');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return $value === '1';
+    }
+
+    public function setSeoIndexEnabled(bool $enabled): void
+    {
+        $this->settings->set('seo_index_enabled', $enabled ? '1' : '0');
+    }
+
+    public function seoGoogleVerification(): string
+    {
+        return trim((string) ($this->settings->get('seo_google_verification') ?? ''));
+    }
+
+    public function setSeoGoogleVerification(string $token): void
+    {
+        $this->settings->set('seo_google_verification', $this->normalizeVerificationToken(
+            $token,
+            'admin.seo.google_verification_invalid',
+        ));
+    }
+
+    public function seoBingVerification(): string
+    {
+        return trim((string) ($this->settings->get('seo_bing_verification') ?? ''));
+    }
+
+    public function setSeoBingVerification(string $token): void
+    {
+        $this->settings->set('seo_bing_verification', $this->normalizeVerificationToken(
+            $token,
+            'admin.seo.bing_verification_invalid',
+        ));
+    }
+
+    public function seoTwitterSite(): string
+    {
+        return trim((string) ($this->settings->get('seo_twitter_site') ?? ''));
+    }
+
+    public function setSeoTwitterSite(string $handle): void
+    {
+        $handle = trim($handle);
+
+        if ($handle === '') {
+            $this->settings->set('seo_twitter_site', '');
+
+            return;
+        }
+
+        $handle = ltrim($handle, '@');
+
+        if (preg_match('/^[A-Za-z0-9_]{1,15}$/', $handle) !== 1) {
+            throw new \InvalidArgumentException('admin.seo.twitter_invalid');
+        }
+
+        $this->settings->set('seo_twitter_site', '@' . $handle);
+    }
+
+    /**
+     * @return array{
+     *   seo_description: string,
+     *   seo_og_image: string,
+     *   seo_index_enabled: bool,
+     *   seo_google_verification: string,
+     *   seo_bing_verification: string,
+     *   seo_twitter_site: string
+     * }
+     */
+    public function seoSettings(): array
+    {
+        return [
+            'seo_description' => $this->seoDescription(),
+            'seo_og_image' => $this->seoOgImage(),
+            'seo_index_enabled' => $this->seoIndexEnabled(),
+            'seo_google_verification' => $this->seoGoogleVerification(),
+            'seo_bing_verification' => $this->seoBingVerification(),
+            'seo_twitter_site' => $this->seoTwitterSite(),
+        ];
+    }
+
+    private function normalizeVerificationToken(string $token, string $errorKey): string
+    {
+        $token = trim($token);
+
+        if ($token === '') {
+            return '';
+        }
+
+        if (preg_match('/^[A-Za-z0-9_-]{1,100}$/', $token) !== 1) {
+            throw new \InvalidArgumentException($errorKey);
+        }
+
+        return $token;
+    }
+
     public function onlineWindowMinutes(): int
     {
         $value = (int) ($this->settings->get('online_window_minutes') ?? 15);

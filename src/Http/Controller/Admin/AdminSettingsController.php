@@ -15,6 +15,7 @@ use Mt2Cms\Payment\GatewayRegistry;
 use Mt2Cms\Repository\ServerChannelRepository;
 use Mt2Cms\Service\AclService;
 use Mt2Cms\Service\AdminAuditService;
+use Mt2Cms\Service\SeoImageUploadService;
 use Mt2Cms\Service\SettingsService;
 use Mt2Cms\Service\UnstuckService;
 use Mt2Cms\Setup\ThemeCatalog;
@@ -23,7 +24,7 @@ use Mt2Cms\Theme\ThemeEngine;
 
 class AdminSettingsController extends AdminController
 {
-    private const TABS = ['registration', 'themes', 'locale', 'security', 'community', 'payment-methods', 'unstuck', 'news', 'banners'];
+    private const TABS = ['registration', 'themes', 'locale', 'security', 'community', 'seo', 'payment-methods', 'unstuck', 'news', 'banners'];
 
     /** @var array<string, string> */
     private const TAB_VIEW_RESOURCES = [
@@ -32,6 +33,7 @@ class AdminSettingsController extends AdminController
         'locale' => 'settings/locale/view',
         'security' => 'settings/security/view',
         'community' => 'settings/community/view',
+        'seo' => 'settings/seo/view',
         'payment-methods' => 'settings/payment-methods/view',
         'unstuck' => 'settings/unstuck/view',
         'news' => 'content/news/settings/view',
@@ -45,6 +47,7 @@ class AdminSettingsController extends AdminController
         'locale' => 'admin-locale-form',
         'security' => 'admin-security-form',
         'community' => 'admin-community-form',
+        'seo' => 'admin-seo-form',
         'payment-methods' => 'admin-paypal-form',
         'unstuck' => 'admin-unstuck-form',
         'news' => 'admin-news-settings-form',
@@ -58,6 +61,7 @@ class AdminSettingsController extends AdminController
         'locale' => 'admin.nav.locale',
         'security' => 'admin.nav.security',
         'community' => 'admin.nav.community',
+        'seo' => 'admin.nav.seo',
         'payment-methods' => 'admin.nav.payment_methods',
         'unstuck' => 'admin.nav.unstuck',
         'news' => 'admin.nav.news',
@@ -79,6 +83,7 @@ class AdminSettingsController extends AdminController
         private ServerChannelRepository $channels,
         private UnstuckService $unstuck,
         private GatewayRegistry $paymentGateways,
+        private SeoImageUploadService $seoUploads,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -129,6 +134,11 @@ class AdminSettingsController extends AdminController
     public function security(): Response
     {
         return $this->redirect(AdminPaths::settingsSecurity());
+    }
+
+    public function seo(): Response
+    {
+        return $this->redirect(AdminPaths::settingsSeo());
     }
 
     public function saveRegistration(): Response
@@ -271,6 +281,37 @@ class AdminSettingsController extends AdminController
         return $this->redirect(AdminPaths::settingsSecurity());
     }
 
+    public function saveSeo(): Response
+    {
+        if ($redirect = $this->requireAdminResource('settings/seo/edit')) {
+            return $redirect;
+        }
+
+        if (!$this->assertCsrf()) {
+            $this->flash('error', $this->t('auth.invalid_csrf'));
+
+            return $this->redirect(AdminPaths::settingsSeo());
+        }
+
+        try {
+            $before = $this->settings->seoSettings();
+            $this->settings->setSeoDescription(trim((string) ($_POST['seo_description'] ?? '')));
+            $this->settings->setSeoIndexEnabled(isset($_POST['seo_index_enabled']));
+            $this->settings->setSeoGoogleVerification(trim((string) ($_POST['seo_google_verification'] ?? '')));
+            $this->settings->setSeoBingVerification(trim((string) ($_POST['seo_bing_verification'] ?? '')));
+            $this->settings->setSeoTwitterSite(trim((string) ($_POST['seo_twitter_site'] ?? '')));
+            $this->replaceSeoOgImage();
+            $this->auditChange('settings.seo_save', 'settings', null, $before, $this->settings->seoSettings());
+            $this->flash('success', $this->t('admin.saved'));
+        } catch (\InvalidArgumentException $e) {
+            $this->flash('error', $this->t($e->getMessage()));
+        } catch (\RuntimeException $e) {
+            $this->flash('error', $this->t('admin.seo.og_image_upload_failed'));
+        }
+
+        return $this->redirect(AdminPaths::settingsSeo());
+    }
+
     public function saveBanners(): Response
     {
         if ($redirect = $this->requireAdminResource('content/banners/settings/edit')) {
@@ -374,6 +415,18 @@ class AdminSettingsController extends AdminController
             'payment-methods' => [
                 'template' => 'pages/payment-methods.twig',
                 'data' => $this->paymentMethodsPartialData($formId),
+            ],
+            'seo' => [
+                'template' => 'pages/seo.twig',
+                'data' => [
+                    'formId' => $formId,
+                    'seoDescription' => $this->settings->seoDescription(),
+                    'seoOgImage' => $this->settings->seoOgImage(),
+                    'seoIndexEnabled' => $this->settings->seoIndexEnabled(),
+                    'seoGoogleVerification' => $this->settings->seoGoogleVerification(),
+                    'seoBingVerification' => $this->settings->seoBingVerification(),
+                    'seoTwitterSite' => $this->settings->seoTwitterSite(),
+                ],
             ],
             'community' => [
                 'template' => 'pages/community-channels.twig',
@@ -492,5 +545,29 @@ class AdminSettingsController extends AdminController
         }
 
         return $options;
+    }
+
+    private function replaceSeoOgImage(): void
+    {
+        $file = $_FILES['seo_og_image'] ?? null;
+        $hasUpload = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $remove = isset($_POST['remove_seo_og_image']);
+
+        if (!$hasUpload && !$remove) {
+            return;
+        }
+
+        $previous = $this->settings->seoOgImage();
+
+        if ($hasUpload) {
+            $path = $this->seoUploads->store($file);
+            $this->settings->setSeoOgImage($path);
+        } else {
+            $this->settings->setSeoOgImage('');
+        }
+
+        if ($previous !== '') {
+            $this->seoUploads->delete($previous);
+        }
     }
 }

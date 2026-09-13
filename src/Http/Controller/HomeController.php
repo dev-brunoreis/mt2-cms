@@ -35,6 +35,9 @@ class HomeController extends Controller
 
         return $this->view('home', [
             'title' => $this->t('nav.home'),
+            'seo' => [
+                'fallback_description' => $this->t('home.lead'),
+            ],
             'posts' => $this->news->latestPublished(5),
             'events' => $this->events->upcomingPublished(5),
             'playersOnline' => $this->players->countActiveSinceMinutes($minutes),

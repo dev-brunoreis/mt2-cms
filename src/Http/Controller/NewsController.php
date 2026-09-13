@@ -66,6 +66,7 @@ class NewsController extends Controller
                 'title' => $this->t('news.not_found'),
                 'post' => null,
                 'notFound' => true,
+                'seo' => ['noindex' => true],
             ], 404);
         }
 
@@ -78,6 +79,7 @@ class NewsController extends Controller
 
         return $this->view('news-show', [
             'title' => (string) $post['title'],
+            'seo' => $this->seoForPost($post),
             'post' => $post,
             'notFound' => false,
             'comments' => $this->comments->listVisibleForNews((int) $post['id'], $accountId),
@@ -174,5 +176,29 @@ class NewsController extends Controller
     private function clientIp(): string
     {
         return Request::clientIp();
+    }
+
+    /**
+     * @param array<string, mixed> $post
+     * @return array<string, mixed>
+     */
+    private function seoForPost(array $post): array
+    {
+        $image = trim((string) ($post['seo_og_image'] ?? ''));
+
+        if ($image === '') {
+            $image = trim((string) ($post['cover_image'] ?? ''));
+        }
+
+        return [
+            'title' => trim((string) ($post['seo_title'] ?? '')),
+            'description' => trim((string) ($post['seo_description'] ?? '')),
+            'excerpt_html' => (string) ($post['body'] ?? ''),
+            'image' => $image,
+            'type' => 'article',
+            'headline' => (string) ($post['title'] ?? ''),
+            'published_at' => $post['published_at'] ?? null,
+            'modified_at' => $post['updated_at'] ?? null,
+        ];
     }
 }

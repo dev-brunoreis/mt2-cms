@@ -10,6 +10,7 @@ use Mt2Cms\Admin\Grid\GridUrl;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
+use Mt2Cms\Service\SeoService;
 use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Support\Money;
 use Mt2Cms\Support\SelectOptions;
@@ -57,6 +58,9 @@ class TwigExtension extends AbstractExtension
 
                 return $sanitizer->excerpt((string) $html, $max);
             }),
+            new TwigFilter('json_ld', static function (mixed $value): string {
+                return SeoService::encodeJsonLd($value);
+            }, ['is_safe' => ['html']]),
             new TwigFilter('sort_select', function (mixed $options, bool $translate = true): array {
                 if (!is_array($options)) {
                     return [];

@@ -268,6 +268,11 @@ final class AdminPaths
         return self::settings('community');
     }
 
+    public static function settingsSeo(): string
+    {
+        return self::settings('seo');
+    }
+
     public static function settingsPaymentMethods(): string
     {
         return self::settings('payment-methods');
@@ -328,6 +333,7 @@ final class AdminPaths
             'locale' => self::settingsLocale(),
             'security' => self::settingsSecurity(),
             'community' => self::settingsCommunity(),
+            'seo' => self::settingsSeo(),
             'payment-methods' => self::settingsPaymentMethods(),
             'unstuck' => self::settingsUnstuck(),
             default => null,

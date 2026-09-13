@@ -8,6 +8,7 @@ use Mt2Cms\Admin\Grid\Definitions\NewsGrid;
 use Mt2Cms\Admin\Grid\GridRunner;
 use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Http\Response;
+use Mt2Cms\Service\SeoImageUploadService;
 
 class AdminNewsPostsController extends AdminNewsBaseController
 {
@@ -115,6 +116,9 @@ class AdminNewsPostsController extends AdminNewsBaseController
                 'author_login' => (string) $admin['login'],
                 'status' => $input['status'],
                 'comments_enabled' => $input['comments_enabled'],
+                'seo_title' => $input['seo_title'],
+                'seo_description' => $input['seo_description'],
+                'seo_og_image' => $input['seo_og_image'],
             ]);
             $this->audit('news.create', 'news', $newsId);
             $this->notifyIfPublished($newsId, $input['title'], $input['status'], null);
@@ -141,6 +145,9 @@ class AdminNewsPostsController extends AdminNewsBaseController
             'title' => (string) $post['title'],
             'body' => (string) $post['body'],
             'cover_image' => $post['cover_image'] !== null ? (string) $post['cover_image'] : '',
+            'seo_title' => $post['seo_title'] !== null ? (string) $post['seo_title'] : '',
+            'seo_description' => $post['seo_description'] !== null ? (string) $post['seo_description'] : '',
+            'seo_og_image' => $post['seo_og_image'] !== null ? (string) $post['seo_og_image'] : '',
             'status' => (string) $post['status'],
             'comments_enabled' => (int) $post['comments_enabled'] === 1,
             'author_login' => (string) $post['author_login'],
@@ -184,6 +191,9 @@ class AdminNewsPostsController extends AdminNewsBaseController
                 'cover_image' => $input['cover_image'],
                 'status' => $input['status'],
                 'comments_enabled' => $input['comments_enabled'],
+                'seo_title' => $input['seo_title'],
+                'seo_description' => $input['seo_description'],
+                'seo_og_image' => $input['seo_og_image'],
             ]);
             $this->auditChange('news.update', 'news', (int) $id, [
                 'title' => $existing['title'],
@@ -274,7 +284,16 @@ class AdminNewsPostsController extends AdminNewsBaseController
     }
 
     /**
-     * @return array{title: string, body: string, cover_image: string, status: string, comments_enabled: bool}
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   cover_image: string,
+     *   status: string,
+     *   comments_enabled: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * }
      */
     private function prefill(): array
     {
@@ -284,15 +303,32 @@ class AdminNewsPostsController extends AdminNewsBaseController
             'cover_image' => '',
             'status' => 'draft',
             'comments_enabled' => true,
+            'seo_title' => '',
+            'seo_description' => '',
+            'seo_og_image' => '',
         ];
     }
 
     /**
-     * @return array{title: string, body: string, cover_image: ?string, status: string, comments_enabled: bool}
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   cover_image: ?string,
+     *   status: string,
+     *   comments_enabled: bool,
+     *   seo_title: ?string,
+     *   seo_description: ?string,
+     *   seo_og_image: ?string
+     * }
      */
     private function formInput(): array
     {
         $cover = trim((string) ($_POST['cover_image'] ?? ''));
+        $seoImage = isset($_POST['remove_seo_og_image'])
+            ? ''
+            : trim((string) ($_POST['seo_og_image'] ?? ''));
+        $seoTitle = trim((string) ($_POST['seo_title'] ?? ''));
+        $seoDescription = trim((string) ($_POST['seo_description'] ?? ''));
         $status = (string) ($_POST['status'] ?? 'draft');
 
         if (!in_array($status, ['draft', 'published'], true)) {
@@ -305,11 +341,23 @@ class AdminNewsPostsController extends AdminNewsBaseController
             'cover_image' => $cover !== '' ? $cover : null,
             'status' => $status,
             'comments_enabled' => isset($_POST['comments_enabled']),
+            'seo_title' => $seoTitle !== '' ? $seoTitle : null,
+            'seo_description' => $seoDescription !== '' ? $seoDescription : null,
+            'seo_og_image' => $seoImage !== '' ? $seoImage : null,
         ];
     }
 
     /**
-     * @param array{title: string, body: string, cover_image: ?string, status: string, comments_enabled: bool} $input
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   cover_image: ?string,
+     *   status: string,
+     *   comments_enabled: bool,
+     *   seo_title?: ?string,
+     *   seo_description?: ?string,
+     *   seo_og_image?: ?string
+     * } $input
      */
     private function validateInput(array $input): void
     {
@@ -326,6 +374,24 @@ class AdminNewsPostsController extends AdminNewsBaseController
         if ($input['cover_image'] !== null && !$this->isAllowedCover($input['cover_image'])) {
             throw new \InvalidArgumentException('admin.news.invalid_cover');
         }
+
+        $seoTitle = (string) ($input['seo_title'] ?? '');
+
+        if ($seoTitle !== '' && mb_strlen($seoTitle) > 70) {
+            throw new \InvalidArgumentException('admin.news.invalid_seo_title');
+        }
+
+        $seoDescription = (string) ($input['seo_description'] ?? '');
+
+        if ($seoDescription !== '' && mb_strlen($seoDescription) > 320) {
+            throw new \InvalidArgumentException('admin.news.invalid_seo_description');
+        }
+
+        $seoImage = $input['seo_og_image'] ?? null;
+
+        if ($seoImage !== null && $seoImage !== '' && !$this->isAllowedSeoImage((string) $seoImage)) {
+            throw new \InvalidArgumentException('admin.news.invalid_seo_image');
+        }
     }
 
     private function isAllowedCover(string $src): bool
@@ -339,6 +405,15 @@ class AdminNewsPostsController extends AdminNewsBaseController
         }
 
         return (bool) preg_match('#^/uploads/news/[0-9]{4}/[0-9]{2}/[a-zA-Z0-9._-]+$#', $src);
+    }
+
+    private function isAllowedSeoImage(string $src): bool
+    {
+        if (SeoImageUploadService::isStoredPath($src)) {
+            return true;
+        }
+
+        return $this->isAllowedCover($src);
     }
 
     private function setNewsStatus(int $id, string $status): bool

@@ -65,6 +65,8 @@ use Mt2Cms\Service\DiscordWebhookService;
 use Mt2Cms\Service\DownloadUploadService;
 use Mt2Cms\Service\BannerUploadService;
 use Mt2Cms\Service\LogoUploadService;
+use Mt2Cms\Service\SeoImageUploadService;
+use Mt2Cms\Service\SeoService;
 use Mt2Cms\Service\BannerSeedService;
 use Mt2Cms\Service\ImageVariantService;
 use Mt2Cms\Service\DropFileService;
@@ -106,8 +108,10 @@ return static function (Application $app): void {
     $app->settingsRepo = new SettingsRepository($app->cmsDb);
     $app->settings = new SettingsService($app->settingsRepo, $app->themeCatalog);
     $app->htmlSanitizer = new HtmlSanitizer();
+    $app->seo = new SeoService($app->settings, $app->htmlSanitizer);
     $app->newsUploads = new NewsUploadService(BASE_DIR . '/public');
     $app->logoUploads = new LogoUploadService(BASE_DIR . '/public');
+    $app->seoUploads = new SeoImageUploadService(BASE_DIR . '/public');
     $app->ticketUploads = new TicketUploadService(BASE_DIR . '/var/uploads/tickets');
     $app->news = new NewsRepository($app->cmsDb);
     $app->newsComments = new NewsCommentRepository($app->cmsDb);
@@ -162,6 +166,7 @@ return static function (Application $app): void {
     );
     $activeTheme = $app->settings->activeTheme();
     $app->theme = $app->createThemeEngine($activeTheme, $app->settings->registrationEnabled(), false);
+    $app->theme->setSeoService($app->seo);
     $app->discord = new DiscordWebhookService($app->settings);
     $app->eventService = new EventService($app->events, $app->discord);
     $app->adminTheme = $app->createThemeEngine('admin', true, true);

@@ -89,6 +89,51 @@
 
     <fieldset class="admin-fieldset">
         <legend>
+            {{ t('admin.news.seo') }}
+            <span class="admin-fieldset-help">{{ t('admin.news.seo_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="news-seo-title">{{ t('admin.news.seo_title') }}</label>
+                <input id="news-seo-title" type="text" name="seo_title" maxlength="70"
+                       value="{{ post.seo_title|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.news.seo_title_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="news-seo-description">{{ t('admin.news.seo_description') }}</label>
+                <textarea id="news-seo-description" name="seo_description" rows="3" maxlength="320"
+                          class="admin-input">{{ post.seo_description|default('') }}</textarea>
+                <span class="admin-field-help">{{ t('admin.news.seo_description_help') }}</span>
+            </div>
+            <div class="admin-field">
+                <label for="news-seo-og-file">{{ t('admin.news.seo_og_upload') }}</label>
+                <input id="news-seo-og-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="admin-input">
+            </div>
+            <div class="admin-field">
+                <label for="news-seo-og-image">{{ t('admin.news.seo_og_path') }}</label>
+                <input id="news-seo-og-image" type="text" name="seo_og_image"
+                       value="{{ post.seo_og_image|default('') }}" class="admin-input" readonly>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <img id="news-seo-og-preview"
+                     src="{{ post.seo_og_image|default('') }}"
+                     alt=""
+                     class="max-h-48 rounded-md border border-slate-200 object-cover"
+                     {% if not post.seo_og_image|default('') %}hidden{% endif %}>
+                {% if post.seo_og_image|default('') %}
+                    <label class="admin-toggle-row mt-3 cursor-pointer">
+                        <input type="checkbox" name="remove_seo_og_image" value="1">
+                        <span class="text-sm font-medium text-slate-700">{{ t('admin.news.seo_og_remove') }}</span>
+                    </label>
+                {% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
             {{ t('admin.news.body') }}
             <span class="admin-fieldset-help">{{ t('admin.news.body_help') }}</span>
         </legend>

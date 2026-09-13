@@ -48,45 +48,50 @@
     },
   })
 
-  const coverInput = document.getElementById('news-cover-image')
-  const coverFile = document.getElementById('news-cover-file')
-  const coverPreview = document.getElementById('news-cover-preview')
+  const bindImageUpload = (fileId, inputId, previewId) => {
+    const input = document.getElementById(inputId)
+    const fileField = document.getElementById(fileId)
+    const preview = document.getElementById(previewId)
 
-  if (!coverInput || !coverFile) {
-    return
-  }
-
-  coverFile.addEventListener('change', () => {
-    const file = coverFile.files?.[0]
-
-    if (!file) {
+    if (!input || !fileField) {
       return
     }
 
-    const data = new FormData()
-    data.append('_csrf', csrf)
-    data.append('file', file)
+    fileField.addEventListener('change', () => {
+      const file = fileField.files?.[0]
 
-    fetch('/admin/content/news/posts/upload', {
-      method: 'POST',
-      body: data,
-      credentials: 'same-origin',
-    })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => ({}))
+      if (!file) {
+        return
+      }
 
-        if (!response.ok || !payload.location) {
-          window.alert(payload.error || 'Upload failed')
-          return
-        }
+      const data = new FormData()
+      data.append('_csrf', csrf)
+      data.append('file', file)
 
-        coverInput.value = payload.location
-
-        if (coverPreview) {
-          coverPreview.src = payload.location
-          coverPreview.hidden = false
-        }
+      fetch('/admin/content/news/posts/upload', {
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
       })
-      .catch(() => window.alert('Upload failed'))
-  })
+        .then(async (response) => {
+          const payload = await response.json().catch(() => ({}))
+
+          if (!response.ok || !payload.location) {
+            window.alert(payload.error || 'Upload failed')
+            return
+          }
+
+          input.value = payload.location
+
+          if (preview) {
+            preview.src = payload.location
+            preview.hidden = false
+          }
+        })
+        .catch(() => window.alert('Upload failed'))
+    })
+  }
+
+  bindImageUpload('news-cover-file', 'news-cover-image', 'news-cover-preview')
+  bindImageUpload('news-seo-og-file', 'news-seo-og-image', 'news-seo-og-preview')
 })()

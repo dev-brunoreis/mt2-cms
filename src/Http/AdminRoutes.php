@@ -72,6 +72,8 @@ final class AdminRoutes
         $r->addRoute('POST', '/admin/settings/security', [AdminSettingsController::class, 'saveSecurity']);
         $r->addRoute('GET', '/admin/settings/community', [AdminCommunityController::class, 'channels']);
         $r->addRoute('POST', '/admin/settings/community', [AdminCommunityController::class, 'saveChannels']);
+        $r->addRoute('GET', '/admin/settings/seo', [AdminSettingsController::class, 'seo']);
+        $r->addRoute('POST', '/admin/settings/seo', [AdminSettingsController::class, 'saveSeo']);
         $r->addRoute('POST', '/admin/settings/community/channels/{id:\d+}/delete', [AdminCommunityController::class, 'deleteChannel']);
         $r->addRoute('GET', '/admin/settings/payment-methods', [AdminPaymentMethodsController::class, 'index']);
         $r->addRoute('POST', '/admin/settings/payment-methods', [AdminPaymentMethodsController::class, 'save']);

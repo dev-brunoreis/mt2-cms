@@ -1,0 +1,89 @@
+<form id="{{ formId }}" method="post" action="/admin/settings/seo" enctype="multipart/form-data" class="p-6 space-y-6">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.seo.meta_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.seo.meta_lead') }}</span>
+        </legend>
+
+        <div class="admin-field">
+            <label for="seo-description">{{ t('admin.seo.description') }}</label>
+            <textarea id="seo-description" name="seo_description" rows="3" maxlength="320"
+                      class="admin-input">{{ seoDescription|default('') }}</textarea>
+            <span class="admin-field-help">{{ t('admin.seo.description_help') }}</span>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.seo.social_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.seo.social_lead') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="seo-og-image">{{ t('admin.seo.og_image') }}</label>
+                <input id="seo-og-image" type="file" name="seo_og_image" accept="image/jpeg,image/png,image/webp"
+                       class="admin-input">
+                <span class="admin-field-help">{{ t('admin.seo.og_image_help') }}</span>
+                {% if seoOgImage|default('') %}
+                    <div class="mt-3 flex flex-wrap items-center gap-4">
+                        <img src="{{ seoOgImage }}" alt=""
+                             class="h-20 w-auto max-w-[16rem] rounded border border-slate-200 object-cover bg-slate-50">
+                        <label class="admin-toggle-row cursor-pointer">
+                            <input type="checkbox" name="remove_seo_og_image" value="1">
+                            <span class="text-sm font-medium text-slate-700">{{ t('admin.seo.og_image_remove') }}</span>
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="admin-field">
+                <label for="seo-twitter-site">{{ t('admin.seo.twitter_site') }}</label>
+                <input id="seo-twitter-site" type="text" name="seo_twitter_site" maxlength="16"
+                       value="{{ seoTwitterSite|default('') }}" class="admin-input"
+                       placeholder="@server">
+                <span class="admin-field-help">{{ t('admin.seo.twitter_site_help') }}</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.seo.index_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.seo.index_lead') }}</span>
+        </legend>
+
+        <label class="admin-toggle-row cursor-pointer">
+            <input type="checkbox" name="seo_index_enabled" value="1"
+                   {% if seoIndexEnabled %}checked{% endif %}>
+            <span>
+                <span class="block text-sm font-semibold text-slate-900">{{ t('admin.seo.index_enabled') }}</span>
+                <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.seo.index_enabled_help') }}</span>
+            </span>
+        </label>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.seo.verify_title') }}
+            <span class="admin-fieldset-help">{{ t('admin.seo.verify_lead') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field">
+                <label for="seo-google-verification">{{ t('admin.seo.google_verification') }}</label>
+                <input id="seo-google-verification" type="text" name="seo_google_verification" maxlength="100"
+                       value="{{ seoGoogleVerification|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.seo.google_verification_help') }}</span>
+            </div>
+            <div class="admin-field">
+                <label for="seo-bing-verification">{{ t('admin.seo.bing_verification') }}</label>
+                <input id="seo-bing-verification" type="text" name="seo_bing_verification" maxlength="100"
+                       value="{{ seoBingVerification|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.seo.bing_verification_help') }}</span>
+            </div>
+        </div>
+    </fieldset>
+</form>

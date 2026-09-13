@@ -15,7 +15,51 @@
     <script src="/js/site/banner-carousel.js" defer></script>
     <script src="/js/site/confirm-forms.js" defer></script>
     {% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
-    <title>{{ title|default(brand) }} — {{ brand }}</title>
+    {% set seo = seo|default({}) %}
+    <title>{{ seo.title|default(title|default(brand) ~ ' — ' ~ brand) }}</title>
+    {% if seo.description|default('') %}
+        <meta name="description" content="{{ seo.description }}">
+    {% endif %}
+    <meta name="robots" content="{{ seo.robots|default('index, follow') }}">
+    {% if seo.canonical|default('') %}
+        <link rel="canonical" href="{{ seo.canonical }}">
+    {% endif %}
+    <meta property="og:type" content="{{ seo.type|default('website') }}">
+    <meta property="og:site_name" content="{{ brand }}">
+    <meta property="og:title" content="{{ seo.title|default(title|default(brand)) }}">
+    {% if seo.description|default('') %}
+        <meta property="og:description" content="{{ seo.description }}">
+    {% endif %}
+    {% if seo.canonical|default('') %}
+        <meta property="og:url" content="{{ seo.canonical }}">
+    {% endif %}
+    {% if seo.image|default('') %}
+        <meta property="og:image" content="{{ seo.image }}">
+    {% endif %}
+    <meta property="og:locale" content="{{ html_lang|default('en')|replace({'-': '_'}) }}">
+    <meta name="twitter:card" content="{{ seo.image|default('') ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ seo.title|default(title|default(brand)) }}">
+    {% if seo.description|default('') %}
+        <meta name="twitter:description" content="{{ seo.description }}">
+    {% endif %}
+    {% if seo.image|default('') %}
+        <meta name="twitter:image" content="{{ seo.image }}">
+    {% endif %}
+    {% if seo.twitter_site|default('') %}
+        <meta name="twitter:site" content="{{ seo.twitter_site }}">
+    {% endif %}
+    {% if seo.google_verification|default('') %}
+        <meta name="google-site-verification" content="{{ seo.google_verification }}">
+    {% endif %}
+    {% if seo.bing_verification|default('') %}
+        <meta name="msvalidate.01" content="{{ seo.bing_verification }}">
+    {% endif %}
+    {% if site_logo|default('') %}
+        <link rel="icon" href="{{ site_logo }}">
+    {% endif %}
+    {% for graph in seo.json_ld|default([]) %}
+        <script type="application/ld+json">{{ graph|json_ld }}</script>
+    {% endfor %}
 </head>
 <body class="theme-kingdoms min-h-screen antialiased flex flex-col">
     <div class="k-chrome">

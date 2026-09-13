@@ -49,7 +49,8 @@ class EventRepository extends Repository implements ProvidesAdminGrid
     public function findById(int $id): ?array
     {
         return $this->db()->fetch(
-            'SELECT id, title, body, starts_at, ends_at, published, published_at, created_at, updated_at
+            'SELECT id, title, body, starts_at, ends_at, published, published_at, created_at, updated_at,
+                    seo_title, seo_description, seo_og_image
              FROM cms_events WHERE id = ?',
             [$id],
         );
@@ -58,7 +59,8 @@ class EventRepository extends Repository implements ProvidesAdminGrid
     public function findPublishedById(int $id): ?array
     {
         return $this->db()->fetch(
-            'SELECT id, title, body, starts_at, ends_at, published, published_at, created_at, updated_at
+            'SELECT id, title, body, starts_at, ends_at, published, published_at, created_at, updated_at,
+                    seo_title, seo_description, seo_og_image
              FROM cms_events WHERE id = ? AND published = 1',
             [$id],
         );
@@ -104,15 +106,25 @@ class EventRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
-     * @param array{title: string, body: string, starts_at: string, ends_at: ?string, published: bool} $data
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: ?string,
+     *   published: bool,
+     *   seo_title?: ?string,
+     *   seo_description?: ?string,
+     *   seo_og_image?: ?string
+     * } $data
      */
     public function create(array $data): int
     {
         $publishedAt = $data['published'] ? date('Y-m-d H:i:s') : null;
 
         $this->db()->execute(
-            'INSERT INTO cms_events (title, body, starts_at, ends_at, published, published_at)
-             VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO cms_events (title, body, starts_at, ends_at, published, published_at,
+                seo_title, seo_description, seo_og_image)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 $data['title'],
                 $data['body'],
@@ -120,6 +132,9 @@ class EventRepository extends Repository implements ProvidesAdminGrid
                 $data['ends_at'],
                 $data['published'] ? 1 : 0,
                 $publishedAt,
+                $data['seo_title'] ?? null,
+                $data['seo_description'] ?? null,
+                $data['seo_og_image'] ?? null,
             ],
         );
 
@@ -127,7 +142,16 @@ class EventRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
-     * @param array{title: string, body: string, starts_at: string, ends_at: ?string, published: bool} $data
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: ?string,
+     *   published: bool,
+     *   seo_title?: ?string,
+     *   seo_description?: ?string,
+     *   seo_og_image?: ?string
+     * } $data
      */
     public function update(int $id, array $data): bool
     {
@@ -149,7 +173,8 @@ class EventRepository extends Repository implements ProvidesAdminGrid
 
         return $this->db()->execute(
             'UPDATE cms_events
-             SET title = ?, body = ?, starts_at = ?, ends_at = ?, published = ?, published_at = ?
+             SET title = ?, body = ?, starts_at = ?, ends_at = ?, published = ?, published_at = ?,
+                 seo_title = ?, seo_description = ?, seo_og_image = ?
              WHERE id = ?',
             [
                 $data['title'],
@@ -158,9 +183,27 @@ class EventRepository extends Repository implements ProvidesAdminGrid
                 $data['ends_at'],
                 $data['published'] ? 1 : 0,
                 $publishedAt,
+                array_key_exists('seo_title', $data) ? $data['seo_title'] : ($existing['seo_title'] ?? null),
+                array_key_exists('seo_description', $data) ? $data['seo_description'] : ($existing['seo_description'] ?? null),
+                array_key_exists('seo_og_image', $data) ? $data['seo_og_image'] : ($existing['seo_og_image'] ?? null),
                 $id,
             ],
         ) >= 0;
+    }
+
+    /**
+     * @return list<array{id: int, updated_at: mixed, published_at: mixed}>
+     */
+    public function listPublishedForSitemap(int $limit = 1000): array
+    {
+        return $this->db()->fetchAll(
+            'SELECT id, updated_at, published_at
+             FROM cms_events
+             WHERE published = 1
+             ORDER BY starts_at DESC, id DESC
+             LIMIT ?',
+            [max(1, $limit)],
+        );
     }
 
     public function delete(int $id): bool

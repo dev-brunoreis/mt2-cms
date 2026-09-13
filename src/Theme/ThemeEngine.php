@@ -7,6 +7,7 @@ namespace Mt2Cms\Theme;
 use Mt2Cms\Game\Display;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\GameIconService;
+use Mt2Cms\Service\SeoService;
 use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Support\Money;
 use Twig\Environment;
@@ -17,6 +18,7 @@ class ThemeEngine
 {
     private Environment $twig;
     private ThemeResolver $resolver;
+    private ?SeoService $seo = null;
 
     /**
      * @param list<array{code: string, name: string, flag?: ?string}> $locales
@@ -69,11 +71,25 @@ class ThemeEngine
         return $uri;
     }
 
+    public function setSeoService(SeoService $seo): void
+    {
+        $this->seo = $seo;
+    }
+
     /**
      * @param array<string, mixed> $data
      */
     public function render(string $layoutName, array $data = []): string
     {
+        if ($this->seo !== null) {
+            $overrides = is_array($data['seo'] ?? null) ? $data['seo'] : [];
+            $data['seo'] = $this->seo->forPage(
+                $overrides,
+                (string) ($data['title'] ?? ''),
+                $this->currentPath(),
+            );
+        }
+
         $layout = $this->resolver->resolveLayout($layoutName);
 
         return $this->renderNode($layout, $data);

@@ -11,6 +11,7 @@ use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Repository\EventRepository;
 use Mt2Cms\Service\EventService;
+use Mt2Cms\Service\SeoImageUploadService;
 use Mt2Cms\Http\Response;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Service\AclService;
@@ -32,6 +33,7 @@ class AdminEventsController extends AdminController
         private EventRepository $events,
         private EventService $eventService,
         private HtmlSanitizer $sanitizer,
+        private SeoImageUploadService $seoUploads,
     ) {
         parent::__construct($theme, $auth, $csrf, $translator, $adminAuth, $adminTheme, $auditLog, $acl);
     }
@@ -91,6 +93,7 @@ class AdminEventsController extends AdminController
         $input = $this->formInput();
 
         try {
+            $input = $this->applyOgUpload($input);
             $this->validateInput($input);
             $data = $this->toPersistData($input);
             $eventId = $this->eventService->create($data);
@@ -100,6 +103,8 @@ class AdminEventsController extends AdminController
             return $this->redirect('/admin/content/events');
         } catch (\InvalidArgumentException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
+        } catch (\RuntimeException $e) {
+            return $this->formView($input, $this->t('admin.seo.og_image_upload_failed'), 422);
         }
     }
 
@@ -120,6 +125,9 @@ class AdminEventsController extends AdminController
             'starts_at' => $this->toDatetimeLocal((string) $event['starts_at']),
             'ends_at' => $event['ends_at'] !== null ? $this->toDatetimeLocal((string) $event['ends_at']) : '',
             'published' => (int) $event['published'] === 1,
+            'seo_title' => $event['seo_title'] !== null ? (string) $event['seo_title'] : '',
+            'seo_description' => $event['seo_description'] !== null ? (string) $event['seo_description'] : '',
+            'seo_og_image' => $event['seo_og_image'] !== null ? (string) $event['seo_og_image'] : '',
         ]);
     }
 
@@ -147,6 +155,7 @@ class AdminEventsController extends AdminController
         $input['id'] = (int) $id;
 
         try {
+            $input = $this->applyOgUpload($input, $existing['seo_og_image'] !== null ? (string) $existing['seo_og_image'] : '');
             $this->validateInput($input);
             $data = $this->toPersistData($input);
             $this->eventService->update((int) $id, $data);
@@ -166,6 +175,8 @@ class AdminEventsController extends AdminController
             return $this->redirect('/admin/content/events/' . (int) $id);
         } catch (\InvalidArgumentException $e) {
             return $this->formView($input, $this->t($e->getMessage()), 422);
+        } catch (\RuntimeException $e) {
+            return $this->formView($input, $this->t('admin.seo.og_image_upload_failed'), 422);
         }
     }
 
@@ -188,7 +199,16 @@ class AdminEventsController extends AdminController
     }
 
     /**
-     * @return array{title: string, body: string, starts_at: string, ends_at: string, published: bool}
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * }
      */
     private function prefill(): array
     {
@@ -198,11 +218,23 @@ class AdminEventsController extends AdminController
             'starts_at' => '',
             'ends_at' => '',
             'published' => false,
+            'seo_title' => '',
+            'seo_description' => '',
+            'seo_og_image' => '',
         ];
     }
 
     /**
-     * @return array{title: string, body: string, starts_at: string, ends_at: string, published: bool}
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * }
      */
     private function formInput(): array
     {
@@ -212,26 +244,63 @@ class AdminEventsController extends AdminController
             'starts_at' => trim((string) ($_POST['starts_at'] ?? '')),
             'ends_at' => trim((string) ($_POST['ends_at'] ?? '')),
             'published' => isset($_POST['published']),
+            'seo_title' => trim((string) ($_POST['seo_title'] ?? '')),
+            'seo_description' => trim((string) ($_POST['seo_description'] ?? '')),
+            'seo_og_image' => '',
         ];
     }
 
     /**
-     * @param array{title: string, body: string, starts_at: string, ends_at: string, published: bool} $input
-     * @return array{title: string, body: string, starts_at: string, ends_at: ?string, published: bool}
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * } $input
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: ?string,
+     *   published: bool,
+     *   seo_title: ?string,
+     *   seo_description: ?string,
+     *   seo_og_image: ?string
+     * }
      */
     private function toPersistData(array $input): array
     {
+        $seoTitle = trim($input['seo_title']);
+        $seoDescription = trim($input['seo_description']);
+        $seoImage = trim($input['seo_og_image']);
+
         return [
             'title' => $input['title'],
             'body' => $this->sanitizer->sanitize($input['body']),
             'starts_at' => $this->parseDatetime($input['starts_at']),
             'ends_at' => $input['ends_at'] !== '' ? $this->parseDatetime($input['ends_at']) : null,
             'published' => $input['published'],
+            'seo_title' => $seoTitle !== '' ? $seoTitle : null,
+            'seo_description' => $seoDescription !== '' ? $seoDescription : null,
+            'seo_og_image' => $seoImage !== '' ? $seoImage : null,
         ];
     }
 
     /**
-     * @param array{title: string, body: string, starts_at: string, ends_at: string, published: bool} $input
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * } $input
      */
     private function validateInput(array $input): void
     {
@@ -251,6 +320,71 @@ class AdminEventsController extends AdminController
         if ($endsAt !== null && strtotime($endsAt) < strtotime($startsAt)) {
             throw new \InvalidArgumentException('admin.events.invalid_dates');
         }
+
+        if ($input['seo_title'] !== '' && mb_strlen($input['seo_title']) > 70) {
+            throw new \InvalidArgumentException('admin.events.invalid_seo_title');
+        }
+
+        if ($input['seo_description'] !== '' && mb_strlen($input['seo_description']) > 320) {
+            throw new \InvalidArgumentException('admin.events.invalid_seo_description');
+        }
+
+        if ($input['seo_og_image'] !== '' && !SeoImageUploadService::isStoredPath($input['seo_og_image'])) {
+            throw new \InvalidArgumentException('admin.events.invalid_seo_image');
+        }
+    }
+
+    /**
+     * @param array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * } $input
+     * @return array{
+     *   title: string,
+     *   body: string,
+     *   starts_at: string,
+     *   ends_at: string,
+     *   published: bool,
+     *   seo_title: string,
+     *   seo_description: string,
+     *   seo_og_image: string
+     * }
+     */
+    private function applyOgUpload(array $input, string $previous = ''): array
+    {
+        $file = $_FILES['seo_og_image'] ?? null;
+        $hasUpload = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $remove = isset($_POST['remove_seo_og_image']);
+
+        if ($hasUpload) {
+            $input['seo_og_image'] = $this->seoUploads->store($file);
+
+            if ($previous !== '' && $previous !== $input['seo_og_image']) {
+                $this->seoUploads->delete($previous);
+            }
+
+            return $input;
+        }
+
+        if ($remove) {
+            if ($previous !== '') {
+                $this->seoUploads->delete($previous);
+            }
+
+            $input['seo_og_image'] = '';
+
+            return $input;
+        }
+
+        $input['seo_og_image'] = $previous;
+
+        return $input;
     }
 
     private function parseDatetime(string $value): string

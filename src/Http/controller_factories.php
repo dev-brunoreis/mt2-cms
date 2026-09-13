@@ -12,6 +12,9 @@ return [
     \Mt2Cms\Http\Controller\HealthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\HealthController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->cmsDb, $app->db,
     ),
+    \Mt2Cms\Http\Controller\SeoController::class => static fn ($app) => new \Mt2Cms\Http\Controller\SeoController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->seo, $app->news, $app->events,
+    ),
     \Mt2Cms\Http\Controller\HomeController::class => static fn ($app) => new \Mt2Cms\Http\Controller\HomeController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->news, $app->events, $app->players, $app->settings,
     ),
@@ -79,7 +82,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->players, $app->paymentStats,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminSettingsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminSettingsController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService, $app->paymentGateways,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->settings, $app->themeCatalog, $app->locales, $app->serverChannels, $app->unstuckService, $app->paymentGateways, $app->seoUploads,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminAccountsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAccountsController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->accounts, $app->players, $app->logs, $app->notificationService,
@@ -181,7 +184,7 @@ return [
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->banners, $app->bannerUploads,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminEventsController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminEventsController(
-        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->events, $app->eventService, $app->htmlSanitizer,
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->events, $app->eventService, $app->htmlSanitizer, $app->seoUploads,
     ),
     \Mt2Cms\Http\Controller\Admin\AdminCommunityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminCommunityController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->serverChannels, $app->settings, $app->logoUploads,

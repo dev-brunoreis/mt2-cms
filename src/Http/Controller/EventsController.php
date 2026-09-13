@@ -53,11 +53,22 @@ class EventsController extends Controller
                 'title' => $this->t('events.not_found'),
                 'event' => null,
                 'notFound' => true,
+                'seo' => ['noindex' => true],
             ], 404);
         }
 
         return $this->view('event-show', [
             'title' => (string) $event['title'],
+            'seo' => [
+                'title' => trim((string) ($event['seo_title'] ?? '')),
+                'description' => trim((string) ($event['seo_description'] ?? '')),
+                'excerpt_html' => (string) ($event['body'] ?? ''),
+                'image' => trim((string) ($event['seo_og_image'] ?? '')),
+                'type' => 'event',
+                'headline' => (string) ($event['title'] ?? ''),
+                'starts_at' => $event['starts_at'] ?? null,
+                'ends_at' => $event['ends_at'] ?? null,
+            ],
             'event' => $event,
             'notFound' => false,
         ]);

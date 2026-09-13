@@ -80,6 +80,11 @@ final class AdminResourceCatalogTest extends TestCase
             AdminResourceCatalog::pathForResource('settings/payment-methods/view'),
         );
         self::assertContains('settings/payment-methods/edit', AdminResourceCatalog::allResourceIds());
+        self::assertContains('settings/seo/view', AdminResourceCatalog::allResourceIds());
+        self::assertSame(
+            '/admin/settings?tab=seo',
+            AdminResourceCatalog::pathForResource('settings/seo/edit'),
+        );
         self::assertSame('settings', AdminResourceCatalog::sectionIdForResource('content/news/settings/edit'));
         self::assertSame('news', AdminResourceCatalog::sectionIdForResource('content/news/posts/view'));
         self::assertSame(

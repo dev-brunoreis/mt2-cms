@@ -5,6 +5,7 @@
 <form id="admin-event-form"
       method="post"
       action="{% if isEdit %}/admin/content/events/{{ event.id }}{% else %}/admin/content/events{% endif %}"
+      enctype="multipart/form-data"
       class="admin-panel p-6 space-y-6">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -44,6 +45,44 @@
                         <span class="mt-1 block text-sm text-slate-500">{{ t('admin.events.published_help') }}</span>
                     </span>
                 </label>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+        <legend>
+            {{ t('admin.events.seo') }}
+            <span class="admin-fieldset-help">{{ t('admin.events.seo_help') }}</span>
+        </legend>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="admin-field sm:col-span-2">
+                <label for="event-seo-title">{{ t('admin.events.seo_title') }}</label>
+                <input id="event-seo-title" type="text" name="seo_title" maxlength="70"
+                       value="{{ event.seo_title|default('') }}" class="admin-input">
+                <span class="admin-field-help">{{ t('admin.events.seo_title_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="event-seo-description">{{ t('admin.events.seo_description') }}</label>
+                <textarea id="event-seo-description" name="seo_description" rows="3" maxlength="320"
+                          class="admin-input">{{ event.seo_description|default('') }}</textarea>
+                <span class="admin-field-help">{{ t('admin.events.seo_description_help') }}</span>
+            </div>
+            <div class="admin-field sm:col-span-2">
+                <label for="event-seo-og-image">{{ t('admin.events.seo_og_image') }}</label>
+                <input id="event-seo-og-image" type="file" name="seo_og_image" accept="image/jpeg,image/png,image/webp"
+                       class="admin-input">
+                <span class="admin-field-help">{{ t('admin.events.seo_og_image_help') }}</span>
+                {% if event.seo_og_image|default('') %}
+                    <div class="mt-3 flex flex-wrap items-center gap-4">
+                        <img src="{{ event.seo_og_image }}" alt=""
+                             class="h-20 w-auto max-w-[16rem] rounded border border-slate-200 object-cover bg-slate-50">
+                        <label class="admin-toggle-row cursor-pointer">
+                            <input type="checkbox" name="remove_seo_og_image" value="1">
+                            <span class="text-sm font-medium text-slate-700">{{ t('admin.events.seo_og_remove') }}</span>
+                        </label>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </fieldset>

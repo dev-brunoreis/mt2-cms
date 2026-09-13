@@ -66,7 +66,8 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
     {
         return $this->db()->fetch(
             'SELECT id, title, body, cover_image, author_admin_id, author_login, status,
-                    comments_enabled, views, published_at, created_at, updated_at
+                    comments_enabled, views, published_at, created_at, updated_at,
+                    seo_title, seo_description, seo_og_image
              FROM news
              WHERE id = ? AND status = ?
              LIMIT 1',
@@ -78,7 +79,8 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
     {
         return $this->db()->fetch(
             'SELECT id, title, body, cover_image, author_admin_id, author_login, status,
-                    comments_enabled, views, published_at, created_at, updated_at
+                    comments_enabled, views, published_at, created_at, updated_at,
+                    seo_title, seo_description, seo_og_image
              FROM news
              WHERE id = ?
              LIMIT 1',
@@ -123,7 +125,10 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
      *   author_admin_id: int,
      *   author_login: string,
      *   status: string,
-     *   comments_enabled: bool
+     *   comments_enabled: bool,
+     *   seo_title: ?string,
+     *   seo_description: ?string,
+     *   seo_og_image: ?string
      * } $data
      */
     public function create(array $data): int
@@ -133,8 +138,9 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
         $this->db()->execute(
             'INSERT INTO news (
                 title, body, cover_image, author_admin_id, author_login,
-                status, comments_enabled, published_at
-             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                status, comments_enabled, published_at,
+                seo_title, seo_description, seo_og_image
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 $data['title'],
                 $data['body'],
@@ -144,6 +150,9 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
                 $data['status'],
                 $data['comments_enabled'] ? 1 : 0,
                 $publishedAt,
+                $data['seo_title'] ?? null,
+                $data['seo_description'] ?? null,
+                $data['seo_og_image'] ?? null,
             ],
         );
 
@@ -156,7 +165,10 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
      *   body: string,
      *   cover_image: ?string,
      *   status: string,
-     *   comments_enabled: bool
+     *   comments_enabled: bool,
+     *   seo_title: ?string,
+     *   seo_description: ?string,
+     *   seo_og_image: ?string
      * } $data
      */
     public function update(int $id, array $data): bool
@@ -179,7 +191,8 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
 
         return $this->db()->execute(
             'UPDATE news
-             SET title = ?, body = ?, cover_image = ?, status = ?, comments_enabled = ?, published_at = ?
+             SET title = ?, body = ?, cover_image = ?, status = ?, comments_enabled = ?, published_at = ?,
+                 seo_title = ?, seo_description = ?, seo_og_image = ?
              WHERE id = ?',
             [
                 $data['title'],
@@ -188,9 +201,27 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
                 $data['status'],
                 $data['comments_enabled'] ? 1 : 0,
                 $publishedAt,
+                array_key_exists('seo_title', $data) ? $data['seo_title'] : ($existing['seo_title'] ?? null),
+                array_key_exists('seo_description', $data) ? $data['seo_description'] : ($existing['seo_description'] ?? null),
+                array_key_exists('seo_og_image', $data) ? $data['seo_og_image'] : ($existing['seo_og_image'] ?? null),
                 $id,
             ],
         ) >= 0;
+    }
+
+    /**
+     * @return list<array{id: int, updated_at: mixed, published_at: mixed}>
+     */
+    public function listPublishedForSitemap(int $limit = 1000): array
+    {
+        return $this->db()->fetchAll(
+            'SELECT id, updated_at, published_at
+             FROM news
+             WHERE status = ?
+             ORDER BY published_at DESC, id DESC
+             LIMIT ?',
+            ['published', max(1, $limit)],
+        );
     }
 
     public function delete(int $id): bool

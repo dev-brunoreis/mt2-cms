@@ -1,6 +1,12 @@
 {% if row.preview_url|default('') %}
-    <img src="{{ row.preview_url }}" alt="" width="96" height="40"
-         class="h-10 w-24 rounded border border-slate-200 object-cover">
+    {% include 'components/image-preview-trigger.twig' with {
+        src: row.full_url|default(row.preview_url),
+        thumb: row.preview_url,
+        alt: row.alt|default(row.title)|default(''),
+        imgClass: 'h-10 w-24 rounded border border-slate-200 object-cover',
+        width: 96,
+        height: 40
+    } %}
 {% else %}
     <span class="text-slate-400">—</span>
 {% endif %}

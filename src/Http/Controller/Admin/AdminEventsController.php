@@ -93,7 +93,6 @@ class AdminEventsController extends AdminController
         $input = $this->formInput();
 
         try {
-            $input = $this->applyOgUpload($input);
             $this->validateInput($input);
             $data = $this->toPersistData($input);
             $eventId = $this->eventService->create($data);
@@ -102,9 +101,7 @@ class AdminEventsController extends AdminController
 
             return $this->redirect('/admin/content/events');
         } catch (\InvalidArgumentException $e) {
-            return $this->formView($input, $this->t($e->getMessage()), 422);
-        } catch (\RuntimeException $e) {
-            return $this->formView($input, $this->t('admin.seo.og_image_upload_failed'), 422);
+            return $this->formView($input, $this->t($e->getMessage()), 422, $this->eventFormTabFromError($e));
         }
     }
 
@@ -128,7 +125,7 @@ class AdminEventsController extends AdminController
             'seo_title' => $event['seo_title'] !== null ? (string) $event['seo_title'] : '',
             'seo_description' => $event['seo_description'] !== null ? (string) $event['seo_description'] : '',
             'seo_og_image' => $event['seo_og_image'] !== null ? (string) $event['seo_og_image'] : '',
-        ]);
+        ], activeTab: $this->requestedEventFormTab());
     }
 
     public function update(string $id): Response
@@ -155,10 +152,13 @@ class AdminEventsController extends AdminController
         $input['id'] = (int) $id;
 
         try {
-            $input = $this->applyOgUpload($input, $existing['seo_og_image'] !== null ? (string) $existing['seo_og_image'] : '');
             $this->validateInput($input);
             $data = $this->toPersistData($input);
             $this->eventService->update((int) $id, $data);
+            $this->deleteReplacedOgImage(
+                $existing['seo_og_image'] !== null ? (string) $existing['seo_og_image'] : '',
+                $data['seo_og_image'] ?? null,
+            );
             $this->auditChange('event.update', 'event', (int) $id, [
                 'title' => $existing['title'],
                 'starts_at' => $existing['starts_at'],
@@ -174,16 +174,44 @@ class AdminEventsController extends AdminController
 
             return $this->redirect('/admin/content/events/' . (int) $id);
         } catch (\InvalidArgumentException $e) {
-            return $this->formView($input, $this->t($e->getMessage()), 422);
-        } catch (\RuntimeException $e) {
-            return $this->formView($input, $this->t('admin.seo.og_image_upload_failed'), 422);
+            return $this->formView($input, $this->t($e->getMessage()), 422, $this->eventFormTabFromError($e));
+        }
+    }
+
+    public function upload(): Response
+    {
+        if ($this->requireAnyAdminResource(['content/events/create', 'content/events/edit']) !== null) {
+            if (!$this->adminAuth->check()) {
+                return Response::json(['error' => $this->t('admin.login_required')], 401);
+            }
+
+            return Response::json(['error' => $this->t('admin.access_denied')], 403);
+        }
+
+        if (!$this->assertCsrf()) {
+            return Response::json(['error' => $this->t('auth.invalid_csrf')], 403);
+        }
+
+        try {
+            $file = $_FILES['file'] ?? null;
+
+            if (!is_array($file)) {
+                throw new \InvalidArgumentException('admin.seo.og_image_upload_failed');
+            }
+
+            $url = $this->seoUploads->store($file);
+            $this->audit('event.upload', 'event', null);
+
+            return Response::json(['location' => $url]);
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return Response::json(['error' => $this->t($e->getMessage())], 422);
         }
     }
 
     /**
      * @param array<string, mixed> $event
      */
-    private function formView(array $event = [], ?string $error = null, int $status = 200): Response
+    private function formView(array $event = [], ?string $error = null, int $status = 200, ?string $activeTab = null): Response
     {
         $isEdit = isset($event['id']);
 
@@ -195,7 +223,23 @@ class AdminEventsController extends AdminController
             'event' => $event,
             'isEdit' => $isEdit,
             'error' => $error,
+            'activeTab' => $this->normalizeEventFormTab($activeTab ?? $this->requestedEventFormTab()),
         ], $status);
+    }
+
+    private function requestedEventFormTab(): string
+    {
+        return $this->normalizeEventFormTab((string) ($_GET['tab'] ?? 'data'));
+    }
+
+    private function eventFormTabFromError(\Throwable $error): string
+    {
+        return str_contains($error->getMessage(), 'invalid_seo') ? 'seo' : 'data';
+    }
+
+    private function normalizeEventFormTab(string $tab): string
+    {
+        return in_array($tab, ['data', 'seo'], true) ? $tab : 'data';
     }
 
     /**
@@ -238,6 +282,10 @@ class AdminEventsController extends AdminController
      */
     private function formInput(): array
     {
+        $seoImage = isset($_POST['remove_seo_og_image'])
+            ? ''
+            : trim((string) ($_POST['seo_og_image'] ?? ''));
+
         return [
             'title' => trim((string) ($_POST['title'] ?? '')),
             'body' => (string) ($_POST['body'] ?? ''),
@@ -246,7 +294,7 @@ class AdminEventsController extends AdminController
             'published' => isset($_POST['published']),
             'seo_title' => trim((string) ($_POST['seo_title'] ?? '')),
             'seo_description' => trim((string) ($_POST['seo_description'] ?? '')),
-            'seo_og_image' => '',
+            'seo_og_image' => $seoImage,
         ];
     }
 
@@ -334,57 +382,13 @@ class AdminEventsController extends AdminController
         }
     }
 
-    /**
-     * @param array{
-     *   title: string,
-     *   body: string,
-     *   starts_at: string,
-     *   ends_at: string,
-     *   published: bool,
-     *   seo_title: string,
-     *   seo_description: string,
-     *   seo_og_image: string
-     * } $input
-     * @return array{
-     *   title: string,
-     *   body: string,
-     *   starts_at: string,
-     *   ends_at: string,
-     *   published: bool,
-     *   seo_title: string,
-     *   seo_description: string,
-     *   seo_og_image: string
-     * }
-     */
-    private function applyOgUpload(array $input, string $previous = ''): array
+    private function deleteReplacedOgImage(string $previous, ?string $next): void
     {
-        $file = $_FILES['seo_og_image'] ?? null;
-        $hasUpload = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
-        $remove = isset($_POST['remove_seo_og_image']);
+        $next = $next ?? '';
 
-        if ($hasUpload) {
-            $input['seo_og_image'] = $this->seoUploads->store($file);
-
-            if ($previous !== '' && $previous !== $input['seo_og_image']) {
-                $this->seoUploads->delete($previous);
-            }
-
-            return $input;
+        if ($previous !== '' && $previous !== $next) {
+            $this->seoUploads->delete($previous);
         }
-
-        if ($remove) {
-            if ($previous !== '') {
-                $this->seoUploads->delete($previous);
-            }
-
-            $input['seo_og_image'] = '';
-
-            return $input;
-        }
-
-        $input['seo_og_image'] = $previous;
-
-        return $input;
     }
 
     private function parseDatetime(string $value): string

@@ -6,6 +6,8 @@
     return
   }
 
+  const csrf = form.querySelector('input[name="_csrf"]')?.value || ''
+
   tinymce.init({
     base_url: '/vendor/tinymce',
     suffix: '.min',
@@ -21,6 +23,56 @@
       form.addEventListener('submit', () => {
         editor.value = ed.getContent()
       })
+
+      form.querySelectorAll('[role="tab"][data-tab="data"]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          requestAnimationFrame(() => {
+            ed.execCommand('mceAutoResize')
+          })
+        })
+      })
     },
+  })
+
+  const fileField = document.getElementById('event-seo-og-file')
+  const input = document.getElementById('event-seo-og-image')
+  const preview = document.getElementById('event-seo-og-preview')
+
+  if (!fileField || !input) {
+    return
+  }
+
+  fileField.addEventListener('change', () => {
+    const file = fileField.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const data = new FormData()
+    data.append('_csrf', csrf)
+    data.append('file', file)
+
+    fetch('/admin/content/events/upload', {
+      method: 'POST',
+      body: data,
+      credentials: 'same-origin',
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}))
+
+        if (!response.ok || !payload.location) {
+          window.alert(payload.error || 'Upload failed')
+          return
+        }
+
+        input.value = payload.location
+
+        if (preview) {
+          preview.src = payload.location
+          preview.hidden = false
+        }
+      })
+      .catch(() => window.alert('Upload failed'))
   })
 })()

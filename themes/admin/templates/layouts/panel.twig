@@ -12,6 +12,7 @@
     <script src="/js/admin/admin-category-tree.js" defer></script>
     <script src="/js/admin/admin-category-products.js" defer></script>
     <script src="/js/admin/admin-grid.js" defer></script>
+    <script src="/js/admin/admin-image-preview.js" defer></script>
     <script src="/js/admin/admin-money-mask.js" defer></script>
     <script src="/vendor/chartjs/chart.umd.min.js" defer></script>
     <script src="/js/admin/admin-charts.js" defer></script>
@@ -106,5 +107,16 @@
             </main>
         </div>
     </div>
+
+    <dialog id="admin-image-preview" class="admin-image-preview" aria-label="{{ t('admin.image_preview.title') }}">
+        <form method="dialog" class="admin-image-preview-toolbar">
+            <button type="submit" class="admin-image-preview-close" aria-label="{{ t('admin.image_preview.close') }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </form>
+        <img id="admin-image-preview-img" class="admin-image-preview-img" alt="">
+    </dialog>
 </body>
 </html>

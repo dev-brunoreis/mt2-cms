@@ -151,7 +151,9 @@ class BannerRepository extends Repository implements ProvidesAdminGrid
         $row['variants'] = $variants;
         $row['variants_json'] = $variants;
         $row['enabled'] = (string) ((int) ($row['enabled'] ?? 0));
-        $row['preview_url'] = $this->previewUrl($variants, (string) ($row['original_path'] ?? ''));
+        $originalPath = (string) ($row['original_path'] ?? '');
+        $row['preview_url'] = self::previewUrl($variants, $originalPath);
+        $row['full_url'] = self::fullUrl($variants, $originalPath);
 
         return $row;
     }
@@ -165,9 +167,11 @@ class BannerRepository extends Repository implements ProvidesAdminGrid
     }
 
     /**
+     * Grid / form thumbnail. Prefers the generated fallback, then 960px JPEG, then the original.
+     *
      * @param array<string, mixed> $variants
      */
-    private function previewUrl(array $variants, string $originalPath): string
+    public static function previewUrl(array $variants, string $originalPath): string
     {
         $fallback = $variants['fallback'] ?? null;
 
@@ -182,5 +186,19 @@ class BannerRepository extends Repository implements ProvidesAdminGrid
         }
 
         return $originalPath;
+    }
+
+    /**
+     * Lightbox source: original upload when present, otherwise the thumbnail URL.
+     *
+     * @param array<string, mixed> $variants
+     */
+    public static function fullUrl(array $variants, string $originalPath): string
+    {
+        if ($originalPath !== '') {
+            return $originalPath;
+        }
+
+        return self::previewUrl($variants, $originalPath);
     }
 }

@@ -190,6 +190,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/content/events', [AdminEventsController::class, 'index']);
         $r->addRoute('GET', '/admin/content/events/new', [AdminEventsController::class, 'create']);
         $r->addRoute('POST', '/admin/content/events', [AdminEventsController::class, 'store']);
+        $r->addRoute('POST', '/admin/content/events/upload', [AdminEventsController::class, 'upload']);
         $r->addRoute('POST', '/admin/content/events/mass', [AdminEventsController::class, 'mass']);
         $r->addRoute('GET', '/admin/content/events/{id:\d+}', [AdminEventsController::class, 'edit']);
         $r->addRoute('POST', '/admin/content/events/{id:\d+}', [AdminEventsController::class, 'update']);

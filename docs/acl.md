@@ -40,7 +40,7 @@ Hubs (news, store, logs, settings, banners) expose **per-tab** view resources. U
 
 `adminView()` is **not** enough for POST. A user who can open the grid (`view`) must not save without `edit` / `create` / `mass`.
 
-JSON endpoints (e.g. news image upload) must still check a write resource and return 401/403 JSON — do not skip ACL because the handler is not an HTML form.
+JSON endpoints (e.g. news/event image upload) must still check a write resource and return 401/403 JSON — do not skip ACL because the handler is not an HTML form.
 
 `adminFragment()` only checks login. Call `requireAdminResourceView` (or `adminView`) **before** rendering a partial.
 

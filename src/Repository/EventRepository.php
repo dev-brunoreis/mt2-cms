@@ -90,6 +90,11 @@ class EventRepository extends Repository implements ProvidesAdminGrid
         );
     }
 
+    public function countAll(): int
+    {
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM cms_events');
+    }
+
     /**
      * @return list<array<string, mixed>>
      */

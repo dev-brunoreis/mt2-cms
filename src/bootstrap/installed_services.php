@@ -69,6 +69,7 @@ use Mt2Cms\Service\LogoUploadService;
 use Mt2Cms\Service\SeoImageUploadService;
 use Mt2Cms\Service\SeoService;
 use Mt2Cms\Service\BannerSeedService;
+use Mt2Cms\Service\EventSeedService;
 use Mt2Cms\Service\NewsSeedService;
 use Mt2Cms\Service\ImageVariantService;
 use Mt2Cms\Service\DropFileService;
@@ -145,6 +146,11 @@ return static function (Application $app): void {
     (new NewsSeedService(
         $app->news,
         $adminRepo,
+        $app->settingsRepo,
+        $app->htmlSanitizer,
+    ))->seedIfNeeded();
+    (new EventSeedService(
+        $app->events,
         $app->settingsRepo,
         $app->htmlSanitizer,
     ))->seedIfNeeded();

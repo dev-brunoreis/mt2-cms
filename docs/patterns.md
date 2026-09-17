@@ -40,6 +40,7 @@ DI: construct in `src/bootstrap/installed_services.php`, expose as `Application`
 - User strings: `$this->t('dotted.key')` / `{{ t('dotted.key') }}`. Add keys to **every** shipped locale (`lang/en.json` first).
 - Twig autoescape is `html`. `|raw` only on layout `slots.*`. News/tickets use `|news_html` / `|ticket_html` (already sanitized).
 - Admin lists: shared grid only ([add-admin-section.md](add-admin-section.md) §6). Mass **or** row `actions` column, never both.
+- Admin image lightbox: `[data-admin-image-preview]` + `admin-image-preview.js` (dialog in `panel.twig`).
 - Hubs (news, store, logs, settings, banners): one page, `[data-admin-tabs]`, `?tab=` + optional `?partial=1`.
 - Redirects: internal paths only (`Locales::safeRedirect`). After donate POST, hop to `/donate/pay` (CSP `form-action 'self'`).
 

@@ -97,7 +97,7 @@ Read-only panels that are expensive to build (inventory, logs, drops) can stay e
 
 Hub `*BaseUrl` must be the path **without** `?tab=` (or use `admin_path('logs', tab.id) ~ '&partial=1'`). Concatenating `?tab=` onto a URL that already has `?tab=` makes every lazy panel load the default tab.
 
-Hub examples: [`AdminLogsController`](../src/Http/Controller/Admin/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/Admin/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/Admin/AdminStoreHubController.php), [`AdminSettingsController`](../src/Http/Controller/Admin/AdminSettingsController.php).
+In-form tabs (one form, every panel still POSTs): news and events CRUD (`data` + `seo`). Hub examples: [`AdminLogsController`](../src/Http/Controller/Admin/AdminLogsController.php), [`AdminNewsHubController`](../src/Http/Controller/Admin/AdminNewsHubController.php), [`AdminStoreHubController`](../src/Http/Controller/Admin/AdminStoreHubController.php), [`AdminSettingsController`](../src/Http/Controller/Admin/AdminSettingsController.php).
 
 ## 6. List pages (admin grid)
 
@@ -171,5 +171,7 @@ Legacy `acl_*_sections` tables remain for migration rollback; runtime ACL reads 
 ```twig
 {% include 'components/grid.twig' with {grid: grid} %}
 ```
+
+Clickable images (banner thumbs): wrap with `components/image-preview-trigger.twig`. `admin-image-preview.js` opens the dialog in `layouts/panel.twig`. Banners pass `full_url` (original) to the dialog and `preview_url` to the thumb.
 
 See [`.cursor/rules/admin-grid.mdc`](../.cursor/rules/admin-grid.mdc) for mass actions vs row actions.

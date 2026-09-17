@@ -1,0 +1,10 @@
+<button type="button"
+        class="admin-image-preview-trigger {{ triggerClass|default('') }}"
+        data-admin-image-preview="{{ src }}"
+        data-admin-image-preview-alt="{{ alt|default('') }}"
+        aria-label="{{ t('admin.image_preview.open') }}">
+    <img src="{{ thumb|default(src) }}" alt="{{ alt|default('') }}"
+         class="{{ imgClass|default('') }}"
+         {% if width is defined %}width="{{ width }}"{% endif %}
+         {% if height is defined %}height="{{ height }}"{% endif %}>
+</button>

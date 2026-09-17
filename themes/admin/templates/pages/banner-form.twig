@@ -16,6 +16,16 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="admin-field sm:col-span-2">
+                <label class="admin-toggle-row cursor-pointer">
+                    <input type="checkbox" name="enabled" value="1"
+                           {% if banner.enabled|default(true) %}checked{% endif %}>
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.banners.enabled') }}</span>
+                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.banners.enabled_help') }}</span>
+                    </span>
+                </label>
+            </div>
+            <div class="admin-field sm:col-span-2">
                 <label for="banner-title">{{ t('admin.banners.title_field') }}</label>
                 <input id="banner-title" type="text" name="title" required maxlength="120"
                        value="{{ banner.title|default('') }}" class="admin-input">
@@ -43,22 +53,17 @@
                        class="admin-input"{% if not isEdit %} required{% endif %}>
                 {% if banner.preview_url|default('') %}
                     <div class="mt-3">
-                        <img src="{{ banner.preview_url }}" alt="" class="h-20 w-auto rounded border border-slate-200 object-cover">
+                        {% include 'components/image-preview-trigger.twig' with {
+                            src: banner.full_url|default(banner.preview_url),
+                            thumb: banner.preview_url,
+                            alt: banner.alt|default(banner.title)|default(''),
+                            imgClass: 'h-20 w-auto rounded border border-slate-200 object-cover'
+                        } %}
                         <span class="admin-field-help">{{ t('admin.banners.current_image') }}</span>
                     </div>
                 {% else %}
                     <span class="admin-field-help">{{ t('admin.banners.image_help') }}</span>
                 {% endif %}
-            </div>
-            <div class="admin-field sm:col-span-2">
-                <label class="admin-toggle-row cursor-pointer">
-                    <input type="checkbox" name="enabled" value="1"
-                           {% if banner.enabled|default(true) %}checked{% endif %}>
-                    <span>
-                        <span class="block text-sm font-semibold text-slate-900">{{ t('admin.banners.enabled') }}</span>
-                        <span class="mt-1 block text-sm leading-relaxed text-slate-500">{{ t('admin.banners.enabled_help') }}</span>
-                    </span>
-                </label>
             </div>
         </div>
     </fieldset>

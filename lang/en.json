@@ -665,6 +665,11 @@
             "enable": "Enable",
             "disable": "Disable"
         },
+        "image_preview": {
+            "title": "Image preview",
+            "open": "Open image preview",
+            "close": "Close"
+        },
         "tabs": {
             "label": "Sections",
             "unsaved": "Unsaved changes",
@@ -2606,6 +2611,8 @@
             "create_title": "Create event",
             "edit": "Edit event",
             "form_lead": "Schedule an event with rich text details.",
+            "tab_data": "Event",
+            "tab_seo": "SEO",
             "details": "Details",
             "details_help": "Title, schedule, and visibility.",
             "title_col": "Title",
@@ -2625,7 +2632,8 @@
             "seo_description": "SEO description",
             "seo_description_help": "About 150–160 characters. Falls back to an excerpt of the description.",
             "seo_og_image": "Open Graph image",
-            "seo_og_image_help": "Optional share image. JPEG, PNG, or WebP (max 2 MB).",
+            "seo_og_upload": "Upload share image",
+            "seo_og_path": "Share image path",
             "seo_og_remove": "Remove share image",
             "invalid_seo_title": "SEO title must be 70 characters or fewer.",
             "invalid_seo_description": "SEO description must be 320 characters or fewer.",

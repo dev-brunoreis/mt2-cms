@@ -2486,3 +2486,85 @@ input.admin-grid-col-filter[type='date']::-webkit-calendar-picker-indicator {
   height: 14rem;
 }
 
+.admin-image-preview-trigger {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.admin-image-preview-trigger:hover img,
+.admin-image-preview-trigger:focus-visible img {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.admin-image-preview {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 2.5rem 1.5rem 1.5rem;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.admin-image-preview[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-image-preview::backdrop {
+  background: rgb(15 23 42 / 0.78);
+}
+
+.admin-image-preview-toolbar {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  margin: 0;
+}
+
+.admin-image-preview-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.95);
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.35);
+}
+
+.admin-image-preview-close:hover,
+.admin-image-preview-close:focus-visible {
+  background: #fff;
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.admin-image-preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.55);
+  background: #0f172a;
+  object-fit: contain;
+}
+

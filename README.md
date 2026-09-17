@@ -127,7 +127,7 @@ composer install
 npm ci && npm run build
 ```
 
-The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` by default (override with `PUID` / `PGID` when building) so it can write files in the project directory. Rebuild the PHP image after changing those values: `PUID=$(id -u) PGID=$(id -g) docker compose up --build`.
+If the site shows **Dependencies not installed**, `vendor/` is missing — run `composer install` and reload. The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` by default (override with `PUID` / `PGID` when building) so it can write files in the project directory. Rebuild the PHP image after changing those values: `PUID=$(id -u) PGID=$(id -g) docker compose up --build`.
 
 | Service | URL / port |
 | --- | --- |

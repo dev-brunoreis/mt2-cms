@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 define('BASE_DIR', dirname(__DIR__));
 
-require BASE_DIR . '/vendor/autoload.php';
+require BASE_DIR . '/src/bootstrap/autoload.php';
 
 Mt2Cms\Application::loadConfigs();
 

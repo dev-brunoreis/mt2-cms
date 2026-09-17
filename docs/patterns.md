@@ -47,6 +47,7 @@ DI: construct in `src/bootstrap/installed_services.php`, expose as `Application`
 
 - Unhandled exceptions → generic HTTP 500, details in `Log` only.
 - Schema behind / missing `APP_KEY` → HTTP 503, logged server-side.
+- Missing `vendor/autoload.php` → HTTP 503 HTML with `composer install` (Twig/`Log` unavailable). CLI: STDERR then exit 1. Do not throw.
 - Two cookies: `MT2CMS` (public) and `MT2ADMIN` (path `/admin`). Idle: admin 30 min, public 2 h.
 - Rate limit file-backed (`var/rate-limit/`), fail-closed. Sensitive POSTs listed in `SecurityContractTest::RATE_LIMITED_POSTS`.
 

@@ -8,6 +8,7 @@ When behavior changes, update this file **and** the linked doc in the same turn.
 
 ```
 public/index.php
+  → ComposerAutoload            `src/bootstrap/autoload.php` — HTTP 503 if `vendor/` is missing
   → Application::run()          session, DI (`src/bootstrap/`), FastRoute
   → PublicRoutes / AdminRoutes  path → [Controller, method]
   → controller_factories.php    constructor DI

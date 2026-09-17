@@ -24,7 +24,7 @@ What the CMS already enforces, and what every change must keep intact.
 | Response headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP (self-hosted CSS/JS only; `form-action 'self'`) |
 | Config | `DB_PASSWORD` and `APP_KEY` required in `.env` when installed (no hardcoded runtime default) |
 | PayPal webhooks | Signature verification is fail-closed; webhook id required in **Settings → Payment methods** for `/donate` and webhook acceptance. Raw bodies are stored in `cms_payment_events` and shown only on the admin payment detail (`store/payments/view`). Invalid signatures are not attached to a payment. |
-| Operational errors | Schema drift and missing `APP_KEY` return generic HTTP 503; details logged server-side only |
+| Operational errors | Schema drift and missing `APP_KEY` return generic HTTP 503; details logged server-side only. Missing Composer autoload is a pre-boot HTTP 503 with an install hint (Twig/`Log` cannot load) |
 
 ## Password hashing
 

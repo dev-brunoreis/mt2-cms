@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 define('BASE_DIR', dirname(__DIR__));
 
-require BASE_DIR . '/vendor/autoload.php';
+require BASE_DIR . '/src/bootstrap/autoload.php';
 
 $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['REQUEST_METHOD'] = 'GET';

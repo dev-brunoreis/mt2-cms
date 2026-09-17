@@ -67,9 +67,9 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | `/admin/settings` | Hub `?tab=` (registration, themes, locale, security, community, seo, payment-methods, unstuck, news, banners) |
 | `/admin/account/security` | Own TOTP (no ACL resource) |
 
-## Public surfaces (beyond README)
+## Public surfaces
 
-Auth/account: login, register, forgot/reset, verify-email, password, email, PIN, characters/unstuck, orders, payments, notifications, tickets.
+Overview lives in the [README](../README.md). Auth/account: login, register, forgot/reset, verify-email, password, email, PIN, characters/unstuck, orders, payments, notifications, tickets.
 
 Content: news + comments, events, downloads, shop buy, donate, ranking, player profile, `/status`, `/robots.txt`, `/sitemap.xml`.
 

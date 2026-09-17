@@ -1,6 +1,18 @@
 # Mt2 CMS
 
-Metin2 CMS with routing, overridable themes, account area, player ranking, and i18n.
+Metin2 CMS: public site + admin panel, overridable themes, dual MySQL (game + CMS), and i18n.
+
+## What it includes
+
+- **Auth / account** — register, login, forgot/reset, email verify, password/email/PIN, characters/unstuck, orders, payments
+- **Content** — news (+ comments), events, downloads, banners
+- **Commerce** — item shop, donate (PayPal), cash credit
+- **Player** — ranking, profiles, tickets, in-app notifications
+- **SEO / ops** — meta, `/robots.txt`, `/sitemap.xml`, `/status`, `/health`
+- **Admin** — RBAC ACL, audit log, optional TOTP 2FA; game (accounts, characters, guilds, bans, economy), content, store, game-data, logs, system, settings hubs
+- **Themes** — JSON layout trees + Twig; child theme overlays (shipped `slate` example)
+
+Full route and admin URL index: [docs/map.md](docs/map.md).
 
 ## Stack
 
@@ -20,53 +32,46 @@ Metin2 CMS with routing, overridable themes, account area, player ranking, and i
 
 ```
 public/index.php          Front controller → Application::run()
+bin/                      migrate, payments-process, economy-tick, backups
 src/
   Application.php         Bootstrap, session, DI, FastRoute dispatch
+  bootstrap/              Autoload, installed services wiring
   Auth/                   Session auth + CSRF + rate limit
+  Admin/                  Grid definitions, ACL catalogs, section menus
   Http/Controller/        Public controllers
   Http/Controller/Admin/  Admin panel controllers
   Service/                Application services
+  Payment/                Gateways + webhook processing
+  Game/                   Proto / dumps / display helpers
+  Setup/                  Install wizard + SQL migrations
   Theme/                  Theme chain, layout JSON merge, Twig render
   I18n/                   Locale files + Translator
   Support/                Env, PDO Database, crypto, sanitizer
-  Repository/             account / player / common / log / CMS tables
+  Repository/             Game schemas + CMS tables
 themes/
   default/                Base public theme (layouts + Twig atoms)
   admin/                  Admin panel theme
-lang/                     Locale JSON (`en`, `pt-BR`, …)
-docs/                     How-to guides for new features
+  slate/                  Minimal child overlay example
+lang/                     Locale JSON (`en.json`; add locales via docs)
+docs/                     Compiled map + how-to guides
 ```
 
-`Database` connects without a default schema; each repository calls `useDatabase()`.
-
-| Repository | Schema | Role |
-| --- | --- | --- |
-| `AccountRepository` | `account` | Find, create, authenticate, block/unblock |
-| `PlayerRepository` | `player` | Characters, public ranking, public profile |
-| `GmRepository` | `common` | GM list and hosts |
-| `LogRepository` | `log` | Recent login log rows |
-
-Sensitive fields (`password`, `social_id`, `email`, `ip`, …) are stripped before public results.
+`Database` connects without a default schema; each repository calls `useDatabase()`. Game tables live in `account` / `player` / `common` / `log`; CMS tables in schema `cms`. Repositories strip sensitive fields (`password`, `social_id`, `email`, `ip`, …) before public results. See [docs/add-repository.md](docs/add-repository.md).
 
 ## Routes
 
-Public routes are registered in [`src/Http/PublicRoutes.php`](src/Http/PublicRoutes.php). Highlights:
+Public routes: [`src/Http/PublicRoutes.php`](src/Http/PublicRoutes.php). Grouped highlights (not a full catalog):
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| GET | `/health` | Liveness (DB connectivity; for monitoring) |
-| GET | `/` | Home (+ upcoming events) |
-| GET/POST | `/register`, `/login` | Auth (CSRF, rate limited) |
-| GET | `/news`, `/news/{id}` | News |
-| GET | `/events`, `/events/{id}` | Events |
-| GET | `/shop` | Item shop |
-| GET | `/donate` | Cash packages (PayPal) |
-| POST | `/payments/webhook/paypal` | PayPal webhook (configure in production) |
-| GET | `/account`, `/account/characters` | Account area |
-| POST | `/account/characters/unstuck` | Unstuck (offline, rate limited) |
-| GET | `/ranking`, `/player/{name}` | Ranking and profiles |
+| Area | Paths |
+| --- | --- |
+| Health / SEO | `/health`, `/robots.txt`, `/sitemap.xml`, `/status` |
+| Auth | `/login`, `/register`, `/forgot-password`, `/reset-password/{token}`, `/verify-email/{token}` |
+| Account | `/account` (characters/unstuck, password, email, PIN, orders, payments, notifications, tickets) |
+| Content | `/news`, `/events`, `/downloads` |
+| Shop / donate | `/shop`, `/donate` (+ pay/return/cancel), `POST /payments/webhook/{provider}` |
+| Players | `/ranking`, `/player/{name}` |
 
-Admin routes: [`src/Http/AdminRoutes.php`](src/Http/AdminRoutes.php). Controller wiring: [`src/Http/controller_factories.php`](src/Http/controller_factories.php).
+Admin routes: [`src/Http/AdminRoutes.php`](src/Http/AdminRoutes.php). Areas: `/admin`, `/admin/population`, `/admin/game/…`, `/admin/content/…`, `/admin/store/…`, `/admin/game-data/…`, `/admin/logs`, `/admin/system/…`, `/admin/settings`. Controller wiring: [`src/Http/controller_factories.php`](src/Http/controller_factories.php). Full prefixes and ACL: [docs/map.md](docs/map.md).
 
 ## Themes
 
@@ -83,7 +88,17 @@ Themes live under `themes/{name}/`:
 
 ## Payments
 
-Donate uses **PayPal** (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers can plug in without rewriting the donate flow.
+Donate uses **PayPal** (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers can plug in without rewriting the donate flow. Capture and cash credit run via `bin/payments-process.php` (see Ops). Details: [docs/payments.md](docs/payments.md).
+
+## Ops (CLI / cron)
+
+| Command | Role |
+| --- | --- |
+| `php bin/migrate.php` | Apply CMS schema migrations; may generate `APP_KEY` |
+| `php bin/payments-process.php` | Drain payment webhook queue (capture + credit) |
+| `php bin/economy-tick.php` | Refresh economy census / alerts snapshots |
+
+Schedule payments and economy workers in production; do not run them on the HTTP path. See [docs/deploy.md](docs/deploy.md).
 
 ## Implementing
 
@@ -100,6 +115,7 @@ Start from **[docs/map.md](docs/map.md)** (compiled index), then **[docs/pattern
 | [docs/add-repository.md](docs/add-repository.md) | New game DB queries |
 | [docs/add-theme.md](docs/add-theme.md) | Child theme / overlay |
 | [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
+| [docs/setup.md](docs/setup.md) | Install wizard and first-run seeds |
 | [docs/payments.md](docs/payments.md) | Donate, webhooks, cash credit |
 | [docs/economy.md](docs/economy.md) | Economy tick, alerts, admin UI |
 | [docs/notifications.md](docs/notifications.md) | Player in-app inbox |
@@ -151,12 +167,19 @@ Copy `.env-example` to `.env`. Variables read by the app:
 | `DB_USER` | `root` | |
 | `DB_PASSWORD` | *(required)* | No default; must be set in `.env` |
 | `DB_NAME` | *(empty)* | Optional; repositories switch schema themselves |
+| `CMS_DB_HOST` | `mysql` | CMS MySQL service (from host: `127.0.0.1` + port `8002`) |
+| `CMS_DB_PORT` | `3306` | Internal Docker port for CMS MySQL |
+| `CMS_DB_USER` | `root` | Dev fixture; production uses a dedicated app user |
+| `CMS_DB_PASSWORD` | *(required)* | No default; must be set in `.env` |
+| `CMS_DB_NAME` | `cms` | CMS schema name |
 | `THEME` | `default` | Active theme folder under `themes/` |
 | `LOCALE` | `en` | Default locale when no cookie is set |
 | `GAME_DIR` | `game/` | Game data root (`config.json`, client/db/server dumps) |
 | `APP_INSTALLED` | `false` | `true` after `/setup` |
 | `APP_KEY` | *(required when installed)* | 32-byte hex; `/setup` or `php bin/migrate.php` generates it |
 | `APP_TRUST_PROXY` | `0` | Set `1` behind TLS reverse proxy (secure session cookies) |
+
+Mail (`MAIL_*` / `MAIL_DSN`), PayPal (`PAYPAL_*`), and public site URL (`APP_URL`) are optional in `.env` — see [`.env-example`](.env-example) and configure further under **Admin → Settings** (Community / Payment methods).
 
 For registration/login against `account.account`, use:
 
@@ -165,11 +188,16 @@ DB_HOST=game
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=admin123@
+CMS_DB_HOST=mysql
+CMS_DB_PORT=3306
+CMS_DB_USER=root
+CMS_DB_PASSWORD=admin123@
+CMS_DB_NAME=cms
 THEME=default
 LOCALE=en
 ```
 
-From the host (not from a container), use `127.0.0.1` and port `8001`.
+From the host (not from a container), use `127.0.0.1` and ports `8001` (game) / `8002` (CMS).
 
 ## Account registration
 
@@ -192,15 +220,19 @@ Logged-in players can change their password at `/account/password` (requires cur
 
 After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when **Settings → Security → Require 2FA** is on (off by default on new installs). Configure captcha and 2FA policy under **Settings → Security**.
 
+Permissions are resource-based (RBAC); mutating POSTs require ACL + audit. Own admin TOTP lives at `/admin/account/security` (no ACL resource). Section list and grantable ids: [docs/map.md](docs/map.md) and [docs/acl.md](docs/acl.md).
+
+First HTTP boot after `/setup` can seed class banners, a welcome news post, and classic events when those tables are empty — see [docs/setup.md](docs/setup.md).
+
 ## Local dumps
 
 `docker/mysql/backup/` ships sample Mt2 data, including accounts `admin` and `test`. Treat them as local fixtures, not production credentials.
 
 ## Current status
 
-- Working: Docker stack (dev + production compose), game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/events/item shop, themes, public auth/account (including password change and unstuck), ranking/player pages, referrals, i18n, security headers, session hardening, rate limits, migrations off hot path, PayPal fail-closed webhooks, `/health` endpoint.
-- Production: `compose.prod.yml` builds immutable PHP/Nginx images, uses dedicated MySQL app users, and ships container healthchecks. See [docs/deploy.md](docs/deploy.md) post-deploy checklist.
-- See [docs/improvements.md](docs/improvements.md) for remaining organizational refactors (not blockers for production).
+- Working: Docker stack (dev + production compose), game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/events/downloads/banners, item shop + donate (PayPal fail-closed webhooks + payment worker), economy tick/alerts, player inbox notifications, SEO (meta/robots/sitemap), themes (including `slate` overlay), public auth/account (password/email/PIN, unstuck, orders), ranking/player pages, referrals, i18n (`lang/en.json`), security headers, session hardening, rate limits, migrations off hot path, first-run seeds, `/health` endpoint.
+- Production: `compose.prod.yml` builds immutable PHP/Nginx images, uses dedicated MySQL app users, and ships container healthchecks. Cron workers for payments and economy — see [docs/deploy.md](docs/deploy.md) post-deploy checklist.
+- See [docs/improvements.md](docs/improvements.md) for remaining organizational notes (not blockers for production).
 
 ## License
 

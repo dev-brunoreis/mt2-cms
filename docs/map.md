@@ -49,6 +49,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, layout JSON by node `id` |
 | Locale | [add-locale.md](add-locale.md) | `lang/en.json` (add keys to every shipped locale) |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
+| Install / first boot | [setup.md](setup.md) | `SetupController`, `BannerSeedService`, `NewsSeedService` |
 | Deploy | [deploy.md](deploy.md) | `compose.prod.yml`, `APP_KEY`, TLS |
 
 ## Admin URL areas
@@ -72,6 +73,8 @@ Auth/account: login, register, forgot/reset, verify-email, password, email, PIN,
 
 Content: news + comments, events, downloads, shop buy, donate, ranking, player profile, `/status`, `/robots.txt`, `/sitemap.xml`.
 
+First HTTP boot after `/setup` seeds class banners and one published welcome news post when those tables are empty (see [setup.md](setup.md)).
+
 ## Change → update
 
 | You touched | Also update |
@@ -86,6 +89,7 @@ Content: news + comments, events, downloads, shop buy, donate, ranking, player p
 | Economy tick / alerts | [economy.md](economy.md) |
 | In-app notices | [notifications.md](notifications.md) |
 | Meta / sitemap / robots | [seo.md](seo.md) |
+| Install wizard / first-run seeds | [setup.md](setup.md) |
 | CSRF, SQL, audit, rate limit | [security.md](security.md) + keep `SecurityContractTest` green |
 
 How-to checklists stay in the `add-*.md` guides. This folder is **how it works now**, not a second implementation stack.

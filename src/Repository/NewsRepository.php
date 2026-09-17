@@ -17,6 +17,11 @@ class NewsRepository extends Repository implements ProvidesAdminGrid
         return 'cms';
     }
 
+    public function countAll(): int
+    {
+        return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM news');
+    }
+
     public function countPublished(?string $query = null): int
     {
         [$where, $params] = $this->publishedFilter($query);

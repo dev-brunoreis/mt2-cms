@@ -108,6 +108,16 @@ class AdminRepository extends Repository implements ProvidesAdminGrid
         return (int) $this->db()->fetchColumn('SELECT COUNT(*) FROM admins');
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function first(): ?array
+    {
+        return $this->reveal($this->db()->fetch(
+            'SELECT id, login FROM admins ORDER BY id ASC LIMIT 1',
+        ));
+    }
+
     public function countSupers(): int
     {
         return (int) $this->db()->fetchColumn(

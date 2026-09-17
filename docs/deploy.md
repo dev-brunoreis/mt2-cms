@@ -32,7 +32,7 @@ Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
    ```
    The PHP image runs as your host UID/GID (`PUID` / `PGID`, default `1000`) so the bind-mounted `.env` stays readable/writable. Rebuild after changing them: `PUID=$(id -u) PGID=$(id -g) docker compose -f compose.prod.yml up -d --build`.
    From the host (outside Docker), point `.env` at the mapped CMS port: `CMS_DB_HOST=127.0.0.1`, `CMS_DB_PORT=8002`, then run `php bin/migrate.php`.
-5. **Set `APP_INSTALLED=true`** in `.env` after setup (`/setup` writes this automatically).
+5. **Set `APP_INSTALLED=true`** in `.env` after setup (`/setup` writes this automatically). First HTTP boot then seeds class banners and a welcome news post if those tables are empty ([setup.md](setup.md)).
 6. **Confirm `APP_KEY`** is present in `.env` (64 hex chars). Setup and migrate generate it; the app returns a generic 503 without it (details are logged server-side only).
 7. **`APP_TRUST_PROXY=1`** is set in `compose.prod.yml`. Keep it when TLS terminates at a reverse proxy so session cookies get the `Secure` flag.
 8. **Enroll admin 2FA** on first login (`/admin/account/security`) when the require-2FA policy is enabled (off by default on new installs; enable under **Settings → Security**).

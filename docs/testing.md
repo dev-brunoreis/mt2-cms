@@ -39,6 +39,6 @@ There is no browser/Dusk suite. UI changes: keep Twig contracts (`|raw`, autoesc
 
 ## Catalog of existing unit areas
 
-Auth (`Csrf`, `RateLimiter`, `SessionGuard`, `Totp`, `Captcha`, `SessionConfig`), Admin (`AdminResourceCatalog`, `AdminPaths`, `RoleSlug`, `AdminAuditMeta`, `Grid/*`), Service (ACL, payments, SEO, economy math, unstuck, referral, events, uploads, census), Payment (gateway registry, webhook envelope/parser, checkout URL), I18n, Support (`HtmlSanitizer`, `Money`, `AppCrypto`, `DayChart`, `ComposerAutoload`), Repository (validation-only), Theme layout extends, Game proto/display.
+Auth (`Csrf`, `RateLimiter`, `SessionGuard`, `Totp`, `Captcha`, `SessionConfig`), Admin (`AdminResourceCatalog`, `AdminPaths`, `RoleSlug`, `AdminAuditMeta`, `Grid/*`), Service (ACL, payments, SEO, economy math, unstuck, referral, events, uploads, census, first-run news/banner seeds), Payment (gateway registry, webhook envelope/parser, checkout URL), I18n, Support (`HtmlSanitizer`, `Money`, `AppCrypto`, `DayChart`, `ComposerAutoload`), Repository (validation-only), Theme layout extends, Game proto/display.
 
 Copy the nearest test in that folder; do not start an integration test with Docker MySQL unless the project later adds a second suite.

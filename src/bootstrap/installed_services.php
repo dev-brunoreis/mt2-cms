@@ -69,6 +69,7 @@ use Mt2Cms\Service\LogoUploadService;
 use Mt2Cms\Service\SeoImageUploadService;
 use Mt2Cms\Service\SeoService;
 use Mt2Cms\Service\BannerSeedService;
+use Mt2Cms\Service\NewsSeedService;
 use Mt2Cms\Service\ImageVariantService;
 use Mt2Cms\Service\DropFileService;
 use Mt2Cms\Service\EventService;
@@ -140,6 +141,12 @@ return static function (Application $app): void {
         $app->bannerUploads,
         $app->settingsRepo,
         BASE_DIR . '/themes/default/assets/src',
+    ))->seedIfNeeded();
+    (new NewsSeedService(
+        $app->news,
+        $adminRepo,
+        $app->settingsRepo,
+        $app->htmlSanitizer,
     ))->seedIfNeeded();
     $app->cashPackages = new CashPackageRepository($app->cmsDb);
     $app->payments = new PaymentRepository($app->cmsDb);

@@ -2,17 +2,240 @@
 
 Metin2 CMS: public site + admin panel, overridable themes, dual MySQL (game + CMS), and i18n.
 
+This README is the **runbook** — how to install, configure, and run the app. Architecture and how-to guides live under [`docs/`](docs/map.md).
+
+---
+
+## Requirements
+
+| Tool | Notes |
+| --- | --- |
+| Docker + Docker Compose | Runs Nginx, PHP-FPM, game MySQL 5.6, CMS MySQL 8.0 |
+| Composer | On the **host**, or via the official `composer:2` image (see below) |
+| Node.js + npm | Build Tailwind CSS and vendor assets |
+
+The long-running `php` service is FPM only — it does **not** ship `composer`, `bash`, or `npm`. Runtime needs `vendor/` on disk (bind-mounted in dev). Production bakes `vendor/` into the image at build time.
+
+Optional: PHP 8.3 on the host only if you run `bin/*.php` or PHPUnit outside Docker.
+
+---
+
+## Local development (step by step)
+
+### 1. Clone and enter the project
+
+```bash
+cd mt2-cms
+```
+
+### 2. Create `.env`
+
+```bash
+cp .env-example .env
+```
+
+The defaults match the Docker Compose stack (password `admin123@`). You do **not** need to change them for a first local run.
+
+Minimum that must be set (already present in `.env-example`):
+
+```env
+DB_HOST=game
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=admin123@
+
+CMS_DB_HOST=mysql
+CMS_DB_PORT=3306
+CMS_DB_USER=root
+CMS_DB_PASSWORD=admin123@
+CMS_DB_NAME=cms
+
+THEME=default
+LOCALE=en
+APP_INSTALLED=false
+APP_KEY=
+```
+
+> From the **host** (CLI outside Docker), use `127.0.0.1` and ports `8001` (game) / `8002` (CMS) instead of service names `game` / `mysql`.
+
+### 3. Install PHP and frontend dependencies
+
+Run these on the **host** (or the one-shot Composer container). Do **not** use `docker compose exec php composer …` — that binary is not in the image.
+
+```bash
+composer install
+npm ci && npm run build
+```
+
+Without Composer on the host:
+
+```bash
+docker run --rm -v "$PWD":/app -w /app composer:2 install
+```
+
+That writes `vendor/` into the project directory; the FPM container reads it via the bind mount. Platform PHP is pinned in `composer.json` (`8.3.33`) to match the container.
+
+If the site shows **Dependencies not installed**, `vendor/` is missing — install again and reload.
+
+### 4. Start the stack
+
+```bash
+docker compose up --build
+```
+
+PHP-FPM runs as UID/GID `1000` by default so it can write into the project directory. If permission errors appear on `.env` or `var/`, rebuild with your user:
+
+```bash
+PUID=$(id -u) PGID=$(id -g) docker compose up --build
+```
+
+First start of `game` creates schemas and imports sample dumps from `docker/mysql/backup/*.sql` (accounts `admin` and `test` — local fixtures only).
+
+### 5. Open the site and finish setup
+
+| Service | URL |
+| --- | --- |
+| Site | http://localhost:8000 |
+| Setup wizard | http://localhost:8000/setup |
+| Admin panel | http://localhost:8000/admin |
+| Adminer (optional) | http://127.0.0.1:8080 — `docker compose --profile tools up` |
+| Game MySQL | `127.0.0.1:8001` (loopback only) |
+| CMS MySQL | `127.0.0.1:8002` (loopback only) |
+
+1. Open **http://localhost:8000/setup**
+2. Complete the wizard (creates the first admin, writes `APP_INSTALLED=true`, generates `APP_KEY`)
+3. Log in at **http://localhost:8000/admin**
+
+The first HTTP boot after setup can seed class banners, a welcome news post, and classic events when those tables are empty — see [docs/setup.md](docs/setup.md).
+
+### 6. (Optional) Run migrations manually
+
+Usually covered by `/setup`. To apply CMS schema changes later:
+
+```bash
+docker compose exec php php bin/migrate.php
+```
+
+Or from the host (with `CMS_DB_HOST=127.0.0.1` and `CMS_DB_PORT=8002` in `.env`):
+
+```bash
+php bin/migrate.php
+```
+
+### 7. (Optional) Cron-style workers
+
+Do **not** run these on the HTTP request path. In production, schedule them; locally, run when needed:
+
+```bash
+docker compose exec php php bin/payments-process.php   # PayPal webhook queue → capture + cash credit
+docker compose exec php php bin/economy-tick.php        # Economy census / alerts snapshots
+```
+
+### 8. Stop the stack
+
+```bash
+docker compose down
+```
+
+Data volumes (`mysql-data`, `cms-data`) persist until you remove them with `docker compose down -v`.
+
+---
+
+## Day-to-day commands
+
+```bash
+# Start (foreground)
+docker compose up
+
+# Start (background)
+docker compose up -d
+
+# Rebuild after Dockerfile / PUID changes
+docker compose up --build
+
+# Rebuild CSS / vendor assets after frontend changes
+npm run build
+
+# Unit tests
+composer test
+
+# Shell inside PHP container
+docker compose exec php sh
+```
+
+---
+
+## Configure the app (after first login)
+
+| Where | What |
+| --- | --- |
+| **Admin → Settings → Community** | Public site URL, mail, Discord |
+| **Admin → Settings → Themes** | Active theme (`THEME` / overlay) |
+| **Admin → Settings → Security** | Captcha, require 2FA |
+| **Admin → Settings → Payment methods** | PayPal client id/secret + webhook id |
+| **Admin → Settings → Locale** | Default language |
+| `.env` | DB hosts, `THEME`, `LOCALE`, `MAIL_*`, `PAYPAL_*`, `APP_URL`, `APP_TRUST_PROXY` |
+
+Mail and PayPal can also be set in `.env` — see [`.env-example`](.env-example). Own admin TOTP: `/admin/account/security`.
+
+### Player registration (game DB)
+
+`POST /register` writes `account.account`:
+
+| Field | Rules |
+| --- | --- |
+| Username (`login`) | 2–30 chars, `[A-Za-z0-9_]` |
+| Email | Valid email |
+| Password | 5–16 characters |
+| Delete character PIN (`social_id`) | Digits only, ≥ 7 characters |
+
+Passwords use Metin2-compatible `*SHA1(SHA1)` hashing.
+
+---
+
+## Environment reference
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `DB_*` | `game` / `3306` / `root` | Game MySQL (`account`, `player`, …) |
+| `CMS_DB_*` | `mysql` / `3306` / `root` / `cms` | CMS MySQL schema |
+| `DB_PASSWORD` / `CMS_DB_PASSWORD` | *(required)* | No runtime default |
+| `THEME` | `default` | Folder under `themes/` |
+| `LOCALE` | `en` | Default locale |
+| `GAME_DIR` | `game/` | Client/db/server dumps |
+| `APP_INSTALLED` | `false` | `true` after `/setup` |
+| `APP_KEY` | *(required when installed)* | 32-byte hex; setup or migrate generates it |
+| `APP_TRUST_PROXY` | `0` | `1` behind TLS reverse proxy |
+| `APP_URL` | optional | Public URL for email links |
+| `MAIL_*` / `MAIL_DSN` | optional | SMTP |
+| `PAYPAL_*` | optional | Donate gateway |
+
+---
+
+## Production
+
+Do **not** expose the dev Compose stack to the internet.
+
+1. Copy **`.env.prod-example`** → `.env` and replace every `change-me-*` password  
+2. `docker compose -f compose.prod.yml up -d --build`  
+3. `docker compose -f compose.prod.yml exec php php bin/migrate.php`  
+4. Finish `/setup`, put TLS reverse proxy in front of `127.0.0.1:8000`
+
+Full checklist: [docs/deploy.md](docs/deploy.md).
+
+---
+
 ## What it includes
 
-- **Auth / account** — register, login, forgot/reset, email verify, password/email/PIN, characters/unstuck, orders, payments
-- **Content** — news (+ comments), events, downloads, banners
-- **Commerce** — item shop, donate (PayPal), cash credit
-- **Player** — ranking, profiles, tickets, in-app notifications
-- **SEO / ops** — meta, `/robots.txt`, `/sitemap.xml`, `/status`, `/health`
-- **Admin** — RBAC ACL, audit log, optional TOTP 2FA; game (accounts, characters, guilds, bans, economy), content, store, game-data, logs, system, settings hubs
-- **Themes** — JSON layout trees + Twig; child theme overlays (shipped `slate` example)
+- **Auth / account** — register, login, forgot/reset, email verify, password/email/PIN, characters/unstuck, orders, payments  
+- **Content** — news (+ comments), events, downloads, banners  
+- **Commerce** — item shop, donate (PayPal), cash credit  
+- **Player** — ranking, profiles, tickets, in-app notifications  
+- **SEO / ops** — meta, `/robots.txt`, `/sitemap.xml`, `/status`, `/health`  
+- **Admin** — RBAC ACL, audit log, optional TOTP 2FA; game, content, store, game-data, logs, system, settings  
+- **Themes** — JSON layout trees + Twig; child overlays (shipped `slate` example)
 
-Full route and admin URL index: [docs/map.md](docs/map.md).
+---
 
 ## Stack
 
@@ -21,218 +244,38 @@ Full route and admin URL index: [docs/map.md](docs/map.md).
 | Runtime | PHP 8.3 FPM |
 | Web | Nginx |
 | Game database | MySQL 5.6 (`game` service) |
-| CMS database | MySQL 8.0 (`mysql` service, database `cms`, reserved) |
+| CMS database | MySQL 8.0 (`mysql` service, database `cms`) |
 | Autoload | Composer PSR-4 (`Mt2Cms\` → `src/`) |
-| Config | `vlucas/phpdotenv` |
-| Router | `nikic/fast-route` |
 | Templates | Twig + JSON layout trees |
-| UI | Tailwind CSS (built to `public/css/app.css`) |
-
-## Architecture
+| UI | Tailwind CSS → `public/css/app.css` |
 
 ```
-public/index.php          Front controller → Application::run()
-bin/                      migrate, payments-process, economy-tick, backups
-src/
-  Application.php         Bootstrap, session, DI, FastRoute dispatch
-  bootstrap/              Autoload, installed services wiring
-  Auth/                   Session auth + CSRF + rate limit
-  Admin/                  Grid definitions, ACL catalogs, section menus
-  Http/Controller/        Public controllers
-  Http/Controller/Admin/  Admin panel controllers
-  Service/                Application services
-  Payment/                Gateways + webhook processing
-  Game/                   Proto / dumps / display helpers
-  Setup/                  Install wizard + SQL migrations
-  Theme/                  Theme chain, layout JSON merge, Twig render
-  I18n/                   Locale files + Translator
-  Support/                Env, PDO Database, crypto, sanitizer
-  Repository/             Game schemas + CMS tables
-themes/
-  default/                Base public theme (layouts + Twig atoms)
-  admin/                  Admin panel theme
-  slate/                  Minimal child overlay example
-lang/                     Locale JSON (`en.json`; add locales via docs)
-docs/                     Compiled map + how-to guides
+public/index.php          Front controller
+bin/                      migrate, payments-process, economy-tick
+src/                      Application, Auth, Admin, Http, Service, …
+themes/                   default, admin, slate
+lang/                     Locale JSON
+docs/                     Architecture map + how-to guides
 ```
 
-`Database` connects without a default schema; each repository calls `useDatabase()`. Game tables live in `account` / `player` / `common` / `log`; CMS tables in schema `cms`. Repositories strip sensitive fields (`password`, `social_id`, `email`, `ip`, …) before public results. See [docs/add-repository.md](docs/add-repository.md).
+---
 
-## Routes
+## Docs (for developers)
 
-Public routes: [`src/Http/PublicRoutes.php`](src/Http/PublicRoutes.php). Grouped highlights (not a full catalog):
+Start from **[docs/map.md](docs/map.md)**, then [patterns.md](docs/patterns.md) and [testing.md](docs/testing.md).
 
-| Area | Paths |
+| Guide | When |
 | --- | --- |
-| Health / SEO | `/health`, `/robots.txt`, `/sitemap.xml`, `/status` |
-| Auth | `/login`, `/register`, `/forgot-password`, `/reset-password/{token}`, `/verify-email/{token}` |
-| Account | `/account` (characters/unstuck, password, email, PIN, orders, payments, notifications, tickets) |
-| Content | `/news`, `/events`, `/downloads` |
-| Shop / donate | `/shop`, `/donate` (+ pay/return/cancel), `POST /payments/webhook/{provider}` |
-| Players | `/ranking`, `/player/{name}` |
+| [docs/setup.md](docs/setup.md) | Install wizard / first-run seeds |
+| [docs/deploy.md](docs/deploy.md) | Production + TLS |
+| [docs/acl.md](docs/acl.md) | Admin ACL |
+| [docs/add-admin-section.md](docs/add-admin-section.md) | New admin screen |
+| [docs/add-page.md](docs/add-page.md) | New public page |
+| [docs/add-theme.md](docs/add-theme.md) | Child theme |
+| [docs/payments.md](docs/payments.md) | Donate / webhooks |
+| [docs/security.md](docs/security.md) | Security checklist |
 
-Admin routes: [`src/Http/AdminRoutes.php`](src/Http/AdminRoutes.php). Areas: `/admin`, `/admin/population`, `/admin/game/…`, `/admin/content/…`, `/admin/store/…`, `/admin/game-data/…`, `/admin/logs`, `/admin/system/…`, `/admin/settings`. Controller wiring: [`src/Http/controller_factories.php`](src/Http/controller_factories.php). Full prefixes and ACL: [docs/map.md](docs/map.md).
-
-## Themes
-
-Set `THEME` in `.env` (default `default`), or pick an active theme under **Admin → Settings → Themes**.
-
-Themes live under `themes/{name}/`:
-
-- `theme.json` — `{ "name", "parent" }`
-- `layouts/*.json` — layout trees with optional `"extends": "_shell"`; merge is deep **by node `id`**
-- `templates/` — Twig atoms; child theme paths win over parents
-- `assets/` — theme CSS/images; link with `theme_asset('css/theme.css')` (served as `/theme-assets/{name}/…`)
-
-**Overlay (child themes):** create `themes/{name}/` with `theme.json` `{ "name", "parent": "default" }` and override only what you need — e.g. `assets/css/tokens.css` for colors, or a layout node to hide a widget. The shipped `slate` theme is a minimal example. See [docs/add-theme.md](docs/add-theme.md).
-
-## Payments
-
-Donate uses **PayPal** (Checkout + fail-closed webhooks). Gateways implement `Mt2Cms\Payment\PaymentGateway` and register in `GatewayRegistry` — additional providers can plug in without rewriting the donate flow. Capture and cash credit run via `bin/payments-process.php` (see Ops). Details: [docs/payments.md](docs/payments.md).
-
-## Ops (CLI / cron)
-
-| Command | Role |
-| --- | --- |
-| `php bin/migrate.php` | Apply CMS schema migrations; may generate `APP_KEY` |
-| `php bin/payments-process.php` | Drain payment webhook queue (capture + credit) |
-| `php bin/economy-tick.php` | Refresh economy census / alerts snapshots |
-
-Schedule payments and economy workers in production; do not run them on the HTTP path. See [docs/deploy.md](docs/deploy.md).
-
-## Implementing
-
-Start from **[docs/map.md](docs/map.md)** (compiled index), then **[docs/patterns.md](docs/patterns.md)** and **[docs/testing.md](docs/testing.md)**. Then open only the one guide for the area you are changing.
-
-| Guide | When to use |
-| --- | --- |
-| [docs/map.md](docs/map.md) | Architecture index — read this first |
-| [docs/patterns.md](docs/patterns.md) | Layers, HTTP, SQL, i18n — how to write code |
-| [docs/testing.md](docs/testing.md) | Unit + contract tests (`composer test`) |
-| [docs/acl.md](docs/acl.md) | Admin ACL resources and POST checks |
-| [docs/add-admin-section.md](docs/add-admin-section.md) | New admin screen / grid / hub |
-| [docs/add-page.md](docs/add-page.md) | New public or authenticated page |
-| [docs/add-repository.md](docs/add-repository.md) | New game DB queries |
-| [docs/add-theme.md](docs/add-theme.md) | Child theme / overlay |
-| [docs/add-locale.md](docs/add-locale.md) | Translations / new language |
-| [docs/setup.md](docs/setup.md) | Install wizard and first-run seeds |
-| [docs/payments.md](docs/payments.md) | Donate, webhooks, cash credit |
-| [docs/economy.md](docs/economy.md) | Economy tick, alerts, admin UI |
-| [docs/notifications.md](docs/notifications.md) | Player in-app inbox |
-| [docs/seo.md](docs/seo.md) | Meta, robots, sitemap |
-| [docs/game-files.md](docs/game-files.md) | Game dumps, JSON config, custom source |
-| [docs/security.md](docs/security.md) | Security rules and PR checklist |
-| [docs/deploy.md](docs/deploy.md) | Production deployment and TLS |
-
-## Security
-
-HTTP responses send security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP with self-hosted assets). Sessions use hardened cookies (separate admin cookie at `/admin`), idle timeouts (admin 30 min, public 2 h), and regenerate on login. Login/register and password change are rate limited (file-backed, fail-closed). Player passwords use Metin2-compatible `*SHA1(SHA1)` hashing; admins use `password_hash` with TOTP 2FA (encrypted at rest via `APP_KEY`). Unhandled exceptions return a generic 500 (no stack traces to clients).
-
-See [docs/security.md](docs/security.md) for the full checklist and [docs/deploy.md](docs/deploy.md) for production (`cp .env.prod-example .env`, then `compose.prod.yml`, immutable images, MySQL app users, `/health`, backups, PayPal webhook id).
-
-## Requirements
-
-- Docker and Docker Compose
-- Composer (on the host, or run inside a container that has Composer)
-
-## Quick start
-
-```bash
-docker compose up --build
-composer install
-npm ci && npm run build
-```
-
-If the site shows **Dependencies not installed**, `vendor/` is missing — run `composer install` and reload. The first-run wizard at `/setup` writes `.env`. PHP-FPM runs as UID/GID `1000` by default (override with `PUID` / `PGID` when building) so it can write files in the project directory. Rebuild the PHP image after changing those values: `PUID=$(id -u) PGID=$(id -g) docker compose up --build`.
-
-| Service | URL / port |
-| --- | --- |
-| Site (Nginx) | http://localhost:8000 |
-| Adminer | http://127.0.0.1:8080 (opt-in: `docker compose --profile tools up`) |
-| Game MySQL 5.6 | `127.0.0.1:8001` (loopback only) |
-| CMS MySQL 8.0 | `127.0.0.1:8002` (loopback only) |
-
-Default MySQL root password in Compose (dev fixture): `admin123@`. Set it explicitly in `.env` — there is no hardcoded runtime fallback.
-
-On first start of `game`, `docker/mysql/init` creates the four schemas and imports `docker/mysql/backup/*.sql`.
-
-## Environment
-
-Copy `.env-example` to `.env`. Variables read by the app:
-
-| Variable | Default in code | Notes |
-| --- | --- | --- |
-| `DB_HOST` | `game` | Must be the **game** MySQL service for Mt2 tables |
-| `DB_PORT` | `3306` | Internal Docker port |
-| `DB_USER` | `root` | |
-| `DB_PASSWORD` | *(required)* | No default; must be set in `.env` |
-| `DB_NAME` | *(empty)* | Optional; repositories switch schema themselves |
-| `CMS_DB_HOST` | `mysql` | CMS MySQL service (from host: `127.0.0.1` + port `8002`) |
-| `CMS_DB_PORT` | `3306` | Internal Docker port for CMS MySQL |
-| `CMS_DB_USER` | `root` | Dev fixture; production uses a dedicated app user |
-| `CMS_DB_PASSWORD` | *(required)* | No default; must be set in `.env` |
-| `CMS_DB_NAME` | `cms` | CMS schema name |
-| `THEME` | `default` | Active theme folder under `themes/` |
-| `LOCALE` | `en` | Default locale when no cookie is set |
-| `GAME_DIR` | `game/` | Game data root (`config.json`, client/db/server dumps) |
-| `APP_INSTALLED` | `false` | `true` after `/setup` |
-| `APP_KEY` | *(required when installed)* | 32-byte hex; `/setup` or `php bin/migrate.php` generates it |
-| `APP_TRUST_PROXY` | `0` | Set `1` behind TLS reverse proxy (secure session cookies) |
-
-Mail (`MAIL_*` / `MAIL_DSN`), PayPal (`PAYPAL_*`), and public site URL (`APP_URL`) are optional in `.env` — see [`.env-example`](.env-example) and configure further under **Admin → Settings** (Community / Payment methods).
-
-For registration/login against `account.account`, use:
-
-```env
-DB_HOST=game
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=admin123@
-CMS_DB_HOST=mysql
-CMS_DB_PORT=3306
-CMS_DB_USER=root
-CMS_DB_PASSWORD=admin123@
-CMS_DB_NAME=cms
-THEME=default
-LOCALE=en
-```
-
-From the host (not from a container), use `127.0.0.1` and ports `8001` (game) / `8002` (CMS).
-
-## Account registration
-
-`POST /register` creates a row in `account.account`.
-
-| Field | Rules |
-| --- | --- |
-| Username (`login`) | 2–30 chars, `[A-Za-z0-9_]` |
-| Email | Valid email |
-| Password | 5–16 characters |
-| Delete character PIN (`social_id`) | Digits only, at least 7 characters |
-
-Passwords are stored in MySQL `PASSWORD()` style (`*` + SHA1(SHA1(password, binary)), uppercase) so they match the game client.
-
-Duplicate logins raise `Login already exists`. Blocked accounts (`status = BLOCK`) cannot log in.
-
-Logged-in players can change their password at `/account/password` (requires current password, CSRF, rate limited).
-
-## Admin panel
-
-After setup, open `/admin`. The first superadmin is prompted to enroll TOTP when **Settings → Security → Require 2FA** is on (off by default on new installs). Configure captcha and 2FA policy under **Settings → Security**.
-
-Permissions are resource-based (RBAC); mutating POSTs require ACL + audit. Own admin TOTP lives at `/admin/account/security` (no ACL resource). Section list and grantable ids: [docs/map.md](docs/map.md) and [docs/acl.md](docs/acl.md).
-
-First HTTP boot after `/setup` can seed class banners, a welcome news post, and classic events when those tables are empty — see [docs/setup.md](docs/setup.md).
-
-## Local dumps
-
-`docker/mysql/backup/` ships sample Mt2 data, including accounts `admin` and `test`. Treat them as local fixtures, not production credentials.
-
-## Current status
-
-- Working: Docker stack (dev + production compose), game + CMS MySQL, admin panel (RBAC, audit log, 2FA), news/tickets/events/downloads/banners, item shop + donate (PayPal fail-closed webhooks + payment worker), economy tick/alerts, player inbox notifications, SEO (meta/robots/sitemap), themes (including `slate` overlay), public auth/account (password/email/PIN, unstuck, orders), ranking/player pages, referrals, i18n (`lang/en.json`), security headers, session hardening, rate limits, migrations off hot path, first-run seeds, `/health` endpoint.
-- Production: `compose.prod.yml` builds immutable PHP/Nginx images, uses dedicated MySQL app users, and ships container healthchecks. Cron workers for payments and economy — see [docs/deploy.md](docs/deploy.md) post-deploy checklist.
-- See [docs/improvements.md](docs/improvements.md) for remaining organizational notes (not blockers for production).
+---
 
 ## License
 

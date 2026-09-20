@@ -159,6 +159,9 @@ npm run build
 # Unit tests
 composer test
 
+# HTTP/MySQL smoke (stack must be up; optional MT2CMS_BASE_URL)
+composer test:integration
+
 # Shell inside PHP container
 docker compose exec php sh
 ```

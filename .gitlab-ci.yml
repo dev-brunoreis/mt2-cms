@@ -22,6 +22,23 @@ phpunit:
   script:
     - composer test
 
+# Opt-in: requires a reachable MT2CMS_BASE_URL (compose stack). Does not block MRs.
+phpunit-integration:
+  stage: test
+  image: php:8.3-cli
+  when: manual
+  allow_failure: true
+  needs: []
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libcurl4-openssl-dev
+    - docker-php-ext-install zip curl
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --no-progress
+  variables:
+    MT2CMS_BASE_URL: "http://127.0.0.1:8000"
+  script:
+    - composer test:integration
+
 assets:
   stage: test
   image: node:20-alpine

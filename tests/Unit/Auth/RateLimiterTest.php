@@ -19,8 +19,30 @@ final class RateLimiterTest extends TestCase
 
     protected function tearDown(): void
     {
-        array_map('unlink', glob($this->dir . '/*') ?: []);
-        @rmdir($this->dir);
+        $this->removeTree($this->dir);
+    }
+
+    private function removeTree(string $path): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        foreach (scandir($path) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $full = $path . '/' . $entry;
+            if (is_dir($full)) {
+                chmod($full, 0700);
+                $this->removeTree($full);
+            } else {
+                unlink($full);
+            }
+        }
+
+        chmod($path, 0700);
+        rmdir($path);
     }
 
     public function testHitAndTooManyAttempts(): void

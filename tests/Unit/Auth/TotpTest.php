@@ -31,7 +31,6 @@ final class TotpTest extends TestCase
         $secret = 'JBSWY3DPEHPK3PXP';
         $counter = (int) floor(time() / 30);
         $method = new \ReflectionMethod(Totp::class, 'codeForCounter');
-        $method->setAccessible(true);
         /** @var string $code */
         $code = $method->invoke(null, $secret, $counter);
 

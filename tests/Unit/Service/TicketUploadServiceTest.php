@@ -42,8 +42,6 @@ final class TicketUploadServiceTest extends TestCase
     public function testSafeOriginalNameSanitizesUnsafeInput(): void
     {
         $method = new ReflectionMethod(TicketUploadService::class, 'safeOriginalName');
-        $method->setAccessible(true);
-
         $result = $method->invoke($this->uploads, "../../evil\x00name.png", 'png');
 
         self::assertSame('evilname.png', $result);

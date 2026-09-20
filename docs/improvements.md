@@ -156,14 +156,9 @@ Proto list/filter uses [`ProtoIndexCache`](../src/Game/Proto/ProtoIndexCache.php
 
 ### Tests
 
-PHPUnit is set up (`composer test`). Current unit coverage:
+PHPUnit is set up (`composer test` = unit; `composer test:integration` = live smoke). Unit coverage includes Grid helpers, RateLimiter, Csrf, AclService, HtmlSanitizer, TicketUploadService, and more — see [testing.md](testing.md).
 
-- `GridRequest` (sort/limit whitelist, mass ids)
-- `RateLimiter` (file-backed hits/window)
-- `Csrf`
-- `AclService`
-
-Still useful to add later: `GridSql`, `HtmlSanitizer`, `TicketUploadService`, `Locales::safeRedirect`, integration tests with MySQL.
+Done (smoke): `tests/Integration/Http/PublicSmokeTest` hits `/health` (both MySQLs), `/`, `/status`, `/login`, `/robots.txt`, `/sitemap.xml` when the stack is up.
 
 ### Plugins / events
 

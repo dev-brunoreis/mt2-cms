@@ -11,7 +11,8 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration"
     },
     "require": {
         "vlucas/phpdotenv": "^5.7",

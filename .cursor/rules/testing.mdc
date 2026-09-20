@@ -6,13 +6,13 @@ alwaysApply: false
 
 # Tests
 
-Follow `docs/testing.md`. Run `composer test`. Keep `SecurityContractTest` green.
+Follow `docs/testing.md`. Run `composer test` (unit). Keep `SecurityContractTest` green. Live HTTP/MySQL smoke: `composer test:integration` under `tests/Integration/` only.
 
 ## Required
 
 - New production behavior → unit test next to the matching `tests/Unit/…` folder (mirror `src/`)
-- No real MySQL/PayPal/Discord. `createMock` or an in-file `Fake*` subclass
+- Unit suite: no real MySQL/PayPal/Discord. `createMock` or an in-file `Fake*` subclass
 - Exception assertions use **i18n keys** (`expectExceptionMessage('admin.roles.reserved_slug')`)
 - Reset `$_GET` / `$_POST` in `tearDown` when the SUT reads them
 - New POST/grid/Twig/SQL/ACL/audit/rate-limit rules belong in `SecurityContractTest`, not a one-off skip
-- Do not add HTTP integration tests unless a second suite exists
+- HTTP/MySQL live checks only in `tests/Integration/` (`composer test:integration`); never inside `tests/Unit/`

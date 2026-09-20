@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="{{ html_lang|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/item-tooltip.css">
+    <link rel="stylesheet" href="/css/locale-switcher.css">
+    <link rel="stylesheet" href="{{ theme_asset('css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ theme_asset('css/theme.css') }}">
+    <link rel="stylesheet" href="{{ theme_asset('css/layout.css') }}">
+    <script src="/js/site/locale-switcher.js" defer></script>
+    <script src="/js/site/nav-menu.js" defer></script>
+    <script src="/js/site/shop-category-tree.js" defer></script>
+    <script src="/js/site/shop-search.js" defer></script>
+    <script src="/js/site/banner-carousel.js" defer></script>
+    <script src="/js/site/confirm-forms.js" defer></script>
+    {% set brand = site_title is defined and site_title != '' ? site_title : t('app.name') %}
+    {% set seo = seo|default({}) %}
+    <title>{{ seo.title|default(title|default(brand) ~ ' — ' ~ brand) }}</title>
+    {% if seo.description|default('') %}
+        <meta name="description" content="{{ seo.description }}">
+    {% endif %}
+    <meta name="robots" content="{{ seo.robots|default('index, follow') }}">
+    {% if seo.canonical|default('') %}
+        <link rel="canonical" href="{{ seo.canonical }}">
+    {% endif %}
+    <meta property="og:type" content="{{ seo.type|default('website') }}">
+    <meta property="og:site_name" content="{{ brand }}">
+    <meta property="og:title" content="{{ seo.title|default(title|default(brand)) }}">
+    {% if seo.description|default('') %}
+        <meta property="og:description" content="{{ seo.description }}">
+    {% endif %}
+    {% if seo.canonical|default('') %}
+        <meta property="og:url" content="{{ seo.canonical }}">
+    {% endif %}
+    {% if seo.image|default('') %}
+        <meta property="og:image" content="{{ seo.image }}">
+    {% endif %}
+    <meta property="og:locale" content="{{ html_lang|default('en')|replace({'-': '_'}) }}">
+    <meta name="twitter:card" content="{{ seo.image|default('') ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ seo.title|default(title|default(brand)) }}">
+    {% if seo.description|default('') %}
+        <meta name="twitter:description" content="{{ seo.description }}">
+    {% endif %}
+    {% if seo.image|default('') %}
+        <meta name="twitter:image" content="{{ seo.image }}">
+    {% endif %}
+    {% if seo.twitter_site|default('') %}
+        <meta name="twitter:site" content="{{ seo.twitter_site }}">
+    {% endif %}
+    {% if seo.google_verification|default('') %}
+        <meta name="google-site-verification" content="{{ seo.google_verification }}">
+    {% endif %}
+    {% if seo.bing_verification|default('') %}
+        <meta name="msvalidate.01" content="{{ seo.bing_verification }}">
+    {% endif %}
+    {% if site_logo|default('') %}
+        <link rel="icon" href="{{ site_logo }}">
+    {% endif %}
+    {% for graph in seo.json_ld|default([]) %}
+        <script type="application/ld+json">{{ graph|json_ld }}</script>
+    {% endfor %}
+</head>
+<body class="theme-kingdoms min-h-screen antialiased flex flex-col">
+    <div class="k-chrome">
+        <div class="k-realm-stripe" aria-hidden="true"></div>
+        {{ slots.header|raw }}
+    </div>
+    {{ slots.banner|raw }}
+
+    <div class="k-layout flex-1">
+        <aside class="k-col">
+            {{ slots.sidebar|raw }}
+            {{ slots.left|raw }}
+        </aside>
+
+        <main class="k-main-surface min-w-0">
+            {% if flash %}
+                <div class="{% if flash.type == 'success' %}k-flash-ok{% else %}k-flash-err{% endif %}">
+                    {{ flash.message }}
+                </div>
+            {% endif %}
+
+            {{ slots.main|raw }}
+        </main>
+    </div>
+
+    {{ slots.footer|raw }}
+</body>
+</html>

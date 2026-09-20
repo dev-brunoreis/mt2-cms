@@ -168,6 +168,57 @@ final class LayoutExtendsTest extends TestCase
         self::assertSame('a', $merged['slots']['right'][0]['id']);
     }
 
+    public function testChildThemeMovesRightWidgetsIntoLeft(): void
+    {
+        file_put_contents($this->tmp . '/default/layouts/_shell.json', json_encode([
+            'id' => 'root',
+            'template' => 'layouts/shell.twig',
+            'slots' => [
+                'left' => [
+                    ['id' => 'widget-online', 'template' => 'components/widget-online.twig'],
+                    ['id' => 'widget-download', 'template' => 'components/widget-download.twig'],
+                ],
+                'main' => [],
+                'right' => [
+                    ['id' => 'widget-ranking', 'template' => 'components/widget-ranking.twig'],
+                    ['id' => 'widget-events', 'template' => 'components/widget-events.twig'],
+                    ['id' => 'widget-discord', 'template' => 'components/widget-discord.twig'],
+                ],
+            ],
+        ]));
+        file_put_contents($this->tmp . '/child/layouts/_shell.json', json_encode([
+            'slots' => [
+                'left' => [
+                    ['id' => 'widget-download', 'template' => 'components/widget-download.twig'],
+                    ['id' => 'widget-online', 'template' => 'components/widget-online.twig'],
+                    ['id' => 'widget-ranking', 'template' => 'components/widget-ranking.twig'],
+                    ['id' => 'widget-events', 'template' => 'components/widget-events.twig'],
+                    ['id' => 'widget-discord', 'template' => 'components/widget-discord.twig'],
+                ],
+                'right' => [
+                    ['id' => 'widget-ranking', 'remove' => true],
+                    ['id' => 'widget-events', 'remove' => true],
+                    ['id' => 'widget-discord', 'remove' => true],
+                ],
+            ],
+        ]));
+        file_put_contents($this->tmp . '/default/layouts/home.json', json_encode([
+            'extends' => '_shell',
+            'slots' => [
+                'main' => [['id' => 'content', 'template' => 'pages/home.twig']],
+            ],
+        ]));
+
+        $layout = (new ThemeResolver($this->tmp, 'child'))->resolveLayout('home');
+        $leftIds = array_map(static fn (array $n): string => (string) $n['id'], $layout['slots']['left']);
+
+        self::assertSame(
+            ['widget-download', 'widget-online', 'widget-ranking', 'widget-events', 'widget-discord'],
+            $leftIds,
+        );
+        self::assertSame([], $layout['slots']['right']);
+    }
+
     private function rmTree(string $dir): void
     {
         if (!is_dir($dir)) {

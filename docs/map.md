@@ -46,7 +46,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Notifications | [notifications.md](notifications.md) | `NotificationService`, `/account/notifications` |
 | SEO | [seo.md](seo.md) | `SeoService`, `SeoController`, settings tab `seo`, news/events form tab `seo` |
 | Security invariants | [security.md](security.md) | `tests/Unit/Contract/SecurityContractTest.php` |
-| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, layout JSON by node `id` |
+| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/` (`default`, `slate`, `twin`), layout JSON by node `id` |
 | Locale | [add-locale.md](add-locale.md) | `lang/en.json` (add keys to every shipped locale) |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
 | Install / first boot | [setup.md](setup.md) | `SetupController`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |

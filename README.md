@@ -254,7 +254,7 @@ Do **not** expose the dev Compose stack (`compose.yml`) to the internet.
 4. Configure Nginx + PHP-FPM ([`deploy/freebsd/`](deploy/freebsd/))  
 5. `php bin/migrate.php`, finish `/setup`, put TLS in front  
 
-Full checklist: [docs/deploy-freebsd.md](docs/deploy-freebsd.md).
+Full checklist: [docs/deploy-freebsd.md](docs/deploy-freebsd.md) (includes a one-shot [`deploy/freebsd/install.sh`](deploy/freebsd/install.sh)).
 
 ### Alternative: Linux Docker Compose
 

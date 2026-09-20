@@ -39,7 +39,32 @@ If that fails, rebuild/reinstall `php83-gd` with WebP enabled (ports option or a
 
 Composer and Node are **not** required on the host when you install from a GitHub Release tarball (vendor + assets are pre-built).
 
-## Install from a release tarball
+## Quick install (script)
+
+As **root**, one-shot installer (POSIX `sh` — no bash):
+
+```sh
+# Set your GitHub repo if different from the default in the script
+export MT2CMS_REPO=YOUR_GITHUB_USER/mt2-cms
+export MT2CMS_SERVER_NAME=cms.example.com
+
+fetch -o /tmp/mt2-cms-install.sh \
+  https://raw.githubusercontent.com/${MT2CMS_REPO}/v0.1.0-beta.1/deploy/freebsd/install.sh
+sh /tmp/mt2-cms-install.sh 0.1.0-beta.1
+```
+
+Or from an already downloaded tarball:
+
+```sh
+export MT2CMS_TARBALL=/path/to/mt2-cms-0.1.0-beta.1.tar.gz
+sh /path/to/mt2-cms-0.1.0-beta.1/deploy/freebsd/install.sh 0.1.0-beta.1
+```
+
+The script: `pkg install` (PHP 8.3 + Nginx + clients), downloads/verifies the release, extracts to `/usr/local/www/mt2-cms`, sets `var/` permissions, installs Nginx/PHP-FPM snippets, enables services. **You still edit `.env`, run `php bin/migrate.php`, and open `/setup`.**
+
+Script source: [`deploy/freebsd/install.sh`](../deploy/freebsd/install.sh).
+
+## Install from a release tarball (manual)
 
 1. Download `mt2-cms-0.1.0-beta.1.tar.gz` (or newer beta) and its `.sha256` from GitHub Releases.
 2. Verify and extract:
@@ -116,6 +141,7 @@ php bin/migrate.php
 
 | File | Purpose |
 | --- | --- |
+| [`deploy/freebsd/install.sh`](../deploy/freebsd/install.sh) | Root installer: packages, download release, dirs, Nginx/FPM snippets, enable services |
 | [`deploy/freebsd/nginx.conf.snippet`](../deploy/freebsd/nginx.conf.snippet) | Server block: `root` = `…/public`, FastCGI to FPM socket, theme assets, deny PHP under `/uploads/` |
 | [`deploy/freebsd/php-fpm-pool.conf.snippet`](../deploy/freebsd/php-fpm-pool.conf.snippet) | Pool user `www`, unix socket |
 | [`deploy/freebsd/php.ini.snippet`](../deploy/freebsd/php.ini.snippet) | Hardening + production OPcache |

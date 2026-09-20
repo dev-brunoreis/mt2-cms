@@ -15,6 +15,13 @@
         "test:integration": "phpunit --testsuite integration"
     },
     "require": {
+        "php": "^8.3",
+        "ext-curl": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo_mysql": "*",
         "vlucas/phpdotenv": "^5.7",
         "twig/twig": "^3.28",
         "nikic/fast-route": "^1.3",

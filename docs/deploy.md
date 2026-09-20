@@ -1,8 +1,10 @@
-# Production deployment
+# Production deployment (Linux Compose)
 
-Guide for running Mt2 CMS on a public server. The Docker Compose stack in this repo is a **local dev** environment — do not expose it as-is to the internet.
+Guide for running Mt2 CMS with **`compose.prod.yml`** on a Linux host. The default `compose.yml` stack is **local dev only** — do not expose it as-is to the internet.
 
-Related: [security.md](security.md), [improvements.md](improvements.md).
+**FreeBSD / bare-metal (recommended for GitHub Releases):** use [deploy-freebsd.md](deploy-freebsd.md) instead. That path installs from a release tarball with Nginx + PHP-FPM — no Docker on the server.
+
+Related: [deploy-freebsd.md](deploy-freebsd.md), [security.md](security.md), [improvements.md](improvements.md).
 
 ## Architecture
 
@@ -226,6 +228,8 @@ The tick takes a file lock under `var/economy-tick.lock` so overlapping runs ski
 The worker takes a file lock under `var/payments-process.lock`. Failed captures retry with backoff (1, 2, 5, then 15 minutes) up to 10 attempts. Raw payloads appear on **Admin → Store → Payments → detail**.
 
 Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
+
+For FreeBSD bare-metal installs (no Compose), see [deploy-freebsd.md](deploy-freebsd.md).
 
 ## Post-deploy checklist
 

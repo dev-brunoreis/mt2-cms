@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8f20277819f94caf9639b9dc83d20312",
+    "content-hash": "2f20bd4fbea38cb2795c71f13054898d",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",
@@ -3508,7 +3508,15 @@
     "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {},
+    "platform": {
+        "php": "^8.3",
+        "ext-curl": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo_mysql": "*"
+    },
     "platform-dev": {},
     "platform-overrides": {
         "php": "8.3.33"

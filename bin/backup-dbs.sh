@@ -1,13 +1,16 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+# Dump game + CMS MySQL schemas. POSIX sh (FreeBSD base / Linux).
+# Requires: mysqldump, gzip, and DB_* / CMS_DB_* in .env (or the environment).
+set -eu
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-if [[ -f .env ]]; then
+if [ -f .env ]; then
+  # Export KEY=VALUE lines; skip comments and blank lines
   set -a
   # shellcheck disable=SC1091
-  source .env
+  . ./.env
   set +a
 fi
 
@@ -18,12 +21,20 @@ mkdir -p "$OUT_DIR"
 GAME_HOST="${DB_HOST:-game}"
 GAME_PORT="${DB_PORT:-3306}"
 GAME_USER="${DB_USER:-root}"
-GAME_PASS="${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+if [ -z "${DB_PASSWORD:-}" ]; then
+  echo "Set DB_PASSWORD in .env" >&2
+  exit 1
+fi
+GAME_PASS="$DB_PASSWORD"
 
 CMS_HOST="${CMS_DB_HOST:-mysql}"
 CMS_PORT="${CMS_DB_PORT:-3306}"
 CMS_USER="${CMS_DB_USER:-root}"
-CMS_PASS="${CMS_DB_PASSWORD:?Set CMS_DB_PASSWORD in .env}"
+if [ -z "${CMS_DB_PASSWORD:-}" ]; then
+  echo "Set CMS_DB_PASSWORD in .env" >&2
+  exit 1
+fi
+CMS_PASS="$CMS_DB_PASSWORD"
 CMS_NAME="${CMS_DB_NAME:-cms}"
 
 GAME_OUT="$OUT_DIR/game-$STAMP.sql.gz"

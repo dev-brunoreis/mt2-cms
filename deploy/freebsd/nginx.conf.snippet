@@ -1,0 +1,54 @@
+# Example Nginx server block for FreeBSD.
+# Adjust server_name, SSL (prefer TLS on a front proxy), and paths.
+# Include from /usr/local/etc/nginx/ or paste into a server { } context.
+
+server {
+    listen 80;
+    server_name cms.example.com;
+    root /usr/local/www/mt2-cms/public;
+    index index.php index.html;
+
+    client_max_body_size 512m;
+
+    # Static assets only — HTML CSP/frame headers come from PHP Response
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Theme assets live under themes/{name}/assets/ (not public/)
+    location ~ ^/theme-assets/(?<theme>[A-Za-z0-9_-]+)/(?<asset>(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:css|woff2|jpe?g|webp|png|svg|js))$ {
+        alias /usr/local/www/mt2-cms/themes/$theme/assets/$asset;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable" always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options DENY always;
+    }
+
+    # User uploads — static only, no PHP execution
+    location ^~ /uploads/ {
+        try_files $uri =404;
+    }
+
+    location ~ ^/uploads/.*\.php$ {
+        deny all;
+    }
+
+    # Download files live under var/downloads (served via PHP), not public/
+    location ~ ^/downloads/.*\.php$ {
+        deny all;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        # Default php83 FPM socket on FreeBSD — confirm in php-fpm pool config
+        fastcgi_pass unix:/var/run/php-fpm.sock;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

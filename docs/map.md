@@ -50,7 +50,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Optional: `bin/i18n-deepl.php` to generate more packs |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
 | Install / first boot | [setup.md](setup.md) | `SetupController`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
-| Deploy | [deploy.md](deploy.md) | `compose.prod.yml`, `APP_KEY`, TLS |
+| Deploy | [deploy-freebsd.md](deploy-freebsd.md) (recommended), [deploy.md](deploy.md) | FreeBSD bare-metal + GitHub Release tarball; Linux `compose.prod.yml`; `APP_KEY`, TLS; `bin/package-release.sh` |
 
 ## Admin URL areas
 
@@ -90,6 +90,8 @@ First HTTP boot after `/setup` seeds class banners, one published welcome news p
 | In-app notices | [notifications.md](notifications.md) |
 | Meta / sitemap / robots | [seo.md](seo.md) |
 | Install wizard / first-run seeds | [setup.md](setup.md) |
+| Production FreeBSD / release tarball | [deploy-freebsd.md](deploy-freebsd.md) |
+| Production Linux Compose | [deploy.md](deploy.md) |
 | CSRF, SQL, audit, rate limit | [security.md](security.md) + keep `SecurityContractTest` green |
 
 How-to checklists stay in the `add-*.md` guides. This folder is **how it works now**, not a second implementation stack.

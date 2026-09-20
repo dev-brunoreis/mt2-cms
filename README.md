@@ -2,21 +2,47 @@
 
 Metin2 CMS: public site + admin panel, overridable themes, dual MySQL (game + CMS), and i18n.
 
+**Status: beta** — public APIs and schema can still change between `0.x` pre-releases. Prefer tags like `v0.1.0-beta.1` until the first stable `v1.0.0`.
+
 This README is the **runbook** — how to install, configure, and run the app. Architecture and how-to guides live under [`docs/`](docs/map.md).
+
+## How do I run this?
+
+| Path | When | Start here |
+| --- | --- | --- |
+| **Local development** | Coding on your machine | [Local development](#local-development-step-by-step) (Docker Compose) |
+| **Production (recommended)** | Public FreeBSD host | [Production](#production) → [docs/deploy-freebsd.md](docs/deploy-freebsd.md) |
+| **Production (alternative)** | Linux single-node with Docker | [docs/deploy.md](docs/deploy.md) (`compose.prod.yml`) |
+
+Docker stays in the repo for development (and optional Linux Compose). GitHub Release tarballs are **bare-metal** — no Docker inside the artifact.
 
 ---
 
 ## Requirements
 
+### Local development
+
 | Tool | Notes |
 | --- | --- |
-| Docker + Docker Compose | Runs Nginx, PHP-FPM, game MySQL 5.6, CMS MySQL 8.0 |
-| Composer | On the **host**, or via the official `composer:2` image (see below) |
+| Docker + Docker Compose | Nginx, PHP-FPM, game MySQL 5.6, CMS MySQL 8.0 |
+| Composer | On the **host**, or via the official `composer:2` image |
 | Node.js + npm | Build Tailwind CSS and vendor assets |
 
-The long-running `php` service is FPM only — it does **not** ship `composer`, `bash`, or `npm`. Runtime needs `vendor/` on disk (bind-mounted in dev). Production bakes `vendor/` into the image at build time.
+The long-running `php` service is FPM only — it does **not** ship `composer`, `bash`, or `npm`. Runtime needs `vendor/` on disk (bind-mounted in dev).
 
 Optional: PHP 8.3 on the host only if you run `bin/*.php` or PHPUnit outside Docker.
+
+### Production (FreeBSD 13.2+)
+
+| Component | Notes |
+| --- | --- |
+| FreeBSD | **13.2+** (prefer 13.4 / 14.x — 13.2 is EOL) |
+| PHP 8.3 FPM | `pdo_mysql`, `gd` (+ JPEG/PNG/**WebP**), `curl`, `mbstring`, `fileinfo`, `opcache`, `openssl`, `session`, `filter` |
+| Nginx or Apache | Document root = `public/` only |
+| MySQL | Game DB (often 5.6) + CMS MySQL **8** schema `cms` |
+| Release tarball | Pre-built `vendor/` + assets — Composer/Node not required on the host |
+
+Full package list and layout: [docs/deploy-freebsd.md](docs/deploy-freebsd.md).
 
 ---
 
@@ -217,7 +243,20 @@ Passwords use Metin2-compatible `*SHA1(SHA1)` hashing.
 
 ## Production
 
-Do **not** expose the dev Compose stack to the internet.
+Do **not** expose the dev Compose stack (`compose.yml`) to the internet.
+
+### Recommended: FreeBSD (bare-metal release)
+
+1. Download `mt2-cms-0.1.0-beta.1.tar.gz` (or newer) (+ `.sha256`) from GitHub Releases  
+
+2. Extract under `/usr/local/www/mt2-cms`, document root = `public/`  
+3. Copy **`.env.prod-example`** → `.env`, set strong passwords and real DB hosts  
+4. Configure Nginx + PHP-FPM ([`deploy/freebsd/`](deploy/freebsd/))  
+5. `php bin/migrate.php`, finish `/setup`, put TLS in front  
+
+Full checklist: [docs/deploy-freebsd.md](docs/deploy-freebsd.md).
+
+### Alternative: Linux Docker Compose
 
 1. Copy **`.env.prod-example`** → `.env` and replace every `change-me-*` password  
 2. `docker compose -f compose.prod.yml up -d --build`  
@@ -225,6 +264,20 @@ Do **not** expose the dev Compose stack to the internet.
 4. Finish `/setup`, put TLS reverse proxy in front of `127.0.0.1:8000`
 
 Full checklist: [docs/deploy.md](docs/deploy.md).
+
+### Creating a release (maintainers)
+
+While in beta, tag pre-releases: `v0.1.0-beta.1`, `v0.1.0-beta.2`, … then later `v0.2.0-beta.1` / `v1.0.0`. GitHub Actions builds the tarball via [`bin/package-release.sh`](bin/package-release.sh) and marks `beta` / `rc` / `alpha` tags as **pre-release**.
+
+```bash
+git tag v0.1.0-beta.1
+git push origin v0.1.0-beta.1
+
+# or build locally:
+./bin/package-release.sh 0.1.0-beta.1
+```
+
+The artifact includes `vendor/` and built assets; it excludes Docker Compose, `docker/`, and tests.
 
 ---
 
@@ -246,18 +299,19 @@ Full checklist: [docs/deploy.md](docs/deploy.md).
 | --- | --- |
 | Runtime | PHP 8.3 FPM |
 | Web | Nginx |
-| Game database | MySQL 5.6 (`game` service) |
-| CMS database | MySQL 8.0 (`mysql` service, database `cms`) |
+| Game database | MySQL 5.6 (dev: `game` service) |
+| CMS database | MySQL 8.0 (dev: `mysql` service, database `cms`) |
 | Autoload | Composer PSR-4 (`Mt2Cms\` → `src/`) |
 | Templates | Twig + JSON layout trees |
 | UI | Tailwind CSS → `public/css/app.css` |
 
 ```
 public/index.php          Front controller
-bin/                      migrate, payments-process, economy-tick
+bin/                      migrate, payments-process, economy-tick, package-release
 src/                      Application, Auth, Admin, Http, Service, …
 themes/                   default, admin
 lang/                     Locale JSON
+deploy/freebsd/           Sample Nginx / PHP-FPM configs
 docs/                     Architecture map + how-to guides
 ```
 
@@ -270,7 +324,8 @@ Start from **[docs/map.md](docs/map.md)**, then [patterns.md](docs/patterns.md) 
 | Guide | When |
 | --- | --- |
 | [docs/setup.md](docs/setup.md) | Install wizard / first-run seeds |
-| [docs/deploy.md](docs/deploy.md) | Production + TLS |
+| [docs/deploy-freebsd.md](docs/deploy-freebsd.md) | Production on FreeBSD 13.2+ (recommended) |
+| [docs/deploy.md](docs/deploy.md) | Production via Linux Compose + TLS |
 | [docs/acl.md](docs/acl.md) | Admin ACL |
 | [docs/add-admin-section.md](docs/add-admin-section.md) | New admin screen |
 | [docs/add-page.md](docs/add-page.md) | New public page |

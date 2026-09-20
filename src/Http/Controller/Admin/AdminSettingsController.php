@@ -189,25 +189,27 @@ class AdminSettingsController extends AdminController
             return $this->redirect(AdminPaths::settingsThemes());
         }
 
-        $selected = $_POST['themes'] ?? [];
         $active = trim((string) ($_POST['active_theme'] ?? ''));
-
-        if (!is_array($selected)) {
-            $selected = [];
-        }
-
-        $themes = array_values(array_filter($selected, static fn ($value): bool => is_string($value)));
 
         try {
             $before = [
-                'themes' => $this->settings->availableThemes(),
                 'active_theme' => $this->settings->activeTheme(),
+                'layout_columns' => $this->settings->layoutColumns(),
+                'layout_sidebar' => $this->settings->layoutSidebar(),
             ];
-            $this->settings->setAvailableThemes($themes, $active);
-            $this->auditChange('settings.themes_save', 'settings', null, $before, [
-                'themes' => $themes,
-                'active_theme' => $active,
-            ]);
+            $this->settings->setActiveTheme($active);
+
+            $after = ['active_theme' => $active];
+
+            if ($this->settings->themeSupportsLayoutColumns($active)) {
+                $columns = (int) ($_POST['layout_columns'] ?? SettingsService::LAYOUT_COLUMNS_3);
+                $sidebar = trim((string) ($_POST['layout_sidebar'] ?? SettingsService::LAYOUT_SIDEBAR_LEFT));
+                $this->settings->setLayout($columns, $sidebar);
+                $after['layout_columns'] = $columns;
+                $after['layout_sidebar'] = $sidebar;
+            }
+
+            $this->auditChange('settings.themes_save', 'settings', null, $before, $after);
             $this->flash('success', $this->t('admin.saved'));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
@@ -398,8 +400,10 @@ class AdminSettingsController extends AdminController
                 'data' => [
                     'formId' => $formId,
                     'diskThemes' => $this->themes->available(),
-                    'enabledThemes' => $this->settings->availableThemes(),
+                    'themeLayoutSupport' => $this->themeLayoutSupportMap(),
                     'activeTheme' => $this->settings->activeTheme(),
+                    'layoutColumns' => $this->settings->layoutColumns(),
+                    'layoutSidebar' => $this->settings->layoutSidebar(),
                 ],
             ],
             'locale' => [
@@ -554,6 +558,20 @@ class AdminSettingsController extends AdminController
             'paypalPendingMinutes' => $this->settings->paypalPendingMinutes(),
             'secretPlaceholder' => SettingsService::SECRET_UI_PLACEHOLDER,
         ];
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    private function themeLayoutSupportMap(): array
+    {
+        $map = [];
+
+        foreach ($this->themes->available() as $name) {
+            $map[$name] = $this->themes->supportsFeature($name, 'layout_columns');
+        }
+
+        return $map;
     }
 
     /**

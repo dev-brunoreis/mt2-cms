@@ -82,11 +82,54 @@ class ThemeCatalog
     }
 
     /**
-     * @return array{name?: string, parent?: string|null, public?: bool}
+     * Feature flag from theme.json, walking parent chain.
+     * First explicit `features.{name}` wins (child can set false to opt out).
      */
-    private function meta(string $name): array
+    public function supportsFeature(string $theme, string $feature): bool
+    {
+        if ($feature === '' || !preg_match('/^[a-z][a-z0-9_]*$/', $feature)) {
+            return false;
+        }
+
+        $seen = [];
+        $current = $theme;
+
+        while ($current !== null && $current !== '') {
+            if (isset($seen[$current])) {
+                break;
+            }
+
+            $seen[$current] = true;
+
+            if (!$this->isValid($current)) {
+                break;
+            }
+
+            $meta = $this->meta($current);
+            $features = $meta['features'] ?? null;
+
+            if (is_array($features) && array_key_exists($feature, $features)) {
+                return (bool) $features[$feature];
+            }
+
+            $parent = $meta['parent'] ?? null;
+            $current = is_string($parent) && $parent !== '' ? $parent : null;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array{name?: string, parent?: string|null, public?: bool, features?: array<string, mixed>}
+     */
+    public function meta(string $name): array
     {
         $file = $this->themesPath . '/' . $name . '/theme.json';
+
+        if (!is_file($file)) {
+            return ['name' => $name, 'parent' => null];
+        }
+
         $data = json_decode((string) file_get_contents($file), true);
 
         return is_array($data) ? $data : [];

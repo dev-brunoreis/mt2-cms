@@ -234,8 +234,9 @@ class SetupController extends Controller
                 $schema->ensure();
                 $schema->seedDefaults(array_merge([
                     'registration_enabled' => '1',
-                    'available_themes' => json_encode([(string) $setup['theme']], JSON_THROW_ON_ERROR),
                     'active_theme' => (string) $setup['theme'],
+                    'layout_columns' => '3',
+                    'layout_sidebar' => 'left',
                     'default_locale' => 'en',
                     'news_comments_enabled' => '1',
                     'news_comments_require_approval' => '0',

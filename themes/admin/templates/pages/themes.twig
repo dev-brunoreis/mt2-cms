@@ -1,23 +1,7 @@
-<form id="{{ formId }}" method="post" action="/admin/settings/themes" class="p-6">
+<form id="{{ formId }}" method="post" action="/admin/settings/themes" class="p-6"
+      data-theme-layout-form
+      data-layout-support="{{ themeLayoutSupport|json_encode }}">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-
-    <fieldset class="admin-fieldset">
-        <legend>
-            {{ t('admin.themes.available') }}
-            <span class="admin-fieldset-help">{{ t('admin.themes.available_help') }}</span>
-        </legend>
-
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {% for themeName in diskThemes %}
-                <label class="admin-theme-tile">
-                    <input type="checkbox" name="themes[]" value="{{ themeName }}"
-                           {% if themeName in enabledThemes %}checked{% endif %}>
-                    <span class="block text-sm font-semibold text-slate-900">{{ themeName }}</span>
-                    <span class="mt-0.5 block text-xs text-slate-500">{{ t('admin.themes.theme_label') }}</span>
-                </label>
-            {% endfor %}
-        </div>
-    </fieldset>
 
     <fieldset class="admin-fieldset">
         <legend>
@@ -31,4 +15,51 @@
             {% endfor %}
         </select>
     </fieldset>
+
+    {% set layoutSupported = themeLayoutSupport[activeTheme]|default(false) %}
+    <div data-theme-layout-options {% if not layoutSupported %}hidden{% endif %}>
+        <fieldset class="admin-fieldset">
+            <legend>
+                {{ t('admin.themes.layout_columns') }}
+                <span class="admin-fieldset-help">{{ t('admin.themes.layout_columns_help') }}</span>
+            </legend>
+
+            <div class="flex flex-wrap gap-4">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="radio" name="layout_columns" value="3"
+                           {% if not layoutSupported %}disabled{% endif %}
+                           {% if layoutColumns == 3 %}checked{% endif %}>
+                    {{ t('admin.themes.layout_columns_3') }}
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="radio" name="layout_columns" value="2"
+                           {% if not layoutSupported %}disabled{% endif %}
+                           {% if layoutColumns == 2 %}checked{% endif %}>
+                    {{ t('admin.themes.layout_columns_2') }}
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="admin-fieldset" data-theme-layout-sidebar {% if not layoutSupported or layoutColumns != 2 %}hidden{% endif %}>
+            <legend>
+                {{ t('admin.themes.layout_sidebar') }}
+                <span class="admin-fieldset-help">{{ t('admin.themes.layout_sidebar_help') }}</span>
+            </legend>
+
+            <div class="flex flex-wrap gap-4">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="radio" name="layout_sidebar" value="left"
+                           {% if not layoutSupported %}disabled{% endif %}
+                           {% if layoutSidebar == 'left' %}checked{% endif %}>
+                    {{ t('admin.themes.layout_sidebar_left') }}
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="radio" name="layout_sidebar" value="right"
+                           {% if not layoutSupported %}disabled{% endif %}
+                           {% if layoutSidebar == 'right' %}checked{% endif %}>
+                    {{ t('admin.themes.layout_sidebar_right') }}
+                </label>
+            </div>
+        </fieldset>
+    </div>
 </form>

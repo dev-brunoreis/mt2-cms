@@ -170,6 +170,9 @@ const initTabs = (root) => {
       if (typeof window.initAdminGrids === 'function') {
         window.initAdminGrids(panel)
       }
+      if (typeof window.initAdminThemesForm === 'function') {
+        window.initAdminThemesForm(panel)
+      }
       snapshots.set(panel.getAttribute('data-tab-panel'), snapshotPanel(panel))
       return true
     } catch {

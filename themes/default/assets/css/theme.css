@@ -541,6 +541,22 @@
     grid-template-columns: 260px minmax(0, 1fr) 280px;
     align-items: start;
   }
+
+  .theme-kingdoms .k-layout-cols-2 {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .theme-kingdoms .k-layout-cols-2.k-layout-sidebar-right {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .theme-kingdoms .k-layout-cols-2.k-layout-sidebar-right > .k-col-side {
+    order: 2;
+  }
+
+  .theme-kingdoms .k-layout-cols-2.k-layout-sidebar-right > .k-main-surface {
+    order: 1;
+  }
 }
 
 .theme-kingdoms .k-col {

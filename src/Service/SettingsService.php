@@ -51,6 +51,11 @@ class SettingsService
         $this->settings->set('registration_enabled', $enabled ? '1' : '0');
     }
 
+    public const LAYOUT_COLUMNS_2 = 2;
+    public const LAYOUT_COLUMNS_3 = 3;
+    public const LAYOUT_SIDEBAR_LEFT = 'left';
+    public const LAYOUT_SIDEBAR_RIGHT = 'right';
+
     public function activeTheme(): string
     {
         $fromSettings = $this->settings->get('active_theme');
@@ -65,52 +70,62 @@ class SettingsService
         return $theme;
     }
 
-    /**
-     * @return list<string>
-     */
-    public function availableThemes(): array
+    public function setActiveTheme(string $theme): void
     {
-        $fromSettings = $this->settings->getJson('available_themes', []);
-        $enabled = [];
-
-        foreach ($fromSettings as $theme) {
-            if (is_string($theme) && $this->themes->isValid($theme) && $this->themes->isPublic($theme)) {
-                $enabled[] = $theme;
-            }
-        }
-
-        if ($enabled !== []) {
-            return $enabled;
-        }
-
-        $active = $this->activeTheme();
-
-        return $this->themes->isValid($active) ? [$active] : ['default'];
-    }
-
-    /**
-     * @param list<string> $themes
-     */
-    public function setAvailableThemes(array $themes, string $activeTheme): void
-    {
-        $valid = [];
-
-        foreach ($themes as $theme) {
-            if (is_string($theme) && $this->themes->isValid($theme) && $this->themes->isPublic($theme)) {
-                $valid[] = $theme;
-            }
-        }
-
-        if ($valid === []) {
-            throw new \InvalidArgumentException('admin.themes_required');
-        }
-
-        if (!in_array($activeTheme, $valid, true)) {
+        if (!$this->themes->isValid($theme) || !$this->themes->isPublic($theme)) {
             throw new \InvalidArgumentException('admin.active_theme_invalid');
         }
 
-        $this->settings->setJson('available_themes', array_values(array_unique($valid)));
-        $this->settings->set('active_theme', $activeTheme);
+        $this->settings->set('active_theme', $theme);
+    }
+
+    /** Public site column count: 2 (unified sidebar) or 3 (left | main | right). */
+    public function layoutColumns(): int
+    {
+        if (!$this->themes->supportsFeature($this->activeTheme(), 'layout_columns')) {
+            return self::LAYOUT_COLUMNS_3;
+        }
+
+        $value = (int) ($this->settings->get('layout_columns') ?? self::LAYOUT_COLUMNS_3);
+
+        return $value === self::LAYOUT_COLUMNS_2 ? self::LAYOUT_COLUMNS_2 : self::LAYOUT_COLUMNS_3;
+    }
+
+    /** Sidebar side when layoutColumns() is 2. Ignored for 3 columns. */
+    public function layoutSidebar(): string
+    {
+        if (!$this->themes->supportsFeature($this->activeTheme(), 'layout_columns')) {
+            return self::LAYOUT_SIDEBAR_LEFT;
+        }
+
+        $value = (string) ($this->settings->get('layout_sidebar') ?? self::LAYOUT_SIDEBAR_LEFT);
+
+        return $value === self::LAYOUT_SIDEBAR_RIGHT
+            ? self::LAYOUT_SIDEBAR_RIGHT
+            : self::LAYOUT_SIDEBAR_LEFT;
+    }
+
+    public function setLayout(int $columns, string $sidebar): void
+    {
+        if (!$this->themes->supportsFeature($this->activeTheme(), 'layout_columns')) {
+            throw new \InvalidArgumentException('admin.themes.layout_unsupported');
+        }
+
+        if ($columns !== self::LAYOUT_COLUMNS_2 && $columns !== self::LAYOUT_COLUMNS_3) {
+            throw new \InvalidArgumentException('admin.themes.layout_columns_invalid');
+        }
+
+        if ($sidebar !== self::LAYOUT_SIDEBAR_LEFT && $sidebar !== self::LAYOUT_SIDEBAR_RIGHT) {
+            throw new \InvalidArgumentException('admin.themes.layout_sidebar_invalid');
+        }
+
+        $this->settings->set('layout_columns', (string) $columns);
+        $this->settings->set('layout_sidebar', $sidebar);
+    }
+
+    public function themeSupportsLayoutColumns(?string $theme = null): bool
+    {
+        return $this->themes->supportsFeature($theme ?? $this->activeTheme(), 'layout_columns');
     }
 
     public function defaultLocale(): string

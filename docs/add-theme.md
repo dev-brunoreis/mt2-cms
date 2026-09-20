@@ -21,11 +21,39 @@ themes/my-theme/
 }
 ```
 
-See [README Themes](../README.md#themes). Shipped child:
+See [README Themes](../README.md#themes). Shipped public theme: `default` (plus internal `admin`).
 
-- `twin` — two columns (unified sidebar + main): overlays `_shell.json` to move `right` widgets into `left` (download → online → ranking → events → discord), overrides `layouts/shell.twig` (one aside), `assets/css/layout.css` (2-column grid only — no sticky/overflow sidebar), and a denser `pages/home.twig` (welcome panel, news, events)
+## 2. Public layout columns (theme feature)
 
-## 2. Theme assets (CSS, images)
+Column/sidebar settings are **not** global — only themes that declare the feature get the admin controls.
+
+In `theme.json`:
+
+```json
+{
+  "name": "default",
+  "parent": null,
+  "features": {
+    "layout_columns": true
+  }
+}
+```
+
+`ThemeCatalog::supportsFeature()` walks the parent chain; the first explicit `features.{name}` wins (a child can set `"layout_columns": false` to opt out).
+
+**Admin → Settings → Themes** shows Columns / Sidebar side only when the selected theme supports `layout_columns` (form syncs on theme change). Saving another theme leaves stored layout values untouched for when you switch back.
+
+| Setting | Values | Effect (supporting themes only) |
+| --- | --- | --- |
+| Active theme | folder under `themes/` (public) | Theme package (`THEME` / `active_theme`) |
+| Columns | `3` (default) or `2` | `3`: left \| main \| right. `2`: one sidebar + main |
+| Sidebar side | `left` or `right` | Only when columns = `2` |
+
+Globals `layout_columns` / `layout_sidebar` are injected in `installed_services.php` (forced to 3 / left when the active theme lacks the feature) and read by `themes/default/templates/layouts/shell.twig` + `theme.css`.
+
+Admin UI: `themes/admin/templates/pages/themes.twig` renders layout fields when the active theme supports the feature; `public/js/admin/admin-themes-form.js` toggles them on theme change and is re-run after settings-hub AJAX tab loads (`admin-tabs.js` → `initAdminThemesForm`).
+
+## 3. Theme assets (CSS, images)
 
 Static files belong **inside the theme**, not under `public/`:
 
@@ -45,7 +73,7 @@ In Twig, resolve URLs with `theme_asset()` (walks active theme → parents; firs
 
 That becomes `/theme-assets/{theme}/css/theme.css`, served by nginx from `themes/{theme}/assets/…` (cacheable; only safe extensions).
 
-## 3. Override a Twig template
+## 4. Override a Twig template
 
 Use the **same relative path** as the parent:
 
@@ -55,7 +83,7 @@ Use the **same relative path** as the parent:
 
 Search order is active theme first, then parents (`ThemeResolver::templatePaths()`).
 
-## 4. Layout `extends` and node overlays
+## 5. Layout `extends` and node overlays
 
 Public pages use `layouts/_shell.json` as the chrome base. A page layout is usually:
 
@@ -82,9 +110,9 @@ Child themes can overlay `layouts/_shell.json` (or any page) and merge by node `
 
 Shell slots: `header`, `banner`, `sidebar`, `left` (column widgets), `main`, `right`, `footer`.
 
-## 5. Activate
+## 6. Activate
 
-Set in `.env` (`THEME=my-theme`) or **Admin → Settings → Themes**.
+Set in `.env` (`THEME=my-theme`) or **Admin → Settings → Themes** (active theme + layout).
 
 ## PR checklist
 

@@ -218,6 +218,8 @@ return static function (Application $app): void {
         'site_banners' => $app->banners->listEnabled(),
         'banner_settings' => $app->settings->bannerSettings(),
         'banners_seeded' => $app->settingsRepo->get('banners_seeded') === '1',
+        'layout_columns' => $app->settings->layoutColumns(),
+        'layout_sidebar' => $app->settings->layoutSidebar(),
     ]);
 
     $app->gms = new GmRepository($app->db);

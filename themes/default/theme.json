@@ -1,4 +1,7 @@
 {
   "name": "default",
-  "parent": null
+  "parent": null,
+  "features": {
+    "layout_columns": true
+  }
 }

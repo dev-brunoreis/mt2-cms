@@ -233,7 +233,7 @@ Full checklist: [docs/deploy.md](docs/deploy.md).
 - **Player** — ranking, profiles, tickets, in-app notifications  
 - **SEO / ops** — meta, `/robots.txt`, `/sitemap.xml`, `/status`, `/health`  
 - **Admin** — RBAC ACL, audit log, optional TOTP 2FA; game, content, store, game-data, logs, system, settings  
-- **Themes** — JSON layout trees + Twig; child overlays (shipped `twin`)
+- **Themes** — JSON layout trees + Twig; child overlays; Admin Settings for columns (2/3) and sidebar side
 
 ---
 
@@ -253,7 +253,7 @@ Full checklist: [docs/deploy.md](docs/deploy.md).
 public/index.php          Front controller
 bin/                      migrate, payments-process, economy-tick
 src/                      Application, Auth, Admin, Http, Service, …
-themes/                   default, admin, twin
+themes/                   default, admin
 lang/                     Locale JSON
 docs/                     Architecture map + how-to guides
 ```

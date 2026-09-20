@@ -68,10 +68,13 @@
     </div>
     {{ slots.banner|raw }}
 
-    <div class="k-layout flex-1">
-        <aside class="k-col">
+    <div class="k-layout flex-1 k-layout-cols-{{ layout_columns|default(3) }} k-layout-sidebar-{{ layout_sidebar|default('left') }}">
+        <aside class="k-col k-col-side">
             {{ slots.sidebar|raw }}
             {{ slots.left|raw }}
+            {% if layout_columns|default(3) == 2 %}
+                {{ slots.right|raw }}
+            {% endif %}
         </aside>
 
         <main class="k-main-surface min-w-0">
@@ -84,9 +87,11 @@
             {{ slots.main|raw }}
         </main>
 
-        <aside class="k-col">
-            {{ slots.right|raw }}
-        </aside>
+        {% if layout_columns|default(3) != 2 %}
+            <aside class="k-col k-col-right">
+                {{ slots.right|raw }}
+            </aside>
+        {% endif %}
     </div>
 
     {{ slots.footer|raw }}

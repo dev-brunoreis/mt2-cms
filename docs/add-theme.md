@@ -21,9 +21,8 @@ themes/my-theme/
 }
 ```
 
-See [README Themes](../README.md#themes). Shipped children:
+See [README Themes](../README.md#themes). Shipped child:
 
-- `slate` — tokens + optional widget removal
 - `twin` — two columns (unified sidebar + main): overlays `_shell.json` to move `right` widgets into `left` (download → online → ranking → events → discord), overrides `layouts/shell.twig` (one aside), `assets/css/layout.css` (2-column grid only — no sticky/overflow sidebar), and a denser `pages/home.twig` (welcome panel, news, events)
 
 ## 2. Theme assets (CSS, images)

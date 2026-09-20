@@ -11,10 +11,10 @@ This README is the **runbook** — how to install, configure, and run the app. A
 | Path | When | Start here |
 | --- | --- | --- |
 | **Local development** | Coding on your machine | [Local development](#local-development-step-by-step) (Docker Compose) |
-| **Production (recommended)** | Public FreeBSD host | [Production](#production) → [docs/deploy-freebsd.md](docs/deploy-freebsd.md) |
-| **Production (alternative)** | Linux single-node with Docker | [docs/deploy.md](docs/deploy.md) (`compose.prod.yml`) |
+| **Production (recommended)** | Linux CMS host **separate** from the game server | [Production](#production) + [docs/game-mysql.md](docs/game-mysql.md) |
+| **Production (Compose)** | Single Linux node with Docker | [docs/deploy.md](docs/deploy.md) (`compose.prod.yml`) |
 
-Docker stays in the repo for development (and optional Linux Compose). GitHub Release tarballs are **bare-metal** — no Docker inside the artifact.
+Docker stays in the repo for development (and optional Linux Compose). GitHub Release tarballs are bare-metal Linux — no Docker inside the artifact. Do **not** run the CMS on the Metin2 FreeBSD game box (especially old i386 hosts).
 
 ---
 
@@ -32,17 +32,18 @@ The long-running `php` service is FPM only — it does **not** ship `composer`, 
 
 Optional: PHP 8.3 on the host only if you run `bin/*.php` or PHPUnit outside Docker.
 
-### Production (FreeBSD 13.2+)
+### Production (Linux CMS host)
 
 | Component | Notes |
 | --- | --- |
-| FreeBSD | **13.2+** (prefer 13.4 / 14.x — 13.2 is EOL) |
+| Linux (amd64) | Separate VPS/VM from the game server |
 | PHP 8.3 FPM | `pdo_mysql`, `gd` (+ JPEG/PNG/**WebP**), `curl`, `mbstring`, `fileinfo`, `opcache`, `openssl`, `session`, `filter` |
-| Nginx or Apache | Document root = `public/` only |
-| MySQL | Game DB (often 5.6) + CMS MySQL **8** schema `cms` |
+| Nginx or Apache | Document root = `public/` only — see [`deploy/linux/`](deploy/linux/) |
+| Game MySQL | Remote, private network — [docs/game-mysql.md](docs/game-mysql.md) |
+| CMS MySQL 8 | Local to the CMS host (schema `cms`) |
 | Release tarball | Pre-built `vendor/` + assets — Composer/Node not required on the host |
 
-Full package list and layout: [docs/deploy-freebsd.md](docs/deploy-freebsd.md).
+Wire game DB access **before** go-live: [docs/game-mysql.md](docs/game-mysql.md).
 
 ---
 
@@ -243,25 +244,27 @@ Passwords use Metin2-compatible `*SHA1(SHA1)` hashing.
 
 ## Production
 
-Do **not** expose the dev Compose stack (`compose.yml`) to the internet.
+Do **not** expose the dev Compose stack (`compose.yml`) to the internet.  
+Do **not** co-locate the CMS on the Metin2 game FreeBSD host — use a **separate Linux** server.
 
-### Recommended: FreeBSD (bare-metal release)
+### Recommended: Linux bare-metal (release tarball)
 
-1. Download `mt2-cms-0.1.0-beta.1.tar.gz` (or newer) (+ `.sha256`) from GitHub Releases  
+1. Follow [docs/game-mysql.md](docs/game-mysql.md) (private MySQL, `'mt2cms'@'CMS_IP'`, firewall)  
+2. Download `mt2-cms-0.1.0-beta.2.tar.gz` (+ `.sha256`) from GitHub Releases  
+3. Extract under `/var/www/mt2-cms`, document root = `public/`  
+4. Copy **`.env.prod-example`** → `.env`; set `DB_*` (game) and `CMS_DB_*` (local)  
+5. Configure Nginx + PHP-FPM ([`deploy/linux/`](deploy/linux/))  
+6. `php bin/migrate.php`, finish `/setup`, put TLS in front  
 
-2. Extract under `/usr/local/www/mt2-cms`, document root = `public/`  
-3. Copy **`.env.prod-example`** → `.env`, set strong passwords and real DB hosts  
-4. Configure Nginx + PHP-FPM ([`deploy/freebsd/`](deploy/freebsd/))  
-5. `php bin/migrate.php`, finish `/setup`, put TLS in front  
-
-Full checklist: [docs/deploy-freebsd.md](docs/deploy-freebsd.md) (includes a one-shot [`deploy/freebsd/install.sh`](deploy/freebsd/install.sh)).
+Compose details and TLS checklist: [docs/deploy.md](docs/deploy.md).
 
 ### Alternative: Linux Docker Compose
 
 1. Copy **`.env.prod-example`** → `.env` and replace every `change-me-*` password  
-2. `docker compose -f compose.prod.yml up -d --build`  
-3. `docker compose -f compose.prod.yml exec php php bin/migrate.php`  
-4. Finish `/setup`, put TLS reverse proxy in front of `127.0.0.1:8000`
+2. Point `DB_HOST` at the live game MySQL ([docs/game-mysql.md](docs/game-mysql.md)); omit the bundled `game` service when appropriate  
+3. `docker compose -f compose.prod.yml up -d --build`  
+4. `docker compose -f compose.prod.yml exec php php bin/migrate.php`  
+5. Finish `/setup`, put TLS reverse proxy in front of `127.0.0.1:8000`
 
 Full checklist: [docs/deploy.md](docs/deploy.md).
 
@@ -311,7 +314,7 @@ bin/                      migrate, payments-process, economy-tick, package-relea
 src/                      Application, Auth, Admin, Http, Service, …
 themes/                   default, admin
 lang/                     Locale JSON
-deploy/freebsd/           Sample Nginx / PHP-FPM configs
+deploy/linux/             Sample Nginx / PHP-FPM configs (bare-metal)
 docs/                     Architecture map + how-to guides
 ```
 
@@ -324,8 +327,8 @@ Start from **[docs/map.md](docs/map.md)**, then [patterns.md](docs/patterns.md) 
 | Guide | When |
 | --- | --- |
 | [docs/setup.md](docs/setup.md) | Install wizard / first-run seeds |
-| [docs/deploy-freebsd.md](docs/deploy-freebsd.md) | Production on FreeBSD 13.2+ (recommended) |
-| [docs/deploy.md](docs/deploy.md) | Production via Linux Compose + TLS |
+| [docs/game-mysql.md](docs/game-mysql.md) | Remote game MySQL + least-privilege grants |
+| [docs/deploy.md](docs/deploy.md) | Production Linux Compose / TLS |
 | [docs/acl.md](docs/acl.md) | Admin ACL |
 | [docs/add-admin-section.md](docs/add-admin-section.md) | New admin screen |
 | [docs/add-page.md](docs/add-page.md) | New public page |

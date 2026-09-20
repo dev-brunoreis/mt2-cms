@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build a bare-metal release tarball (no Docker). POSIX sh for FreeBSD/Linux CI.
+# Build a bare-metal release tarball (no Docker). POSIX sh (Linux CI / hosts).
 # Usage: ./bin/package-release.sh [VERSION]
 # Env: SKIP_ASSETS=1 — skip npm ci/build when public/ assets are already built
 #      SKIP_COMPOSER=1 — skip composer install when vendor/ is already populated

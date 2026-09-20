@@ -1,5 +1,5 @@
 #!/bin/sh
-# Dump game + CMS MySQL schemas. POSIX sh (FreeBSD base / Linux).
+# Dump game + CMS MySQL schemas. POSIX sh (Linux / FreeBSD base).
 # Requires: mysqldump, gzip, and DB_* / CMS_DB_* in .env (or the environment).
 set -eu
 

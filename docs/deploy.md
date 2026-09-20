@@ -1,19 +1,21 @@
-# Production deployment (Linux Compose)
+# Production deployment (Linux)
 
-Guide for running Mt2 CMS with **`compose.prod.yml`** on a Linux host. The default `compose.yml` stack is **local dev only** — do not expose it as-is to the internet.
+Run the CMS on a **Linux** host **separate** from the Metin2 game server. Local `compose.yml` is **dev only** — do not expose it as-is to the internet.
 
-**FreeBSD / bare-metal (recommended for GitHub Releases):** use [deploy-freebsd.md](deploy-freebsd.md) instead. That path installs from a release tarball with Nginx + PHP-FPM — no Docker on the server.
+**Before go-live:** wire remote game MySQL with a host-scoped app user — [game-mysql.md](game-mysql.md).
 
-Related: [deploy-freebsd.md](deploy-freebsd.md), [security.md](security.md), [improvements.md](improvements.md).
+Bare-metal release tarball + Nginx/PHP-FPM snippets: [`deploy/linux/`](../deploy/linux/). Compose path below uses `compose.prod.yml`.
+
+Related: [game-mysql.md](game-mysql.md), [security.md](security.md), [improvements.md](improvements.md).
 
 ## Architecture
 
 ```
 Internet → TLS reverse proxy (Caddy / Nginx / Traefik)
               ↓ HTTP to localhost:8000 (or php-fpm socket)
-         Mt2 CMS (Nginx + PHP-FPM)
-              ↓ private network
-         MySQL (game + CMS) — never on 0.0.0.0
+         Mt2 CMS on Linux (Nginx + PHP-FPM)
+              ├─ CMS MySQL 8 (local) — never on 0.0.0.0
+              └─ Game MySQL (remote private IP) — see game-mysql.md
 ```
 
 ## Before go-live
@@ -59,7 +61,7 @@ Configure a TLS reverse proxy in front of `127.0.0.1:8000`.
 
 ### External game database
 
-If the game MySQL already runs on the game server, omit the `game` service and point `.env` at that host:
+**Normal production:** the game MySQL already runs on the Metin2 host. Omit the Compose `game` service and point `.env` at that host. Full hardening (bind address, firewall, `'mt2cms'@'CMS_IP'`): **[game-mysql.md](game-mysql.md)**.
 
 ```env
 DB_HOST=10.0.0.5
@@ -68,7 +70,7 @@ DB_USER=mt2cms
 DB_PASSWORD=...
 ```
 
-The CMS container still needs reachability to the game MySQL from the Docker network or host routing.
+The CMS container (or bare-metal PHP) needs reachability to game MySQL on the private network only.
 
 ## Docker Compose (development only)
 
@@ -135,22 +137,22 @@ Register PayPal webhook URL: `POST /payments/webhook/paypal` (HTTPS, public site
 
 ### Upgrading existing MySQL volumes
 
-Init scripts run only on **empty** data directories. If you already have game/CMS volumes from an older stack that used root for the app, create the app users manually:
+Init scripts run only on **empty** data directories. If you already have game/CMS volumes from an older stack that used root for the app, create dedicated users. Prefer **host-scoped** game grants — see [game-mysql.md](game-mysql.md). For a Compose-only lab on one machine you may use the Docker network hostname instead of `%`:
 
 ```sql
--- Game MySQL (as root)
-CREATE USER 'mt2cms'@'%' IDENTIFIED BY 'strong-password';
-GRANT SELECT, INSERT, UPDATE, DELETE ON account.* TO 'mt2cms'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE ON player.* TO 'mt2cms'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE ON common.* TO 'mt2cms'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE ON log.* TO 'mt2cms'@'%';
+-- Game MySQL (as root) — replace CMS_HOST_IP (production) or use a Compose service IP
+CREATE USER 'mt2cms'@'CMS_HOST_IP' IDENTIFIED BY 'strong-password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON account.* TO 'mt2cms'@'CMS_HOST_IP';
+GRANT SELECT, INSERT, UPDATE, DELETE ON player.* TO 'mt2cms'@'CMS_HOST_IP';
+GRANT SELECT, INSERT, UPDATE, DELETE ON common.* TO 'mt2cms'@'CMS_HOST_IP';
+GRANT SELECT, INSERT, UPDATE, DELETE ON log.* TO 'mt2cms'@'CMS_HOST_IP';
 FLUSH PRIVILEGES;
 ```
 
 ```sql
--- CMS MySQL 8 (as root)
-CREATE USER IF NOT EXISTS 'cms'@'%' IDENTIFIED BY 'strong-password';
-GRANT ALL PRIVILEGES ON cms.* TO 'cms'@'%';
+-- CMS MySQL 8 (as root) — localhost when MySQL is on the CMS host
+CREATE USER IF NOT EXISTS 'cms'@'localhost' IDENTIFIED BY 'strong-password';
+GRANT ALL PRIVILEGES ON cms.* TO 'cms'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -168,7 +170,7 @@ Then update `.env` to use `DB_USER=mt2cms`, `CMS_DB_USER=cms`, and restart PHP.
 
 **Fresh local prod test** (wipes databases): `docker compose -f compose.prod.yml down -v` then `up -d --build` again.
 
-The bundled `game` service imports `docker/mysql/backup/*.sql` on first start (same fixtures as the dev stack). Omit the `game` service in real production and point `DB_HOST` at the live Metin2 MySQL instead.
+The bundled `game` service imports `docker/mysql/backup/*.sql` on first start (same fixtures as the dev stack). Omit the `game` service in real production and point `DB_HOST` at the live Metin2 MySQL instead ([game-mysql.md](game-mysql.md)).
 
 ## Health checks
 
@@ -229,15 +231,17 @@ The worker takes a file lock under `var/payments-process.lock`. Failed captures 
 
 Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
 
-For FreeBSD bare-metal installs (no Compose), see [deploy-freebsd.md](deploy-freebsd.md).
+Bare-metal Nginx/PHP-FPM examples: [`deploy/linux/`](../deploy/linux/). Game MySQL hardening: [game-mysql.md](game-mysql.md).
 
 ## Post-deploy checklist
 
+- [ ] CMS host is **separate** from the Metin2 game server
+- [ ] Game MySQL hardened per [game-mysql.md](game-mysql.md) (`mt2cms`@CMS IP, firewall, not public)
 - [ ] MySQL not reachable from the internet
 - [ ] Adminer / phpMyAdmin not exposed
 - [ ] App uses dedicated MySQL users (`DB_USER`, `CMS_DB_USER`), not root
 - [ ] Fixture passwords replaced
-- [ ] `docker compose -f compose.prod.yml up -d --build` succeeded
+- [ ] `docker compose -f compose.prod.yml up -d --build` succeeded (Compose path) **or** release tarball + [`deploy/linux/`](../deploy/linux/) configured
 - [ ] `php bin/migrate.php` run successfully (schema + `APP_KEY`)
 - [ ] `GET /health` returns `200`
 - [ ] HTTPS + HSTS on the proxy

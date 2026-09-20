@@ -54,7 +54,7 @@ Accounts use Metin2 / MySQL `PASSWORD()` style (`*` + uppercase `SHA1(SHA1(passw
 
 ## Production deployment
 
-See [deploy-freebsd.md](deploy-freebsd.md) (FreeBSD bare-metal / GitHub Release tarball) or [deploy.md](deploy.md) (Linux `compose.prod.yml`): TLS and HSTS on the reverse proxy, MySQL/Adminer not on `0.0.0.0`, dedicated MySQL app users, `php bin/migrate.php` after deploy (schema + `APP_KEY`), PayPal webhook id when donate is enabled, `APP_TRUST_PROXY=1` when TLS terminates at a proxy, optional admin 2FA enrollment.
+See [deploy.md](deploy.md) (Linux CMS host / Compose) and [game-mysql.md](game-mysql.md) (remote game MySQL, host-scoped `mt2cms` user): TLS and HSTS on the reverse proxy, MySQL not on `0.0.0.0`, dedicated app users (not root), `php bin/migrate.php` after deploy (schema + `APP_KEY`), PayPal webhook id when donate is enabled, `APP_TRUST_PROXY=1` when TLS terminates at a proxy, optional admin 2FA enrollment. Keep the CMS off the Metin2 game FreeBSD box.
 
 ## Out of scope (for now)
 

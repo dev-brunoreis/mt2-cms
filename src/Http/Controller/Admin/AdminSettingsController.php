@@ -253,9 +253,14 @@ class AdminSettingsController extends AdminController
             $this->flash('success', $this->t('admin.saved'));
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $this->t($e->getMessage()));
+
+            return $this->redirect(AdminPaths::settingsLocale());
         }
 
-        return $this->redirect(AdminPaths::settingsLocale());
+        // Cookie wins over default_locale in Locales::resolve() — sync this session
+        // so the admin sees the new default immediately (and new visitors without a cookie).
+        return $this->redirect(AdminPaths::settingsLocale())
+            ->withCookie(Locales::COOKIE, $locale);
     }
 
     public function saveSecurity(): Response

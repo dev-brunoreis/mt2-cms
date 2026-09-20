@@ -10,7 +10,7 @@
         </span>
     {% endfor %}
 {% elseif locales|length > 1 %}
-    <form method="post" action="/locale"
+    <form method="post" action="/admin/locale"
           class="locale-switcher admin-locale-switcher admin-locale-switcher--{{ variant|default('dark') }}{% if drop|default('down') == 'up' %} locale-switcher--up{% endif %}"
           data-locale-switcher>
         <input type="hidden" name="_csrf" value="{{ csrf }}">

@@ -32,6 +32,7 @@ use Mt2Cms\Http\Controller\Admin\AdminItemShopCategoriesController;
 use Mt2Cms\Http\Controller\Admin\AdminItemShopCategoryProductsController;
 use Mt2Cms\Http\Controller\Admin\AdminItemShopOrdersController;
 use Mt2Cms\Http\Controller\Admin\AdminItemShopProductsController;
+use Mt2Cms\Http\Controller\Admin\AdminLocaleController;
 use Mt2Cms\Http\Controller\Admin\AdminLogsController;
 use Mt2Cms\Http\Controller\Admin\AdminNewsCommentsController;
 use Mt2Cms\Http\Controller\Admin\AdminNewsHubController;
@@ -56,6 +57,7 @@ final class AdminRoutes
         $r->addRoute('GET', '/admin/login/2fa', [AdminAuthController::class, 'showTwoFactor']);
         $r->addRoute('POST', '/admin/login/2fa', [AdminAuthController::class, 'verifyTwoFactor']);
         $r->addRoute('POST', '/admin/logout', [AdminAuthController::class, 'logout']);
+        $r->addRoute('POST', '/admin/locale', [AdminLocaleController::class, 'update']);
         $r->addRoute('GET', '/admin/account/security', [AdminAccountSecurityController::class, 'show']);
         $r->addRoute('POST', '/admin/account/security/enroll', [AdminAccountSecurityController::class, 'startEnroll']);
         $r->addRoute('POST', '/admin/account/security/confirm', [AdminAccountSecurityController::class, 'confirmEnroll']);

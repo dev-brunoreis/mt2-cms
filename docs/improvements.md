@@ -111,7 +111,7 @@ Definitions live in [`src/Admin/Grid/Definitions/`](../src/Admin/Grid/Definition
 
 ### i18n
 
-Only `lang/en.json`. When PT-BR lands, split by namespace (`admin.json`, `auth.json`) or `lang/en/*.json` and extend `Translator` / `Locales` (single-file today).
+Shipped pack: `en` only (`lang/en.json`). Loader already supports `lang/{locale}/*.json` namespaces; use [add-locale.md](add-locale.md) + `bin/i18n-deepl.php` to add more.
 
 ### ~~Schema as inline SQL~~ — done
 
@@ -176,7 +176,7 @@ Everything is a concrete class in `resolveController()`. An event dispatcher (`A
 Organization backlog below is largely done (DI bootstrap, proto `page()` removal, grid Definitions, Categories split, catalog docs). Remaining opportunistic work:
 
 1. ~~Nested read-only admin tables → `grid.twig` fragments~~ — done for guild members/wars/comments, shop items, account activity
-2. ~~i18n multi-file when PT-BR lands (`Translator` / `Locales`)~~ — loader supports `lang/{locale}/*.json` (single-file `en.json` kept)
+2. ~~i18n multi-file loader (`Translator` / `Locales`)~~ — supports `lang/{locale}/*.json` (single-file `en.json` kept)
 3. ~~Optionally fold `AdminSectionCatalog` helpers into Sections~~ — done (`AdminSections`); do not merge ACL catalogs casually
 
 Also done: layout `extends` + widget slots, layout columns/sidebar settings, MIT license, payment `GatewayRegistry`, optional public equipment paperdoll.

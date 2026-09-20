@@ -75,6 +75,9 @@ return [
     \Mt2Cms\Http\Controller\Admin\AdminAuthController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAuthController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->settings, $app->adminTotp,
     ),
+    \Mt2Cms\Http\Controller\Admin\AdminLocaleController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminLocaleController(
+        $app->theme, $app->auth, $app->csrf, $app->translator, $app->locales,
+    ),
     \Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController::class => static fn ($app) => new \Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->adminAuth, $app->adminTheme, $app->acl, $app->adminAudit, $app->adminTotp, $app->settings,
     ),

@@ -51,7 +51,7 @@ JSON endpoints (e.g. news/event image upload) must still check a write resource 
 3. Hide the control in Twig with `acl_allowed()`.
 4. Keep `tests/Unit/Contract/SecurityContractTest.php` green (`testAdminPostHandlersCheckAcl`).
 
-Skip ACL only for: admin login, logout, 2FA verify, own TOTP enroll/confirm.
+Skip ACL only for: admin login, logout, 2FA verify, own TOTP enroll/confirm, and `POST /admin/locale` (UI language cookie; must stay on the admin session path so CSRF works on the login screen too).
 
 ## Tests
 

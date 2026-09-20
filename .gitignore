@@ -7,3 +7,4 @@
 /game/client/ui
 /public/uploads/*
 !/public/uploads/.gitkeep
+/lang/.deepl-cache/

@@ -2922,14 +2922,14 @@
         },
         "locale": {
             "title": "Language & numbers",
-            "lead": "Default language and how prices are written on the site.",
+            "lead": "Default language for visitors without a language cookie, and how prices are written. Saving also switches your current session to the default.",
             "default": "Default locale",
             "money_format": "Currency format",
             "money_format_label": "Number format",
             "money_format_help": "Used for donate prices and admin money fields. PayPal checkout still sends 1234.56.",
-            "money_format_dot": "US, UK, Mexico, Japan",
-            "money_format_comma": "Brazil, Germany, Spain, Italy",
-            "money_format_space": "France, Russia, Nordics",
+            "money_format_dot": "1,234.56",
+            "money_format_comma": "1.234,56",
+            "money_format_space": "1 234,56",
             "money_format_invalid": "Choose a valid currency format."
         },
         "security": {

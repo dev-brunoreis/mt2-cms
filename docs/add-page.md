@@ -56,6 +56,6 @@ Add `themes/default/templates/pages/your-page.twig`.
 - [ ] Route registered
 - [ ] Controller wired in `controller_factories.php` (if new)
 - [ ] Layout JSON + Twig page
-- [ ] `en` + `pt-BR` keys
+- [ ] Keys in `lang/en.json`
 - [ ] CSRF on POST / `requireAuth` when needed
 - [ ] Unit test if you added non-trivial logic (`docs/testing.md`)

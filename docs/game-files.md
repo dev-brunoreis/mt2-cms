@@ -60,14 +60,14 @@ Maps logical names to files under `game/`:
 
 Skill path (Arahan / Partizan, Blade-Fight / Archery, …) comes from `player.skill_group`, not from the face file.
 
-Example: use Portuguese name files without renaming on disk:
+Example: point at alternate name files without renaming on disk:
 
 ```json
 {
-  "locale": "pt",
+  "locale": "custom",
   "paths": {
-    "item_names": "db/item_names_pt.txt",
-    "mob_names": "db/mob_names_pt.txt"
+    "item_names": "db/item_names_custom.txt",
+    "mob_names": "db/mob_names_custom.txt"
   }
 }
 ```

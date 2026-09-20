@@ -6,6 +6,7 @@ namespace Mt2Cms\Tests\Unit\Contract;
 
 use Mt2Cms\Http\Controller\Admin\AdminAccountSecurityController;
 use Mt2Cms\Http\Controller\Admin\AdminAuthController;
+use Mt2Cms\Http\Controller\Admin\AdminLocaleController;
 use Mt2Cms\Http\Controller\PaymentWebhookController;
 use Mt2Cms\Http\Controller\SetupController;
 use PHPUnit\Framework\TestCase;
@@ -25,6 +26,7 @@ final class SecurityContractTest extends TestCase
         AdminAuthController::class . '::verifyTwoFactor',
         AdminAuthController::class . '::logout',
         AdminAccountSecurityController::class . '::startEnroll',
+        AdminLocaleController::class . '::update',
     ];
 
     private const ACL_SKIP = [
@@ -33,6 +35,7 @@ final class SecurityContractTest extends TestCase
         AdminAuthController::class . '::logout',
         AdminAccountSecurityController::class . '::startEnroll',
         AdminAccountSecurityController::class . '::confirmEnroll',
+        AdminLocaleController::class . '::update',
     ];
 
     /** @var list<string> */

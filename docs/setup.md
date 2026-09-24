@@ -2,6 +2,8 @@
 
 `GET/POST /setup` (`SetupController`) writes `.env` (`APP_INSTALLED=true`), runs `CmsSchema::ensure()`, and creates the first admin. Admin recovery uses the same admin step when the `admins` table is empty.
 
+Host vs Docker defaults (`SetupDatabaseDefaults`): inside Compose the form uses `game:3306` / `mysql:3306`. When PHP runs on the host (`php -S`, no `/.dockerenv`), Compose service names are rewritten to `127.0.0.1:8001` (game) and `127.0.0.1:8002` (CMS). `localhost` plus a non-3306 port is stored as `127.0.0.1` (`Database::tcpHost`) because PDO MySQL treats `localhost` as a Unix socket and ignores the port. Dev Compose uses MySQL `root`; production should use a dedicated `cms` user.
+
 ## First HTTP boot
 
 `src/bootstrap/installed_services.php` seeds empty catalogs once (settings flags, so deleting later does not re-seed):

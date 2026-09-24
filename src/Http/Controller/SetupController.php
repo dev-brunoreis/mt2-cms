@@ -15,6 +15,7 @@ use Mt2Cms\Support\Env;
 use Mt2Cms\Repository\AdminRepository;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
+use Mt2Cms\Setup\SetupDatabaseDefaults;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\AppCrypto;
 use Mt2Cms\Support\Log;
@@ -110,6 +111,14 @@ class SetupController extends Controller
 
             return $this->setupView('db', error: $this->t('setup.invalid_theme'), status: 422);
         }
+
+        $inContainer = SetupDatabaseDefaults::inContainer();
+        $game = SetupDatabaseDefaults::forConnection($host, $port, 'game', '8001', $inContainer);
+        $cms = SetupDatabaseDefaults::forConnection($cmsHost, $cmsPort, 'mysql', '8002', $inContainer);
+        $host = Database::tcpHost($game['host'], $game['port']);
+        $port = $game['port'];
+        $cmsHost = Database::tcpHost($cms['host'], $cms['port']);
+        $cmsPort = $cms['port'];
 
         if (!Database::testConnection([
             'host' => $host,
@@ -276,6 +285,14 @@ class SetupController extends Controller
     {
         $env = Env::getInstance();
         $setup = $_SESSION[self::SESSION_KEY] ?? [];
+        $defaults = SetupDatabaseDefaults::formValues([
+            'DB_HOST' => $env->get('DB_HOST'),
+            'DB_PORT' => $env->get('DB_PORT'),
+            'DB_USER' => $env->get('DB_USER'),
+            'CMS_DB_HOST' => $env->get('CMS_DB_HOST'),
+            'CMS_DB_PORT' => $env->get('CMS_DB_PORT'),
+            'CMS_DB_USER' => $env->get('CMS_DB_USER'),
+        ], SetupDatabaseDefaults::inContainer());
 
         return $this->view('setup', [
             'title' => $this->t('setup.title'),
@@ -284,13 +301,13 @@ class SetupController extends Controller
             'adminRecoveryOnly' => $this->adminRecoveryOnly,
             'themes' => $this->themes->available(),
             'values' => [
-                'db_host' => (string) ($setup['db_host'] ?? $env->get('DB_HOST', 'game')),
-                'db_port' => (string) ($setup['db_port'] ?? $env->get('DB_PORT', '3306')),
-                'db_user' => (string) ($setup['db_user'] ?? $env->get('DB_USER', 'root')),
+                'db_host' => (string) ($setup['db_host'] ?? $defaults['db_host']),
+                'db_port' => (string) ($setup['db_port'] ?? $defaults['db_port']),
+                'db_user' => (string) ($setup['db_user'] ?? $defaults['db_user']),
                 'db_password' => (string) ($setup['db_password'] ?? ''),
-                'cms_db_host' => (string) ($setup['cms_db_host'] ?? $env->get('CMS_DB_HOST', 'mysql')),
-                'cms_db_port' => (string) ($setup['cms_db_port'] ?? $env->get('CMS_DB_PORT', '3306')),
-                'cms_db_user' => (string) ($setup['cms_db_user'] ?? $env->get('CMS_DB_USER', 'cms')),
+                'cms_db_host' => (string) ($setup['cms_db_host'] ?? $defaults['cms_db_host']),
+                'cms_db_port' => (string) ($setup['cms_db_port'] ?? $defaults['cms_db_port']),
+                'cms_db_user' => (string) ($setup['cms_db_user'] ?? $defaults['cms_db_user']),
                 'cms_db_password' => (string) ($setup['cms_db_password'] ?? ''),
                 'theme' => (string) ($setup['theme'] ?? $env->get('THEME', 'default')),
                 'app_trust_proxy' => (bool) ($setup['app_trust_proxy'] ?? $env->get('APP_TRUST_PROXY', '0') === '1'),

@@ -98,7 +98,7 @@ class Database
 
         $dsn = sprintf(
             'mysql:host=%s;port=%s;charset=utf8mb4',
-            $this->config['host'],
+            self::tcpHost($this->config['host'], $this->config['port']),
             $this->config['port'],
         );
 
@@ -119,6 +119,19 @@ class Database
                 \PDO::ATTR_EMULATE_PREPARES => false,
             ],
         );
+    }
+
+    /**
+     * PDO MySQL treats host "localhost" as a Unix socket and ignores the port.
+     * Published Compose ports (8001/8002) must use TCP.
+     */
+    public static function tcpHost(string $host, string $port): string
+    {
+        if (strcasecmp($host, 'localhost') === 0 && $port !== '3306') {
+            return '127.0.0.1';
+        }
+
+        return $host;
     }
 
     public static function quoteIdentifier(string $name): string

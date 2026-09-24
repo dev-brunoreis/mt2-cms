@@ -49,7 +49,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, `theme.json` features (e.g. `layout_columns`), layout JSON by node `id` |
 | Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Optional: `bin/i18n-deepl.php` to generate more packs |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
-| Install / first boot | [setup.md](setup.md) | `SetupController`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
+| Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
 | Deploy | [deploy.md](deploy.md), [game-mysql.md](game-mysql.md) | Linux CMS host (Compose or `dist/` from `bin/package-release.sh`); `game/` dumps without client icon/ui; remote game MySQL grants; `APP_KEY`, TLS |
 
 ## Admin URL areas

@@ -18,4 +18,11 @@ final class DatabaseGameSchemaTest extends TestCase
             'password' => 'invalid',
         ]));
     }
+
+    public function testTcpHostRewritesLocalhostWhenPortIsNotMysqlDefault(): void
+    {
+        self::assertSame('127.0.0.1', Database::tcpHost('localhost', '8001'));
+        self::assertSame('localhost', Database::tcpHost('localhost', '3306'));
+        self::assertSame('127.0.0.1', Database::tcpHost('127.0.0.1', '8001'));
+    }
 }

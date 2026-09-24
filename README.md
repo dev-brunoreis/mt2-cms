@@ -150,6 +150,14 @@ Or from the host (with `CMS_DB_HOST=127.0.0.1` and `CMS_DB_PORT=8002` in `.env`)
 php bin/migrate.php
 ```
 
+To run PHP on the host (MySQL still in Compose), use the router so `/theme-assets/` is served from `themes/*/assets/`:
+
+```bash
+php -S localhost:8000 -t public
+```
+
+Plain `php -S … -t public` cannot see those files (they are not under `public/`).
+
 ### 7. (Optional) Cron-style workers
 
 Do **not** run these on the HTTP request path. In production, schedule them; locally, run when needed:

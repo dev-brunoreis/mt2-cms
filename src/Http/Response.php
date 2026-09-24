@@ -93,6 +93,26 @@ class Response
         );
     }
 
+    public static function cachedFile(string $absolutePath, string $mime): self
+    {
+        if (!is_file($absolutePath) || !is_readable($absolutePath)) {
+            return self::notFound();
+        }
+
+        $body = file_get_contents($absolutePath);
+
+        if ($body === false) {
+            return self::notFound();
+        }
+
+        return new self($body, 200, [
+            'Content-Type' => $mime,
+            'Content-Length' => (string) strlen($body),
+            'Cache-Control' => 'public, max-age=2592000, immutable',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public static function download(string $absolutePath, string $downloadName, string $mime): self
     {
         if (!is_file($absolutePath) || !is_readable($absolutePath)) {

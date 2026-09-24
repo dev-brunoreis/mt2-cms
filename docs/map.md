@@ -46,7 +46,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Notifications | [notifications.md](notifications.md) | `NotificationService`, `/account/notifications` |
 | SEO | [seo.md](seo.md) | `SeoService`, `SeoController`, settings tab `seo`, news/events form tab `seo` |
 | Security invariants | [security.md](security.md) | `tests/Unit/Contract/SecurityContractTest.php` |
-| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, `theme.json` features (e.g. `layout_columns`), layout JSON by node `id` |
+| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, `theme.json` features (e.g. `layout_columns`), layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController` |
 | Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Optional: `bin/i18n-deepl.php` to generate more packs |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
 | Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |

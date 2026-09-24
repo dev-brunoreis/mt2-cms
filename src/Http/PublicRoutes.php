@@ -24,6 +24,7 @@ use Mt2Cms\Http\Controller\PlayerController;
 use Mt2Cms\Http\Controller\RankingController;
 use Mt2Cms\Http\Controller\SeoController;
 use Mt2Cms\Http\Controller\StatusController;
+use Mt2Cms\Http\Controller\ThemeAssetController;
 use Mt2Cms\Http\Controller\TicketController;
 
 final class PublicRoutes
@@ -87,5 +88,6 @@ final class PublicRoutes
         $r->addRoute('GET', '/ranking', [RankingController::class, 'index']);
         $r->addRoute('GET', '/player/{name}', [PlayerController::class, 'show']);
         $r->addRoute('GET', '/game/icon/{kind:item|face}/{id:\d+}', [GameIconController::class, 'show']);
+        $r->addRoute('GET', '/theme-assets/{theme:[A-Za-z0-9_-]+}/{asset:.+}', [ThemeAssetController::class, 'show']);
     }
 }

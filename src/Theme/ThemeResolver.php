@@ -163,10 +163,7 @@ class ThemeResolver
         $relativePath = str_replace('\\', '/', trim($relativePath));
         $relativePath = ltrim($relativePath, '/');
 
-        if ($relativePath === ''
-            || str_contains($relativePath, '..')
-            || !preg_match('#^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:css|woff2|jpe?g|webp|png|svg|js)$#', $relativePath)
-        ) {
+        if (!ThemeAssetFile::isSafeRelativePath($relativePath)) {
             return '';
         }
 

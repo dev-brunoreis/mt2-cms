@@ -71,7 +71,11 @@ In Twig, resolve URLs with `theme_asset()` (walks active theme → parents; firs
 <img src="{{ theme_asset('img/hero.webp') }}" alt="">
 ```
 
-That becomes `/theme-assets/{theme}/css/theme.css`, served by nginx from `themes/{theme}/assets/…` (cacheable; only safe extensions).
+That becomes `/theme-assets/{theme}/css/theme.css`. Nginx serves `themes/{theme}/assets/…` directly (cacheable; only safe extensions). When nginx is not in front (PHP built-in server, or `try_files` falling through to `index.php`), `ThemeAssetController` serve the same whitelist via `ThemeAssetFile`. Host PHP:
+
+```bash
+php -S localhost:8000 -t public
+```
 
 ## 4. Override a Twig template
 

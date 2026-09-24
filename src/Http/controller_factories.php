@@ -63,6 +63,9 @@ return [
     \Mt2Cms\Http\Controller\GameIconController::class => static fn ($app) => new \Mt2Cms\Http\Controller\GameIconController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->icons,
     ),
+    \Mt2Cms\Http\Controller\ThemeAssetController::class => static fn ($app) => new \Mt2Cms\Http\Controller\ThemeAssetController(
+        $app->theme, $app->auth, $app->csrf, $app->translator,
+    ),
     \Mt2Cms\Http\Controller\LocaleController::class => static fn ($app) => new \Mt2Cms\Http\Controller\LocaleController(
         $app->theme, $app->auth, $app->csrf, $app->translator, $app->locales,
     ),

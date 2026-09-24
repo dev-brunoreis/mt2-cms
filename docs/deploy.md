@@ -4,9 +4,21 @@ Run the CMS on a **Linux** host **separate** from the Metin2 game server. Local 
 
 **Before go-live:** wire remote game MySQL with a host-scoped app user — [game-mysql.md](game-mysql.md).
 
-Bare-metal release tarball + Nginx/PHP-FPM snippets: [`deploy/linux/`](../deploy/linux/). Compose path below uses `compose.prod.yml`.
+Bare-metal tree: run `./bin/package-release.sh VERSION`, copy `dist/mt2-cms-VERSION/`, then `composer install --no-dev` on the host. Nginx/PHP-FPM snippets: [`deploy/linux/`](../deploy/linux/). Compose path below uses `compose.prod.yml`.
 
 Related: [game-mysql.md](game-mysql.md), [security.md](security.md), [improvements.md](improvements.md).
+
+## Local package (`dist/`)
+
+On a machine with Node 20 (for CSS/assets):
+
+```bash
+./bin/package-release.sh 0.1.0-beta.1
+# folder only:
+SKIP_ARCHIVE=1 ./bin/package-release.sh 0.1.0-beta.1
+```
+
+Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + `game/` dumps (no `client/icon` or `client/ui`), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there.
 
 ## Architecture
 
@@ -241,7 +253,7 @@ Bare-metal Nginx/PHP-FPM examples: [`deploy/linux/`](../deploy/linux/). Game MyS
 - [ ] Adminer / phpMyAdmin not exposed
 - [ ] App uses dedicated MySQL users (`DB_USER`, `CMS_DB_USER`), not root
 - [ ] Fixture passwords replaced
-- [ ] `docker compose -f compose.prod.yml up -d --build` succeeded (Compose path) **or** release tarball + [`deploy/linux/`](../deploy/linux/) configured
+- [ ] `docker compose -f compose.prod.yml up -d --build` succeeded (Compose path) **or** `./bin/package-release.sh` `dist/` tree + [`deploy/linux/`](../deploy/linux/) configured
 - [ ] `php bin/migrate.php` run successfully (schema + `APP_KEY`)
 - [ ] `GET /health` returns `200`
 - [ ] HTTPS + HSTS on the proxy

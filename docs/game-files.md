@@ -84,6 +84,8 @@ GAME_DIR=/path/to/my-server-files
 
 Relative paths resolve from the project root. Default: `game/`.
 
+`bin/package-release.sh` copies `game/` into `dist/` except unpacked `client/icon` and `client/ui` (those stay on the game box; see `.gitignore`). Point `GAME_DIR` at a full dump on the host if icons/proto live elsewhere.
+
 ## schema/item.json and schema/mob.json
 
 ### Columns

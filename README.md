@@ -14,7 +14,7 @@ This README is the **runbook** — how to install, configure, and run the app. A
 | **Production (recommended)** | Linux CMS host **separate** from the game server | [Production](#production) + [docs/game-mysql.md](docs/game-mysql.md) |
 | **Production (Compose)** | Single Linux node with Docker | [docs/deploy.md](docs/deploy.md) (`compose.prod.yml`) |
 
-Docker stays in the repo for development (and optional Linux Compose). GitHub Release tarballs are bare-metal Linux — no Docker inside the artifact. Do **not** run the CMS on the Metin2 FreeBSD game box (especially old i386 hosts).
+Docker stays in the repo for development (and optional Linux Compose). Production artifacts are built locally with [`bin/package-release.sh`](bin/package-release.sh) into `dist/` — no Docker inside the tree. Do **not** run the CMS on the Metin2 FreeBSD game box (especially old i386 hosts).
 
 ---
 
@@ -38,10 +38,11 @@ Optional: PHP 8.3 on the host only if you run `bin/*.php` or PHPUnit outside Doc
 | --- | --- |
 | Linux (amd64) | Separate VPS/VM from the game server |
 | PHP 8.3 FPM | `pdo_mysql`, `gd` (+ JPEG/PNG/**WebP**), `curl`, `mbstring`, `fileinfo`, `opcache`, `openssl`, `session`, `filter` |
+| Composer | On the CMS host: `composer install --no-dev` after unpacking `dist/` |
 | Nginx or Apache | Document root = `public/` only — see [`deploy/linux/`](deploy/linux/) |
 | Game MySQL | Remote, private network — [docs/game-mysql.md](docs/game-mysql.md) |
 | CMS MySQL 8 | Local to the CMS host (schema `cms`) |
-| Release tarball | Pre-built `vendor/` + assets — Composer/Node not required on the host |
+| `dist/` from `package-release.sh` | Built frontend assets; **no** `vendor/` — run `composer install --no-dev` on the host |
 
 Wire game DB access **before** go-live: [docs/game-mysql.md](docs/game-mysql.md).
 
@@ -247,14 +248,15 @@ Passwords use Metin2-compatible `*SHA1(SHA1)` hashing.
 Do **not** expose the dev Compose stack (`compose.yml`) to the internet.  
 Do **not** co-locate the CMS on the Metin2 game FreeBSD host — use a **separate Linux** server.
 
-### Recommended: Linux bare-metal (release tarball)
+### Recommended: Linux bare-metal (`dist/`)
 
 1. Follow [docs/game-mysql.md](docs/game-mysql.md) (private MySQL, `'mt2cms'@'CMS_IP'`, firewall)  
-2. Download `mt2-cms-0.1.0-beta.2.tar.gz` (+ `.sha256`) from GitHub Releases  
-3. Extract under `/var/www/mt2-cms`, document root = `public/`  
-4. Copy **`.env.prod-example`** → `.env`; set `DB_*` (game) and `CMS_DB_*` (local)  
-5. Configure Nginx + PHP-FPM ([`deploy/linux/`](deploy/linux/))  
-6. `php bin/migrate.php`, finish `/setup`, put TLS in front  
+2. On a build machine: `./bin/package-release.sh 0.1.0-beta.2`  
+3. Copy `dist/mt2-cms-0.1.0-beta.2/` to `/var/www/mt2-cms` (or extract the `.tar.gz`); document root = `public/`  
+4. `composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction`  
+5. Copy **`.env.prod-example`** → `.env`; set `DB_*` (game) and `CMS_DB_*` (local)  
+6. Configure Nginx + PHP-FPM ([`deploy/linux/`](deploy/linux/))  
+7. `php bin/migrate.php`, finish `/setup`, put TLS in front  
 
 Compose details and TLS checklist: [docs/deploy.md](docs/deploy.md).
 
@@ -270,17 +272,13 @@ Full checklist: [docs/deploy.md](docs/deploy.md).
 
 ### Creating a release (maintainers)
 
-While in beta, tag pre-releases: `v0.1.0-beta.1`, `v0.1.0-beta.2`, … then later `v0.2.0-beta.1` / `v1.0.0`. GitHub Actions builds the tarball via [`bin/package-release.sh`](bin/package-release.sh) and marks `beta` / `rc` / `alpha` tags as **pre-release**.
+Build locally — there is no GitHub Actions release job. While in beta, version like `0.1.0-beta.1`, `0.1.0-beta.2`, … then later `0.2.0-beta.1` / `1.0.0`.
 
 ```bash
-git tag v0.1.0-beta.1
-git push origin v0.1.0-beta.1
-
-# or build locally:
 ./bin/package-release.sh 0.1.0-beta.1
 ```
 
-The artifact includes `vendor/` and built assets; it excludes Docker Compose, `docker/`, and tests.
+Writes `dist/mt2-cms-0.1.0-beta.1/` (deploy this folder) plus `.tar.gz` and `.sha256`. Skip the archive with `SKIP_ARCHIVE=1`. The tree includes built assets, `composer.lock`, and `game/` dumps (no `client/icon` or `client/ui`). It does **not** include `vendor/`, `docs/`, Docker, tests, maintainer scripts, or local `public/uploads`. `dist/` is gitignored. Omit `VERSION` only when HEAD is an exact git tag.
 
 ---
 
@@ -310,7 +308,7 @@ The artifact includes `vendor/` and built assets; it excludes Docker Compose, `d
 
 ```
 public/index.php          Front controller
-bin/                      migrate, payments-process, economy-tick, package-release
+bin/                      migrate, payments-process, economy-tick, package-release.sh
 src/                      Application, Auth, Admin, Http, Service, …
 themes/                   default, admin
 lang/                     Locale JSON

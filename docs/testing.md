@@ -44,6 +44,11 @@ If the base URL is unreachable, tests `markTestSkipped` (not a failure). `/healt
 
 HTTP/MySQL live checks belong only under `tests/Integration/`. Do not add them to `tests/Unit/`.
 
+## GitHub Actions
+
+- `.github/workflows/ci.yml` — `composer test` (unit) on PHP 8.3
+- `.github/workflows/psalm.yml` — Psalm taint analysis, SARIF to code scanning. The action image lacks `ext-gd` / `ext-pdo_mysql`; the job sets `COMPOSER_IGNORE_PLATFORM_REQ` so `composer install` can run. Those extensions stay required on real PHP hosts.
+
 ## What to add when you change production code
 
 | You added | Also add |

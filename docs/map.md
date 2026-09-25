@@ -36,7 +36,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Area | Read | Key files |
 | --- | --- | --- |
 | **How code is written** | [patterns.md](patterns.md) | layers, `Response`, `FormInput`, SQL, i18n |
-| **Tests** | [testing.md](testing.md) | `tests/Unit/`, `SecurityContractTest`, opt-in `tests/Integration/` smoke |
+| **Tests** | [testing.md](testing.md) | `tests/Unit/`, `SecurityContractTest`, opt-in `tests/Integration/` smoke; CI unit + Psalm taint (`.github/workflows/`) |
 | Admin section / grid / hubs | [add-admin-section.md](add-admin-section.md) | `AdminSections`, `AdminRoutes.php`, `src/Admin/Grid/`, `themes/admin`, `public/js/admin/admin-sidebar.js` (keeps sidebar scroll) |
 | **ACL** | [acl.md](acl.md) | `AdminResourceCatalog`, `AclService`, `AdminController` |
 | Public page | [add-page.md](add-page.md) | `PublicRoutes.php`, `src/Http/Controller/` |

@@ -44,6 +44,8 @@ Start at [docs/map.md](docs/map.md). That folder is not in the release tarball.
 
 Public project. Send fixes as pull requests. The maintainer ships changes here too.
 
+Keep the "Mt2 CMS" line in the site footer. Support development: [GitHub Sponsors](https://github.com/sponsors/dev-brunoreis).
+
 [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License

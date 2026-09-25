@@ -21,7 +21,7 @@ themes/my-theme/
 }
 ```
 
-Shipped public theme: `default` (plus internal `admin`).
+Shipped public theme: `default` (plus internal `admin`). The default `templates/components/footer.twig` includes an "Mt2 CMS" credit. Keep that line if you override the footer.
 
 ## 2. Public layout columns (theme feature)
 

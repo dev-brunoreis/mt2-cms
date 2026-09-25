@@ -5,6 +5,11 @@
     {% if tagline != '' %}
         <p class="mt-2 k-muted">{{ tagline }}</p>
     {% endif %}
+    <p class="mt-2 k-muted">
+        <a href="https://github.com/dev-brunoreis/mt2-cms"
+           target="_blank"
+           rel="noopener noreferrer">{{ t('theme.kingdoms.cms_credit') }}</a>
+    </p>
     {% if social_links is defined and social_links is not empty %}
         <ul class="k-social" aria-label="{{ t('theme.kingdoms.social_links') }}">
             {% for network, url in social_links %}

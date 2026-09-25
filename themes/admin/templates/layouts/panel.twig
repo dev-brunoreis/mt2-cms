@@ -107,6 +107,16 @@
                     {{ slots.main|raw }}
                 {% endif %}
             </main>
+
+            <footer class="border-t border-slate-200 px-4 py-3 text-center text-xs text-slate-500">
+                <p>
+                    {{ t('admin.sponsor_lead') }}
+                    <a href="https://github.com/sponsors/dev-brunoreis"
+                       class="text-indigo-600 hover:text-indigo-500"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ t('admin.sponsor') }}</a>
+                </p>
+            </footer>
         </div>
     </div>
 

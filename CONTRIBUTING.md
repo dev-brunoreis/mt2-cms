@@ -2,6 +2,8 @@
 
 This is a public project. Send bug fixes and corrections as pull requests. The maintainer also commits and opens pull requests here.
 
+Keep the "Mt2 CMS" line in the site footer. Support development: [GitHub Sponsors](https://github.com/sponsors/dev-brunoreis).
+
 Code changes happen in this repository. If you only run a server, use the release `.tar.gz` — see the [README](README.md).
 
 ## Before you change code

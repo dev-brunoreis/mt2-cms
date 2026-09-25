@@ -58,6 +58,7 @@
             "discord_lead": "Recruit, trade, and call for wars.",
             "discord_join": "Join Discord",
             "footer_tagline": "May your blade stay sharp.",
+            "cms_credit": "Mt2 CMS",
             "social_links": "Social media",
             "banner_carousel": "Class banners",
             "banner_dots": "Choose banner",
@@ -612,6 +613,8 @@
     "admin": {
         "title": "Administration",
         "badge": "Admin",
+        "sponsor_lead": "Mt2 CMS is free. This supports the project:",
+        "sponsor": "GitHub Sponsors",
         "login_title": "Admin Login",
         "login_lead": "Sign in to manage site settings.",
         "username": "Username",

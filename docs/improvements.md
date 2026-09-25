@@ -1,5 +1,7 @@
 # Improvements
 
+Maintainer backlog. Contributors follow [CONTRIBUTING.md](../CONTRIBUTING.md) and the how-to the map links, not this file.
+
 Notes from a codebase review: what is already solid, what to fix, and in which order. Do not treat this as a single PR — each phase should ship on its own.
 
 Related guides: [security.md](security.md), [add-admin-section.md](add-admin-section.md), [add-page.md](add-page.md), [add-repository.md](add-repository.md).
@@ -136,7 +138,7 @@ src/Admin/Grid/Definitions/BansGrid.php
 themes/admin/templates/pages/bans.twig
 ```
 
-Register routes in the route list, not by editing a 300-line `addRoute` block. Menu stays in `AdminSections`; section `id` should match the permission key once RBAC exists.
+Register routes in the route list, not by editing a 300-line `addRoute` block. Menu stays in `AdminSections`; permissions live in `AdminResourceCatalog` ([acl.md](acl.md)).
 
 ### Request helper
 

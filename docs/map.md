@@ -1,6 +1,6 @@
 # Docs map (start here)
 
-Compiled index of how the CMS is wired. **Read this before grepping the repo.** Then [patterns.md](patterns.md) (how to write code) and [testing.md](testing.md) (how to lock it). Then open only the one linked feature doc.
+Compiled index of how the CMS is wired. **Read this before grepping the repo.** Then [patterns.md](patterns.md) (how to write code) and [testing.md](testing.md) (how to lock it). Then open only the one linked feature doc. Pull requests: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 When behavior changes, update this file **and** the linked doc in the same turn.
 
@@ -69,7 +69,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 
 ## Public surfaces
 
-Overview lives in the [README](../README.md). Auth/account: login, register, forgot/reset, verify-email, password, email, PIN, characters/unstuck, orders, payments, notifications, tickets.
+Auth/account: login, register, forgot/reset, verify-email, password, email, PIN, characters/unstuck, orders, payments, notifications, tickets.
 
 Content: news + comments, events, downloads, shop buy, donate, ranking, player profile, `/status`, `/robots.txt`, `/sitemap.xml`.
 

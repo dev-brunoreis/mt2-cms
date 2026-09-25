@@ -21,7 +21,7 @@ themes/my-theme/
 }
 ```
 
-See [README Themes](../README.md#themes). Shipped public theme: `default` (plus internal `admin`).
+Shipped public theme: `default` (plus internal `admin`).
 
 ## 2. Public layout columns (theme feature)
 

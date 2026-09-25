@@ -43,7 +43,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           TARBALL="dist/mt2-cms-${VERSION}.tar.gz"
           CHECKSUM="${TARBALL}.sha256"
-          NOTES="Production package ${GITHUB_REF_NAME}. Unpack mt2-cms-${VERSION}.tar.gz on the Linux CMS host and run composer install --no-dev. See README.md and docs/deploy.md."
+          NOTES="Production package ${GITHUB_REF_NAME}. Unpack mt2-cms-${VERSION}.tar.gz on the Linux CMS host and run composer install --no-dev. See README.md."
           PRERELEASE=""
           case "$GITHUB_REF_NAME" in
             *-*) PRERELEASE="--prerelease" ;;

@@ -35,6 +35,8 @@ Admin navigation and ACL use related but separate catalogs:
 
 In [`AdminSections.php`](../src/Admin/AdminSections.php), add the item under the right group `children` array. Use `AdminPaths::*()` for `path`. Set `'pinned' => true` on a group to keep it fixed in the sidebar footer (next to the admin user) instead of the scrollable menu.
 
+The scrollable `.admin-sidebar-nav` keeps its scroll position across page loads (`public/js/admin/admin-sidebar.js` + `sessionStorage`). The script loads after the sidebar footer so restore is not clamped, and it saves on `pointerdown` (not `scroll`) so a focused link does not nudge the stored position. Do not call `scrollIntoView` on the active item.
+
 ```php
 [
     'id' => 'your-section',

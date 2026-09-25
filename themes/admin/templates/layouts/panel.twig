@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="/css/locale-switcher.css">
-    <script src="/js/admin/admin-sidebar.js" defer></script>
     <script src="/js/admin/admin-tabs.js" defer></script>
     <script src="/js/admin/admin-themes-form.js" defer></script>
     <script src="/js/admin/admin-proto-form.js" defer></script>
@@ -38,7 +37,8 @@
                 </a>
             </div>
 
-            <div class="admin-sidebar-nav flex-1 overflow-x-hidden overflow-y-auto px-3 py-4">
+            <div class="admin-sidebar-nav flex-1 overflow-x-hidden overflow-y-auto px-3 py-4"
+                 data-admin-sidebar-nav>
                 {{ slots.sidebar|raw }}
             </div>
 
@@ -70,6 +70,7 @@
                     </div>
                 </div>
             {% endif %}
+            <script src="/js/admin/admin-sidebar.js"></script>
         </aside>
 
         <div id="admin-sidebar-backdrop"

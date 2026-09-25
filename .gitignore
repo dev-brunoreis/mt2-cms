@@ -6,6 +6,12 @@
 /var/
 /game/client/icon
 /game/client/ui
+/game/db/*.txt
+/game/client/*.txt
+/game/server/*
+!/game/server/.gitkeep
+/game/maps/
+/docker/mysql/backup/*.sql
 /public/uploads/*
 !/public/uploads/.gitkeep
 /lang/.deepl-cache/

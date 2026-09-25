@@ -1,31 +1,48 @@
 # Game files and source configuration
 
-The CMS reads Metin2 client/server dumps from `game/` and loads paths, proto schemas, and enum lists from JSON — no PHP edits required for a different source layout.
+The CMS reads Metin2 client/server files from `game/` and loads paths, proto schemas, and enum lists from JSON — no PHP edits required for a different source layout.
+
+Git and the release tarball ship **only** `config.json`, `schema/*.json`, and empty `db/`, `client/`, and `server/` directories. Proto rows, names, drops, `item_list.txt`, `itemdesc.txt`, icons, and map settings are not in the repo (`.gitignore`). Copy them from your own files. Operator steps that also ship in the tarball: [`game/README.md`](../game/README.md).
+
+Supported base: the [40.250 reference serverfile and client](https://metin2.dev/topic/27610-40250-reference-serverfile-client-src-15-available-languages/). Archive folders vary; match by filename. English names must end up as `item_names_en.txt` and `mob_names_en.txt` unless you edit `config.json`.
+
+Boot after install needs the three JSON files only. Missing `itemdesc` / `item_list` / drops are empty catalogs. Proto admin throws `admin.proto.missing_files` on first use when `game/db/*.txt` is absent. `game/maps/` is not read (map labels are `lang/en.json` via `Display::map()`).
 
 ## Folder layout
 
 ```
 game/
+  README.md             # copy steps (ships in the release)
   config.json           # file paths, drop names, face icons
   schema/
     item.json           # item proto columns, types, APPLY, flags, admin UI
     mob.json            # mob proto columns, ranks, flags, admin UI
-  client/               # unpacked client assets
+  client/               # operator: unpacked client text + TGA
     item_list.txt
     itemdesc.txt
     icon/
-  db/                   # tab-delimited proto text files
+  db/                   # operator: tab-delimited proto text
     item_proto.txt
     item_names_en.txt
     mob_proto.txt
     mob_names_en.txt
-  server/               # drop and spawn group files
+  server/               # operator: drop and spawn group files
     mob_drop_item.txt
     common_drop_item.txt
     etc.
 ```
 
-Copy your source files into these folders (or point `config.json` at different relative paths).
+| From the 40.250 pack (match by filename) | Into the CMS |
+| --- | --- |
+| `item_proto.txt`, `mob_proto.txt` | `db/` |
+| English item/mob names | `db/item_names_en.txt`, `db/mob_names_en.txt` |
+| Unpacked `item_list.txt`, `itemdesc.txt` | `client/` |
+| Unpacked `icon/item/*.tga` and face TGAs | `client/icon/item/`, `client/icon/face/` |
+| `mob_drop_item.txt`, `common_drop_item.txt`, `etc_drop_item.txt`, `drop_item_group.txt`, `group.txt`, `group_group.txt` | `server/` |
+
+Server text is often under `share/locale/english/`. Client text and icons exist only after unpacking `.epk` / `.sub` (those packs are not read). Do not copy map `Setting.txt` files.
+
+Another locale: keep the filenames above, or replace `config.json` paths (no merge — copy the full default and edit). Or set `GAME_DIR` to a tree with the same layout.
 
 ## config.json
 
@@ -72,7 +89,7 @@ Example: point at alternate name files without renaming on disk:
 }
 ```
 
-Only include keys you want to override; merge is not supported — copy the full default from the repo and edit.
+Merge is not supported — copy the full `config.json` from the repo and edit the paths you need.
 
 ## GAME_DIR (.env)
 
@@ -84,13 +101,13 @@ GAME_DIR=/path/to/my-server-files
 
 Relative paths resolve from the project root. Default: `game/`.
 
-`bin/package-release.sh` copies `game/` into `dist/` except unpacked `client/icon` and `client/ui` (those stay on the game box; see `.gitignore`). Point `GAME_DIR` at a full dump on the host if icons/proto live elsewhere.
+`bin/package-release.sh` copies `game/` into `dist/`, then deletes proto/client/server text, `game/maps/`, and unpacked `client/icon` and `client/ui` so a local dump is not packed into the tarball. Point `GAME_DIR` at a filled tree on the host if those files live outside the release.
 
 ## Icons from the client
 
-The release and the git tree ship `game/client/icon/` **empty**. Shop, ranking, and player pages still load; missing files simply render no image (`item_icon()` / `face_icon()` return nothing).
+`game/client/icon/` is empty in git and in the release (and gitignored). Shop, ranking, and player pages still load; missing files simply render no image (`item_icon()` / `face_icon()` return nothing).
 
-Unpack the Metin2 **client** (loose files, not a `.epk` / `.sub` pack — those are not read) and copy:
+Unpack the client (loose files, not a `.epk` / `.sub` pack) and copy:
 
 | From the client | Into the CMS |
 | --- | --- |
@@ -186,7 +203,7 @@ Services wired through the profile:
 
 ## Checklist for a new source
 
-1. Copy client + db + server files into `game/` (or set `GAME_DIR`), including `client/icon/item/*.tga`, `client/icon/face/*.tga`, and `client/item_list.txt`.
+1. Copy client + db + server files into `game/` (or set `GAME_DIR`). See the table above and [`game/README.md`](../game/README.md). Do not commit those files.
 2. Adjust `config.json` paths if filenames differ.
 3. Verify `schema/*.json` column order matches your proto txt.
 4. Append any extra `types`, `subtypes`, or `apply_types` at the **end** of arrays.

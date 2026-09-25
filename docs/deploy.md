@@ -18,7 +18,7 @@ On a machine with Node 20 (for CSS/assets):
 SKIP_ARCHIVE=1 ./bin/package-release.sh 1.0.0-beta.0
 ```
 
-Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + `game/` dumps (no `client/icon` or `client/ui`), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there.
+Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + `game/` schema and [`game/README.md`](../game/README.md) only (no proto, drops, client text, icons, or maps), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there. Copy game files after unpack — [game-files.md](game-files.md).
 
 ### GitHub Release (production tags)
 
@@ -193,7 +193,7 @@ Then update `.env` to use `DB_USER=mt2cms`, `CMS_DB_USER=cms`, and restart PHP.
 
 **Fresh local prod test** (wipes databases): `docker compose -f compose.prod.yml down -v` then `up -d --build` again.
 
-The bundled `game` service imports `docker/mysql/backup/*.sql` on first start (same fixtures as the dev stack). Omit the `game` service in real production and point `DB_HOST` at the live Metin2 MySQL instead ([game-mysql.md](game-mysql.md)).
+The Compose `game` service imports `docker/mysql/backup/{account,common,log,player}.sql` on **first** volume init, and only if you placed those dumps there ([`docker/mysql/backup/README.md`](../docker/mysql/backup/README.md)). They are not in git. Omit the `game` service in real production and point `DB_HOST` at the live Metin2 MySQL instead ([game-mysql.md](game-mysql.md)).
 
 ## Health checks
 
@@ -252,7 +252,7 @@ The tick takes a file lock under `var/economy-tick.lock` so overlapping runs ski
 
 The worker takes a file lock under `var/payments-process.lock`. Failed captures retry with backoff (1, 2, 5, then 15 minutes) up to 10 attempts. Raw payloads appear on **Admin → Store → Payments → detail**.
 
-Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are dev fixtures only.
+Do **not** treat `var/backups/` on the app server as off-site backup storage. Do **not** treat `docker/mysql/backup/*.sql` as production backups — those are local dev imports only, and they are not shipped in git.
 
 Bare-metal Nginx/PHP-FPM examples: [`deploy/linux/`](../deploy/linux/). Game MySQL hardening: [game-mysql.md](game-mysql.md).
 

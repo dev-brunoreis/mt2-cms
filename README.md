@@ -17,11 +17,13 @@ You need a Linux host (not the Metin2 game box), PHP 8.3 FPM (`pdo_mysql`, `gd` 
 3. `cp .env.prod-example .env` and set `DB_*` (game) and `CMS_DB_*` (local CMS)
 4. Point the web server at `public/` only - sample configs in [`deploy/linux/`](deploy/linux/)
 5. Open `/setup`
-6. Copy item and face icons from your unpacked Metin2 client (TGA, not the `.epk` pack) into `game/client/icon/item/` and `game/client/icon/face/`, plus `item_list.txt` into `game/client/`. The release leaves `game/client/icon/` empty. The site runs without them; shop and ranking then show no images. Face filenames are `warrior_m.tga`, `assassin_w.tga`, `sura_m.tga`, `shaman_w.tga`, `warrior_w.tga`, `assassin_m.tga`, `sura_w.tga`, `shaman_m.tga`, `wolfman_m.tga`. Details: [docs/game-files.md](docs/game-files.md) in the source repo (that folder is not in the tarball).
+6. Copy proto, drops, and unpacked client files into `game/` (or set `GAME_DIR`). The release does not include them. Step-by-step for the 40.250 reference pack: [`game/README.md`](game/README.md). The site runs without those files; shop and ranking then show no images, and proto admin stays empty until the text files are in place.
 
 ## Develop
 
 You need Docker + Docker Compose, Composer, and Node.js.
+
+Before the first `docker compose up`, copy `account.sql`, `common.sql`, `log.sql`, and `player.sql` from your game pack into `docker/mysql/backup/`. See [`docker/mysql/backup/README.md`](docker/mysql/backup/README.md). Proto and client files: [`game/README.md`](game/README.md).
 
 ```bash
 cp .env-example .env

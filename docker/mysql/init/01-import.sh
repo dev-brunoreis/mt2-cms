@@ -2,21 +2,28 @@
 set -euo pipefail
 
 DUMPS_DIR="${DUMPS_DIR:-/dumps}"
-sample="${DUMPS_DIR}/account.sql"
+shopt -s nullglob
+sql=( "${DUMPS_DIR}"/*.sql )
 
-if [ ! -f "${sample}" ]; then
+if [ "${#sql[@]}" -eq 0 ]; then
   echo "No fixture dumps found; skipping import (production mode)."
   exit 0
 fi
 
+missing=0
 for db in account common log player; do
   dump="${DUMPS_DIR}/${db}.sql"
   if [ ! -f "${dump}" ]; then
-    echo "Missing dump: ${dump}" >&2
-    exit 1
+    echo "warning: missing ${dump}; skipping ${db}. A working CMS+game stack needs account, common, log, and player." >&2
+    missing=1
+    continue
   fi
   echo "Importing ${db} from ${dump}"
   mysql --protocol=socket -uroot -p"${MYSQL_ROOT_PASSWORD}" "${db}" < "${dump}"
 done
 
-echo "Metin2 databases imported."
+if [ "${missing}" -eq 1 ]; then
+  echo "Import finished with missing dumps. Copy all four SQL files before the first volume init." >&2
+else
+  echo "Metin2 databases imported."
+fi

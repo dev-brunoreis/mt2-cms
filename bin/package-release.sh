@@ -75,9 +75,17 @@ for f in migrate.php payments-process.php economy-tick.php backup-dbs.sh; do
 done
 chmod +x "$STAGE/bin/"*.sh "$STAGE/bin/"*.php
 
-# Dumps yes; unpacked client icon/ui stay on the game box (gitignored)
-rm -rf "$STAGE/game/client/icon" "$STAGE/game/client/ui"
-mkdir -p "$STAGE/game/client/icon" "$STAGE/game/client/ui"
+# Schema and empty dirs only — strip any local proto, drops, client text, maps, and icons
+rm -rf "$STAGE/game/maps" "$STAGE/game/client/icon" "$STAGE/game/client/ui"
+find "$STAGE/game/db" -name '*.txt' -delete 2>/dev/null || true
+find "$STAGE/game/client" -maxdepth 1 -name '*.txt' -delete 2>/dev/null || true
+find "$STAGE/game/server" -type f ! -name '.gitkeep' -delete 2>/dev/null || true
+mkdir -p \
+  "$STAGE/game/db" \
+  "$STAGE/game/client/icon/item" \
+  "$STAGE/game/client/icon/face" \
+  "$STAGE/game/client/ui" \
+  "$STAGE/game/server"
 
 # DeepL cache is local
 rm -rf "$STAGE/lang/.deepl-cache"

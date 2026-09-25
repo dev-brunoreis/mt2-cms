@@ -86,6 +86,27 @@ Relative paths resolve from the project root. Default: `game/`.
 
 `bin/package-release.sh` copies `game/` into `dist/` except unpacked `client/icon` and `client/ui` (those stay on the game box; see `.gitignore`). Point `GAME_DIR` at a full dump on the host if icons/proto live elsewhere.
 
+## Icons from the client
+
+The release and the git tree ship `game/client/icon/` **empty**. Shop, ranking, and player pages still load; missing files simply render no image (`item_icon()` / `face_icon()` return nothing).
+
+Unpack the Metin2 **client** (loose files, not a `.epk` / `.sub` pack — those are not read) and copy:
+
+| From the client | Into the CMS |
+| --- | --- |
+| Item icon `.tga` files | `game/client/icon/item/` |
+| Face `.tga` files (see `faces` above) | `game/client/icon/face/` |
+| `item_list.txt` | `game/client/item_list.txt` |
+| `itemdesc.txt` (tooltips) | `game/client/itemdesc.txt` |
+
+If `GAME_DIR` is set, use that directory instead of `game/`.
+
+Face files must use the names in `config.json` (`warrior_m.tga`, `assassin_w.tga`, …). `player.job` is the race id `0`–`8`, not the class. Ninja and shaman defaults are the female faces.
+
+Item lookup, in order: the filename in `item_list.txt` for that vnum, then `{vnum}.tga` zero-padded to 5 digits (`00019.tga`), then the base vnum for a `+1`…`+9` (`19` uses `00010.tga` when its own file is missing).
+
+Leave the files as TGA. `GameIconService` decodes them on `GET /game/icon/item/{vnum}` and `GET /game/icon/face/{job}`, and caches PNG under `var/cache/icons/`. Do not put icons in the theme or in `public/`.
+
 ## schema/item.json and schema/mob.json
 
 ### Columns
@@ -165,7 +186,7 @@ Services wired through the profile:
 
 ## Checklist for a new source
 
-1. Copy client + db + server files into `game/` (or set `GAME_DIR`).
+1. Copy client + db + server files into `game/` (or set `GAME_DIR`), including `client/icon/item/*.tga`, `client/icon/face/*.tga`, and `client/item_list.txt`.
 2. Adjust `config.json` paths if filenames differ.
 3. Verify `schema/*.json` column order matches your proto txt.
 4. Append any extra `types`, `subtypes`, or `apply_types` at the **end** of arrays.

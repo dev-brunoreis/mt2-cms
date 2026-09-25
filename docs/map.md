@@ -46,9 +46,9 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Notifications | [notifications.md](notifications.md) | `NotificationService`, `/account/notifications` |
 | SEO | [seo.md](seo.md) | `SeoService`, `SeoController`, settings tab `seo`, news/events form tab `seo` |
 | Security invariants | [security.md](security.md) | `tests/Unit/Contract/SecurityContractTest.php` |
-| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/` (`^[A-Za-z0-9_-]+$`), `theme.json` features (e.g. `layout_columns`), layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController`. Default footer keeps an "Mt2 CMS" credit. Admin panel footer links to GitHub Sponsors |
+| Theme overlay | [add-theme.md](add-theme.md) | Author guide: child overlay, data globals, tutorials. `themes/{name}/` (`^[A-Za-z0-9_-]+$`), `theme.json` `layout_columns`, layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController`. Shipped example: `themes/starter` (parent `default`). Default footer keeps an "Mt2 CMS" credit. Admin panel footer links to GitHub Sponsors |
 | Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Codes `^[A-Za-z0-9_-]+$`. Optional: `bin/i18n-deepl.php` to generate more packs |
-| Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
+| Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/`. Item and face icons are client TGA copied into `game/client/icon/` (empty in git and in the release); PNG is generated on request |
 | Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
 | Deploy | [deploy.md](deploy.md), [game-mysql.md](game-mysql.md) | Linux CMS host (Compose or `dist/` from `bin/package-release.sh`); GitHub Release on version tags such as `1.0.0-beta.0` (`.github/workflows/release.yml`); `game/` dumps without client icon/ui; remote game MySQL grants; `APP_KEY`, TLS |
 

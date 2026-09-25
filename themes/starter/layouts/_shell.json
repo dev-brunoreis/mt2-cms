@@ -1,0 +1,7 @@
+{
+  "slots": {
+    "right": [
+      { "id": "widget-discord", "remove": true }
+    ]
+  }
+}

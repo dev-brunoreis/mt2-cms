@@ -1,0 +1,7 @@
+{
+  "name": "starter",
+  "parent": "default",
+  "features": {
+    "layout_columns": true
+  }
+}

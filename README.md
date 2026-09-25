@@ -17,6 +17,7 @@ You need a Linux host (not the Metin2 game box), PHP 8.3 FPM (`pdo_mysql`, `gd` 
 3. `cp .env.prod-example .env` and set `DB_*` (game) and `CMS_DB_*` (local CMS)
 4. Point the web server at `public/` only - sample configs in [`deploy/linux/`](deploy/linux/)
 5. Open `/setup`
+6. Copy item and face icons from your unpacked Metin2 client (TGA, not the `.epk` pack) into `game/client/icon/item/` and `game/client/icon/face/`, plus `item_list.txt` into `game/client/`. The release leaves `game/client/icon/` empty. The site runs without them; shop and ranking then show no images. Face filenames are `warrior_m.tga`, `assassin_w.tga`, `sura_m.tga`, `shaman_w.tga`, `warrior_w.tga`, `assassin_m.tga`, `sura_w.tga`, `shaman_m.tga`, `wolfman_m.tga`. Details: [docs/game-files.md](docs/game-files.md) in the source repo (that folder is not in the tarball).
 
 ## Develop
 
@@ -39,6 +40,8 @@ composer test
 ## Docs
 
 Start at [docs/map.md](docs/map.md). That folder is not in the release tarball.
+
+Building a public theme: [docs/add-theme.md](docs/add-theme.md). Copy `themes/starter`, recolor, activate under **Admin → Settings → Themes**. The release tarball includes `themes/README.md` with the short version.
 
 ## Contributing
 

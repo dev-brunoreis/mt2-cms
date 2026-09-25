@@ -47,7 +47,7 @@ HTTP/MySQL live checks belong only under `tests/Integration/`. Do not add them t
 ## GitHub Actions
 
 - `.github/workflows/ci.yml` — `composer test` (unit) on PHP 8.3
-- `.github/workflows/psalm.yml` — Psalm taint analysis, SARIF to code scanning. The action image lacks `ext-gd` / `ext-pdo_mysql`; the job sets `COMPOSER_IGNORE_PLATFORM_REQ` so `composer install` can run. Those extensions stay required on real PHP hosts.
+- `.github/workflows/psalm.yml` — Psalm 6 taint analysis on PHP 8.3 (`psalm.xml` → `src/`), SARIF to code scanning. Does not use `psalm/psalm-github-security-scan` (that image is PHP 8.2).
 
 ## What to add when you change production code
 

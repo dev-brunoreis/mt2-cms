@@ -1,15 +1,9 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Psalm Security Scan
 
 on:
   push:
     branches: [ "develop" ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ "develop" ]
   schedule:
     - cron: '24 13 * * 0'
@@ -29,13 +23,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # psalm/psalm-github-security-scan is PHP 8.2; this project requires 8.3
+      # (vendor/composer/platform_check.php) plus ext-gd / ext-pdo_mysql.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: zip, gd, pdo_mysql
+          coverage: none
+          tools: composer, vimeo/psalm:6.18.0
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
       - name: Psalm Security Scan
-        uses: psalm/psalm-github-security-scan@f3e6fd9432bc3e44aec078572677ce9d2ef9c287
-        env:
-          # Scan image has no gd / pdo_mysql; taint analysis does not need them.
-          COMPOSER_IGNORE_PLATFORM_REQ: ext-gd,ext-pdo_mysql
+        run: psalm --output-format=github --taint-analysis --report=results.sarif --no-progress
 
       - name: Upload Security Analysis results to GitHub
+        if: always() && hashFiles('results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif

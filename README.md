@@ -1,6 +1,6 @@
 # Mt2 CMS
 
-Metin2 site + admin. Beta — public APIs and schema can still change before `1.0.0`.
+Metin2 site + admin. Beta - public APIs and schema can still change before `1.0.0`.
 
 ## Pick one
 
@@ -15,7 +15,7 @@ You need a Linux host (not the Metin2 game box), PHP 8.3 FPM (`pdo_mysql`, `gd` 
 1. Unpack `mt2-cms-VERSION.tar.gz`
 2. `composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction`
 3. `cp .env.prod-example .env` and set `DB_*` (game) and `CMS_DB_*` (local CMS)
-4. Point the web server at `public/` only — sample configs in [`deploy/linux/`](deploy/linux/)
+4. Point the web server at `public/` only - sample configs in [`deploy/linux/`](deploy/linux/)
 5. Open `/setup`
 
 ## Develop
@@ -43,6 +43,8 @@ Start at [docs/map.md](docs/map.md). That folder is not in the release tarball.
 ## Contributing
 
 Public project. Send fixes as pull requests. The maintainer ships changes here too.
+
+If this helps you, **star** and **fork** the repo - that is how people find it and how you keep your own copy. Need a custom system for your server (modules, integrations, one-off flows)? Get in touch on [GitHub](https://github.com/dev-brunoreis).
 
 Keep the "Mt2 CMS" line in the site footer. Support development: [GitHub Sponsors](https://github.com/sponsors/dev-brunoreis).
 

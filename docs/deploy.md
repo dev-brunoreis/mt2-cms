@@ -4,7 +4,7 @@ Run the CMS on a **Linux** host **separate** from the Metin2 game server. Local 
 
 **Before go-live:** wire remote game MySQL with a host-scoped app user — [game-mysql.md](game-mysql.md).
 
-Bare-metal tree: run `./bin/package-release.sh VERSION`, copy `dist/mt2-cms-VERSION/`, then `composer install --no-dev` on the host. Nginx/PHP-FPM snippets: [`deploy/linux/`](../deploy/linux/). Compose path below uses `compose.prod.yml`.
+Bare-metal tree: GitHub Release on a version tag such as `1.0.0-beta.0` (or `./bin/package-release.sh VERSION` locally), copy `dist/mt2-cms-VERSION/`, then `composer install --no-dev` on the host. Nginx/PHP-FPM snippets: [`deploy/linux/`](../deploy/linux/). Compose path below uses `compose.prod.yml`.
 
 Related: [game-mysql.md](game-mysql.md), [security.md](security.md), [improvements.md](improvements.md).
 
@@ -13,12 +13,23 @@ Related: [game-mysql.md](game-mysql.md), [security.md](security.md), [improvemen
 On a machine with Node 20 (for CSS/assets):
 
 ```bash
-./bin/package-release.sh 0.1.0-beta.1
+./bin/package-release.sh 1.0.0-beta.0
 # folder only:
-SKIP_ARCHIVE=1 ./bin/package-release.sh 0.1.0-beta.1
+SKIP_ARCHIVE=1 ./bin/package-release.sh 1.0.0-beta.0
 ```
 
 Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + `game/` dumps (no `client/icon` or `client/ui`), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there.
+
+### GitHub Release (production tags)
+
+Push a version tag `MAJOR.MINOR.PATCH` with optional prerelease (`1.0.0-beta.0`, `1.0.0`). A leading `v` is optional. [`.github/workflows/release.yml`](../.github/workflows/release.yml) runs unit tests, then `bin/package-release.sh`, and creates a GitHub Release with the `.tar.gz` + `.sha256`. Tags with a hyphen (`-beta`, `-rc`) are marked as prerelease. Branch pushes do not publish releases.
+
+```bash
+git tag -a 1.0.0-beta.0 -m "1.0.0-beta.0"
+git push origin 1.0.0-beta.0
+```
+
+Download the tarball from **Releases**. Same unpack + `composer install --no-dev` as a local `dist/` build.
 
 ## Architecture
 

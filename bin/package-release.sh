@@ -18,8 +18,8 @@ if [ -z "$VERSION" ]; then
 fi
 if [ -z "$VERSION" ]; then
   echo "usage: $0 VERSION" >&2
-  echo "  e.g. $0 0.1.0-beta.2" >&2
-  echo "  omit VERSION only when HEAD is an exact git tag (v0.1.0-beta.2)" >&2
+  echo "  e.g. $0 1.0.0-beta.0" >&2
+  echo "  omit VERSION only when HEAD is an exact git tag (1.0.0-beta.0)" >&2
   exit 1
 fi
 

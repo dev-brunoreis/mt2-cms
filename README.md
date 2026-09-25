@@ -2,7 +2,7 @@
 
 Metin2 CMS: public site + admin panel, overridable themes, dual MySQL (game + CMS), and i18n.
 
-**Status: beta** — public APIs and schema can still change between `0.x` pre-releases. Prefer tags like `v0.1.0-beta.1` until the first stable `v1.0.0`.
+**Status: beta** — public APIs and schema can still change between `1.0.0-beta.*` pre-releases. First tag: `1.0.0-beta.0`; stable is `1.0.0`.
 
 This README is the **runbook** — how to install, configure, and run the app. Architecture and how-to guides live under [`docs/`](docs/map.md).
 
@@ -259,8 +259,8 @@ Do **not** co-locate the CMS on the Metin2 game FreeBSD host — use a **separat
 ### Recommended: Linux bare-metal (`dist/`)
 
 1. Follow [docs/game-mysql.md](docs/game-mysql.md) (private MySQL, `'mt2cms'@'CMS_IP'`, firewall)  
-2. On a build machine: `./bin/package-release.sh 0.1.0-beta.2`  
-3. Copy `dist/mt2-cms-0.1.0-beta.2/` to `/var/www/mt2-cms` (or extract the `.tar.gz`); document root = `public/`  
+2. Download the GitHub Release tarball (or build: `./bin/package-release.sh 1.0.0-beta.0`)  
+3. Copy `dist/mt2-cms-1.0.0-beta.0/` to `/var/www/mt2-cms` (or extract the `.tar.gz`); document root = `public/`  
 4. `composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction`  
 5. Copy **`.env.prod-example`** → `.env`; set `DB_*` (game) and `CMS_DB_*` (local)  
 6. Configure Nginx + PHP-FPM ([`deploy/linux/`](deploy/linux/))  
@@ -280,13 +280,20 @@ Full checklist: [docs/deploy.md](docs/deploy.md).
 
 ### Creating a release (maintainers)
 
-Build locally — there is no GitHub Actions release job. While in beta, version like `0.1.0-beta.1`, `0.1.0-beta.2`, … then later `0.2.0-beta.1` / `1.0.0`.
+While in beta, version like `1.0.0-beta.0`, `1.0.0-beta.1`, … then `1.0.0`. Push an annotated tag — GitHub Actions packages `dist/` and publishes a Release (tarball + sha256):
 
 ```bash
-./bin/package-release.sh 0.1.0-beta.1
+git tag -a 1.0.0-beta.0 -m "1.0.0-beta.0"
+git push origin 1.0.0-beta.0
 ```
 
-Writes `dist/mt2-cms-0.1.0-beta.1/` (deploy this folder) plus `.tar.gz` and `.sha256`. Skip the archive with `SKIP_ARCHIVE=1`. The tree includes built assets, `composer.lock`, and `game/` dumps (no `client/icon` or `client/ui`). It does **not** include `vendor/`, `docs/`, Docker, tests, maintainer scripts, or local `public/uploads`. `dist/` is gitignored. Omit `VERSION` only when HEAD is an exact git tag.
+To build locally instead (same tree as CI):
+
+```bash
+./bin/package-release.sh 1.0.0-beta.0
+```
+
+Writes `dist/mt2-cms-1.0.0-beta.0/` (deploy this folder) plus `.tar.gz` and `.sha256`. Skip the archive with `SKIP_ARCHIVE=1`. The tree includes built assets, `composer.lock`, and `game/` dumps (no `client/icon` or `client/ui`). It does **not** include `vendor/`, `docs/`, Docker, tests, maintainer scripts, or local `public/uploads`. `dist/` is gitignored. Omit `VERSION` only when HEAD is an exact git tag. See [docs/deploy.md](docs/deploy.md).
 
 ---
 

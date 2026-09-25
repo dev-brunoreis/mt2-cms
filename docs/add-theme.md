@@ -116,7 +116,7 @@ Shell slots: `header`, `banner`, `sidebar`, `left` (column widgets), `main`, `ri
 
 ## 6. Activate
 
-Set in `.env` (`THEME=my-theme`) or **Admin → Settings → Themes** (active theme + layout).
+Set in `.env` (`THEME=my-theme`) or **Admin → Settings → Themes** (active theme + layout). Folder names must match `^[A-Za-z0-9_-]+$` — `ThemeCatalog::meta()` does not read `theme.json` until `isValid()`.
 
 ## PR checklist
 

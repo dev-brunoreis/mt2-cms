@@ -11,6 +11,7 @@ use Mt2Cms\Auth\AdminAuth;
 use Mt2Cms\Auth\Auth;
 use Mt2Cms\Auth\Csrf;
 use Mt2Cms\Http\Response;
+use Mt2Cms\I18n\Locales;
 use Mt2Cms\I18n\Translator;
 use Mt2Cms\Repository\EconomyRepository;
 use Mt2Cms\Repository\GameEconomyScanRepository;
@@ -475,13 +476,10 @@ class AdminEconomyController extends AdminController
             $this->flash('success', $this->t('admin.economy.alert_acked'));
         }
 
-        $back = trim((string) ($_POST['back'] ?? '/admin/game/economy'));
-
-        if ($back === '' || !str_starts_with($back, '/admin/game/economy')) {
-            $back = '/admin/game/economy';
-        }
-
-        return $this->redirect($back);
+        return $this->redirect(Locales::safeRedirectUnder(
+            is_string($_POST['back'] ?? null) ? $_POST['back'] : '/admin/game/economy',
+            '/admin/game/economy',
+        ));
     }
 
     /**

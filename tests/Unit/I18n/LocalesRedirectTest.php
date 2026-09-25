@@ -57,6 +57,30 @@ final class LocalesRedirectTest extends TestCase
         self::assertSame('/', $this->locales->safeRedirect('https://evil.example'));
     }
 
+    public function testSafeRedirectUnderKeepsPrefixedPath(): void
+    {
+        self::assertSame(
+            '/admin/game/economy?tab=alerts',
+            Locales::safeRedirectUnder('/admin/game/economy?tab=alerts', '/admin/game/economy'),
+        );
+    }
+
+    public function testSafeRedirectUnderRejectsOtherAdminPaths(): void
+    {
+        self::assertSame(
+            '/admin/game/economy',
+            Locales::safeRedirectUnder('/admin/settings', '/admin/game/economy'),
+        );
+    }
+
+    public function testSafeRedirectUnderRejectsHeaderInjection(): void
+    {
+        self::assertSame(
+            '/admin/game/economy',
+            Locales::safeRedirectUnder("/admin/game/economy\r\nLocation: http://evil", '/admin/game/economy'),
+        );
+    }
+
     public function testResolvePrefersCookieOverDefault(): void
     {
         $prev = $_COOKIE;

@@ -42,12 +42,12 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Public page | [add-page.md](add-page.md) | `PublicRoutes.php`, `src/Http/Controller/` |
 | Repository / SQL | [add-repository.md](add-repository.md) | `src/Repository/`, `src/Support/Database.php` |
 | Payments / donate | [payments.md](payments.md) | `src/Payment/`, `PaymentCheckoutService`, `bin/payments-process.php` |
-| Economy | [economy.md](economy.md) | `EconomyTickService`, `AdminEconomyController` |
+| Economy | [economy.md](economy.md) | `EconomyTickService`, `AdminEconomyController` (alert ack `back` via `Locales::safeRedirectUnder`) |
 | Notifications | [notifications.md](notifications.md) | `NotificationService`, `/account/notifications` |
 | SEO | [seo.md](seo.md) | `SeoService`, `SeoController`, settings tab `seo`, news/events form tab `seo` |
 | Security invariants | [security.md](security.md) | `tests/Unit/Contract/SecurityContractTest.php` |
-| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/`, `theme.json` features (e.g. `layout_columns`), layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController`. Default footer keeps an "Mt2 CMS" credit. Admin panel footer links to GitHub Sponsors |
-| Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Optional: `bin/i18n-deepl.php` to generate more packs |
+| Theme overlay | [add-theme.md](add-theme.md) | `themes/{name}/` (`^[A-Za-z0-9_-]+$`), `theme.json` features (e.g. `layout_columns`), layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController`. Default footer keeps an "Mt2 CMS" credit. Admin panel footer links to GitHub Sponsors |
+| Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Codes `^[A-Za-z0-9_-]+$`. Optional: `bin/i18n-deepl.php` to generate more packs |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json`, `src/Game/` |
 | Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
 | Deploy | [deploy.md](deploy.md), [game-mysql.md](game-mysql.md) | Linux CMS host (Compose or `dist/` from `bin/package-release.sh`); GitHub Release on version tags such as `1.0.0-beta.0` (`.github/workflows/release.yml`); `game/` dumps without client icon/ui; remote game MySQL grants; `APP_KEY`, TLS |

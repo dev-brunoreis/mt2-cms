@@ -18,7 +18,7 @@ Without a frequent cron the admin KPIs go stale (UI flags last-ok older than ~2h
 | `GET …/players`, `…/players/{id}` | Per-player economy | view |
 | `GET …/{id}` | Item detail | view |
 | `POST …/{id}/watch` | Watch / unwatch an item | `game/economy/edit` |
-| `POST …/alerts/{id}/ack` | Ack alert | `game/economy/edit` |
+| `POST …/alerts/{id}/ack` | Ack alert; optional `back` must stay under `/admin/game/economy` (`Locales::safeRedirectUnder`) | `game/economy/edit` |
 | `POST …/mass` | Grid mass (`runMassActions`) | `game/economy/mass` |
 
 Demo seed (dev): `bin/economy-seed-demo.php`.

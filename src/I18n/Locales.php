@@ -99,7 +99,12 @@ class Locales
         return 'en';
     }
 
-    public function safeRedirect(?string $target): string
+    /**
+     * Internal path only — no scheme, protocol-relative URL, or CR/LF.
+     *
+     * @psalm-taint-escape header
+     */
+    public static function safeRedirect(?string $target): string
     {
         if (!is_string($target) || $target === '' || $target[0] !== '/' || str_starts_with($target, '//')) {
             return '/';
@@ -110,6 +115,23 @@ class Locales
         }
 
         return $target;
+    }
+
+    /**
+     * Internal path that must stay under $prefix (also an internal path).
+     *
+     * @psalm-taint-escape header
+     */
+    public static function safeRedirectUnder(?string $target, string $prefix): string
+    {
+        $fallback = self::safeRedirect($prefix);
+        $path = self::safeRedirect($target);
+
+        if ($fallback === '/' || !str_starts_with($path, $fallback)) {
+            return $fallback;
+        }
+
+        return $path;
     }
 
     private function localeName(string $code): string

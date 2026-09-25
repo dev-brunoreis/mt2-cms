@@ -170,10 +170,19 @@ class Translator
         return $node;
     }
 
+    /**
+     * Locale codes are folder/file stems under lang/. Reject path junk.
+     *
+     * @psalm-taint-escape file
+     */
     private function normalize(string $locale): string
     {
         $locale = trim($locale);
 
-        return $locale !== '' ? $locale : 'en';
+        if ($locale === '' || !preg_match('/^[A-Za-z0-9_-]+$/', $locale)) {
+            return 'en';
+        }
+
+        return $locale;
     }
 }

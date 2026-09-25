@@ -10,7 +10,8 @@ What the CMS already enforces, and what every change must keep intact.
 | XSS | Twig `autoescape` = `html`; `|raw` only for layout slots already rendered by Twig |
 | CSRF | Session token + `hash_equals`; required on all mutating POSTs |
 | Auth | `hash_equals` for password compare; hash never returned; `reveal()` strips secrets |
-| Open redirect | `Locales::safeRedirect` — internal paths only |
+| Open redirect | `Locales::safeRedirect` — internal paths only (also the header sanitizer for `Location`) |
+| Locale / theme files | Locale and theme names must match `^[A-Za-z0-9_-]+$` before `file_get_contents` |
 | Cookies | Locale cookie: `HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS |
 | Session | Hardened cookie params; separate admin cookie (`MT2ADMIN`, path `/admin`) vs public (`MT2CMS`); `session_regenerate_id(true)` on successful login; idle timeout (admin 30 min, public 2 h) via `SessionGuard`. Admin UI language switch posts to `/admin/locale` (not `/locale`) so CSRF uses the admin session |
 | Brute force | File-backed IP + action rate limit on login/register/admin login, password change, and other sensitive POSTs (`var/rate-limit/`); fail-closed when storage is unavailable |

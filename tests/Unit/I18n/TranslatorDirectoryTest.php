@@ -34,6 +34,14 @@ final class TranslatorDirectoryTest extends TestCase
         self::assertSame('English', $t->get('locale.name'));
     }
 
+    public function testPathLikeLocaleFallsBackToEnglish(): void
+    {
+        $t = new Translator($this->root, '../etc', 'en');
+
+        self::assertSame('en', $t->locale());
+        self::assertSame('Home', $t->get('nav.home'));
+    }
+
     private function rm(string $path): void
     {
         if (!is_dir($path)) {

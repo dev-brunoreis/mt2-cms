@@ -66,6 +66,24 @@ final class ThemeCatalogFeaturesTest extends TestCase
         self::assertFalse($catalog->supportsFeature('optout', 'layout_columns'));
     }
 
+    public function testMetaRejectsPathTraversalName(): void
+    {
+        $outside = dirname($this->tmp) . '/evil-theme-' . bin2hex(random_bytes(4));
+        mkdir($outside, 0777, true);
+        file_put_contents($outside . '/theme.json', json_encode(['name' => 'evil'], JSON_THROW_ON_ERROR));
+
+        try {
+            $catalog = new ThemeCatalog($this->tmp);
+            $meta = $catalog->meta('../' . basename($outside));
+
+            self::assertFalse($catalog->isValid('../' . basename($outside)));
+            self::assertSame(['name' => '../' . basename($outside), 'parent' => null], $meta);
+        } finally {
+            unlink($outside . '/theme.json');
+            rmdir($outside);
+        }
+    }
+
     private function rmTree(string $dir): void
     {
         if (!is_dir($dir)) {

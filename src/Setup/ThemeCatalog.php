@@ -124,14 +124,26 @@ class ThemeCatalog
      */
     public function meta(string $name): array
     {
-        $file = $this->themesPath . '/' . $name . '/theme.json';
+        $file = $this->themeJsonPath($name);
 
-        if (!is_file($file)) {
+        if ($file === null || !is_file($file)) {
             return ['name' => $name, 'parent' => null];
         }
 
         $data = json_decode((string) file_get_contents($file), true);
 
         return is_array($data) ? $data : [];
+    }
+
+    /**
+     * @psalm-taint-escape file
+     */
+    private function themeJsonPath(string $name): ?string
+    {
+        if (!$this->isValid($name)) {
+            return null;
+        }
+
+        return $this->themesPath . '/' . $name . '/theme.json';
     }
 }

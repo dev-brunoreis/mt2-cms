@@ -49,7 +49,7 @@ A locale is supported if either exists:
 1. Create `lang/{code}.json` **or** `lang/{code}/` with namespace files.
 2. Include locale name for the switcher (`locale.name`).
 3. Translate from `en` (copy structure), or generate with DeepL (below).
-4. No PHP/route changes — `Locales::available()` scans files and directories under `lang/`.
+4. No PHP/route changes — `Locales::available()` scans files and directories under `lang/`. Codes must match `^[A-Za-z0-9_-]+$` (`Translator` falls back to `en` otherwise).
 5. Optional flag: drop `{code}.webp` in `public/flag/` (aliases: `cs`→`cz`, `da`→`dk`, `el`→`gr`).
 6. Add the code to `ShippedLocalesTest::SHIPPED` / `NAMES`.
 

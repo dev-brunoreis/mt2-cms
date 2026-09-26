@@ -49,7 +49,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 | Theme overlay | [add-theme.md](add-theme.md) | Author guide: child overlay, data globals, tutorials. `themes/{name}/` (`^[A-Za-z0-9_-]+$`), `theme.json` `layout_columns`, layout JSON by node `id`, `/theme-assets/` via nginx or `ThemeAssetController`. Shipped example: `themes/starter` (parent `default`). Default footer keeps an "Mt2 CMS" credit. Admin panel footer links to GitHub Sponsors |
 | Locale | [add-locale.md](add-locale.md) | Shipped: `en` (`lang/en.json`). Public `POST /locale`; admin sidebar `POST /admin/locale`. Codes `^[A-Za-z0-9_-]+$`. Optional: `bin/i18n-deepl.php` to generate more packs |
 | Game dumps / proto | [game-files.md](game-files.md) | `game/config.json` + `schema/` ship; proto, drops, and client files are copied by the operator (`game/README.md`, 40.250 reference). Icons are TGA under `game/client/icon/`; PNG is generated on request |
-| Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
+| Install / first boot | [setup.md](setup.md) | `SetupController`, `SetupInstaller`, `SetupRequirements` (`bin/check-requirements.php` / `composer check`), `SetupDatabaseDefaults`, `BannerSeedService`, `NewsSeedService`, `EventSeedService` |
 | Deploy | [deploy.md](deploy.md), [game-mysql.md](game-mysql.md) | Linux CMS host (Compose or `dist/` from `bin/package-release.sh`); GitHub Release on version tags such as `1.0.0-beta.0` (`.github/workflows/release.yml`); release `game/` has schema only (no proto/client dumps); dev MySQL SQL is operator-supplied under `docker/mysql/backup/`; remote game MySQL grants; `APP_KEY`, TLS |
 
 ## Admin URL areas
@@ -71,7 +71,7 @@ New admin screen: menu in `AdminSections`, path in `AdminPaths`, **permissions i
 
 Auth/account: login, register, forgot/reset, verify-email, password, email, PIN, characters/unstuck, orders, payments, notifications, tickets.
 
-Content: news + comments, events, downloads, shop buy, donate, ranking, player profile, `/status`, `/robots.txt`, `/sitemap.xml`.
+Content: news + comments, events, downloads, shop buy, donate, ranking, player profile (optional equipment with MySQL-lag caveat), `/status`, `/robots.txt`, `/sitemap.xml`.
 
 First HTTP boot after `/setup` seeds class banners, one published welcome news post, and classic Metin2 events when those tables are empty (see [setup.md](setup.md)).
 

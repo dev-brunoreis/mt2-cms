@@ -53,6 +53,7 @@ final class SecurityContractTest extends TestCase
         'Mt2Cms\\Http\\Controller\\ItemShopController::buy',
         'Mt2Cms\\Http\\Controller\\DonateController::buy',
         'Mt2Cms\\Http\\Controller\\SetupController::submit',
+        'Mt2Cms\\Http\\Controller\\SetupController::testConnection',
     ];
 
     public function testDatabaseAlwaysPreparesStatements(): void

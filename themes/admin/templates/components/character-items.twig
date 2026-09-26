@@ -4,5 +4,7 @@
         <span class="admin-fieldset-help">{{ t('admin.characters.items_help') }}</span>
     </h2>
 
+    {% include 'components/player-items-caution.twig' %}
+
     {% include 'components/character-item-layout.twig' with { layout: characterItemLayout } %}
 </section>

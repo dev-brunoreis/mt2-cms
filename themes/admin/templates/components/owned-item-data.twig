@@ -4,6 +4,8 @@
         <span class="admin-fieldset-help">{{ t('admin.owned_items.details_help') }}</span>
     </legend>
 
+    {% include 'components/player-items-caution.twig' %}
+
     {% if item %}
         <dl class="admin-stat-grid">
             <div class="admin-stat">

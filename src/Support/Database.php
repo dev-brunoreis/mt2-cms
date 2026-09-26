@@ -65,6 +65,78 @@ class Database
     }
 
     /**
+     * Connect and ensure schema `cms` exists (CREATE DATABASE IF NOT EXISTS), then verify.
+     *
+     * @param array{host: string, port: string|int, user: string, password: string} $config
+     */
+    public static function ensureCmsSchema(array $config): bool
+    {
+        if (self::cmsServerBlockReason($config) !== null) {
+            return false;
+        }
+
+        try {
+            $db = new self([
+                'host' => $config['host'],
+                'port' => (string) $config['port'],
+                'user' => $config['user'],
+                'password' => $config['password'],
+                'requirePassword' => false,
+            ]);
+            $db->createSchemaIfMissing('cms');
+
+            return self::testConnection([
+                'host' => $config['host'],
+                'port' => $config['port'],
+                'user' => $config['user'],
+                'password' => $config['password'],
+                'database' => 'cms',
+            ]);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * CMS schema needs MySQL 8+ or MariaDB 10.3+ (JSON columns).
+     *
+     * @param array{host: string, port: string|int, user: string, password: string} $config
+     * @return null|string i18n error key when the server is unusable for CMS
+     */
+    public static function cmsServerBlockReason(array $config): ?string
+    {
+        try {
+            $db = new self([
+                'host' => $config['host'],
+                'port' => (string) $config['port'],
+                'user' => $config['user'],
+                'password' => $config['password'],
+                'requirePassword' => false,
+            ]);
+            $version = (string) $db->fetchColumn('SELECT VERSION()');
+
+            if (!self::isCmsCompatibleServerVersion($version)) {
+                return 'setup.cms_requires_mysql8';
+            }
+
+            return null;
+        } catch (\Throwable) {
+            return 'setup.cms_db_connection_failed';
+        }
+    }
+
+    public static function isCmsCompatibleServerVersion(string $version): bool
+    {
+        if (preg_match('/(\d+\.\d+\.\d+)-MariaDB/i', $version, $matches)) {
+            return version_compare($matches[1], '10.3.0', '>=');
+        }
+
+        $numeric = preg_replace('/[^0-9.].*/', '', $version) ?? '';
+
+        return $numeric !== '' && version_compare($numeric, '8.0.0', '>=');
+    }
+
+    /**
      * @param array{host: string, port: string|int, user: string, password: string} $config
      */
     public static function testGameSchema(array $config): bool
@@ -156,6 +228,15 @@ class Database
         $this->currentDatabase = $database;
 
         return $this;
+    }
+
+    public function createSchemaIfMissing(string $schema): void
+    {
+        $name = self::quoteIdentifier($schema);
+        $this->connect();
+        $this->conn->exec(
+            "CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+        );
     }
 
     public function query(string $sql, array $params = []): \PDOStatement

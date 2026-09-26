@@ -11,6 +11,7 @@
         }
     },
     "scripts": {
+        "check": "php bin/check-requirements.php",
         "test": "phpunit --testsuite unit",
         "test:integration": "phpunit --testsuite integration"
     },
@@ -19,6 +20,7 @@
         "ext-curl": "*",
         "ext-fileinfo": "*",
         "ext-gd": "*",
+        "ext-iconv": "*",
         "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-pdo_mysql": "*",

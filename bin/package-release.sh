@@ -66,7 +66,7 @@ done
 
 # Host cron/CLI only — not maintainer tools
 mkdir -p "$STAGE/bin"
-for f in migrate.php payments-process.php economy-tick.php backup-dbs.sh; do
+for f in migrate.php payments-process.php economy-tick.php backup-dbs.sh check-requirements.php; do
   if [ ! -f "bin/$f" ]; then
     echo "missing required path: bin/$f" >&2
     exit 1

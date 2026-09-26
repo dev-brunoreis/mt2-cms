@@ -104,6 +104,7 @@ use Mt2Cms\Service\PaymentWebhookProcessor;
 use Mt2Cms\Setup\CmsSchema;
 use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\MigrationRunner;
+use Mt2Cms\Setup\SetupInstaller;
 use Mt2Cms\Setup\ThemeCatalog;
 use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Support\Log;
@@ -244,6 +245,16 @@ class Application
                 return;
             }
 
+            if (SetupInstaller::hasCompleteSession()) {
+                if ($this->normalizeUri() === '/setup') {
+                    $this->runSetupCompleteRoutes();
+
+                    return;
+                }
+
+                SetupInstaller::clearCompleteSession();
+            }
+
             $this->dispatch(function (RouteCollector $r): void {
                 PublicRoutes::register($r);
                 AdminRoutes::register($r);
@@ -264,12 +275,26 @@ class Application
         $this->runSetupRoutes('/setup?step=admin');
     }
 
+    /** Success screen after wizard finishes (APP_INSTALLED already true). */
+    private function runSetupCompleteRoutes(): void
+    {
+        try {
+            $this->dispatch(function (RouteCollector $r): void {
+                $r->addRoute('GET', '/setup', [SetupController::class, 'show']);
+                $r->addRoute('POST', '/setup', [SetupController::class, 'submit']);
+            }, false);
+        } catch (\Throwable $e) {
+            Log::error('app', 'Unhandled exception during setup complete', $e);
+            Response::html('Internal Server Error', 500)->send();
+        }
+    }
+
     private function runSetupRoutes(string $redirectTarget): void
     {
         try {
             $uri = $this->normalizeUri();
 
-            if ($uri !== '/setup') {
+            if ($uri !== '/setup' && $uri !== '/setup/test-connection') {
                 Response::redirect($redirectTarget)->send();
 
                 return;
@@ -278,6 +303,7 @@ class Application
             $this->dispatch(function (RouteCollector $r): void {
                 $r->addRoute('GET', '/setup', [SetupController::class, 'show']);
                 $r->addRoute('POST', '/setup', [SetupController::class, 'submit']);
+                $r->addRoute('POST', '/setup/test-connection', [SetupController::class, 'testConnection']);
             }, false);
         } catch (\Throwable $e) {
             Log::error('app', 'Unhandled exception during setup', $e);

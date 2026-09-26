@@ -1,6 +1,10 @@
 {% if layout %}
 <section class="k-panel overflow-hidden">
     <h2 class="k-panel-head">{{ t('player.equipment') }}</h2>
+    <div class="border-b border-[var(--k-border)] px-5 py-3 text-sm text-amber-200/90 sm:px-6" role="note">
+        <p class="font-medium text-amber-100">{{ t('player.equipment_caution_title') }}</p>
+        <p class="mt-1 text-amber-200/70">{{ t('player.equipment_caution_body') }}</p>
+    </div>
     <div class="k-inv-stage flex flex-wrap items-start justify-center gap-6 p-5 sm:p-6">
         {% if layout.equipment.has_item or true %}
             <div class="k-inv-board">

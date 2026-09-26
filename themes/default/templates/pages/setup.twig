@@ -1,44 +1,115 @@
 <div class="setup-wrap">
     <div class="setup-header">
-        <p class="setup-badge">{{ t('setup.badge') }}</p>
-        <h1 class="setup-title">{{ t('setup.title') }}</h1>
-        <p class="setup-lead">{{ t('setup.lead') }}</p>
+        {% if step == 'done' %}
+            <p class="setup-badge">{{ t('setup.done_badge') }}</p>
+            <h1 class="setup-title">{{ t('setup.done_title') }}</h1>
+        {% else %}
+            <p class="setup-badge">{{ t('setup.badge') }}</p>
+            <h1 class="setup-title">{{ t('setup.title') }}</h1>
+            <p class="setup-lead">{{ t('setup.lead') }}</p>
+        {% endif %}
     </div>
 
-    {% if not adminRecoveryOnly %}
-        <div class="setup-steps">
-            <span class="setup-step {% if step == 'db' %}is-active{% endif %}">
-                1. {{ t('setup.step_db') }}
+    {% if not adminRecoveryOnly and step != 'done' %}
+        <nav class="setup-steps" aria-label="{{ t('setup.steps_label') }}">
+            <span class="setup-step {% if step == 'requirements' %}is-active{% elseif step == 'db' or step == 'admin' %}is-done{% endif %}">
+                <span class="setup-step-num">1</span>
+                <span class="setup-step-label">{{ t('setup.step_requirements') }}</span>
             </span>
-            <span class="setup-step-arrow">→</span>
+            <span class="setup-step-line" aria-hidden="true"></span>
+            <span class="setup-step {% if step == 'db' %}is-active{% elseif step == 'admin' %}is-done{% endif %}">
+                <span class="setup-step-num">2</span>
+                <span class="setup-step-label">{{ t('setup.step_db') }}</span>
+            </span>
+            <span class="setup-step-line" aria-hidden="true"></span>
             <span class="setup-step {% if step == 'admin' %}is-active{% endif %}">
-                2. {{ t('setup.step_admin') }}
+                <span class="setup-step-num">3</span>
+                <span class="setup-step-label">{{ t('setup.step_admin') }}</span>
             </span>
-        </div>
+        </nav>
     {% endif %}
 
     <div class="setup-card">
-        {% if step == 'db' %}
-            <form method="post" action="/setup?step=db" class="setup-form">
+        {% if step == 'done' %}
+            <div class="setup-done">
+                <p class="setup-hint setup-hint-center">
+                    {% if existingAdmins %}
+                        {{ t('setup.done_lead_existing') }}
+                    {% else %}
+                        {{ t('setup.done_lead') }}
+                    {% endif %}
+                </p>
+
+                <div class="setup-done-actions">
+                    <a href="/" class="setup-btn setup-btn-primary">{{ t('setup.done_frontend') }}</a>
+                    <a href="/admin" class="setup-btn setup-btn-secondary">{{ t('setup.done_admin') }}</a>
+                </div>
+            </div>
+        {% elseif step == 'requirements' %}
+            <form method="post" action="/setup?step=requirements" class="setup-form">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+                <p class="setup-hint">{{ t('setup.requirements_lead') }}</p>
+
+                <ul class="setup-req-list">
+                    {% for row in requirements %}
+                        <li class="setup-req-item {% if row.ok %}is-ok{% else %}is-fail{% endif %}">
+                            <span class="setup-req-badge" aria-hidden="true">{% if row.ok %}OK{% else %}FAIL{% endif %}</span>
+                            <div class="setup-req-body">
+                                <span class="setup-req-label">{{ row.label }}</span>
+                                {% if row.detail %}
+                                    <span class="setup-req-detail">{{ row.detail }}</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if error %}
+                    <p class="setup-error" role="alert">{{ error }}</p>
+                {% endif %}
+
+                <div class="setup-actions">
+                    <button type="submit" class="setup-btn setup-btn-primary" {% if not requirementsOk %}disabled{% endif %}>
+                        {{ t('setup.continue') }}
+                    </button>
+                </div>
+
+                {% if not requirementsOk %}
+                    <p class="setup-hint setup-hint-center">{{ t('setup.requirements_cli_hint') }}</p>
+                {% endif %}
+            </form>
+        {% elseif step == 'db' %}
+            <form method="post" action="/setup?step=db" class="setup-form" data-setup-db-form>
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
 
                 <section class="setup-section">
-                    <h2 class="setup-section-title">{{ t('setup.game_db_heading') }}</h2>
-                    <p class="setup-hint">{{ t('setup.game_db_hint') }}</p>
-
-                    <div class="setup-field">
-                        <label for="db_host" class="setup-label">{{ t('setup.db_host') }}</label>
-                        <input id="db_host" type="text" name="db_host" required value="{{ values.db_host }}" class="setup-input">
+                    <div class="setup-section-head">
+                        <div>
+                            <h2 class="setup-section-title">{{ t('setup.game_db_heading') }}</h2>
+                            <p class="setup-hint">{{ t('setup.game_db_hint') }}</p>
+                        </div>
+                        <button type="button" class="setup-btn setup-btn-secondary setup-btn-sm"
+                                data-setup-test="game"
+                                data-setup-status="game-status">
+                            {{ t('setup.test_connection') }}
+                        </button>
                     </div>
 
-                    <div class="setup-field">
-                        <label for="db_port" class="setup-label">{{ t('setup.db_port') }}</label>
-                        <input id="db_port" type="text" name="db_port" required value="{{ values.db_port }}" class="setup-input">
+                    <div class="setup-grid">
+                        <div class="setup-field">
+                            <label for="db_host" class="setup-label">{{ t('setup.db_host') }}</label>
+                            <input id="db_host" type="text" name="db_host" required value="{{ values.db_host }}" class="setup-input" autocomplete="off">
+                        </div>
+                        <div class="setup-field">
+                            <label for="db_port" class="setup-label">{{ t('setup.db_port') }}</label>
+                            <input id="db_port" type="text" name="db_port" required value="{{ values.db_port }}" class="setup-input" autocomplete="off">
+                        </div>
                     </div>
 
                     <div class="setup-field">
                         <label for="db_user" class="setup-label">{{ t('setup.db_user') }}</label>
-                        <input id="db_user" type="text" name="db_user" required value="{{ values.db_user }}" class="setup-input">
+                        <input id="db_user" type="text" name="db_user" required value="{{ values.db_user }}" class="setup-input" autocomplete="username">
                     </div>
 
                     <div class="setup-field">
@@ -47,25 +118,37 @@
                                placeholder="{{ t('setup.db_password_placeholder') }}" class="setup-input" autocomplete="new-password">
                         <p class="setup-hint">{{ t('setup.db_password_hint') }}</p>
                     </div>
+
+                    <p class="setup-status" data-setup-status-el="game-status" hidden></p>
                 </section>
 
                 <section class="setup-section setup-section-divider">
-                    <h2 class="setup-section-title">{{ t('setup.cms_db_heading') }}</h2>
-                    <p class="setup-hint">{{ t('setup.cms_db_hint') }}</p>
-
-                    <div class="setup-field">
-                        <label for="cms_db_host" class="setup-label">{{ t('setup.cms_db_host') }}</label>
-                        <input id="cms_db_host" type="text" name="cms_db_host" required value="{{ values.cms_db_host }}" class="setup-input">
+                    <div class="setup-section-head">
+                        <div>
+                            <h2 class="setup-section-title">{{ t('setup.cms_db_heading') }}</h2>
+                            <p class="setup-hint">{{ t('setup.cms_db_hint') }}</p>
+                        </div>
+                        <button type="button" class="setup-btn setup-btn-secondary setup-btn-sm"
+                                data-setup-test="cms"
+                                data-setup-status="cms-status">
+                            {{ t('setup.test_connection') }}
+                        </button>
                     </div>
 
-                    <div class="setup-field">
-                        <label for="cms_db_port" class="setup-label">{{ t('setup.cms_db_port') }}</label>
-                        <input id="cms_db_port" type="text" name="cms_db_port" required value="{{ values.cms_db_port }}" class="setup-input">
+                    <div class="setup-grid">
+                        <div class="setup-field">
+                            <label for="cms_db_host" class="setup-label">{{ t('setup.cms_db_host') }}</label>
+                            <input id="cms_db_host" type="text" name="cms_db_host" required value="{{ values.cms_db_host }}" class="setup-input" autocomplete="off">
+                        </div>
+                        <div class="setup-field">
+                            <label for="cms_db_port" class="setup-label">{{ t('setup.cms_db_port') }}</label>
+                            <input id="cms_db_port" type="text" name="cms_db_port" required value="{{ values.cms_db_port }}" class="setup-input" autocomplete="off">
+                        </div>
                     </div>
 
                     <div class="setup-field">
                         <label for="cms_db_user" class="setup-label">{{ t('setup.cms_db_user') }}</label>
-                        <input id="cms_db_user" type="text" name="cms_db_user" required value="{{ values.cms_db_user }}" class="setup-input">
+                        <input id="cms_db_user" type="text" name="cms_db_user" required value="{{ values.cms_db_user }}" class="setup-input" autocomplete="username">
                     </div>
 
                     <div class="setup-field">
@@ -73,6 +156,8 @@
                         <input id="cms_db_password" type="password" name="cms_db_password" required
                                placeholder="{{ t('setup.db_password_placeholder') }}" class="setup-input" autocomplete="new-password">
                     </div>
+
+                    <p class="setup-status" data-setup-status-el="cms-status" hidden></p>
                 </section>
 
                 <div class="setup-field setup-section-divider">
@@ -90,16 +175,22 @@
                 </label>
 
                 {% if error %}
-                    <p class="setup-error">{{ error }}</p>
+                    <p class="setup-error" role="alert">{{ error }}</p>
                 {% endif %}
 
-                <button type="submit" class="setup-btn setup-btn-primary">
-                    {{ t('setup.continue') }}
-                </button>
+                <div class="setup-actions">
+                    <a href="/setup?step=requirements" class="setup-btn setup-btn-secondary">
+                        {{ t('setup.back') }}
+                    </a>
+                    <button type="submit" class="setup-btn setup-btn-primary">
+                        {{ t('setup.continue') }}
+                    </button>
+                </div>
             </form>
         {% else %}
             <form method="post" action="/setup?step=admin" class="setup-form">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <input type="hidden" name="setup_action" value="create">
 
                 <p class="setup-hint">
                     {% if adminRecoveryOnly %}
@@ -111,21 +202,21 @@
 
                 <div class="setup-field">
                     <label for="admin_login" class="setup-label">{{ t('setup.admin_login') }}</label>
-                    <input id="admin_login" type="text" name="admin_login" required class="setup-input">
+                    <input id="admin_login" type="text" name="admin_login" required class="setup-input" autocomplete="username">
                 </div>
 
                 <div class="setup-field">
                     <label for="admin_password" class="setup-label">{{ t('setup.admin_password') }}</label>
-                    <input id="admin_password" type="password" name="admin_password" required minlength="8" class="setup-input">
+                    <input id="admin_password" type="password" name="admin_password" required minlength="8" class="setup-input" autocomplete="new-password">
                 </div>
 
                 <div class="setup-field">
                     <label for="admin_password_confirm" class="setup-label">{{ t('setup.admin_password_confirm') }}</label>
-                    <input id="admin_password_confirm" type="password" name="admin_password_confirm" required minlength="8" class="setup-input">
+                    <input id="admin_password_confirm" type="password" name="admin_password_confirm" required minlength="8" class="setup-input" autocomplete="new-password">
                 </div>
 
                 {% if error %}
-                    <p class="setup-error">{{ error }}</p>
+                    <p class="setup-error" role="alert">{{ error }}</p>
                 {% endif %}
 
                 <div class="setup-actions">

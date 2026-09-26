@@ -18,7 +18,7 @@ On a machine with Node 20 (for CSS/assets):
 SKIP_ARCHIVE=1 ./bin/package-release.sh 1.0.0-beta.0
 ```
 
-Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + `game/` schema and [`game/README.md`](../game/README.md) only (no proto, drops, client text, icons, or maps), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there. Copy game files after unpack — [game-files.md](game-files.md).
+Pass an explicit `VERSION` (or run on an exact git tag). Output is `dist/mt2-cms-VERSION/` (gitignored): app tree + root `VERSION` file (admin footer via `CmsVersion`) + `game/` schema and [`game/README.md`](../game/README.md) only (no proto, drops, client text, icons, or maps), empty `public/uploads/` and `var/`. No `vendor/`, `docs/`, tests, or maintainer scripts (`package-release.sh`, `i18n-deepl.php`, `economy-seed-demo.php`). On the host: `composer install --no-dev`. Node is not required there. Copy game files after unpack — [game-files.md](game-files.md).
 
 ### GitHub Release (production tags)
 

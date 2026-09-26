@@ -106,6 +106,7 @@ use Mt2Cms\Setup\EnvWriter;
 use Mt2Cms\Setup\MigrationRunner;
 use Mt2Cms\Setup\SetupInstaller;
 use Mt2Cms\Setup\ThemeCatalog;
+use Mt2Cms\Support\CmsVersion;
 use Mt2Cms\Support\HtmlSanitizer;
 use Mt2Cms\Support\Log;
 use Mt2Cms\Theme\AdminAclTwigExtension;
@@ -388,6 +389,7 @@ class Application
             $sections = $this->acl->filterSections($admin, AdminSections::all());
             $globals['admin_sections'] = $sections;
             $globals['admin_pinned_nav'] = AdminSections::pinnedNavItem($sections);
+            $globals['cms_version'] = CmsVersion::read();
             $engine->addExtension(new AdminAclTwigExtension($this->acl, $this->adminAuth));
         }
 

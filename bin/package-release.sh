@@ -107,6 +107,9 @@ printf '%s\n' '*' '!.gitignore' > "$STAGE/var/.gitignore"
 touch "$STAGE/var/sessions/.gitkeep" \
   "$STAGE/public/uploads/.gitkeep"
 
+# Release version for admin footer (CmsVersion::read)
+printf '%s\n' "$VERSION" > "$STAGE/VERSION"
+
 if [ "${SKIP_ARCHIVE:-0}" != "1" ]; then
   rm -f "$ARCHIVE" "$CHECKSUM"
   tar -czf "$ARCHIVE" -C "$OUT_DIR" "$NAME"
